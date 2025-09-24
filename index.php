@@ -31,7 +31,8 @@
         <div class="upload-section">
             <h3>Upload da Planilha</h3>
             <form id="uploadForm" enctype="multipart/form-data">
-                <input type="file" name="planilha" accept=".xls,.xlsx" required>
+                <!-- Alterar esta linha no index.php -->
+<input type="file" name="planilha" accept=".csv,.xls,.xlsx" required>
                 <button type="submit">Enviar Planilha</button>
             </form>
             <div class="progress" style="display: none;">
