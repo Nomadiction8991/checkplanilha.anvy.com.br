@@ -1,10 +1,9 @@
-
 <?php
 class Database {
-    private $host = 'localhost';        // ex.: localhost
-    private $db_name = 'anvycomb_checkplanilha';    // ex.: inventario
-    private $username = 'anvycomb_checkplanilha';    // ex.: root
-    private $password = 'uGyzaCndm7EDahptkBZd';   // ex.: 123456
+    private $host = 'localhost';
+    private $db_name = 'anvycomb_checkplanilha';
+    private $username = 'anvycomb_checkplanilha';
+    private $password = 'uGyzaCndm7EDahptkBZd';
     private $conn;
 
     public function __construct($host = null, $db = null, $user = null, $pass = null) {
@@ -24,9 +23,9 @@ class Database {
                 PDO::ATTR_EMULATE_PREPARES   => false,
             ]);
         } catch (PDOException $exception) {
-            // Mostra erro claramente no navegador
             die("Erro de conexão: " . $exception->getMessage());
         }
         return $this->conn;
     }
 }
+?>
