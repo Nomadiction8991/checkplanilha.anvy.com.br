@@ -18,11 +18,11 @@ class PlanilhaProcessor {
         $sql = "INSERT INTO {$this->table_name}
             (codigo, nome, fornecedor, localidade, conta, numero_documento,
              dependencia, data_aquisicao, valor_aquisicao, valor_depreciacao,
-             valor_atual, status, checado, data_checagem, usuario_checagem)
+             valor_atual, status, checado, data_checagem, usuario_checagem, nome_novo)
             VALUES
             (:codigo, :nome, :fornecedor, :localidade, :conta, :numero_documento,
              :dependencia, :data_aquisicao, :valor_aquisicao, :valor_depreciacao,
-             :valor_atual, :status, 0, NULL, NULL)";
+             :valor_atual, :status, 0, NULL, NULL, '')";
 
         $stmt = $this->conn->prepare($sql);
 
@@ -53,8 +53,24 @@ class PlanilhaProcessor {
         return $stmt->execute();
     }
 
-    public function marcarComoChecado($codigo, $usuario = 'Sistema') {
-        $sql = "UPDATE {$this->table_name} SET checado = 1, data_checagem = NOW(), usuario_checagem = :usuario WHERE codigo = :codigo";
+    public function marcarComoChecado($codigo, $nome_novo = null, $usuario = 'Sistema') {
+        $sql = "UPDATE {$this->table_name} SET checado = 1, data_checagem = NOW(), usuario_checagem = :usuario";
+        if ($nome_novo) {
+            $sql .= ", nome_novo = :nome_novo";
+        }
+        $sql .= " WHERE codigo = :codigo";
+        
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':codigo', $codigo);
+        $stmt->bindValue(':usuario', $usuario);
+        if ($nome_novo) {
+            $stmt->bindValue(':nome_novo', $nome_novo);
+        }
+        return $stmt->execute();
+    }
+
+    public function desmarcarComoChecado($codigo, $usuario = 'Sistema') {
+        $sql = "UPDATE {$this->table_name} SET checado = 0, data_checagem = NULL, usuario_checagem = :usuario WHERE codigo = :codigo";
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':codigo', $codigo);
         $stmt->bindValue(':usuario', $usuario);
