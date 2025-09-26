@@ -1,5 +1,5 @@
 <?php
-class PlanilhaProcessor {
+class planilhaprocessor {
     /** @var PDO */
     public $conn;
     /** @var string */

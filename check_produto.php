@@ -1,12 +1,36 @@
 <?php
+session_start();
 require_once 'config.php';
 require_once 'planilhaprocessor.php';
 
-session_start();
+// Função para detectar dispositivo
+function detectarDispositivo() {
+    $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? '';
+    
+    // Detecta modelo do celular
+    $modelo = 'Desconhecido';
+    if (preg_match('/iPhone|iPad|iPod/', $user_agent)) {
+        $modelo = 'Apple';
+    } elseif (preg_match('/Samsung/', $user_agent)) {
+        $modelo = 'Samsung';
+    } elseif (preg_match('/Motorola/', $user_agent)) {
+        $modelo = 'Motorola';
+    } elseif (preg_match('/Xiaomi|Redmi/', $user_agent)) {
+        $modelo = 'Xiaomi';
+    } elseif (preg_match('/Huawei/', $user_agent)) {
+        $modelo = 'Huawei';
+    }
+    
+    // Detecta se é mobile
+    $tipo = preg_match('/(android|iphone|ipod|mobile)/i', $user_agent) ? 'Mobile' : 'Desktop';
+    
+    return $modelo . ' - ' . $tipo;
+}
 
-// Define usuário padrão se não estiver logado
+// Define usuário
 if (!isset($_SESSION['usuario'])) {
-    $_SESSION['usuario'] = 'Operador';
+    $dispositivo = detectarDispositivo();
+    $_SESSION['usuario'] = 'Operador (' . $dispositivo . ')';
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -35,10 +59,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($acao === 'marcar') {
             $nome_novo = $_POST['nome_novo'] ?? null;
             $processor->marcarComoChecado($codigo, $nome_novo, $_SESSION['usuario']);
-            $produto = $processor->buscarPorCodigo($codigo); // Atualiza dados
+            $produto = $processor->buscarPorCodigo($codigo);
         } elseif ($acao === 'desmarcar') {
             $processor->desmarcarComoChecado($codigo, $_SESSION['usuario']);
-            $produto = $processor->buscarPorCodigo($codigo); // Atualiza dados
+            $produto = $processor->buscarPorCodigo($codigo);
         }
         
         echo json_encode([
@@ -70,6 +94,7 @@ if (!$produto) {
     exit;
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>

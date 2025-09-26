@@ -24,46 +24,92 @@ $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
 $stmt->execute();
 $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Gerar PDF
+// Gerar PDF - VERSÃO COMPATÍVEL
 if (isset($_GET['pdf'])) {
-    require_once 'vendor/autoload.php';
+    // Verifica se o MPDF existe
+    $mpdfPath = __DIR__ . '/vendor/mpdf/src/Mpdf.php';
     
-    $mpdf = new \Mpdf\Mpdf();
-    $mpdf->WriteHTML('
-        <h1>Lista de Itens - Bens Imobilizados</h1>
-        <table border="1" style="width:100%; border-collapse:collapse;">
-        <tr>
-            <th>Código</th>
-            <th>Nome</th>
-            <th>Nome Novo</th>
-            <th>Dependência</th>
-            <th>Status</th>
-            <th>Checado</th>
-            <th>Data Checagem</th>
-            <th>Usuário</th>
-        </tr>
-    ');
-    
-    foreach ($itens as $item) {
-        $mpdf->WriteHTML('
-            <tr>
-                <td>'.htmlspecialchars($item['codigo']).'</td>
-                <td>'.htmlspecialchars($item['nome'] ?? 'N/A').'</td>
-                <td>'.htmlspecialchars($item['nome_novo'] ?? '').'</td>
-                <td>'.htmlspecialchars($item['dependencia'] ?? 'N/A').'</td>
-                <td>'.htmlspecialchars($item['status'] ?? 'N/A').'</td>
-                <td>'.($item['checado'] ? '✓' : '✗').'</td>
-                <td>'.($item['data_checagem'] ? date('d/m/Y H:i', strtotime($item['data_checagem'])) : '-').'</td>
-                <td>'.htmlspecialchars($item['usuario_checagem'] ?? '').'</td>
-            </tr>
-        ');
+    if (!file_exists($mpdfPath)) {
+        die("
+            <div style='padding: 20px; background: #f8d7da; color: #721c24; border-radius: 5px;'>
+                <h3>⚠️ MPDF não instalado</h3>
+                <p>Para gerar PDF, faça o download manual:</p>
+                <ol>
+                    <li>Baixe MPDF: <a href='https://github.com/mpdf/mpdf/releases'>https://github.com/mpdf/mpdf/releases</a></li>
+                    <li>Extraia na pasta: <strong>vendor/mpdf/</strong></li>
+                    <li>Recarregue esta página</li>
+                </ol>
+                <a href='lista_itens.php' style='color: #007bff;'>← Voltar</a>
+            </div>
+        ");
     }
     
-    $mpdf->WriteHTML('</table>');
-    $mpdf->Output('lista_itens.pdf', 'D');
-    exit;
+    require_once $mpdfPath;
+    
+    try {
+        $mpdf = new \Mpdf\Mpdf([
+            'tempDir' => __DIR__ . '/tmp', // Pasta temporária
+            'mode' => 'utf-8',
+            'format' => 'A4',
+            'default_font_size' => 10,
+            'default_font' => 'arial'
+        ]);
+        
+        $html = '
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Lista de Itens</title>
+            <style>
+                body { font-family: Arial; font-size: 10px; }
+                table { width: 100%; border-collapse: collapse; }
+                th, td { border: 1px solid #000; padding: 5px; }
+                th { background-color: #f2f2f2; }
+            </style>
+        </head>
+        <body>
+            <h1>Lista de Itens - Bens Imobilizados</h1>
+            <table>
+                <tr>
+                    <th>Código</th>
+                    <th>Nome</th>
+                    <th>Nome Novo</th>
+                    <th>Dependência</th>
+                    <th>Status</th>
+                    <th>Checado</th>
+                    <th>Data Checagem</th>
+                    <th>Usuário</th>
+                </tr>
+        ';
+        
+        foreach ($itens as $item) {
+            $html .= '
+                <tr>
+                    <td>'.htmlspecialchars($item['codigo']).'</td>
+                    <td>'.htmlspecialchars($item['nome'] ?? 'N/A').'</td>
+                    <td>'.htmlspecialchars($item['nome_novo'] ?? '').'</td>
+                    <td>'.htmlspecialchars($item['dependencia'] ?? 'N/A').'</td>
+                    <td>'.htmlspecialchars($item['status'] ?? 'N/A').'</td>
+                    <td>'.($item['checado'] ? '✓' : '✗').'</td>
+                    <td>'.($item['data_checagem'] ? date('d/m/Y H:i', strtotime($item['data_checagem'])) : '-').'</td>
+                    <td>'.htmlspecialchars($item['usuario_checagem'] ?? '').'</td>
+                </tr>
+            ';
+        }
+        
+        $html .= '</table></body></html>';
+        
+        $mpdf->WriteHTML($html);
+        $mpdf->Output('lista_itens.pdf', 'D');
+        exit;
+        
+    } catch (Exception $e) {
+        die("Erro ao gerar PDF: " . $e->getMessage());
+    }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
