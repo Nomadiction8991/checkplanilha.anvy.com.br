@@ -1,5 +1,6 @@
 <?php
 require_once 'config.php';
+require_once 'PlanilhaProcessor.php';
 
 header('Content-Type: application/json');
 
@@ -17,14 +18,11 @@ if (empty($codigo)) {
 
 $database = new Database();
 $conn = $database->getConnection();
+$processor = new PlanilhaProcessor($conn);
 
 try {
     // Buscar produto pelo código
-    $query = "SELECT * FROM planilha WHERE codigo = :codigo";
-    $stmt = $conn->prepare($query);
-    $stmt->bindValue(':codigo', $codigo);
-    $stmt->execute();
-    $produto = $stmt->fetch(PDO::FETCH_ASSOC);
+    $produto = $processor->buscarPorCodigo($codigo);
     
     if (!$produto) {
         echo json_encode(['success' => false, 'message' => 'Produto não encontrado']);
@@ -32,10 +30,7 @@ try {
     }
     
     // Marcar como checado
-    $updateQuery = "UPDATE planilha SET checado = 1, data_checagem = NOW(), usuario_checagem = 'Sistema' WHERE codigo = :codigo";
-    $updateStmt = $conn->prepare($updateQuery);
-    $updateStmt->bindValue(':codigo', $codigo);
-    $updateStmt->execute();
+    $processor->marcarComoChecado($codigo);
     
     echo json_encode([
         'success' => true,

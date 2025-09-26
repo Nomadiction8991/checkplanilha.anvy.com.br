@@ -18,11 +18,11 @@ class PlanilhaProcessor {
         $sql = "INSERT INTO {$this->table_name}
             (codigo, nome, fornecedor, localidade, conta, numero_documento,
              dependencia, data_aquisicao, valor_aquisicao, valor_depreciacao,
-             valor_atual, status)
+             valor_atual, status, checado, data_checagem, usuario_checagem)
             VALUES
             (:codigo, :nome, :fornecedor, :localidade, :conta, :numero_documento,
              :dependencia, :data_aquisicao, :valor_aquisicao, :valor_depreciacao,
-             :valor_atual, :status)";
+             :valor_atual, :status, 0, NULL, NULL)";
 
         $stmt = $this->conn->prepare($sql);
 
@@ -53,8 +53,24 @@ class PlanilhaProcessor {
         return $stmt->execute();
     }
 
+    public function marcarComoChecado($codigo, $usuario = 'Sistema') {
+        $sql = "UPDATE {$this->table_name} SET checado = 1, data_checagem = NOW(), usuario_checagem = :usuario WHERE codigo = :codigo";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':codigo', $codigo);
+        $stmt->bindValue(':usuario', $usuario);
+        return $stmt->execute();
+    }
+
     public function truncateTabela() {
         $this->conn->exec("TRUNCATE TABLE {$this->table_name}");
+    }
+
+    public function buscarPorCodigo($codigo) {
+        $sql = "SELECT * FROM {$this->table_name} WHERE codigo = :codigo";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':codigo', $codigo);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 }
 ?>

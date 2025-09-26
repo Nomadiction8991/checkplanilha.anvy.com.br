@@ -1,8 +1,6 @@
 <?php
 require_once 'config.php';
 
-header('Content-Type: application/json');
-
 $database = new Database();
 $conn = $database->getConnection();
 
@@ -24,44 +22,55 @@ $stmt->bindValue(':limit', $itensPorPagina, PDO::PARAM_INT);
 $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
 $stmt->execute();
 $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-$html = '';
-if (empty($itens)) {
-    $html = '<div class="info">Nenhum item encontrado.</div>';
-} else {
-    $html .= '<table>';
-    $html .= '<thead><tr>
-                <th>Código</th>
-                <th>Nome</th>
-                <th>Localidade</th>
-                <th>Status</th>
-                <th>Checado</th>
-                <th>Data Checagem</th>
-              </tr></thead>';
-    $html .= '<tbody>';
-    
-    foreach ($itens as $item) {
-        $classe = $item['checado'] ? 'checado' : '';
-        $checado = $item['checado'] ? '✓' : '✗';
-        $dataChecagem = $item['data_checagem'] ? date('d/m/Y H:i', strtotime($item['data_checagem'])) : '-';
-        
-        $html .= '<tr class="' . $classe . '">';
-        $html .= '<td>' . htmlspecialchars($item['codigo']) . '</td>';
-        $html .= '<td>' . htmlspecialchars($item['nome'] ?? 'N/A') . '</td>';
-        $html .= '<td>' . htmlspecialchars($item['localidade'] ?? 'N/A') . '</td>';
-        $html .= '<td>' . htmlspecialchars($item['status'] ?? 'N/A') . '</td>';
-        $html .= '<td>' . $checado . '</td>';
-        $html .= '<td>' . $dataChecagem . '</td>';
-        $html .= '</tr>';
-    }
-    
-    $html .= '</tbody></table>';
-}
-
-echo json_encode([
-    'html' => $html,
-    'totalPaginas' => $totalPaginas,
-    'paginaAtual' => $pagina,
-    'totalItens' => $totalItens
-]);
 ?>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Lista de Itens</title>
+</head>
+<body>
+    <h1>Lista de Itens (<?php echo $totalItens; ?> itens no total)</h1>
+    <a href="index.php">← Voltar</a>
+    
+    <?php if (empty($itens)): ?>
+        <p>Nenhum item encontrado.</p>
+    <?php else: ?>
+        <table border="1" style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Nome</th>
+                    <th>Localidade</th>
+                    <th>Status</th>
+                    <th>Checado</th>
+                    <th>Data Checagem</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($itens as $item): ?>
+                    <tr style="<?php echo $item['checado'] ? 'background-color: #d4edda;' : ''; ?>">
+                        <td><?php echo htmlspecialchars($item['codigo']); ?></td>
+                        <td><?php echo htmlspecialchars($item['nome'] ?? 'N/A'); ?></td>
+                        <td><?php echo htmlspecialchars($item['localidade'] ?? 'N/A'); ?></td>
+                        <td><?php echo htmlspecialchars($item['status'] ?? 'N/A'); ?></td>
+                        <td><?php echo $item['checado'] ? '✓' : '✗'; ?></td>
+                        <td><?php echo $item['data_checagem'] ? date('d/m/Y H:i', strtotime($item['data_checagem'])) : '-'; ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+        
+        <!-- Paginação -->
+        <div style="margin-top: 20px;">
+            <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
+                <a href="?pagina=<?php echo $i; ?>" 
+                   style="padding: 5px 10px; border: 1px solid #ccc; margin: 0 2px; 
+                          <?php echo $i == $pagina ? 'background-color: #007bff; color: white;' : ''; ?>">
+                    <?php echo $i; ?>
+                </a>
+            <?php endfor; ?>
+        </div>
+    <?php endif; ?>
+</body>
+</html>
