@@ -9,7 +9,7 @@ $offset = ($pagina - 1) * $limite;
 // Filtros
 $filtro_descricao = isset($_GET['descricao']) ? $_GET['descricao'] : '';
 $filtro_status = isset($_GET['status']) ? $_GET['status'] : '';
-$exibir_inativos = isset($_GET['exibir_inativos']) ? true : false;
+$mostrar_inativos = isset($_GET['mostrar_inativos']) ? true : false;
 
 // Construir a query base
 $sql = "SELECT * FROM planilhas WHERE 1=1";
@@ -28,7 +28,11 @@ if (!empty($filtro_status)) {
 }
 
 // Filtro de ativos/inativos
-if (!$exibir_inativos) {
+if ($mostrar_inativos) {
+    // Checkbox marcado: mostrar apenas inativos
+    $sql .= " AND ativo = 0";
+} else {
+    // Checkbox desmarcado: mostrar apenas ativos (padrão)
     $sql .= " AND ativo = 1";
 }
 
@@ -106,12 +110,12 @@ $status_options = $stmt_status->fetchAll(PDO::FETCH_COLUMN);
                 </select>
             </div>
 
-            <!-- Checkbox exibir inativos -->
+            <!-- Checkbox mostrar inativos -->
             <div>
                 <label>
-                    <input type="checkbox" name="exibir_inativos" value="1" 
-                        <?php echo $exibir_inativos ? 'checked' : ''; ?>>
-                    Exibir inativos
+                    <input type="checkbox" name="mostrar_inativos" value="1" 
+                        <?php echo $mostrar_inativos ? 'checked' : ''; ?>>
+                    Mostrar apenas inativos
                 </label>
             </div>
 
@@ -163,7 +167,7 @@ $status_options = $stmt_status->fetchAll(PDO::FETCH_COLUMN);
         <?php if ($total_paginas > 1): ?>
             <div style="margin-top: 20px; text-align: center;">
                 <?php if ($pagina > 1): ?>
-                    <a href="?pagina=<?php echo $pagina - 1; ?>&descricao=<?php echo urlencode($filtro_descricao); ?>&status=<?php echo urlencode($filtro_status); ?>&exibir_inativos=<?php echo $exibir_inativos ? '1' : '0'; ?>" 
+                    <a href="?pagina=<?php echo $pagina - 1; ?>&descricao=<?php echo urlencode($filtro_descricao); ?>&status=<?php echo urlencode($filtro_status); ?>&mostrar_inativos=<?php echo $mostrar_inativos ? '1' : '0'; ?>" 
                        style="margin-right: 10px; text-decoration: none;">&laquo; Anterior</a>
                 <?php endif; ?>
 
@@ -171,13 +175,13 @@ $status_options = $stmt_status->fetchAll(PDO::FETCH_COLUMN);
                     <?php if ($i == $pagina): ?>
                         <strong style="margin: 0 5px;"><?php echo $i; ?></strong>
                     <?php else: ?>
-                        <a href="?pagina=<?php echo $i; ?>&descricao=<?php echo urlencode($filtro_descricao); ?>&status=<?php echo urlencode($filtro_status); ?>&exibir_inativos=<?php echo $exibir_inativos ? '1' : '0'; ?>" 
+                        <a href="?pagina=<?php echo $i; ?>&descricao=<?php echo urlencode($filtro_descricao); ?>&status=<?php echo urlencode($filtro_status); ?>&mostrar_inativos=<?php echo $mostrar_inativos ? '1' : '0'; ?>" 
                            style="margin: 0 5px; text-decoration: none;"><?php echo $i; ?></a>
                     <?php endif; ?>
                 <?php endfor; ?>
 
                 <?php if ($pagina < $total_paginas): ?>
-                    <a href="?pagina=<?php echo $pagina + 1; ?>&descricao=<?php echo urlencode($filtro_descricao); ?>&status=<?php echo urlencode($filtro_status); ?>&exibir_inativos=<?php echo $exibir_inativos ? '1' : '0'; ?>" 
+                    <a href="?pagina=<?php echo $pagina + 1; ?>&descricao=<?php echo urlencode($filtro_descricao); ?>&status=<?php echo urlencode($filtro_status); ?>&mostrar_inativos=<?php echo $mostrar_inativos ? '1' : '0'; ?>" 
                        style="margin-left: 10px; text-decoration: none;">Próxima &raquo;</a>
                 <?php endif; ?>
             </div>

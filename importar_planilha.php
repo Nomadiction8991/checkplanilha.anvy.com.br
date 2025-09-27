@@ -79,6 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $registros_importados = 0;
         $registros_erros = 0;
         $linha_atual = 0;
+        $erro_detalhado = '';
 
         // Função para converter letra da coluna para índice numérico
         function colunaParaIndice($coluna) {
@@ -97,7 +98,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         function converterValor($valor) {
             if (empty(trim($valor))) return null;
             
-            $valor = str_replace(['R$', '.', ','], ['', '', '.'], trim($valor));
+            // Remove R$, espaços e trata formato brasileiro
+            $valor = str_replace(['R$', ' ', '.'], '', trim($valor));
+            $valor = str_replace(',', '.', $valor);
             $valor = preg_replace('/[^0-9.]/', '', $valor);
             
             return is_numeric($valor) ? (float)$valor : null;
@@ -112,47 +115,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             // Verificar se a linha está vazia
-            if (empty(array_filter($linha))) {
+            if (empty(array_filter($linha, function($v) { return $v !== null && $v !== ''; }))) {
                 continue;
             }
-
-            // Obter valores baseado no mapeamento
-            $codigo = trim($linha[colunaParaIndice($mapeamento['codigo'])] ?? '');
-            
-            // Pular linha se não tiver código
-            if (empty($codigo)) {
-                continue;
-            }
-
-            $nome = trim($linha[colunaParaIndice($mapeamento['nome'])] ?? '');
-            $fornecedor = trim($linha[colunaParaIndice($mapeamento['fornecedor'])] ?? '');
-            $localidade = trim($linha[colunaParaIndice($mapeamento['localidade'])] ?? '');
-            $conta = trim($linha[colunaParaIndice($mapeamento['conta'])] ?? '');
-            $numero_documento = trim($linha[colunaParaIndice($mapeamento['numero_documento'])] ?? '');
-            $dependencia = trim($linha[colunaParaIndice($mapeamento['dependencia'])] ?? '');
-            
-            // Processar data
-            $data_aquisicao = null;
-            $data_raw = trim($linha[colunaParaIndice($mapeamento['data_aquisicao'])] ?? '');
-            if (!empty($data_raw)) {
-                if (is_numeric($data_raw)) {
-                    // Se for número do Excel (formato date)
-                    $data_aquisicao = Date::excelToDateTimeObject($data_raw)->format('Y-m-d');
-                } else {
-                    // Tentar converter de formato texto
-                    $data_timestamp = strtotime(str_replace('/', '-', $data_raw));
-                    if ($data_timestamp !== false) {
-                        $data_aquisicao = date('Y-m-d', $data_timestamp);
-                    }
-                }
-            }
-
-            $valor_aquisicao = converterValor($linha[colunaParaIndice($mapeamento['valor_aquisicao'])] ?? '');
-            $valor_depreciado = converterValor($linha[colunaParaIndice($mapeamento['valor_depreciado'])] ?? '');
-            $valor_atual = converterValor($linha[colunaParaIndice($mapeamento['valor_atual'])] ?? '');
-            $status = trim($linha[colunaParaIndice($mapeamento['status'])] ?? '');
 
             try {
+                // Obter valores baseado no mapeamento
+                $indice_codigo = colunaParaIndice($mapeamento['codigo']);
+                $codigo = isset($linha[$indice_codigo]) ? trim($linha[$indice_codigo]) : '';
+                
+                // Pular linha se não tiver código
+                if (empty($codigo)) {
+                    continue;
+                }
+
+                // Obter outros valores
+                $nome = isset($linha[colunaParaIndice($mapeamento['nome'])]) ? trim($linha[colunaParaIndice($mapeamento['nome'])]) : '';
+                $fornecedor = isset($linha[colunaParaIndice($mapeamento['fornecedor'])]) ? trim($linha[colunaParaIndice($mapeamento['fornecedor'])]) : '';
+                $localidade = isset($linha[colunaParaIndice($mapeamento['localidade'])]) ? trim($linha[colunaParaIndice($mapeamento['localidade'])]) : '';
+                $conta = isset($linha[colunaParaIndice($mapeamento['conta'])]) ? trim($linha[colunaParaIndice($mapeamento['conta'])]) : '';
+                $numero_documento = isset($linha[colunaParaIndice($mapeamento['numero_documento'])]) ? trim($linha[colunaParaIndice($mapeamento['numero_documento'])]) : '';
+                $dependencia = isset($linha[colunaParaIndice($mapeamento['dependencia'])]) ? trim($linha[colunaParaIndice($mapeamento['dependencia'])]) : '';
+                
+                // Processar data
+                $data_aquisicao = null;
+                $data_raw = isset($linha[colunaParaIndice($mapeamento['data_aquisicao'])]) ? trim($linha[colunaParaIndice($mapeamento['data_aquisicao'])]) : '';
+                if (!empty($data_raw)) {
+                    if (is_numeric($data_raw)) {
+                        // Se for número do Excel (formato date)
+                        $data_aquisicao = Date::excelToDateTimeObject($data_raw)->format('Y-m-d');
+                    } else {
+                        // Tentar converter de formato texto
+                        $data_timestamp = strtotime(str_replace('/', '-', $data_raw));
+                        if ($data_timestamp !== false) {
+                            $data_aquisicao = date('Y-m-d', $data_timestamp);
+                        }
+                    }
+                }
+
+                $valor_aquisicao = converterValor(isset($linha[colunaParaIndice($mapeamento['valor_aquisicao'])]) ? $linha[colunaParaIndice($mapeamento['valor_aquisicao'])] : '');
+                $valor_depreciado = converterValor(isset($linha[colunaParaIndice($mapeamento['valor_depreciado'])]) ? $linha[colunaParaIndice($mapeamento['valor_depreciado'])] : '');
+                $valor_atual = converterValor(isset($linha[colunaParaIndice($mapeamento['valor_atual'])]) ? $linha[colunaParaIndice($mapeamento['valor_atual'])] : '');
+                $status = isset($linha[colunaParaIndice($mapeamento['status'])]) ? trim($linha[colunaParaIndice($mapeamento['status'])]) : '';
+
+                // Debug: mostrar dados que serão inseridos
+                error_log("Linha {$linha_atual}: Código: {$codigo}, Nome: {$nome}");
+
                 // Inserir o produto
                 $sql_produto = "INSERT INTO produtos 
                     (codigo, nome, fornecedor, localidade, conta, numero_documento, 
@@ -182,13 +190,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $registros_importados++;
                 } else {
                     $registros_erros++;
+                    $errorInfo = $stmt_produto->errorInfo();
+                    $erro_detalhado = "Erro SQL: " . $errorInfo[2] . " na linha " . $linha_atual;
+                    error_log($erro_detalhado);
                 }
 
             } catch (Exception $e) {
                 $registros_erros++;
-                // Log do erro (opcional)
-                error_log("Erro ao importar produto: " . $e->getMessage());
+                $erro_detalhado = "Erro na linha {$linha_atual}: " . $e->getMessage();
+                error_log($erro_detalhado);
             }
+        }
+
+        if ($registros_importados === 0 && $registros_erros > 0) {
+            throw new Exception("Nenhum registro foi importado. Erro: " . $erro_detalhado);
         }
 
         // Confirmar transação
@@ -197,8 +212,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $mensagem = "Importação concluída com sucesso!<br>
                     Planilha: {$descricao}<br>
                     Registros importados: {$registros_importados}<br>
-                    Erros: {$registros_erros}<br>
-                    Configurações salvas para futuras importações";
+                    Erros: {$registros_erros}";
+        
+        if (!empty($erro_detalhado)) {
+            $mensagem .= "<br><br>Detalhes do último erro:<br>" . $erro_detalhado;
+        }
+        
         $tipo_mensagem = 'success';
 
     } catch (Exception $e) {
@@ -208,6 +227,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $mensagem = "Erro na importação: " . $e->getMessage();
         $tipo_mensagem = 'error';
+        
+        // Log detalhado do erro
+        error_log("ERRO IMPORTACAO: " . $e->getMessage());
+        error_log("Trace: " . $e->getTraceAsString());
     }
 }
 ?>
@@ -232,6 +255,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
         button:hover { background: #0056b3; }
         small { color: #666; font-style: italic; }
+        .debug-info { background: #f8f9fa; padding: 10px; border: 1px solid #dee2e6; margin: 10px 0; }
     </style>
 </head>
 <body>
@@ -246,6 +270,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <?php echo $mensagem; ?>
         </div>
     <?php endif; ?>
+
+    <!-- Debug Info -->
+    <div class="debug-info">
+        <strong>Informações de Debug:</strong><br>
+        - Certifique-se de que a tabela 'produtos' existe com as colunas corretas<br>
+        - Verifique se as letras das colunas correspondem ao seu arquivo CSV<br>
+        - Ajuste o número de linhas a pular conforme necessário
+    </div>
 
     <form method="POST" enctype="multipart/form-data">
         <!-- Campo Descrição -->
