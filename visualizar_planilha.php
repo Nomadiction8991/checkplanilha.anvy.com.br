@@ -108,6 +108,7 @@ $dependencia_options = array_unique(array_column($valores_filtros, 'dependencia'
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Visualizar Planilha - <?php echo htmlspecialchars($planilha['descricao']); ?></title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
         .message { padding: 10px; margin: 10px 0; border-radius: 4px; }
@@ -120,10 +121,11 @@ $dependencia_options = array_unique(array_column($valores_filtros, 'dependencia'
         .filtro-item input, .filtro-item select { width: 100%; padding: 8px; box-sizing: border-box; }
         
         .botoes-topo { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .btn { padding: 10px 15px; text-decoration: none; border-radius: 4px; display: inline-block; }
+        .btn { padding: 10px 15px; text-decoration: none; border-radius: 4px; display: inline-block; border: none; cursor: pointer; }
         .btn-primary { background: #007bff; color: white; }
         .btn-success { background: #28a745; color: white; }
         .btn-warning { background: #ffc107; color: black; }
+        .btn-danger { background: #dc3545; color: white; }
         
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
@@ -137,9 +139,65 @@ $dependencia_options = array_unique(array_column($valores_filtros, 'dependencia'
         .paginacao a, .paginacao strong { padding: 5px 10px; margin: 0 2px; border: 1px solid #ddd; text-decoration: none; }
         .paginacao strong { background: #007bff; color: white; }
         
-        .camera-section { background: #e9ecef; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
-        #cameraPreview { width: 100%; max-width: 300px; height: 200px; border: 1px solid #ccc; margin: 10px 0; }
-        .camera-buttons { display: flex; gap: 10px; }
+        /* Modal da Câmera */
+        .modal-camera {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+        }
+        
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            position: relative;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close-modal:hover {
+            color: #000;
+        }
+        
+        #cameraPreview {
+            width: 100%;
+            max-width: 100%;
+            height: 400px;
+            border: 1px solid #ccc;
+            margin: 10px 0;
+            background-color: #000;
+        }
+        
+        .camera-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        
+        .btn-scan {
+            background: #17a2b8;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
     </style>
 </head>
 <body>
@@ -148,17 +206,27 @@ $dependencia_options = array_unique(array_column($valores_filtros, 'dependencia'
     <div class="botoes-topo">
         <a href="index.php" class="btn btn-primary">← Voltar para Listagem</a>
         <a href="imprimiralteracao_planilha.php?id=<?php echo $id_planilha; ?>" class="btn btn-warning" target="_blank">Imprimir Alterações</a>
+        <button onclick="abrirModalCamera()" class="btn btn-scan">
+            <i class="fas fa-camera"></i> Scannear
+        </button>
     </div>
 
-    <!-- Seção da Câmera -->
-    <div class="camera-section">
-        <h3>Scanner de Código</h3>
-        <div id="cameraPreview"></div>
-        <div class="camera-buttons">
-            <button onclick="iniciarCamera()" class="btn btn-primary">Iniciar Câmera</button>
-            <button onclick="pararCamera()" class="btn btn-primary">Parar Câmera</button>
+    <!-- Modal da Câmera -->
+    <div id="modalCamera" class="modal-camera">
+        <div class="modal-content">
+            <span class="close-modal" onclick="fecharModalCamera()">&times;</span>
+            <h3>Scanner de Código</h3>
+            <div id="cameraPreview"></div>
+            <div class="camera-buttons">
+                <button onclick="iniciarCamera()" class="btn btn-primary">
+                    <i class="fas fa-play"></i> Iniciar Câmera
+                </button>
+                <button onclick="pararCamera()" class="btn btn-danger">
+                    <i class="fas fa-stop"></i> Parar Câmera
+                </button>
+            </div>
+            <p id="cameraStatus">Câmera não iniciada</p>
         </div>
-        <p id="cameraStatus">Câmera não iniciada</p>
     </div>
 
     <!-- Formulário de Filtros -->
@@ -301,10 +369,27 @@ $dependencia_options = array_unique(array_column($valores_filtros, 'dependencia'
 
     <script>
         let stream = null;
+        let modalCamera = document.getElementById('modalCamera');
+        
+        function abrirModalCamera() {
+            modalCamera.style.display = 'block';
+        }
+        
+        function fecharModalCamera() {
+            modalCamera.style.display = 'none';
+            pararCamera();
+        }
+        
+        // Fechar modal clicando fora dele
+        window.onclick = function(event) {
+            if (event.target == modalCamera) {
+                fecharModalCamera();
+            }
+        }
         
         function iniciarCamera() {
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                navigator.mediaDevices.getUserMedia({ video: true })
+                navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
                     .then(function(mediaStream) {
                         stream = mediaStream;
                         const video = document.getElementById('cameraPreview');
@@ -335,6 +420,7 @@ $dependencia_options = array_unique(array_column($valores_filtros, 'dependencia'
             const codigoSimulado = prompt('Digite o código do produto (na implementação real, isso seria lido pela câmera):');
             if (codigoSimulado) {
                 window.location.href = 'editar_produto.php?codigo=' + encodeURIComponent(codigoSimulado) + '&id_planilha=<?php echo $id_planilha; ?>';
+                fecharModalCamera();
             }
         });
     </script>
