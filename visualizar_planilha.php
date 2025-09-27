@@ -109,7 +109,79 @@ $dependencia_options = array_unique(array_column($valores_filtros, 'dependencia'
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Visualizar Planilha - <?php echo htmlspecialchars($planilha['descricao']); ?></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+<script>
+    let html5QrcodeScanner = null;
+    let modalCamera = document.getElementById('modalCamera');
+
+    function abrirModalCamera() {
+        modalCamera.style.display = 'block';
+    }
+
+    function fecharModalCamera() {
+        modalCamera.style.display = 'none';
+        pararScanner();
+    }
+
+    // Fechar modal clicando fora
+    window.onclick = function(event) {
+        if (event.target == modalCamera) {
+            fecharModalCamera();
+        }
+    }
+
+    function iniciarScanner() {
+        if (!html5QrcodeScanner) {
+            html5QrcodeScanner = new Html5Qrcode("reader");
+        }
+
+        Html5Qrcode.getCameras().then(cameras => {
+            if (cameras && cameras.length) {
+                const cameraId = cameras[0].id; // pega a primeira câmera
+                html5QrcodeScanner.start(
+                    cameraId,
+                    {
+                        fps: 10,
+                        qrbox: { width: 250, height: 250 }
+                    },
+                    qrCodeMessage => {
+                        // Quando o QR Code for lido
+                        alert("Código detectado: " + qrCodeMessage);
+                        fecharModalCamera();
+                    },
+                    errorMessage => {
+                        document.getElementById("cameraStatus").innerText =
+                            "Erro: " + errorMessage;
+                    }
+                ).then(() => {
+                    document.getElementById("cameraStatus").innerText =
+                        "Scanner iniciado!";
+                }).catch(err => {
+                    document.getElementById("cameraStatus").innerText =
+                        "Erro ao iniciar câmera: " + err;
+                });
+            } else {
+                document.getElementById("cameraStatus").innerText =
+                    "Nenhuma câmera encontrada.";
+            }
+        }).catch(err => {
+            document.getElementById("cameraStatus").innerText =
+                "Erro ao acessar câmera: " + err;
+        });
+    }
+
+    function pararScanner() {
+        if (html5QrcodeScanner) {
+            html5QrcodeScanner.stop().then(() => {
+                document.getElementById("cameraStatus").innerText =
+                    "Scanner parado.";
+            }).catch(err => {
+                console.error("Erro ao parar scanner", err);
+            });
+        }
+    }
+</script>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
         .message { padding: 10px; margin: 10px 0; border-radius: 4px; }
