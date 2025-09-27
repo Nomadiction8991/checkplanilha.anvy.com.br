@@ -250,16 +250,10 @@ $total_geral = $total_com_observacoes + $total_sem_observacoes;
             <table>
                 <thead>
                     <tr>
-                        <th width="8%">Código</th>
-                        <th width="20%">Nome</th>
-                        <th width="12%">Fornecedor</th>
-                        <th width="10%">Localidade</th>
-                        <th width="8%">Conta</th>
-                        <th width="10%">Nº Documento</th>
-                        <th width="12%">Dependência</th>
-                        <th width="8%">Data Aquisição</th>
-                        <th width="8%">Valor Atual</th>
-                        <th width="8%">Status</th>
+                        <th width="15%">Código</th>
+                        <th width="30%">Nome</th>
+                        <th width="25%">Dependência</th>
+                        <th width="10%">Status</th>
                         <th width="20%">Observações</th>
                     </tr>
                 </thead>
@@ -268,13 +262,7 @@ $total_geral = $total_com_observacoes + $total_sem_observacoes;
                         <tr>
                             <td><strong><?php echo htmlspecialchars($produto['codigo']); ?></strong></td>
                             <td><?php echo htmlspecialchars($produto['nome']); ?></td>
-                            <td><?php echo htmlspecialchars($produto['fornecedor']); ?></td>
-                            <td><?php echo htmlspecialchars($produto['localidade']); ?></td>
-                            <td><?php echo htmlspecialchars($produto['conta']); ?></td>
-                            <td><?php echo htmlspecialchars($produto['numero_documento']); ?></td>
                             <td><?php echo htmlspecialchars($produto['dependencia']); ?></td>
-                            <td><?php echo htmlspecialchars($produto['data_aquisicao']); ?></td>
-                            <td class="valor-monetario">R$ <?php echo number_format($produto['valor_atual'], 2, ',', '.'); ?></td>
                             <td><?php echo htmlspecialchars($produto['status']); ?></td>
                             <td class="observacao-cell"><?php echo htmlspecialchars($produto['observacoes']); ?></td>
                         </tr>
@@ -299,16 +287,10 @@ $total_geral = $total_com_observacoes + $total_sem_observacoes;
             <table>
                 <thead>
                     <tr>
-                        <th width="10%">Código</th>
-                        <th width="22%">Nome</th>
-                        <th width="14%">Fornecedor</th>
-                        <th width="10%">Localidade</th>
-                        <th width="8%">Conta</th>
-                        <th width="10%">Nº Documento</th>
-                        <th width="14%">Dependência</th>
-                        <th width="8%">Data Aquisição</th>
-                        <th width="8%">Valor Atual</th>
-                        <th width="8%">Status</th>
+                        <th width="15%">Código</th>
+                        <th width="35%">Nome</th>
+                        <th width="30%">Dependência</th>
+                        <th width="20%">Status</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -316,13 +298,7 @@ $total_geral = $total_com_observacoes + $total_sem_observacoes;
                         <tr>
                             <td><strong><?php echo htmlspecialchars($produto['codigo']); ?></strong></td>
                             <td><?php echo htmlspecialchars($produto['nome']); ?></td>
-                            <td><?php echo htmlspecialchars($produto['fornecedor']); ?></td>
-                            <td><?php echo htmlspecialchars($produto['localidade']); ?></td>
-                            <td><?php echo htmlspecialchars($produto['conta']); ?></td>
-                            <td><?php echo htmlspecialchars($produto['numero_documento']); ?></td>
                             <td><?php echo htmlspecialchars($produto['dependencia']); ?></td>
-                            <td><?php echo htmlspecialchars($produto['data_aquisicao']); ?></td>
-                            <td class="valor-monetario">R$ <?php echo number_format($produto['valor_atual'], 2, ',', '.'); ?></td>
                             <td><?php echo htmlspecialchars($produto['status']); ?></td>
                         </tr>
                     <?php endforeach; ?>

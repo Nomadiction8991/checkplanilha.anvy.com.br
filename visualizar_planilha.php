@@ -110,78 +110,6 @@ $dependencia_options = array_unique(array_column($valores_filtros, 'dependencia'
     <title>Visualizar Planilha - <?php echo htmlspecialchars($planilha['descricao']); ?></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-
-<script>
-    let html5QrcodeScanner = null;
-    let modalCamera = document.getElementById('modalCamera');
-
-    function abrirModalCamera() {
-        modalCamera.style.display = 'block';
-    }
-
-    function fecharModalCamera() {
-        modalCamera.style.display = 'none';
-        pararScanner();
-    }
-
-    // Fechar modal clicando fora
-    window.onclick = function(event) {
-        if (event.target == modalCamera) {
-            fecharModalCamera();
-        }
-    }
-
-    function iniciarScanner() {
-        if (!html5QrcodeScanner) {
-            html5QrcodeScanner = new Html5Qrcode("reader");
-        }
-
-        Html5Qrcode.getCameras().then(cameras => {
-            if (cameras && cameras.length) {
-                const cameraId = cameras[0].id; // pega a primeira câmera
-                html5QrcodeScanner.start(
-                    cameraId,
-                    {
-                        fps: 10,
-                        qrbox: { width: 250, height: 250 }
-                    },
-                    qrCodeMessage => {
-                        // Quando o QR Code for lido
-                        alert("Código detectado: " + qrCodeMessage);
-                        fecharModalCamera();
-                    },
-                    errorMessage => {
-                        document.getElementById("cameraStatus").innerText =
-                            "Erro: " + errorMessage;
-                    }
-                ).then(() => {
-                    document.getElementById("cameraStatus").innerText =
-                        "Scanner iniciado!";
-                }).catch(err => {
-                    document.getElementById("cameraStatus").innerText =
-                        "Erro ao iniciar câmera: " + err;
-                });
-            } else {
-                document.getElementById("cameraStatus").innerText =
-                    "Nenhuma câmera encontrada.";
-            }
-        }).catch(err => {
-            document.getElementById("cameraStatus").innerText =
-                "Erro ao acessar câmera: " + err;
-        });
-    }
-
-    function pararScanner() {
-        if (html5QrcodeScanner) {
-            html5QrcodeScanner.stop().then(() => {
-                document.getElementById("cameraStatus").innerText =
-                    "Scanner parado.";
-            }).catch(err => {
-                console.error("Erro ao parar scanner", err);
-            });
-        }
-    }
-</script>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
         .message { padding: 10px; margin: 10px 0; border-radius: 4px; }
@@ -429,7 +357,7 @@ $dependencia_options = array_unique(array_column($valores_filtros, 'dependencia'
 
     <script>
         let html5QrcodeScanner = null;
-        let modalCamera = document.getElementById('modalCamera');
+        const modalCamera = document.getElementById('modalCamera');
         
         function abrirModalCamera() {
             modalCamera.style.display = 'block';
@@ -440,60 +368,68 @@ $dependencia_options = array_unique(array_column($valores_filtros, 'dependencia'
             pararScanner();
         }
         
-        // Fechar modal clicando fora dele
+        // Fechar modal clicando fora
         window.onclick = function(event) {
-            if (event.target == modalCamera) {
+            if (event.target === modalCamera) {
                 fecharModalCamera();
             }
-        }
+        };
         
         function iniciarScanner() {
-            if (!html5QrcodeScanner) {
-                html5QrcodeScanner = new Html5Qrcode("reader");
-                
-                Html5Qrcode.getCameras().then(cameras => {
-                    if (cameras && cameras.length) {
-                        const cameraId = cameras[0].id;
-                        
-                        html5QrcodeScanner.start(
-                            cameraId,
-                            {
-                                fps: 10,
-                                qrbox: { width: 250, height: 250 }
-                            },
-                            (decodedText) => {
-                                // Código escaneado com sucesso
-                                window.location.href = 'editar_produto.php?codigo=' + 
-                                    encodeURIComponent(decodedText) + 
-                                    '&id_planilha=<?php echo $id_planilha; ?>';
-                                fecharModalCamera();
-                            },
-                            (errorMessage) => {
-                                // Ignorar erros de parsing
+            // Parar scanner anterior se existir
+            if (html5QrcodeScanner && html5QrcodeScanner.isScanning) {
+                pararScanner();
+            }
+            
+            html5QrcodeScanner = new Html5Qrcode("reader");
+            
+            Html5Qrcode.getCameras().then(cameras => {
+                if (cameras && cameras.length) {
+                    const cameraId = cameras[0].id;
+                    
+                    html5QrcodeScanner.start(
+                        cameraId,
+                        {
+                            fps: 10,
+                            qrbox: { width: 250, height: 250 },
+                            supportedScanTypes: [
+                                Html5QrcodeScanType.SCAN_TYPE_CAMERA
+                            ]
+                        },
+                        (decodedText) => {
+                            // Código escaneado com sucesso - redirecionar para edição
+                            window.location.href = 'editar_produto.php?codigo=' + 
+                                encodeURIComponent(decodedText) + 
+                                '&id_planilha=<?php echo $id_planilha; ?>';
+                        },
+                        (errorMessage) => {
+                            // Ignorar mensagens de erro normais durante a leitura
+                            if (!errorMessage.includes('NotFoundException') && 
+                                !errorMessage.includes('NoMultiFormatReader')) {
+                                console.log('Erro de leitura:', errorMessage);
                             }
-                        ).catch(err => {
-                            document.getElementById('cameraStatus').textContent = 
-                                'Erro ao iniciar scanner: ' + err;
-                        });
-                        
+                        }
+                    ).then(() => {
                         document.getElementById('cameraStatus').textContent = 
                             'Scanner ativo - Aponte para o código de barras';
-                    } else {
+                    }).catch(err => {
                         document.getElementById('cameraStatus').textContent = 
-                            'Nenhuma câmera encontrada';
-                    }
-                }).catch(err => {
+                            'Erro ao iniciar scanner: ' + err;
+                    });
+                } else {
                     document.getElementById('cameraStatus').textContent = 
-                        'Erro ao acessar câmeras: ' + err;
-                });
-            }
+                        'Nenhuma câmera encontrada';
+                }
+            }).catch(err => {
+                document.getElementById('cameraStatus').textContent = 
+                    'Erro ao acessar câmeras: ' + err;
+            });
         }
         
         function pararScanner() {
             if (html5QrcodeScanner) {
                 html5QrcodeScanner.stop().then(() => {
                     html5QrcodeScanner.clear();
-                    html5QrcodeScanner = null;
                     document.getElementById('cameraStatus').textContent = 'Scanner parado';
                 }).catch(err => {
                     console.error("Erro ao parar scanner:", err);
