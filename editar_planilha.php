@@ -83,6 +83,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception('O status é obrigatório.');
         }
 
+        // Validar se o status é um dos valores permitidos
+        $status_permitidos = ['Pendente', 'Em Execução', 'Concluído'];
+        if (!in_array($status, $status_permitidos)) {
+            throw new Exception('Status inválido. Valores permitidos: Pendente, Em Execução, Concluído.');
+        }
+
         // Iniciar transação para garantir consistência dos dados
         $conexao->beginTransaction();
 
@@ -125,8 +131,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt_delete_produtos->execute();
 
             // Processar o novo arquivo CSV
-            $planilha = IOFactory::load($arquivo_tmp);
-            $aba_ativa = $planilha->getActiveSheet();
+            $planilha_obj = IOFactory::load($arquivo_tmp);
+            $aba_ativa = $planilha_obj->getActiveSheet();
             $linhas = $aba_ativa->toArray();
 
             $registros_importados = 0;
@@ -342,10 +348,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <label for="status">Status da Planilha:</label>
             <select id="status" name="status" required>
                 <option value="">Selecione um status</option>
-                <option value="ativo" <?php echo ($planilha['status'] ?? '') === 'ativo' ? 'selected' : ''; ?>>Ativo</option>
-                <option value="inativo" <?php echo ($planilha['status'] ?? '') === 'inativo' ? 'selected' : ''; ?>>Inativo</option>
-                <option value="pendente" <?php echo ($planilha['status'] ?? '') === 'pendente' ? 'selected' : ''; ?>>Pendente</option>
-                <option value="processado" <?php echo ($planilha['status'] ?? '') === 'processado' ? 'selected' : ''; ?>>Processado</option>
+                <option value="Pendente" <?php echo ($planilha['status'] ?? '') === 'Pendente' ? 'selected' : ''; ?>>Pendente</option>
+                <option value="Em Execução" <?php echo ($planilha['status'] ?? '') === 'Em Execução' ? 'selected' : ''; ?>>Em Execução</option>
+                <option value="Concluído" <?php echo ($planilha['status'] ?? '') === 'Concluído' ? 'selected' : ''; ?>>Concluído</option>
             </select>
         </div>
 
