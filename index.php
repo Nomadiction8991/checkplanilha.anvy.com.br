@@ -1,260 +1,194 @@
 <?php
-session_start();
-if (!isset($_SESSION['usuario'])) {
-    $_SESSION['usuario'] = 'Operador';
+require_once 'conexao.php';
+
+// Parâmetros da paginação
+$pagina = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
+$limite = 10;
+$offset = ($pagina - 1) * $limite;
+
+// Filtros
+$filtro_descricao = isset($_GET['descricao']) ? $_GET['descricao'] : '';
+$filtro_status = isset($_GET['status']) ? $_GET['status'] : '';
+$exibir_inativos = isset($_GET['exibir_inativos']) ? true : false;
+
+// Construir a query base
+$sql = "SELECT * FROM planilhas WHERE 1=1";
+$params = [];
+
+// Aplicar filtro de descrição
+if (!empty($filtro_descricao)) {
+    $sql .= " AND descricao LIKE :descricao";
+    $params[':descricao'] = '%' . $filtro_descricao . '%';
 }
+
+// Aplicar filtro de status
+if (!empty($filtro_status)) {
+    $sql .= " AND status = :status";
+    $params[':status'] = $filtro_status;
+}
+
+// Filtro de ativos/inativos
+if (!$exibir_inativos) {
+    $sql .= " AND ativo = 1";
+}
+
+// Contar total de registros (para paginação)
+$sql_count = "SELECT COUNT(*) as total FROM ($sql) as count_table";
+$stmt_count = $conexao->prepare($sql_count);
+foreach ($params as $key => $value) {
+    $stmt_count->bindValue($key, $value);
+}
+$stmt_count->execute();
+$total_registros = $stmt_count->fetch()['total'];
+$total_paginas = ceil($total_registros / $limite);
+
+// Adicionar ordenação e paginação à query principal
+$sql .= " ORDER BY id DESC LIMIT :limite OFFSET :offset";
+$params[':limite'] = $limite;
+$params[':offset'] = $offset;
+
+// Executar a query principal
+$stmt = $conexao->prepare($sql);
+foreach ($params as $key => $value) {
+    if ($key === ':limite' || $key === ':offset') {
+        $stmt->bindValue($key, $value, PDO::PARAM_INT);
+    } else {
+        $stmt->bindValue($key, $value);
+    }
+}
+$stmt->execute();
+$planilhas = $stmt->fetchAll();
+
+// Buscar valores únicos de status para o select
+$sql_status = "SELECT DISTINCT status FROM planilhas ORDER BY status";
+$stmt_status = $conexao->query($sql_status);
+$status_options = $stmt_status->fetchAll(PDO::FETCH_COLUMN);
 ?>
+
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Checklist - Bens Imobilizados</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: Arial, sans-serif; line-height: 1.6; background: #f5f5f5; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; }
-        .header { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .usuario { float: right; background: #007bff; color: white; padding: 5px 10px; border-radius: 5px; }
-        .section { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .section h3 { color: #333; margin-bottom: 15px; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
-        .search-box { display: flex; gap: 10px; margin-bottom: 15px; }
-        .search-box input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 16px; }
-        .btn { padding: 12px 20px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; }
-        .btn-primary { background: #007bff; color: white; }
-        .btn-success { background: #28a745; color: white; }
-        .btn-camera { background: #17a2b8; color: white; padding: 12px; }
-        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
-        .stat-card { background: #f8f9fa; padding: 15px; border-radius: 5px; text-align: center; border-left: 4px solid #007bff; }
-        .progress { width: 100%; background: #e9ecef; border-radius: 5px; margin: 10px 0; }
-        .progress-bar { height: 20px; background: #28a745; border-radius: 5px; }
-        @media (max-width: 600px) {
-            .stats-grid { grid-template-columns: 1fr; }
-            .search-box { flex-direction: column; }
-        }
-    </style>
+    <title>Listagem de Planilhas</title>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Sistema de Checklist - Bens Imobilizados</h1>
-            <div class="usuario">Usuário: <?php echo htmlspecialchars($_SESSION['usuario']); ?></div>
-            <div style="clear: both;"></div>
-        </div>
+    <h1>Listagem de Planilhas</h1>
 
-        <!-- Seção de Upload -->
-        <div class="section">
-            <h3>Upload da Planilha</h3>
-            <form action="upload.php" method="post" enctype="multipart/form-data">
-                <input type="file" name="planilha" accept=".csv" required>
-                <button type="submit" class="btn btn-primary">Enviar Planilha</button>
-            </form>
-        </div>
-
-        <!-- Seção de Busca -->
-        <div class="section">
-            <h3>Checklist de Produtos</h3>
-            <form method="get" action="check_produto.php">
-                <div class="search-box">
-                    <input type="text" name="codigo" placeholder="Digite ou escaneie o código do produto..." required autofocus>
-                    <button type="button" onclick="abrirCamera()" class="btn btn-camera" title="Escanear com Câmera">
-    📷 Escanear
-</button>
-                    <button type="submit" class="btn btn-success">Consultar</button>
-                </div>
-            </form>
-        </div>
-
-        <!-- Estatísticas -->
-        <div class="section">
-            <h3>Estatísticas</h3>
-            <?php include 'estatisticas.php'; ?>
-        </div>
-
-        <!-- Link para lista de itens -->
-        <div class="section">
-            <h3>Lista de Itens</h3>
-            <a href="lista_itens.php" class="btn btn-primary" style="display: inline-block; text-decoration: none;">Ver Lista Completa</a>
-        </div>
+    <!-- Botão Importar Planilha -->
+    <div style="margin-bottom: 20px;">
+        <a href="importar_planilha.php" style="background: #4CAF50; color: white; padding: 10px 15px; text-decoration: none; border-radius: 4px;">
+            Importar Planilha
+        </a>
     </div>
 
-<script>
-function abrirCamera() {
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        alert('Seu navegador não suporta acesso à câmera.');
-        return;
-    }
-    
-    const modal = document.createElement('div');
-    modal.style.cssText = `
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-        background: rgba(0,0,0,0.95); z-index: 1000; 
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
-    `;
-    
-    const video = document.createElement('video');
-    video.style.cssText = `
-        width: 90%; max-width: 400px; border: 3px solid white; 
-        border-radius: 10px; transform: scaleX(-1); /* Espelha a câmera */
-    `;
-    video.autoplay = true;
-    video.playsInline = true;
-    
-    const btnFechar = document.createElement('button');
-    btnFechar.textContent = '❌ Fechar';
-    btnFechar.style.cssText = `
-        margin-top: 20px; padding: 12px 24px; 
-        background: #dc3545; color: white; border: none; 
-        border-radius: 5px; font-size: 16px; cursor: pointer;
-    `;
-    
-    const infoText = document.createElement('div');
-    infoText.textContent = 'Aponte a câmera para o código';
-    infoText.style.cssText = `
-        color: white; margin-bottom: 15px; font-size: 18px; text-align: center;
-    `;
-    
-    modal.appendChild(infoText);
-    modal.appendChild(video);
-    modal.appendChild(btnFechar);
-    document.body.appendChild(modal);
-    
-    // Tenta usar a API BarcodeDetector se disponível
-    let barcodeDetector = null;
-    if ('BarcodeDetector' in window) {
-        barcodeDetector = new BarcodeDetector({ 
-            formats: ['qr_code', 'ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39'] 
-        });
-    }
-    
-    let intervalId = null;
-    
-    navigator.mediaDevices.getUserMedia({ 
-        video: { 
-            facingMode: 'environment',
-            width: { ideal: 1280 },
-            height: { ideal: 720 }
-        } 
-    })
-    .then(stream => {
-        video.srcObject = stream;
-        
-        if (barcodeDetector) {
-            // Escaneamento automático com BarcodeDetector
-            intervalId = setInterval(() => {
-                if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                    barcodeDetector.detect(video)
-                        .then(barcodes => {
-                            if (barcodes.length > 0) {
-                                const codigo = barcodes[0].rawValue;
-                                document.querySelector('input[name="codigo"]').value = codigo;
-                                fecharCamera();
-                                // Redireciona automaticamente para a página de detalhes
-                                window.location.href = `check_produto.php?codigo=${encodeURIComponent(codigo)}`;
-                            }
-                        })
-                        .catch(err => {
-                            console.log('Erro na detecção:', err);
-                        });
-                }
-            }, 1000); // Verifica a cada 1 segundo
-        }
-        
-        // Alternativa: captura manual ao tocar na tela
-        video.onclick = () => {
-            // Para dispositivos sem BarcodeDetector, permite digitação manual
-            fecharCamera();
-            document.querySelector('input[name="codigo"]').focus();
-        };
-        
-        function fecharCamera() {
-            if (intervalId) clearInterval(intervalId);
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-            }
-            document.body.removeChild(modal);
-        }
-        
-        btnFechar.onclick = fecharCamera;
-        modal.onclick = (e) => { 
-            if (e.target === modal) fecharCamera(); 
-        };
-        
-    })
-    .catch(err => {
-        alert('Erro ao acessar a câmera: ' + err.message);
-        document.body.removeChild(modal);
-    });
-}
+    <!-- Formulário de Filtros -->
+    <form method="GET" action="" style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd;">
+        <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: end;">
+            <!-- Campo de pesquisa por descrição -->
+            <div>
+                <label for="descricao">Pesquisar por descrição:</label><br>
+                <input type="text" id="descricao" name="descricao" value="<?php echo htmlspecialchars($filtro_descricao); ?>" 
+                       placeholder="Digite para pesquisar..." style="padding: 8px; width: 250px;">
+            </div>
 
-// Função alternativa para dispositivos mais antigos
-function abrirCameraSimples() {
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        alert('Seu navegador não suporta câmera. Digite o código manualmente.');
-        return;
-    }
-    
-    const modal = document.createElement('div');
-    modal.style.cssText = `
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-        background: black; z-index: 1000; display: flex; flex-direction: column;
-    `;
-    
-    const video = document.createElement('video');
-    video.style.cssText = `width: 100%; height: 100%; object-fit: cover;`;
-    video.autoplay = true;
-    video.playsInline = true;
-    
-    const btnContainer = document.createElement('div');
-    btnContainer.style.cssText = `
-        position: absolute; bottom: 20px; left: 0; width: 100%; 
-        text-align: center; padding: 20px;
-    `;
-    
-    const btnCapturar = document.createElement('button');
-    btnCapturar.textContent = '📷 Usar esta imagem';
-    btnCapturar.style.cssText = `
-        padding: 15px 25px; background: #28a745; color: white; 
-        border: none; border-radius: 50px; font-size: 18px; cursor: pointer;
-    `;
-    
-    const btnFechar = document.createElement('button');
-    btnFechar.textContent = 'Fechar';
-    btnFechar.style.cssText = `
-        margin-top: 10px; padding: 10px 20px; background: #dc3545; 
-        color: white; border: none; border-radius: 5px; cursor: pointer;
-    `;
-    
-    btnContainer.appendChild(btnCapturar);
-    btnContainer.appendChild(btnFechar);
-    modal.appendChild(video);
-    modal.appendChild(btnContainer);
-    document.body.appendChild(modal);
-    
-    navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment' } 
-    })
-    .then(stream => {
-        video.srcObject = stream;
-        
-        btnCapturar.onclick = () => {
-            fecharCamera();
-            document.querySelector('input[name="codigo"]').focus();
-            alert('Agora digite o código manualmente no campo.');
-        };
-        
-        function fecharCamera() {
-            stream.getTracks().forEach(track => track.stop());
-            document.body.removeChild(modal);
-        }
-        
-        btnFechar.onclick = fecharCamera;
-    })
-    .catch(err => {
-        alert('Não foi possível acessar a câmera: ' + err.message);
-        document.body.removeChild(modal);
-    });
-}
-</script>
+            <!-- Filtro por status -->
+            <div>
+                <label for="status">Filtrar por status:</label><br>
+                <select id="status" name="status" style="padding: 8px;">
+                    <option value="">Todos os status</option>
+                    <?php foreach ($status_options as $status): ?>
+                        <option value="<?php echo $status; ?>" 
+                            <?php echo $filtro_status === $status ? 'selected' : ''; ?>>
+                            <?php echo ucfirst($status); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <!-- Checkbox exibir inativos -->
+            <div>
+                <label>
+                    <input type="checkbox" name="exibir_inativos" value="1" 
+                        <?php echo $exibir_inativos ? 'checked' : ''; ?>>
+                    Exibir inativos
+                </label>
+            </div>
+
+            <!-- Botões do formulário -->
+            <div>
+                <button type="submit" style="padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 4px;">
+                    Aplicar Filtros
+                </button>
+                <a href="index.php" style="padding: 8px 15px; background: #6c757d; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">
+                    Limpar
+                </a>
+            </div>
+        </div>
+    </form>
+
+    <!-- Tabela de resultados -->
+    <?php if (count($planilhas) > 0): ?>
+        <table border="1" cellpadding="10" cellspacing="0" style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background-color: #f8f9fa;">
+                    <th>ID</th>
+                    <th>Descrição</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($planilhas as $planilha): ?>
+                    <tr>
+                        <td><?php echo $planilha['id']; ?></td>
+                        <td><?php echo htmlspecialchars($planilha['descricao']); ?></td>
+                        <td><?php echo ucfirst($planilha['status']); ?></td>
+                        <td>
+                            <a href="visualizar_planilha.php?id=<?php echo $planilha['id']; ?>" 
+                               style="color: #007bff; text-decoration: none; margin-right: 10px;">
+                                Visualizar
+                            </a>
+                            <a href="editar_planilha.php?id=<?php echo $planilha['id']; ?>" 
+                               style="color: #28a745; text-decoration: none;">
+                                Editar
+                            </a>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+
+        <!-- Paginação -->
+        <?php if ($total_paginas > 1): ?>
+            <div style="margin-top: 20px; text-align: center;">
+                <?php if ($pagina > 1): ?>
+                    <a href="?pagina=<?php echo $pagina - 1; ?>&descricao=<?php echo urlencode($filtro_descricao); ?>&status=<?php echo urlencode($filtro_status); ?>&exibir_inativos=<?php echo $exibir_inativos ? '1' : '0'; ?>" 
+                       style="margin-right: 10px; text-decoration: none;">&laquo; Anterior</a>
+                <?php endif; ?>
+
+                <?php for ($i = 1; $i <= $total_paginas; $i++): ?>
+                    <?php if ($i == $pagina): ?>
+                        <strong style="margin: 0 5px;"><?php echo $i; ?></strong>
+                    <?php else: ?>
+                        <a href="?pagina=<?php echo $i; ?>&descricao=<?php echo urlencode($filtro_descricao); ?>&status=<?php echo urlencode($filtro_status); ?>&exibir_inativos=<?php echo $exibir_inativos ? '1' : '0'; ?>" 
+                           style="margin: 0 5px; text-decoration: none;"><?php echo $i; ?></a>
+                    <?php endif; ?>
+                <?php endfor; ?>
+
+                <?php if ($pagina < $total_paginas): ?>
+                    <a href="?pagina=<?php echo $pagina + 1; ?>&descricao=<?php echo urlencode($filtro_descricao); ?>&status=<?php echo urlencode($filtro_status); ?>&exibir_inativos=<?php echo $exibir_inativos ? '1' : '0'; ?>" 
+                       style="margin-left: 10px; text-decoration: none;">Próxima &raquo;</a>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
+
+        <p style="margin-top: 10px;">
+            Mostrando <?php echo count($planilhas); ?> de <?php echo $total_registros; ?> registros
+        </p>
+
+    <?php else: ?>
+        <p>Nenhuma planilha encontrada.</p>
+    <?php endif; ?>
 </body>
 </html>
