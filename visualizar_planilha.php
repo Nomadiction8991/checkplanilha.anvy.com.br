@@ -110,6 +110,7 @@ $dependencia_options = array_unique(array_column($valores_filtros, 'dependencia'
     <title>Visualizar Planilha - <?php echo htmlspecialchars($planilha['descricao']); ?></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
         .message { padding: 10px; margin: 10px 0; border-radius: 4px; }
@@ -176,10 +177,12 @@ $dependencia_options = array_unique(array_column($valores_filtros, 'dependencia'
             color: #000;
         }
         
-        #reader {
+        #reader, #barcode-scanner {
             width: 100%;
             max-width: 100%;
             margin: 10px 0;
+            border: 2px solid #ddd;
+            border-radius: 5px;
         }
         
         .camera-buttons {
@@ -202,6 +205,24 @@ $dependencia_options = array_unique(array_column($valores_filtros, 'dependencia'
             margin-top: 10px;
             font-weight: bold;
         }
+
+        .scanner-type-selector {
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .scanner-type-selector label {
+            margin: 0 15px;
+            cursor: pointer;
+        }
+
+        .scanner-container {
+            display: none;
+        }
+
+        .active-scanner {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -220,7 +241,28 @@ $dependencia_options = array_unique(array_column($valores_filtros, 'dependencia'
         <div class="modal-content">
             <span class="close-modal" onclick="fecharModalCamera()">&times;</span>
             <h3>Scanner de Código</h3>
-            <div id="reader"></div>
+            
+            <div class="scanner-type-selector">
+                <label>
+                    <input type="radio" name="scannerType" value="qrcode" checked onchange="trocarTipoScanner()">
+                    QR Code
+                </label>
+                <label>
+                    <input type="radio" name="scannerType" value="barcode" onchange="trocarTipoScanner()">
+                    Código de Barras
+                </label>
+            </div>
+
+            <!-- Scanner QR Code -->
+            <div id="qrcode-scanner" class="scanner-container active-scanner">
+                <div id="reader"></div>
+            </div>
+
+            <!-- Scanner Código de Barras -->
+            <div id="barcode-scanner" class="scanner-container">
+                <div id="barcode-interactive" style="width: 100%; height: 300px; background: black;"></div>
+            </div>
+
             <div class="camera-buttons">
                 <button onclick="iniciarScanner()" class="btn btn-primary">
                     <i class="fas fa-play"></i> Iniciar Scanner
@@ -357,6 +399,8 @@ $dependencia_options = array_unique(array_column($valores_filtros, 'dependencia'
 
     <script>
         let html5QrcodeScanner = null;
+        let quaggaScanner = null;
+        let scannerAtivo = false;
         const modalCamera = document.getElementById('modalCamera');
         
         function abrirModalCamera() {
@@ -375,20 +419,70 @@ $dependencia_options = array_unique(array_column($valores_filtros, 'dependencia'
             }
         };
         
-        function iniciarScanner() {
-            // Parar scanner anterior se existir
-            if (html5QrcodeScanner && html5QrcodeScanner.isScanning) {
+        function trocarTipoScanner() {
+            const tipoScanner = document.querySelector('input[name="scannerType"]:checked').value;
+            document.getElementById('qrcode-scanner').classList.remove('active-scanner');
+            document.getElementById('barcode-scanner').classList.remove('active-scanner');
+            
+            if (tipoScanner === 'qrcode') {
+                document.getElementById('qrcode-scanner').classList.add('active-scanner');
+            } else {
+                document.getElementById('barcode-scanner').classList.add('active-scanner');
+            }
+            
+            // Parar scanner atual se estiver ativo
+            if (scannerAtivo) {
                 pararScanner();
+            }
+        }
+        
+        function obterCameraTraseira(cameras) {
+            // Ordem de preferência: traseira -> qualquer outra -> frontal
+            const cameraTraseira = cameras.find(camera => 
+                camera.label.toLowerCase().includes('back') || 
+                camera.label.toLowerCase().includes('rear') ||
+                camera.label.toLowerCase().includes('traseira')
+            );
+            
+            if (cameraTraseira) return cameraTraseira;
+            
+            // Se não encontrar traseira, pega qualquer que não seja frontal
+            const naoFrontal = cameras.find(camera => 
+                !camera.label.toLowerCase().includes('front') && 
+                !camera.label.toLowerCase().includes('selfie') &&
+                !camera.label.toLowerCase().includes('frontal')
+            );
+            
+            return naoFrontal || cameras[0]; // Fallback para primeira câmera
+        }
+        
+        function iniciarScanner() {
+            const tipoScanner = document.querySelector('input[name="scannerType"]:checked').value;
+            
+            if (scannerAtivo) {
+                pararScanner();
+            }
+            
+            if (tipoScanner === 'qrcode') {
+                iniciarScannerQRCode();
+            } else {
+                iniciarScannerBarcode();
+            }
+        }
+        
+        function iniciarScannerQRCode() {
+            if (html5QrcodeScanner && html5QrcodeScanner.isScanning) {
+                return;
             }
             
             html5QrcodeScanner = new Html5Qrcode("reader");
             
             Html5Qrcode.getCameras().then(cameras => {
                 if (cameras && cameras.length) {
-                    const cameraId = cameras[0].id;
+                    const cameraPreferida = obterCameraTraseira(cameras);
                     
                     html5QrcodeScanner.start(
-                        cameraId,
+                        cameraPreferida.id,
                         {
                             fps: 10,
                             qrbox: { width: 250, height: 250 },
@@ -399,19 +493,20 @@ $dependencia_options = array_unique(array_column($valores_filtros, 'dependencia'
                         (decodedText) => {
                             // Código escaneado com sucesso - redirecionar para edição
                             window.location.href = 'editar_produto.php?codigo=' + 
-                                encodeURIComponent(decodedText) + 
+                                encodeURIComponent(decodedText.trim()) + 
                                 '&id_planilha=<?php echo $id_planilha; ?>';
                         },
                         (errorMessage) => {
                             // Ignorar mensagens de erro normais durante a leitura
                             if (!errorMessage.includes('NotFoundException') && 
                                 !errorMessage.includes('NoMultiFormatReader')) {
-                                console.log('Erro de leitura:', errorMessage);
+                                console.log('QR Code Error:', errorMessage);
                             }
                         }
                     ).then(() => {
+                        scannerAtivo = true;
                         document.getElementById('cameraStatus').textContent = 
-                            'Scanner ativo - Aponte para o código de barras';
+                            'Scanner QR Code ativo - Aponte para o código';
                     }).catch(err => {
                         document.getElementById('cameraStatus').textContent = 
                             'Erro ao iniciar scanner: ' + err;
@@ -426,15 +521,79 @@ $dependencia_options = array_unique(array_column($valores_filtros, 'dependencia'
             });
         }
         
+        function iniciarScannerBarcode() {
+            if (quaggaScanner) {
+                Quagga.stop();
+            }
+            
+            Quagga.init({
+                inputStream: {
+                    name: "Live",
+                    type: "LiveStream",
+                    target: document.querySelector('#barcode-interactive'),
+                    constraints: {
+                        facingMode: "environment" // Preferir câmera traseira
+                    }
+                },
+                decoder: {
+                    readers: [
+                        "code_128_reader",
+                        "ean_reader",
+                        "ean_8_reader",
+                        "code_39_reader",
+                        "code_39_vin_reader",
+                        "codabar_reader",
+                        "upc_reader",
+                        "upc_e_reader"
+                    ]
+                },
+                locate: true
+            }, function(err) {
+                if (err) {
+                    console.error(err);
+                    document.getElementById('cameraStatus').textContent = 
+                        'Erro ao iniciar scanner de código de barras: ' + err;
+                    return;
+                }
+                
+                Quagga.start();
+                scannerAtivo = true;
+                document.getElementById('cameraStatus').textContent = 
+                    'Scanner Código de Barras ativo - Aponte para o código';
+            });
+            
+            Quagga.onDetected(function(result) {
+                const code = result.codeResult.code;
+                if (code) {
+                    // Redirecionar para edição do produto
+                    window.location.href = 'editar_produto.php?codigo=' + 
+                        encodeURIComponent(code.trim()) + 
+                        '&id_planilha=<?php echo $id_planilha; ?>';
+                }
+            });
+            
+            quaggaScanner = true;
+        }
+        
         function pararScanner() {
+            // Parar scanner QR Code
             if (html5QrcodeScanner) {
                 html5QrcodeScanner.stop().then(() => {
                     html5QrcodeScanner.clear();
-                    document.getElementById('cameraStatus').textContent = 'Scanner parado';
+                    scannerAtivo = false;
                 }).catch(err => {
-                    console.error("Erro ao parar scanner:", err);
+                    console.error("Erro ao parar QR scanner:", err);
                 });
             }
+            
+            // Parar scanner código de barras
+            if (quaggaScanner) {
+                Quagga.stop();
+                quaggaScanner = null;
+                scannerAtivo = false;
+            }
+            
+            document.getElementById('cameraStatus').textContent = 'Scanner parado';
         }
         
         // Parar scanner quando o modal fechar
