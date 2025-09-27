@@ -109,6 +109,7 @@ $dependencia_options = array_unique(array_column($valores_filtros, 'dependencia'
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Visualizar Planilha - <?php echo htmlspecialchars($planilha['descricao']); ?></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
         .message { padding: 10px; margin: 10px 0; border-radius: 4px; }
@@ -175,13 +176,10 @@ $dependencia_options = array_unique(array_column($valores_filtros, 'dependencia'
             color: #000;
         }
         
-        #cameraPreview {
+        #reader {
             width: 100%;
             max-width: 100%;
-            height: 400px;
-            border: 1px solid #ccc;
             margin: 10px 0;
-            background-color: #000;
         }
         
         .camera-buttons {
@@ -197,6 +195,12 @@ $dependencia_options = array_unique(array_column($valores_filtros, 'dependencia'
             display: flex;
             align-items: center;
             gap: 8px;
+        }
+
+        #cameraStatus {
+            text-align: center;
+            margin-top: 10px;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -216,16 +220,16 @@ $dependencia_options = array_unique(array_column($valores_filtros, 'dependencia'
         <div class="modal-content">
             <span class="close-modal" onclick="fecharModalCamera()">&times;</span>
             <h3>Scanner de Código</h3>
-            <div id="cameraPreview"></div>
+            <div id="reader"></div>
             <div class="camera-buttons">
-                <button onclick="iniciarCamera()" class="btn btn-primary">
-                    <i class="fas fa-play"></i> Iniciar Câmera
+                <button onclick="iniciarScanner()" class="btn btn-primary">
+                    <i class="fas fa-play"></i> Iniciar Scanner
                 </button>
-                <button onclick="pararCamera()" class="btn btn-danger">
-                    <i class="fas fa-stop"></i> Parar Câmera
+                <button onclick="pararScanner()" class="btn btn-danger">
+                    <i class="fas fa-stop"></i> Parar Scanner
                 </button>
             </div>
-            <p id="cameraStatus">Câmera não iniciada</p>
+            <p id="cameraStatus">Scanner não iniciado</p>
         </div>
     </div>
 
@@ -285,15 +289,7 @@ $dependencia_options = array_unique(array_column($valores_filtros, 'dependencia'
                 <tr>
                     <th>Código</th>
                     <th>Nome</th>
-                    <th>Fornecedor</th>
-                    <th>Localidade</th>
-                    <th>Conta</th>
-                    <th>Nº Documento</th>
                     <th>Dependência</th>
-                    <th>Data Aquisição</th>
-                    <th>Valor Aquisição</th>
-                    <th>Valor Depreciação</th>
-                    <th>Valor Atual</th>
                     <th>Status</th>
                     <th>Ações</th>
                 </tr>
@@ -313,15 +309,7 @@ $dependencia_options = array_unique(array_column($valores_filtros, 'dependencia'
                     <tr class="<?php echo $classe_linha; ?>">
                         <td><?php echo htmlspecialchars($produto['codigo']); ?></td>
                         <td><?php echo htmlspecialchars($produto['nome']); ?></td>
-                        <td><?php echo htmlspecialchars($produto['fornecedor']); ?></td>
-                        <td><?php echo htmlspecialchars($produto['localidade']); ?></td>
-                        <td><?php echo htmlspecialchars($produto['conta']); ?></td>
-                        <td><?php echo htmlspecialchars($produto['numero_documento']); ?></td>
                         <td><?php echo htmlspecialchars($produto['dependencia']); ?></td>
-                        <td><?php echo htmlspecialchars($produto['data_aquisicao']); ?></td>
-                        <td>R$ <?php echo number_format($produto['valor_aquisicao'], 2, ',', '.'); ?></td>
-                        <td>R$ <?php echo number_format($produto['valor_depreciacao'], 2, ',', '.'); ?></td>
-                        <td>R$ <?php echo number_format($produto['valor_atual'], 2, ',', '.'); ?></td>
                         <td><?php echo htmlspecialchars($produto['status']); ?></td>
                         <td>
                             <a href="editar_produto.php?codigo=<?php echo urlencode($produto['codigo']); ?>&id_planilha=<?php echo $id_planilha; ?>" 
@@ -368,7 +356,7 @@ $dependencia_options = array_unique(array_column($valores_filtros, 'dependencia'
     <?php endif; ?>
 
     <script>
-        let stream = null;
+        let html5QrcodeScanner = null;
         let modalCamera = document.getElementById('modalCamera');
         
         function abrirModalCamera() {
@@ -377,7 +365,7 @@ $dependencia_options = array_unique(array_column($valores_filtros, 'dependencia'
         
         function fecharModalCamera() {
             modalCamera.style.display = 'none';
-            pararCamera();
+            pararScanner();
         }
         
         // Fechar modal clicando fora dele
@@ -387,41 +375,63 @@ $dependencia_options = array_unique(array_column($valores_filtros, 'dependencia'
             }
         }
         
-        function iniciarCamera() {
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-                    .then(function(mediaStream) {
-                        stream = mediaStream;
-                        const video = document.getElementById('cameraPreview');
-                        video.srcObject = mediaStream;
-                        video.play();
-                        document.getElementById('cameraStatus').textContent = 'Câmera ativa - Aponte para o código de barras';
-                    })
-                    .catch(function(error) {
-                        console.error('Erro ao acessar a câmera:', error);
-                        document.getElementById('cameraStatus').textContent = 'Erro ao acessar a câmera: ' + error.message;
-                    });
-            } else {
-                document.getElementById('cameraStatus').textContent = 'Câmera não suportada neste navegador';
+        function iniciarScanner() {
+            if (!html5QrcodeScanner) {
+                html5QrcodeScanner = new Html5Qrcode("reader");
+                
+                Html5Qrcode.getCameras().then(cameras => {
+                    if (cameras && cameras.length) {
+                        const cameraId = cameras[0].id;
+                        
+                        html5QrcodeScanner.start(
+                            cameraId,
+                            {
+                                fps: 10,
+                                qrbox: { width: 250, height: 250 }
+                            },
+                            (decodedText) => {
+                                // Código escaneado com sucesso
+                                window.location.href = 'editar_produto.php?codigo=' + 
+                                    encodeURIComponent(decodedText) + 
+                                    '&id_planilha=<?php echo $id_planilha; ?>';
+                                fecharModalCamera();
+                            },
+                            (errorMessage) => {
+                                // Ignorar erros de parsing
+                            }
+                        ).catch(err => {
+                            document.getElementById('cameraStatus').textContent = 
+                                'Erro ao iniciar scanner: ' + err;
+                        });
+                        
+                        document.getElementById('cameraStatus').textContent = 
+                            'Scanner ativo - Aponte para o código de barras';
+                    } else {
+                        document.getElementById('cameraStatus').textContent = 
+                            'Nenhuma câmera encontrada';
+                    }
+                }).catch(err => {
+                    document.getElementById('cameraStatus').textContent = 
+                        'Erro ao acessar câmeras: ' + err;
+                });
             }
         }
         
-        function pararCamera() {
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-                document.getElementById('cameraPreview').srcObject = null;
-                document.getElementById('cameraStatus').textContent = 'Câmera parada';
+        function pararScanner() {
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.stop().then(() => {
+                    html5QrcodeScanner.clear();
+                    html5QrcodeScanner = null;
+                    document.getElementById('cameraStatus').textContent = 'Scanner parado';
+                }).catch(err => {
+                    console.error("Erro ao parar scanner:", err);
+                });
             }
         }
         
-        // Simulação de leitura de código de barras (para implementação real, use uma biblioteca como QuaggaJS)
-        document.getElementById('cameraPreview').addEventListener('click', function() {
-            // Esta é uma simulação - na implementação real, você usaria uma biblioteca de leitura de código de barras
-            const codigoSimulado = prompt('Digite o código do produto (na implementação real, isso seria lido pela câmera):');
-            if (codigoSimulado) {
-                window.location.href = 'editar_produto.php?codigo=' + encodeURIComponent(codigoSimulado) + '&id_planilha=<?php echo $id_planilha; ?>';
-                fecharModalCamera();
-            }
+        // Parar scanner quando o modal fechar
+        modalCamera.addEventListener('hidden', function() {
+            pararScanner();
         });
     </script>
 </body>
