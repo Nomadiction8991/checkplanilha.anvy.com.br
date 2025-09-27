@@ -49,8 +49,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Iniciar transação para garantir consistência dos dados
         $conexao->beginTransaction();
 
-        // Inserir a planilha na tabela planilhas
-        $sql_planilha = "INSERT INTO planilhas (descricao, status, ativo) VALUES (:descricao, 'Pendente', 1)";
+        // Inserir a planilha na tabela planilhas (apenas descrição, status e ativo são padrão)
+        $sql_planilha = "INSERT INTO planilhas (descricao) VALUES (:descricao)";
         $stmt_planilha = $conexao->prepare($sql_planilha);
         $stmt_planilha->bindValue(':descricao', $descricao);
         $stmt_planilha->execute();
@@ -190,12 +190,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 error_log("Erro ao importar produto: " . $e->getMessage());
             }
         }
-
-        // Atualizar status da planilha para "Processada"
-        $sql_update = "UPDATE planilhas SET status = 'Processada' WHERE id = :id";
-        $stmt_update = $conexao->prepare($sql_update);
-        $stmt_update->bindValue(':id', $id_planilha);
-        $stmt_update->execute();
 
         // Confirmar transação
         $conexao->commit();
