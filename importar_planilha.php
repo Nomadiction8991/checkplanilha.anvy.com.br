@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'dependencia' => strtoupper($_POST['dependencia'] ?? 'P'),
         'data_aquisicao' => strtoupper($_POST['data_aquisicao'] ?? 'T'),
         'valor_aquisicao' => strtoupper($_POST['valor_aquisicao'] ?? 'V'),
-        'valor_depreciado' => strtoupper($_POST['valor_depreciado'] ?? 'W'),
+        'valor_depreciacao' => strtoupper($_POST['valor_depreciacao'] ?? 'W'),
         'valor_atual' => strtoupper($_POST['valor_atual'] ?? 'AB'),
         'status' => strtoupper($_POST['status'] ?? 'AF')
     ];
@@ -154,7 +154,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 $valor_aquisicao = converterValor(isset($linha[colunaParaIndice($mapeamento['valor_aquisicao'])]) ? $linha[colunaParaIndice($mapeamento['valor_aquisicao'])] : '');
-                $valor_depreciado = converterValor(isset($linha[colunaParaIndice($mapeamento['valor_depreciado'])]) ? $linha[colunaParaIndice($mapeamento['valor_depreciado'])] : '');
+                $valor_depreciacao = converterValor(isset($linha[colunaParaIndice($mapeamento['valor_depreciacao'])]) ? $linha[colunaParaIndice($mapeamento['valor_depreciacao'])] : '');
                 $valor_atual = converterValor(isset($linha[colunaParaIndice($mapeamento['valor_atual'])]) ? $linha[colunaParaIndice($mapeamento['valor_atual'])] : '');
                 $status = isset($linha[colunaParaIndice($mapeamento['status'])]) ? trim($linha[colunaParaIndice($mapeamento['status'])]) : '';
 
@@ -164,11 +164,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Inserir o produto
                 $sql_produto = "INSERT INTO produtos 
                     (codigo, nome, fornecedor, localidade, conta, numero_documento, 
-                     dependencia, data_aquisicao, valor_aquisicao, valor_depreciado, 
+                     dependencia, data_aquisicao, valor_aquisicao, valor_depreciacao, 
                      valor_atual, status, id_planilha) 
                 VALUES 
                     (:codigo, :nome, :fornecedor, :localidade, :conta, :numero_documento,
-                     :dependencia, :data_aquisicao, :valor_aquisicao, :valor_depreciado,
+                     :dependencia, :data_aquisicao, :valor_aquisicao, :valor_depreciacao,
                      :valor_atual, :status, :id_planilha)";
 
                 $stmt_produto = $conexao->prepare($sql_produto);
@@ -181,7 +181,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt_produto->bindValue(':dependencia', $dependencia);
                 $stmt_produto->bindValue(':data_aquisicao', $data_aquisicao);
                 $stmt_produto->bindValue(':valor_aquisicao', $valor_aquisicao);
-                $stmt_produto->bindValue(':valor_depreciado', $valor_depreciado);
+                $stmt_produto->bindValue(':valor_depreciacao', $valor_depreciacao);
                 $stmt_produto->bindValue(':valor_atual', $valor_atual);
                 $stmt_produto->bindValue(':status', $status);
                 $stmt_produto->bindValue(':id_planilha', $id_planilha);
@@ -365,9 +365,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
 
             <div class="mapeamento-item">
-                <span class="mapeamento-label">Valor Depreciado:</span>
-                <input type="text" class="mapeamento-input" name="valor_depreciado" 
-                       value="<?php echo $_POST['valor_depreciado'] ?? 'W'; ?>" maxlength="2" required>
+                <span class="mapeamento-label">Valor Depreciação:</span>
+                <input type="text" class="mapeamento-input" name="valor_depreciacao" 
+                       value="<?php echo $_POST['valor_depreciacao'] ?? 'W'; ?>" maxlength="2" required>
             </div>
 
             <div class="mapeamento-item">
