@@ -92,9 +92,7 @@ $status_options = $stmt_status->fetchAll(PDO::FETCH_COLUMN);
 
         header.cabecalho{
             padding: 15px 5px 5px 5px;
-            border-bottom: 1px solid #999;
             box-shadow: 0px 0px 10px #999;
-            margin-bottom: 15px;
             position: sticky;
         }
         header.cabecalho div.importar_planilha {
@@ -172,11 +170,11 @@ $status_options = $stmt_status->fetchAll(PDO::FETCH_COLUMN);
         }
 
         table thead tr th {
-            border: 1px solid #ccc;
             padding-block: 5px;
             font-weight: 400;
-            color: #111;
+            color: #fff;
             overflow: hidden;
+            background-color: #007bff;
         }
 
         table tbody tr td {
@@ -188,11 +186,11 @@ $status_options = $stmt_status->fetchAll(PDO::FETCH_COLUMN);
         }
 
         table tbody tr:nth-child(odd) {
-            background-color: #f8f9fa; 
+            background-color: #fff; 
         }
 
         table tbody tr:nth-child(even) {
-            background-color: #ffffff;
+            background-color: #accff1ff;
         }
 
 
@@ -221,8 +219,6 @@ $status_options = $stmt_status->fetchAll(PDO::FETCH_COLUMN);
         table tbody tr td:nth-child(3) {
             min-width: 80px;
             white-space: nowrap; /* Mantém tudo na mesma linha */
-            overflow: visible; /* Não corta o conteúdo */
-            text-overflow: clip; /* Não mostra ... */
             text-align: center;
             white-space: nowrap;
             overflow: hidden;
