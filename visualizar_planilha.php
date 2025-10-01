@@ -421,42 +421,63 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
             overflow: hidden;
         }
 
+        /* Controles reorganizados em 3 linhas */
         .scanner-controls {
             position: absolute;
-            bottom: 30px;
+            bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
             background: rgba(0,0,0,0.8);
-            padding: 20px;
+            padding: 15px;
             border-radius: 15px;
             display: flex;
-            gap: 15px;
+            flex-direction: column;
+            gap: 10px;
             align-items: center;
             z-index: 1000;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255,255,255,0.2);
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .control-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            gap: 10px;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .control-group label {
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            min-width: 30px;
+            text-align: center;
         }
 
         .scanner-controls select,
         .scanner-controls input {
-            padding: 10px 15px;
+            padding: 10px 12px;
             border: 1px solid #666;
             border-radius: 8px;
             background: #222;
             color: white;
             font-size: 14px;
-            min-width: 120px;
+            flex: 1;
+            min-width: 0;
         }
 
         .scanner-controls input {
-            width: 80px;
-        }
-
-        .scanner-controls label {
-            color: white;
-            font-size: 14px;
-            font-weight: bold;
-            margin-right: 5px;
+            text-align: center;
         }
 
         /* Overlay aprimorado */
@@ -641,23 +662,34 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
                 <div class="quality-indicator" id="qualityIndicator">Qualidade: --</div>
                 
                 <div class="scanner-controls">
-                    <div class="control-group">
-                        <label for="cameraSelect">📷</label>
-                        <select id="cameraSelect" onchange="trocarCamera()"></select>
+                    <!-- Primeira linha: Câmera -->
+                    <div class="control-row">
+                        <div class="control-group">
+                            <label for="cameraSelect">📷</label>
+                            <select id="cameraSelect" onchange="trocarCamera()">
+                                <option value="">Carregando câmeras...</option>
+                            </select>
+                        </div>
                     </div>
                     
-                    <div class="control-group">
-                        <label for="zoomInput">🔍</label>
-                        <input type="number" id="zoomInput" min="1" max="10" step="0.5" value="3" onchange="aplicarZoom()">
+                    <!-- Segunda linha: Zoom -->
+                    <div class="control-row">
+                        <div class="control-group">
+                            <label for="zoomInput">🔍</label>
+                            <input type="range" id="zoomInput" min="1" max="8" step="0.5" value="5" onchange="atualizarZoomValue()">
+                            <span id="zoomValue" style="color: white; min-width: 30px; text-align: center;">5x</span>
+                        </div>
                     </div>
                     
-                    <div class="control-group">
-                        <label for="focusSelect">🎯</label>
-                        <select id="focusSelect" onchange="aplicarFoco()">
-                            <option value="center">Centralizado</option>
-                            <option value="auto">Automático</option>
-                            <option value="continuous">Contínuo</option>
-                        </select>
+                    <!-- Terceira linha: Foco -->
+                    <div class="control-row">
+                        <div class="control-group">
+                            <label for="focusSelect">🎯</label>
+                            <select id="focusSelect" onchange="aplicarFoco()">
+                                <option value="continuous">Automático</option>
+                                <option value="manual">Manual</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -737,7 +769,6 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
         let scannerAtivo = false;
         let camerasDisponiveis = [];
         let cameraAtual = null;
-        let detectionCount = 0;
         const modalCamera = document.getElementById('modalCamera');
         
         function abrirModalCamera() {
@@ -767,6 +798,13 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
             }
         });
         
+        function atualizarZoomValue() {
+            const zoomInput = document.getElementById('zoomInput');
+            const zoomValue = document.getElementById('zoomValue');
+            zoomValue.textContent = zoomInput.value + 'x';
+            aplicarZoom();
+        }
+        
         async function listarCameras() {
             try {
                 const devices = await navigator.mediaDevices.enumerateDevices();
@@ -794,7 +832,7 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
                         label = '🤳 ' + label;
                     }
                     
-                    option.text = label;
+                    option.text = label.length > 30 ? label.substring(0, 30) + '...' : label;
                     cameraSelect.appendChild(option);
                 });
                 
@@ -803,6 +841,8 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
                 }
             } catch (err) {
                 console.error('Erro ao listar câmeras:', err);
+                const cameraSelect = document.getElementById('cameraSelect');
+                cameraSelect.innerHTML = '<option value="">Erro ao carregar câmeras</option>';
             }
         }
         
@@ -832,9 +872,9 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
             
             const zoomInput = document.getElementById('zoomInput');
             const focusSelect = document.getElementById('focusSelect');
-            const zoom = parseFloat(zoomInput.value) || 3;
+            const zoom = parseFloat(zoomInput.value) || 5; // Zoom padrão 5x para códigos pequenos
             
-            // Configurações otimizadas para códigos do tipo da sua imagem
+            // Configurações otimizadas para códigos pequenos
             const constraints = {
                 deviceId: cameraAtual ? { exact: cameraAtual } : undefined,
                 video: {
@@ -844,7 +884,7 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
                 },
                 advanced: [
                     { zoom: zoom },
-                    { focusMode: focusSelect.value === 'center' ? 'manual' : focusSelect.value }
+                    { focusMode: focusSelect.value }
                 ]
             };
             
@@ -854,38 +894,30 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
                     type: "LiveStream",
                     target: document.querySelector('#barcode-scanner'),
                     constraints: constraints,
-                    area: { // Focar na área central (onde está o overlay)
-                        top: "25%",
-                        right: "10%", 
-                        left: "10%",
-                        bottom: "25%"
+                    area: {
+                        top: "30%",
+                        right: "15%", 
+                        left: "15%",
+                        bottom: "30%"
                     }
                 },
                 decoder: {
                     readers: [
-                        "code_128_reader", // Prioridade para Code 128 (mais comum)
+                        "code_128_reader",
                         "ean_reader",
                         "ean_8_reader", 
                         "code_39_reader",
                         "upc_reader",
-                        "upc_e_reader",
-                        "codabar_reader"
-                    ],
-                    multiple: false
+                        "upc_e_reader"
+                    ]
                 },
                 locator: {
-                    patchSize: "large", // Maior área de detecção
-                    halfSample: false   // Melhor qualidade
+                    patchSize: "medium",
+                    halfSample: true
                 },
                 locate: true,
                 numOfWorkers: navigator.hardwareConcurrency || 2,
-                frequency: 10, // Verificar a cada 10 frames
-                debug: {
-                    drawBoundingBox: false,
-                    showFrequency: false,
-                    drawScanline: false,
-                    showPattern: false
-                }
+                frequency: 10
             }, function(err) {
                 if (err) {
                     console.error('Erro ao iniciar scanner:', err);
@@ -899,12 +931,6 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
                 
                 // Aplicar configurações avançadas de câmera
                 aplicarConfiguracoesCamera();
-            });
-            
-            Quagga.onProcessed(function(result) {
-                if (result) {
-                    updateQualityIndicator(result);
-                }
             });
             
             Quagga.onDetected(function(result) {
@@ -931,17 +957,10 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
                     if (track && track.getCapabilities) {
                         const capabilities = track.getCapabilities();
                         
-                        // Tentar ajustar foco para modo macro (ideal para códigos próximos)
+                        // Tentar ajustar foco para modo macro (ideal para códigos pequenos)
                         if (capabilities.focusDistance) {
                             track.applyConstraints({
-                                advanced: [{ focusMode: 'manual', focusDistance: 0.3 }]
-                            });
-                        }
-                        
-                        // Ajustar exposição para melhor leitura
-                        if (capabilities.exposureCompensation) {
-                            track.applyConstraints({
-                                advanced: [{ exposureCompensation: 0.5 }]
+                                advanced: [{ focusMode: 'manual', focusDistance: 0.2 }]
                             });
                         }
                     }
@@ -949,32 +968,6 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
                     console.log('Configurações avançadas não suportadas:', e);
                 }
             }, 1500);
-        }
-        
-        function updateQualityIndicator(result) {
-            const indicator = document.getElementById('qualityIndicator');
-            if (!result.box) {
-                indicator.style.display = 'none';
-                return;
-            }
-            
-            indicator.style.display = 'block';
-            const boxSize = Math.sqrt(Math.pow(result.box[1].x - result.box[0].x, 2) + 
-                                    Math.pow(result.box[1].y - result.box[0].y, 2));
-            
-            let quality = 'Boa';
-            let qualityClass = 'quality-good';
-            
-            if (boxSize < 50) {
-                quality = 'Baixa';
-                qualityClass = 'quality-bad';
-            } else if (boxSize < 100) {
-                quality = 'Média';
-                qualityClass = 'quality-poor';
-            }
-            
-            indicator.textContent = `Qualidade: ${quality}`;
-            indicator.className = `quality-indicator ${qualityClass}`;
         }
         
         function isValidCode(code) {
@@ -1025,6 +1018,11 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
                 document.getElementById('qualityIndicator').style.display = 'none';
             }
         }
+        
+        // Inicializar valor do zoom
+        document.addEventListener('DOMContentLoaded', function() {
+            atualizarZoomValue();
+        });
     </script>
 </body>
 </html>
