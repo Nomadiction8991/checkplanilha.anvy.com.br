@@ -1,7 +1,7 @@
 <?php
 
 class Database {
-    private $host = 'localhost';
+    private $host = 'anvy.com.br';
     private $db_name = 'anvycomb_checkplanilha';
     private $username = 'anvycomb_checkplanilha';
     private $password = 'uGyzaCndm7EDahptkBZd';
