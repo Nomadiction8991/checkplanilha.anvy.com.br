@@ -9,7 +9,9 @@ $offset = ($pagina - 1) * $limite;
 // Filtros
 $filtro_descricao = isset($_GET['descricao']) ? $_GET['descricao'] : '';
 $filtro_status = isset($_GET['status']) ? $_GET['status'] : '';
-$mostrar_inativos = isset($_GET['mostrar_inativos']) ? true : false;
+// CORRIGIR: Checkbox marcado = mostrar inativos (ativo = 0)
+// Checkbox desmarcado = mostrar ativos (ativo = 1)
+$mostrar_inativos = isset($_GET['mostrar_inativos']) && $_GET['mostrar_inativos'] == '1';
 
 // Construir a query base
 $sql = "SELECT * FROM planilhas WHERE 1=1";
@@ -27,12 +29,12 @@ if (!empty($filtro_status)) {
     $params[':status'] = $filtro_status;
 }
 
-// Filtro de ativos/inativos
+// CORREÇÃO: Lógica invertida para ativo/inativo
 if ($mostrar_inativos) {
-    // Checkbox marcado: mostrar apenas inativos
+    // Checkbox marcado: mostrar apenas inativos (ativo = 0)
     $sql .= " AND ativo = 0";
 } else {
-    // Checkbox desmarcado: mostrar apenas ativos (padrão)
+    // Checkbox desmarcado: mostrar apenas ativos (ativo = 1) - PADRÃO
     $sql .= " AND ativo = 1";
 }
 
@@ -184,7 +186,9 @@ $status_options = $stmt_status->fetchAll(PDO::FETCH_COLUMN);
             overflow: hidden;
             text-overflow: ellipsis;
         }
-
+table tbody tr td a{
+    text-decoration: none;
+}
         table tbody tr:nth-child(odd) {
             background-color: #fff; 
         }
@@ -192,37 +196,47 @@ $status_options = $stmt_status->fetchAll(PDO::FETCH_COLUMN);
         table tbody tr:nth-child(even) {
             background-color: #accff1ff;
         }
-
-
-        /* COLUNA DESCRIÇÃO - Ocupa o máximo possível */
-        table thead tr th:nth-child(1),  /* Se não tiver ID, descrição vira 1ª coluna */
+        table thead tr th:nth-child(1),
         table tbody tr td:nth-child(1) {
-            width: 50%; /* Ocupa o espaço disponível */
+            width: 50%;
             max-width: 0;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
-
-        /* COLUNA STATUS - Largura mínima e centralizada */
         table thead tr th:nth-child(2),
         table tbody tr td:nth-child(2) {
             min-width: 10px;
-            text-align: center; /* Centraliza o texto */
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        /* COLUNA AÇÕES - Largura fixa, nunca corta */
-        table thead tr th:nth-child(3),
-        table tbody tr td:nth-child(3) {
-            min-width: 80px;
-            white-space: nowrap; /* Mantém tudo na mesma linha */
             text-align: center;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+        }
+        table thead tr th:nth-child(3),
+        table tbody tr td:nth-child(3) {
+            min-width: 80px;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        div.paginacao{
+            margin-top: 20px;
+            text-align: center;
+            width: 100%;
+        }
+        div.paginacao a{
+            text-decoration: none;
+            color: #333;
+            outline: none;
+        }
+        div.paginacao a{
+            color: #007bff;
+        }
+        p.erro{
+            width: 100%;
+            margin-block:30px;
+            text-align: center;
         }
     </style>
 </head>
@@ -249,17 +263,16 @@ $status_options = $stmt_status->fetchAll(PDO::FETCH_COLUMN);
                     <?php endforeach; ?>
                 </select>
                 <label>
-                    <input type="checkbox" name="mostrar_inativos" value="1" <?php echo $mostrar_inativos ? 'checked' : ''; ?>> 
-                    Mostrar Apenas Inativos
-                </label>
+    <input type="checkbox" name="mostrar_inativos" value="1" <?php echo $mostrar_inativos ? 'checked' : ''; ?>> 
+    Mostrar Inativos
+</label>
             </div>
         </form>
     </header>
-    <!-- Tabela de resultados -->
     <?php if (count($planilhas) > 0): ?>
         <table>
             <thead>
-                <tr style="background-color: #f8f9fa;">
+                <tr>
                     <th>Descrição</th>
                     <th>Status</th>
                     <th>Ações</th>
@@ -271,12 +284,10 @@ $status_options = $stmt_status->fetchAll(PDO::FETCH_COLUMN);
                         <td><?php echo htmlspecialchars($planilha['descricao']); ?></td>
                         <td><?php echo ucfirst($planilha['status']); ?></td>
                         <td>
-                            <a href="visualizar_planilha.php?id=<?php echo $planilha['id']; ?>"
-                                style="color: #007bff; text-decoration: none; margin-right: 10px;">
+                            <a href="visualizar_planilha.php?id=<?php echo $planilha['id']; ?>">
                                 🔍
                             </a>
-                            <a href="editar_planilha.php?id=<?php echo $planilha['id']; ?>"
-                                style="color: #28a745; text-decoration: none;">
+                            <a href="editar_planilha.php?id=<?php echo $planilha['id']; ?>">
                                 ✍
                             </a>
                         </td>
@@ -285,35 +296,31 @@ $status_options = $stmt_status->fetchAll(PDO::FETCH_COLUMN);
             </tbody>
         </table>
 
-        <?php if ($total_paginas > 1): ?>
-            <div style="margin-top: 20px; text-align: center;">
-                <?php if ($pagina > 1): ?>
-                    <a href="?pagina=<?php echo $pagina - 1; ?>&descricao=<?php echo urlencode($filtro_descricao); ?>&status=<?php echo urlencode($filtro_status); ?>&mostrar_inativos=<?php echo $mostrar_inativos ? '1' : '0'; ?>"
-                        style="margin-right: 10px; text-decoration: none;">&laquo; Anterior</a>
-                <?php endif; ?>
-
-                <?php for ($i = 1; $i <= $total_paginas; $i++): ?>
-                    <?php if ($i == $pagina): ?>
-                        <strong style="margin: 0 5px;"><?php echo $i; ?></strong>
-                    <?php else: ?>
-                        <a href="?pagina=<?php echo $i; ?>&descricao=<?php echo urlencode($filtro_descricao); ?>&status=<?php echo urlencode($filtro_status); ?>&mostrar_inativos=<?php echo $mostrar_inativos ? '1' : '0'; ?>"
-                            style="margin: 0 5px; text-decoration: none;"><?php echo $i; ?></a>
-                    <?php endif; ?>
-                <?php endfor; ?>
-
-                <?php if ($pagina < $total_paginas): ?>
-                    <a href="?pagina=<?php echo $pagina + 1; ?>&descricao=<?php echo urlencode($filtro_descricao); ?>&status=<?php echo urlencode($filtro_status); ?>&mostrar_inativos=<?php echo $mostrar_inativos ? '1' : '0'; ?>"
-                        style="margin-left: 10px; text-decoration: none;">Próxima &raquo;</a>
-                <?php endif; ?>
-            </div>
+<?php if ($total_paginas > 1): ?>
+    <div class="paginacao">
+        <?php if ($pagina > 1): ?>
+            <a href="?pagina=<?php echo $pagina - 1; ?>&descricao=<?php echo urlencode($filtro_descricao); ?>&status=<?php echo urlencode($filtro_status); ?>&mostrar_inativos=<?php echo $mostrar_inativos ? '1' : '0'; ?>"
+                style="margin-right: 10px; text-decoration: none;">&laquo; Anterior</a>
         <?php endif; ?>
 
-        <p style="margin-top: 10px;">
-            Mostrando <?php echo count($planilhas); ?> de <?php echo $total_registros; ?> registros
-        </p>
+        <?php for ($i = 1; $i <= $total_paginas; $i++): ?>
+            <?php if ($i == $pagina): ?>
+                <strong style="margin: 0 5px;"><?php echo $i; ?></strong>
+            <?php else: ?>
+                <a href="?pagina=<?php echo $i; ?>&descricao=<?php echo urlencode($filtro_descricao); ?>&status=<?php echo urlencode($filtro_status); ?>&mostrar_inativos=<?php echo $mostrar_inativos ? '1' : '0'; ?>"
+                    style="margin: 0 5px; text-decoration: none;"><?php echo $i; ?></a>
+            <?php endif; ?>
+        <?php endfor; ?>
+
+        <?php if ($pagina < $total_paginas): ?>
+            <a href="?pagina=<?php echo $pagina + 1; ?>&descricao=<?php echo urlencode($filtro_descricao); ?>&status=<?php echo urlencode($filtro_status); ?>&mostrar_inativos=<?php echo $mostrar_inativos ? '1' : '0'; ?>"
+                style="margin-left: 10px; text-decoration: none;">Próxima &raquo;</a>
+        <?php endif; ?>
+    </div>
+<?php endif; ?>
 
     <?php else: ?>
-        <p>Nenhuma planilha encontrada.</p>
+        <p class="erro">Nenhuma planilha encontrada.</p>
     <?php endif; ?>
 </body>
 
