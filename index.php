@@ -299,22 +299,19 @@ table tbody tr td a{
 <?php if ($total_paginas > 1): ?>
     <div class="paginacao">
         <?php if ($pagina > 1): ?>
-            <a href="?pagina=<?php echo $pagina - 1; ?>&descricao=<?php echo urlencode($filtro_descricao); ?>&status=<?php echo urlencode($filtro_status); ?>&mostrar_inativos=<?php echo $mostrar_inativos ? '1' : '0'; ?>"
-                style="margin-right: 10px; text-decoration: none;">&laquo; Anterior</a>
+            <a href="?pagina=<?php echo $pagina - 1; ?>&descricao=<?php echo urlencode($filtro_descricao); ?>&status=<?php echo urlencode($filtro_status); ?>&mostrar_inativos=<?php echo $mostrar_inativos ? '1' : '0'; ?>">&laquo; Anterior </a>
         <?php endif; ?>
 
         <?php for ($i = 1; $i <= $total_paginas; $i++): ?>
             <?php if ($i == $pagina): ?>
                 <strong style="margin: 0 5px;"><?php echo $i; ?></strong>
             <?php else: ?>
-                <a href="?pagina=<?php echo $i; ?>&descricao=<?php echo urlencode($filtro_descricao); ?>&status=<?php echo urlencode($filtro_status); ?>&mostrar_inativos=<?php echo $mostrar_inativos ? '1' : '0'; ?>"
-                    style="margin: 0 5px; text-decoration: none;"><?php echo $i; ?></a>
+                <a href="?pagina=<?php echo $i; ?>&descricao=<?php echo urlencode($filtro_descricao); ?>&status=<?php echo urlencode($filtro_status); ?>&mostrar_inativos=<?php echo $mostrar_inativos ? '1' : '0'; ?>"><?php echo $i; ?></a>
             <?php endif; ?>
         <?php endfor; ?>
 
         <?php if ($pagina < $total_paginas): ?>
-            <a href="?pagina=<?php echo $pagina + 1; ?>&descricao=<?php echo urlencode($filtro_descricao); ?>&status=<?php echo urlencode($filtro_status); ?>&mostrar_inativos=<?php echo $mostrar_inativos ? '1' : '0'; ?>"
-                style="margin-left: 10px; text-decoration: none;">Próxima &raquo;</a>
+            <a href="?pagina=<?php echo $pagina + 1; ?>&descricao=<?php echo urlencode($filtro_descricao); ?>&status=<?php echo urlencode($filtro_status); ?>&mostrar_inativos=<?php echo $mostrar_inativos ? '1' : '0'; ?>"> Próxima &raquo;</a>
         <?php endif; ?>
     </div>
 <?php endif; ?>
