@@ -71,72 +71,199 @@ $status_options = $stmt_status->fetchAll(PDO::FETCH_COLUMN);
 
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Listagem de Planilhas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            width: 100vw;
+        }
+
+        header.cabecalho{
+            padding: 15px 5px 5px 5px;
+            border-bottom: 1px solid #999;
+            box-shadow: 0px 0px 10px #999;
+            margin-bottom: 15px;
+            position: sticky;
+        }
+        header.cabecalho div.importar_planilha {
+            width: 100%;
+            padding: 5px;
+            display: inline-block;
+            text-align: center;
+        }
+
+        header.cabecalho div.importar_planilha a {
+            width: auto;
+            padding: 5px 10px;
+            border-radius: 3px;
+            background-color: #28a745;
+            text-decoration: none;
+            color: #fff;
+            margin-block: 5px;
+        }
+
+        header.cabecalho div.importar_planilha h1.titulo {
+            font-size: 18px;
+            display: inline-block;
+            color: #333;
+        }
+
+        header.cabecalho form.formulario {
+            padding: 10px;
+        }
+
+        header.cabecalho form.formulario div{
+            width: 100%;
+            padding: 2.5px 0;
+            display: flex;
+            flex-direction: row;
+            overflow: hidden;
+        }
+
+        header.cabecalho form.formulario div input[type="text"]{
+            padding: 8px;
+            width: 85%;
+            margin-inline: auto;
+            border:none;
+            border: 1px solid #bbb;
+            border-radius: 4px 0 0 4px;
+            outline: none;
+            color: #333;
+        }
+        header.cabecalho form.formulario div button{
+            width: 15%;
+            padding: 0 15px;
+            background: #007bff;
+            color: white;
+            border: 1px solid #007bff;
+            border-radius: 0 4px 4px 0;
+            margin-left: -1px;
+        }
+        header.cabecalho form.formulario div select{
+            padding: 8px;
+            border: none;
+            border: 1px solid #bbb;
+            color: #333;
+            border-radius: 4px;
+            outline:none;
+        }
+        header.cabecalho form.formulario div label{
+            width: 100%;
+            text-align: center;
+            align-content: center;
+
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed; /* Isso faz a tabela respeitar as larguras */
+        }
+
+        table thead tr th {
+            border: 1px solid #ccc;
+            padding-block: 5px;
+            font-weight: 400;
+            color: #111;
+            overflow: hidden;
+        }
+
+        table tbody tr td {
+            color: #333;
+            padding: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        table tbody tr:nth-child(odd) {
+            background-color: #f8f9fa; 
+        }
+
+        table tbody tr:nth-child(even) {
+            background-color: #ffffff;
+        }
+
+
+        /* COLUNA DESCRIÇÃO - Ocupa o máximo possível */
+        table thead tr th:nth-child(1),  /* Se não tiver ID, descrição vira 1ª coluna */
+        table tbody tr td:nth-child(1) {
+            width: 50%; /* Ocupa o espaço disponível */
+            max-width: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* COLUNA STATUS - Largura mínima e centralizada */
+        table thead tr th:nth-child(2),
+        table tbody tr td:nth-child(2) {
+            min-width: 10px;
+            text-align: center; /* Centraliza o texto */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* COLUNA AÇÕES - Largura fixa, nunca corta */
+        table thead tr th:nth-child(3),
+        table tbody tr td:nth-child(3) {
+            min-width: 80px;
+            white-space: nowrap; /* Mantém tudo na mesma linha */
+            overflow: visible; /* Não corta o conteúdo */
+            text-overflow: clip; /* Não mostra ... */
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
 </head>
+
 <body>
-    <h1>Listagem de Planilhas</h1>
-
-    <!-- Botão Importar Planilha -->
-    <div style="margin-bottom: 20px;">
-        <a href="importar_planilha.php" style="background: #4CAF50; color: white; padding: 10px 15px; text-decoration: none; border-radius: 4px;">
-            Importar Planilha
-        </a>
-    </div>
-
-    <!-- Formulário de Filtros -->
-    <form method="GET" action="" style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd;">
-        <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: end;">
-            <!-- Campo de pesquisa por descrição -->
+    <header class="cabecalho">
+        <div class="importar_planilha">
+            <a href="importar_planilha.php">+ Nova Planilha</a>
+            <h1 class="titulo"> - Listagem de Planilhas</h1>
+        </div>
+        <form method="GET" class="formulario">
             <div>
-                <label for="descricao">Pesquisar por descrição:</label><br>
-                <input type="text" id="descricao" name="descricao" value="<?php echo htmlspecialchars($filtro_descricao); ?>" 
-                       placeholder="Digite para pesquisar..." style="padding: 8px; width: 250px;">
+                <input type="text" id="descricao" name="descricao" value="<?php echo htmlspecialchars($filtro_descricao); ?>" placeholder="Descrição...">
+                <button type="submit">🔍</button>
             </div>
-
-            <!-- Filtro por status -->
             <div>
-                <label for="status">Filtrar por status:</label><br>
-                <select id="status" name="status" style="padding: 8px;">
+                <select id="status" name="status">
                     <option value="">Todos os status</option>
                     <?php foreach ($status_options as $status): ?>
-                        <option value="<?php echo $status; ?>" 
+                        <option value="<?php echo $status; ?>"
                             <?php echo $filtro_status === $status ? 'selected' : ''; ?>>
                             <?php echo ucfirst($status); ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
-            </div>
-
-            <!-- Checkbox mostrar inativos -->
-            <div>
                 <label>
-                    <input type="checkbox" name="mostrar_inativos" value="1" 
-                        <?php echo $mostrar_inativos ? 'checked' : ''; ?>>
-                    Mostrar apenas inativos
+                    <input type="checkbox" name="mostrar_inativos" value="1" <?php echo $mostrar_inativos ? 'checked' : ''; ?>> 
+                    Mostrar Apenas Inativos
                 </label>
             </div>
-
-            <!-- Botões do formulário -->
-            <div>
-                <button type="submit" style="padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 4px;">
-                    Aplicar Filtros
-                </button>
-                <a href="index.php" style="padding: 8px 15px; background: #6c757d; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">
-                    Limpar
-                </a>
-            </div>
-        </div>
-    </form>
-
+        </form>
+    </header>
     <!-- Tabela de resultados -->
     <?php if (count($planilhas) > 0): ?>
-        <table border="1" cellpadding="10" cellspacing="0" style="width: 100%; border-collapse: collapse;">
+        <table>
             <thead>
                 <tr style="background-color: #f8f9fa;">
-                    <th>ID</th>
                     <th>Descrição</th>
                     <th>Status</th>
                     <th>Ações</th>
@@ -145,17 +272,16 @@ $status_options = $stmt_status->fetchAll(PDO::FETCH_COLUMN);
             <tbody>
                 <?php foreach ($planilhas as $planilha): ?>
                     <tr>
-                        <td><?php echo $planilha['id']; ?></td>
                         <td><?php echo htmlspecialchars($planilha['descricao']); ?></td>
                         <td><?php echo ucfirst($planilha['status']); ?></td>
                         <td>
-                            <a href="visualizar_planilha.php?id=<?php echo $planilha['id']; ?>" 
-                               style="color: #007bff; text-decoration: none; margin-right: 10px;">
-                                Visualizar
+                            <a href="visualizar_planilha.php?id=<?php echo $planilha['id']; ?>"
+                                style="color: #007bff; text-decoration: none; margin-right: 10px;">
+                                🔍
                             </a>
-                            <a href="editar_planilha.php?id=<?php echo $planilha['id']; ?>" 
-                               style="color: #28a745; text-decoration: none;">
-                                Editar
+                            <a href="editar_planilha.php?id=<?php echo $planilha['id']; ?>"
+                                style="color: #28a745; text-decoration: none;">
+                                ✍
                             </a>
                         </td>
                     </tr>
@@ -163,26 +289,25 @@ $status_options = $stmt_status->fetchAll(PDO::FETCH_COLUMN);
             </tbody>
         </table>
 
-        <!-- Paginação -->
         <?php if ($total_paginas > 1): ?>
             <div style="margin-top: 20px; text-align: center;">
                 <?php if ($pagina > 1): ?>
-                    <a href="?pagina=<?php echo $pagina - 1; ?>&descricao=<?php echo urlencode($filtro_descricao); ?>&status=<?php echo urlencode($filtro_status); ?>&mostrar_inativos=<?php echo $mostrar_inativos ? '1' : '0'; ?>" 
-                       style="margin-right: 10px; text-decoration: none;">&laquo; Anterior</a>
+                    <a href="?pagina=<?php echo $pagina - 1; ?>&descricao=<?php echo urlencode($filtro_descricao); ?>&status=<?php echo urlencode($filtro_status); ?>&mostrar_inativos=<?php echo $mostrar_inativos ? '1' : '0'; ?>"
+                        style="margin-right: 10px; text-decoration: none;">&laquo; Anterior</a>
                 <?php endif; ?>
 
                 <?php for ($i = 1; $i <= $total_paginas; $i++): ?>
                     <?php if ($i == $pagina): ?>
                         <strong style="margin: 0 5px;"><?php echo $i; ?></strong>
                     <?php else: ?>
-                        <a href="?pagina=<?php echo $i; ?>&descricao=<?php echo urlencode($filtro_descricao); ?>&status=<?php echo urlencode($filtro_status); ?>&mostrar_inativos=<?php echo $mostrar_inativos ? '1' : '0'; ?>" 
-                           style="margin: 0 5px; text-decoration: none;"><?php echo $i; ?></a>
+                        <a href="?pagina=<?php echo $i; ?>&descricao=<?php echo urlencode($filtro_descricao); ?>&status=<?php echo urlencode($filtro_status); ?>&mostrar_inativos=<?php echo $mostrar_inativos ? '1' : '0'; ?>"
+                            style="margin: 0 5px; text-decoration: none;"><?php echo $i; ?></a>
                     <?php endif; ?>
                 <?php endfor; ?>
 
                 <?php if ($pagina < $total_paginas): ?>
-                    <a href="?pagina=<?php echo $pagina + 1; ?>&descricao=<?php echo urlencode($filtro_descricao); ?>&status=<?php echo urlencode($filtro_status); ?>&mostrar_inativos=<?php echo $mostrar_inativos ? '1' : '0'; ?>" 
-                       style="margin-left: 10px; text-decoration: none;">Próxima &raquo;</a>
+                    <a href="?pagina=<?php echo $pagina + 1; ?>&descricao=<?php echo urlencode($filtro_descricao); ?>&status=<?php echo urlencode($filtro_status); ?>&mostrar_inativos=<?php echo $mostrar_inativos ? '1' : '0'; ?>"
+                        style="margin-left: 10px; text-decoration: none;">Próxima &raquo;</a>
                 <?php endif; ?>
             </div>
         <?php endif; ?>
@@ -195,4 +320,5 @@ $status_options = $stmt_status->fetchAll(PDO::FETCH_COLUMN);
         <p>Nenhuma planilha encontrada.</p>
     <?php endif; ?>
 </body>
+
 </html>
