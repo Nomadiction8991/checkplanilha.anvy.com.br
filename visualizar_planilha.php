@@ -100,8 +100,7 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Visualizar Planilha - <?php echo htmlspecialchars($planilha['descricao']); ?></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-    <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dynamsoft-javascript-barcode@9.6.30/dist/dbr.js"></script>
     <style>
         * {
             margin: 0;
@@ -193,21 +192,6 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
             outline: none;
             flex: 1;
             margin-right: 10px;
-        }
-
-        header.cabecalho form.formulario div label {
-            width: auto;
-            text-align: center;
-            align-content: center;
-            white-space: nowrap;
-            margin-right: 10px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        header.cabecalho form.formulario div label input[type="checkbox"] {
-            margin: 0;
         }
 
         .btn-scanner {
@@ -323,11 +307,11 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
         }
 
         .linha-checado-observacao {
-            background-color: #e6e6fa !important; /* Roxo claro */
+            background-color: #e6e6fa !important;
         }
 
         .linha-observacao {
-            background-color: #fff3cd !important; /* Amarelo claro */
+            background-color: #fff3cd !important;
         }
 
         div.paginacao {
@@ -364,7 +348,7 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
             color: #666;
         }
 
-        /* Modal da Câmera - MELHORADO */
+        /* Modal da Câmera - PROFISSIONAL */
         .modal-camera {
             display: none;
             position: fixed;
@@ -380,10 +364,8 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
             background-color: #000;
             margin: 0;
             padding: 0;
-            border-radius: 0;
             width: 100%;
             height: 100%;
-            max-width: 100%;
             position: relative;
             display: flex;
             flex-direction: column;
@@ -412,16 +394,48 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
             background: rgba(255,0,0,0.7);
         }
 
-        #barcode-scanner {
+        #scanner-container {
             width: 100%;
             height: 100%;
-            background: #000;
-            flex: 1;
             position: relative;
             overflow: hidden;
         }
 
-        /* Controles reorganizados em 3 linhas */
+        #reader {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .scanner-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            height: 150px;
+            border: 3px solid #00ff00;
+            background: rgba(0, 255, 0, 0.1);
+            pointer-events: none;
+            z-index: 999;
+            border-radius: 15px;
+            box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.7);
+            animation: pulse 2s infinite;
+        }
+
+        .scanner-overlay::before {
+            content: 'Posicione o código na área verde';
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #00ff00;
+            font-size: 16px;
+            font-weight: bold;
+            white-space: nowrap;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+        }
+
         .scanner-controls {
             position: absolute;
             bottom: 20px;
@@ -473,72 +487,32 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
             color: white;
             font-size: 14px;
             flex: 1;
-            min-width: 0;
         }
 
-        .scanner-controls input {
+        .scanner-controls input[type="range"] {
+            flex: 2;
+        }
+
+        .zoom-value {
+            color: white;
+            min-width: 40px;
             text-align: center;
-        }
-
-        /* Overlay aprimorado */
-        .scanner-overlay {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 85%;
-            height: 120px;
-            border: 3px solid #00ff00;
-            background: rgba(0, 255, 0, 0.05);
-            pointer-events: none;
-            z-index: 999;
-            border-radius: 15px;
-            box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.7);
-            animation: pulse 2s infinite;
-        }
-
-        .scanner-overlay::before {
-            content: 'Posicione o código na área verde';
-            position: absolute;
-            top: -40px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #00ff00;
-            font-size: 16px;
             font-weight: bold;
-            white-space: nowrap;
-            text-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
         }
 
-        .scanner-guide {
+        .scan-line {
             position: absolute;
             top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            left: 10%;
             width: 80%;
-            height: 2px;
+            height: 3px;
             background: linear-gradient(90deg, transparent, #00ff00, transparent);
-            pointer-events: none;
+            transform: translateY(-50%);
+            animation: scan 2s ease-in-out infinite;
             z-index: 998;
         }
 
-        .scan-indicator {
-            position: absolute;
-            top: 50%;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background: #00ff00;
-            transform: translateY(-50%);
-            opacity: 0;
-            z-index: 997;
-        }
-
-        .scanning .scan-indicator {
-            animation: scan 1.5s ease-in-out infinite;
-        }
-
-        .quality-indicator {
+        .status-indicator {
             position: absolute;
             top: 20px;
             left: 20px;
@@ -548,22 +522,6 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
             color: white;
             font-size: 14px;
             z-index: 1000;
-            display: none;
-        }
-
-        .quality-good {
-            background: rgba(0, 255, 0, 0.3);
-            border: 1px solid #00ff00;
-        }
-
-        .quality-poor {
-            background: rgba(255, 255, 0, 0.3);
-            border: 1px solid #ffff00;
-        }
-
-        .quality-bad {
-            background: rgba(255, 0, 0, 0.3);
-            border: 1px solid #ff0000;
         }
 
         @keyframes pulse {
@@ -572,46 +530,9 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
         }
 
         @keyframes scan {
-            0% { 
-                transform: translateY(-50%) translateX(-100%);
-                opacity: 0;
-            }
-            50% {
-                opacity: 1;
-            }
-            100% { 
-                transform: translateY(-50%) translateX(100%);
-                opacity: 0;
-            }
-        }
-
-        .detection-feedback {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            background: rgba(0, 255, 0, 0.3);
-            opacity: 0;
-            z-index: 996;
-            pointer-events: none;
-        }
-
-        .detected .detection-feedback {
-            animation: detectionPulse 0.5s ease-out;
-        }
-
-        @keyframes detectionPulse {
-            0% {
-                transform: translate(-50%, -50%) scale(0.5);
-                opacity: 0.7;
-            }
-            100% {
-                transform: translate(-50%, -50%) scale(2);
-                opacity: 0;
-            }
+            0% { transform: translateY(-50%) translateX(-100%); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateY(-50%) translateX(100%); opacity: 0; }
         }
     </style>
 </head>
@@ -649,45 +570,43 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
         </form>
     </header>
 
-    <!-- Modal da Câmera MELHORADO -->
+    <!-- Modal da Câmera PROFISSIONAL -->
     <div id="modalCamera" class="modal-camera">
         <div class="modal-content">
             <span class="close-modal" onclick="fecharModalCamera()">&times;</span>
             
-            <div id="barcode-scanner">
+            <div id="scanner-container">
+                <div id="reader"></div>
                 <div class="scanner-overlay"></div>
-                <div class="scanner-guide"></div>
-                <div class="scan-indicator"></div>
-                <div class="detection-feedback"></div>
-                <div class="quality-indicator" id="qualityIndicator">Qualidade: --</div>
+                <div class="scan-line"></div>
+                <div class="status-indicator" id="statusIndicator">Preparando câmera...</div>
                 
                 <div class="scanner-controls">
-                    <!-- Primeira linha: Câmera -->
+                    <!-- Câmera -->
                     <div class="control-row">
                         <div class="control-group">
                             <label for="cameraSelect">📷</label>
-                            <select id="cameraSelect" onchange="trocarCamera()">
-                                <option value="">Carregando câmeras...</option>
-                            </select>
+                            <select id="cameraSelect" onchange="trocarCamera()"></select>
                         </div>
                     </div>
                     
-                    <!-- Segunda linha: Zoom -->
+                    <!-- Zoom -->
                     <div class="control-row">
                         <div class="control-group">
-                            <label for="zoomInput">🔍</label>
-                            <input type="range" id="zoomInput" min="1" max="8" step="0.5" value="5" onchange="atualizarZoomValue()">
-                            <span id="zoomValue" style="color: white; min-width: 30px; text-align: center;">5x</span>
+                            <label for="zoomSlider">🔍</label>
+                            <input type="range" id="zoomSlider" min="100" max="500" value="200" onchange="atualizarZoom()">
+                            <span id="zoomDisplay" class="zoom-value">2.0x</span>
                         </div>
                     </div>
                     
-                    <!-- Terceira linha: Foco -->
+                    <!-- Flash -->
                     <div class="control-row">
                         <div class="control-group">
-                            <label for="focusSelect">🎯</label>
-                            <select id="focusSelect" onchange="aplicarFoco()">
-                                <option value="continuous">Automático</option>
-                                <option value="manual">Manual</option>
+                            <label for="flashToggle">💡</label>
+                            <select id="flashToggle" onchange="toggleFlash()">
+                                <option value="off">Flash Off</option>
+                                <option value="on">Flash On</option>
+                                <option value="auto">Auto</option>
                             </select>
                         </div>
                     </div>
@@ -765,67 +684,88 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
     <?php endif; ?>
 
     <script>
-        let quaggaScanner = null;
-        let scannerAtivo = false;
-        let camerasDisponiveis = [];
-        let cameraAtual = null;
+        // Configuração do Dynamsoft Barcode Reader
+        Dynamsoft.DBR.BarcodeReader.license = 'DLS2eyJvcmdhbml6YXRpb25JRCI6IjIwMDAwMSJ9';
+        
+        let scanner = null;
+        let currentCamera = null;
+        let cameras = [];
         const modalCamera = document.getElementById('modalCamera');
         
-        function abrirModalCamera() {
-            modalCamera.style.display = 'block';
-            document.body.style.overflow = 'hidden';
-            listarCameras().then(() => {
-                iniciarScanner();
-            });
+        // Inicializar o scanner
+        async function initScanner() {
+            try {
+                scanner = await Dynamsoft.DBR.BarcodeScanner.createInstance();
+                
+                // Configurações otimizadas para códigos pequenos
+                await scanner.updateRuntimeSettings("speed");
+                
+                // Configurar quais códigos ler
+                let settings = await scanner.getRuntimeSettings();
+                settings.barcodeFormatIds = 
+                    Dynamsoft.DBR.EnumBarcodeFormat.BF_CODE_39 |
+                    Dynamsoft.DBR.EnumBarcodeFormat.BF_CODE_128 |
+                    Dynamsoft.DBR.EnumBarcodeFormat.BF_EAN_13 |
+                    Dynamsoft.DBR.EnumBarcodeFormat.BF_EAN_8 |
+                    Dynamsoft.DBR.EnumBarcodeFormat.BF_CODE_93 |
+                    Dynamsoft.DBR.EnumBarcodeFormat.BF_CODABAR;
+                
+                settings.expectedBarcodesCount = 1;
+                await scanner.updateRuntimeSettings(settings);
+                
+                // Definir callbacks
+                scanner.onFrameRead = results => {
+                    if (results.length > 0) {
+                        handleBarcodeDetected(results[0].barcodeText);
+                    }
+                };
+                
+                scanner.onUniqueRead = (txt, result) => {
+                    handleBarcodeDetected(txt);
+                };
+                
+                console.log('Scanner inicializado com sucesso');
+                
+            } catch (ex) {
+                console.error('Erro ao inicializar scanner:', ex);
+                document.getElementById('statusIndicator').textContent = 'Erro: ' + ex.message;
+            }
         }
         
+        // Abrir modal da câmera
+        async function abrirModalCamera() {
+            modalCamera.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+            document.getElementById('statusIndicator').textContent = 'Iniciando câmera...';
+            
+            if (!scanner) {
+                await initScanner();
+            }
+            
+            await listarCameras();
+            await iniciarCamera();
+        }
+        
+        // Fechar modal
         function fecharModalCamera() {
             modalCamera.style.display = 'none';
             document.body.style.overflow = 'auto';
-            pararScanner();
+            pararCamera();
         }
         
-        window.onclick = function(event) {
-            if (event.target === modalCamera) {
-                fecharModalCamera();
-            }
-        };
-        
-        // Tecla ESC para fechar
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape' && modalCamera.style.display === 'block') {
-                fecharModalCamera();
-            }
-        });
-        
-        function atualizarZoomValue() {
-            const zoomInput = document.getElementById('zoomInput');
-            const zoomValue = document.getElementById('zoomValue');
-            zoomValue.textContent = zoomInput.value + 'x';
-            aplicarZoom();
-        }
-        
+        // Listar câmeras disponíveis
         async function listarCameras() {
             try {
-                const devices = await navigator.mediaDevices.enumerateDevices();
-                camerasDisponiveis = devices.filter(device => device.kind === 'videoinput');
-                
+                cameras = await scanner.getAllCameras();
                 const cameraSelect = document.getElementById('cameraSelect');
                 cameraSelect.innerHTML = '';
                 
-                // Ordenar câmeras: traseira primeiro
-                camerasDisponiveis.sort((a, b) => {
-                    const aIsBack = a.label.toLowerCase().includes('back') || a.label.toLowerCase().includes('rear');
-                    const bIsBack = b.label.toLowerCase().includes('back') || b.label.toLowerCase().includes('rear');
-                    return bIsBack - aIsBack;
-                });
-                
-                camerasDisponiveis.forEach((camera, index) => {
+                cameras.forEach((camera, index) => {
                     const option = document.createElement('option');
                     option.value = camera.deviceId;
                     let label = camera.label || `Câmera ${index + 1}`;
                     
-                    // Adicionar emoji para identificar tipo de câmera
+                    // Identificar tipo de câmera
                     if (label.toLowerCase().includes('back') || label.toLowerCase().includes('rear')) {
                         label = '📷 ' + label;
                     } else if (label.toLowerCase().includes('front') || label.toLowerCase().includes('selfie')) {
@@ -836,153 +776,120 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
                     cameraSelect.appendChild(option);
                 });
                 
-                if (camerasDisponiveis.length > 0) {
-                    cameraAtual = camerasDisponiveis[0].deviceId;
+                if (cameras.length > 0) {
+                    currentCamera = cameras[0].deviceId;
                 }
-            } catch (err) {
-                console.error('Erro ao listar câmeras:', err);
-                const cameraSelect = document.getElementById('cameraSelect');
-                cameraSelect.innerHTML = '<option value="">Erro ao carregar câmeras</option>';
+                
+            } catch (ex) {
+                console.error('Erro ao listar câmeras:', ex);
             }
         }
         
-        function trocarCamera() {
-            const cameraSelect = document.getElementById('cameraSelect');
-            cameraAtual = cameraSelect.value;
-            reiniciarScanner();
-        }
-        
-        function aplicarZoom() {
-            reiniciarScanner();
-        }
-        
-        function aplicarFoco() {
-            reiniciarScanner();
-        }
-        
-        function reiniciarScanner() {
-            if (scannerAtivo) {
-                pararScanner();
-                setTimeout(() => iniciarScanner(), 800);
-            }
-        }
-        
-        function iniciarScanner() {
-            if (scannerAtivo) return;
-            
-            const zoomInput = document.getElementById('zoomInput');
-            const focusSelect = document.getElementById('focusSelect');
-            const zoom = parseFloat(zoomInput.value) || 5; // Zoom padrão 5x para códigos pequenos
-            
-            // Configurações otimizadas para códigos pequenos
-            const constraints = {
-                deviceId: cameraAtual ? { exact: cameraAtual } : undefined,
-                video: {
-                    width: { ideal: 1920 },
-                    height: { ideal: 1080 },
-                    frameRate: { ideal: 30 }
-                },
-                advanced: [
-                    { zoom: zoom },
-                    { focusMode: focusSelect.value }
-                ]
-            };
-            
-            Quagga.init({
-                inputStream: {
-                    name: "Live",
-                    type: "LiveStream",
-                    target: document.querySelector('#barcode-scanner'),
-                    constraints: constraints,
-                    area: {
-                        top: "30%",
-                        right: "15%", 
-                        left: "15%",
-                        bottom: "30%"
-                    }
-                },
-                decoder: {
-                    readers: [
-                        "code_128_reader",
-                        "ean_reader",
-                        "ean_8_reader", 
-                        "code_39_reader",
-                        "upc_reader",
-                        "upc_e_reader"
-                    ]
-                },
-                locator: {
-                    patchSize: "medium",
-                    halfSample: true
-                },
-                locate: true,
-                numOfWorkers: navigator.hardwareConcurrency || 2,
-                frequency: 10
-            }, function(err) {
-                if (err) {
-                    console.error('Erro ao iniciar scanner:', err);
-                    mostrarErroCamera();
-                    return;
-                }
-                
-                Quagga.start();
-                scannerAtivo = true;
-                document.getElementById('barcode-scanner').classList.add('scanning');
-                
-                // Aplicar configurações avançadas de câmera
-                aplicarConfiguracoesCamera();
-            });
-            
-            Quagga.onDetected(function(result) {
-                const code = result.codeResult.code;
-                if (code && isValidCode(code)) {
-                    // Feedback visual de sucesso
-                    document.getElementById('barcode-scanner').classList.add('detected');
-                    playBeepSound();
+        // Iniciar câmera
+        async function iniciarCamera() {
+            try {
+                if (scanner) {
+                    await scanner.setCurrentCamera(currentCamera);
+                    await scanner.show();
                     
-                    setTimeout(() => {
-                        pararScanner();
-                        window.location.href = 'editar_produto.php?codigo=' + 
-                            encodeURIComponent(code.trim()) + 
-                            '&id_planilha=<?php echo $id_planilha; ?>';
-                    }, 300);
+                    // Aplicar zoom inicial
+                    aplicarZoom(2.0);
+                    
+                    document.getElementById('statusIndicator').textContent = 'Camera pronta - Aponte para o código';
+                    document.getElementById('statusIndicator').style.background = 'rgba(0, 255, 0, 0.3)';
+                    
                 }
-            });
+            } catch (ex) {
+                console.error('Erro ao iniciar câmera:', ex);
+                document.getElementById('statusIndicator').textContent = 'Erro: ' + ex.message;
+                document.getElementById('statusIndicator').style.background = 'rgba(255, 0, 0, 0.3)';
+            }
         }
         
-        function aplicarConfiguracoesCamera() {
-            setTimeout(() => {
+        // Parar câmera
+        function pararCamera() {
+            if (scanner) {
+                scanner.hide();
+            }
+        }
+        
+        // Trocar câmera
+        async function trocarCamera() {
+            const cameraSelect = document.getElementById('cameraSelect');
+            currentCamera = cameraSelect.value;
+            await iniciarCamera();
+        }
+        
+        // Aplicar zoom
+        function aplicarZoom(zoomLevel) {
+            const videoElement = document.querySelector('#reader video');
+            if (videoElement) {
+                // Dynamsoft tem controle nativo de zoom
                 try {
-                    const track = Quagga.CameraAccess.getActiveTrack();
-                    if (track && track.getCapabilities) {
-                        const capabilities = track.getCapabilities();
-                        
-                        // Tentar ajustar foco para modo macro (ideal para códigos pequenos)
-                        if (capabilities.focusDistance) {
-                            track.applyConstraints({
-                                advanced: [{ focusMode: 'manual', focusDistance: 0.2 }]
-                            });
-                        }
+                    const track = videoElement.srcObject.getVideoTracks()[0];
+                    const capabilities = track.getCapabilities();
+                    
+                    if (capabilities.zoom) {
+                        const zoom = capabilities.zoom.min + (capabilities.zoom.max - capabilities.zoom.min) * (zoomLevel - 1) / 4;
+                        track.applyConstraints({
+                            advanced: [{ zoom: Math.min(zoom, capabilities.zoom.max) }]
+                        });
                     }
-                } catch (e) {
-                    console.log('Configurações avançadas não suportadas:', e);
+                } catch (ex) {
+                    console.log('Zoom não suportado:', ex);
                 }
-            }, 1500);
+            }
         }
         
+        // Atualizar zoom pelo slider
+        function atualizarZoom() {
+            const zoomSlider = document.getElementById('zoomSlider');
+            const zoomDisplay = document.getElementById('zoomDisplay');
+            const zoomLevel = zoomSlider.value / 100;
+            
+            zoomDisplay.textContent = zoomLevel.toFixed(1) + 'x';
+            aplicarZoom(zoomLevel);
+        }
+        
+        // Alternar flash
+        async function toggleFlash() {
+            const flashToggle = document.getElementById('flashToggle');
+            // Implementação do flash depende do dispositivo
+            console.log('Flash:', flashToggle.value);
+        }
+        
+        // Processar código detectado
+        function handleBarcodeDetected(barcodeText) {
+            if (isValidCode(barcodeText)) {
+                // Feedback visual e sonoro
+                document.getElementById('statusIndicator').textContent = '✓ Código lido!';
+                document.getElementById('statusIndicator').style.background = 'rgba(0, 255, 0, 0.5)';
+                
+                playBeepSound();
+                
+                // Redirecionar após breve delay
+                setTimeout(() => {
+                    pararCamera();
+                    window.location.href = 'editar_produto.php?codigo=' + 
+                        encodeURIComponent(barcodeText.trim()) + 
+                        '&id_planilha=<?php echo $id_planilha; ?>';
+                }, 500);
+            }
+        }
+        
+        // Validar formato do código
         function isValidCode(code) {
-            // Validar formato dos códigos baseado nos exemplos fornecidos
             const patterns = [
                 /^\d{2}-\d{4}\s*\/\s*\d{6}$/, // 09-0757 / 000007
                 /^\d{2}-\d{4}\s*\/\s*\d{5}$/, // 09-0799 / 00093
-                /^\d{2}-\d{4}\s*\/\s*\d{4}$/  // Outros formatos similares
+                /^\d{2}-\d{4}\s*\/\s*\d{4}$/  // Outros formatos
             ];
             
             return patterns.some(pattern => pattern.test(code.trim()));
         }
         
+        // Som de confirmação
         function playBeepSound() {
-            // Criar beep sonoro
             try {
                 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 const oscillator = audioContext.createOscillator();
@@ -1000,28 +907,26 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
                 oscillator.start(audioContext.currentTime);
                 oscillator.stop(audioContext.currentTime + 0.2);
             } catch (e) {
-                // Fallback silencioso se audio não funcionar
                 console.log('Audio não suportado');
             }
         }
         
-        function mostrarErroCamera() {
-            alert('Erro ao acessar a câmera. Verifique as permissões e tente novamente.');
-            fecharModalCamera();
-        }
-        
-        function pararScanner() {
-            if (scannerAtivo && Quagga) {
-                Quagga.stop();
-                scannerAtivo = false;
-                document.getElementById('barcode-scanner').classList.remove('scanning', 'detected');
-                document.getElementById('qualityIndicator').style.display = 'none';
+        // Event listeners
+        window.onclick = function(event) {
+            if (event.target === modalCamera) {
+                fecharModalCamera();
             }
-        }
+        };
         
-        // Inicializar valor do zoom
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && modalCamera.style.display === 'block') {
+                fecharModalCamera();
+            }
+        });
+        
+        // Inicializar quando a página carregar
         document.addEventListener('DOMContentLoaded', function() {
-            atualizarZoomValue();
+            initScanner();
         });
     </script>
 </body>
