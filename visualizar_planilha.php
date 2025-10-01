@@ -247,6 +247,7 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            border-bottom: 1px solid #e0e0e0;
         }
 
         table tbody tr td a {
@@ -313,7 +314,7 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
             max-height: none;
             overflow: visible;
             text-overflow: unset;
-            border-bottom: 1px solid #888;
+            border-bottom: 1px solid #e0e0e0;
         }
 
         /* Cores para estados dos produtos */
@@ -372,70 +373,97 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.8);
+            background-color: rgba(0,0,0,0.9);
         }
 
         .modal-content {
-            background-color: #fefefe;
-            margin: 5% auto;
-            padding: 20px;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 600px;
+            background-color: #000;
+            margin: 2% auto;
+            padding: 0;
+            border-radius: 0;
+            width: 100%;
+            height: 96%;
+            max-width: 100%;
             position: relative;
+            display: flex;
+            flex-direction: column;
         }
 
         .close-modal {
             position: absolute;
-            top: 10px;
-            right: 15px;
-            color: #aaa;
-            font-size: 28px;
+            top: 15px;
+            right: 20px;
+            color: white;
+            font-size: 36px;
             font-weight: bold;
             cursor: pointer;
+            z-index: 1001;
+            background: rgba(0,0,0,0.5);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .close-modal:hover {
-            color: #000;
+            background: rgba(0,0,0,0.7);
         }
 
         #barcode-scanner {
             width: 100%;
-            height: 300px;
+            height: 100%;
             background: #000;
-            border-radius: 5px;
-            overflow: hidden;
+            flex: 1;
+            position: relative;
         }
 
-        .camera-buttons {
+        .scanner-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            padding: 15px;
+            border-radius: 10px;
             display: flex;
             gap: 10px;
-            justify-content: center;
-            margin-top: 15px;
+            align-items: center;
+            z-index: 1000;
         }
 
-        .btn {
-            padding: 10px 15px;
-            text-decoration: none;
-            border-radius: 4px;
-            display: inline-block;
-            border: none;
-            cursor: pointer;
-        }
-
-        .btn-danger {
-            background: #dc3545;
+        .scanner-controls select,
+        .scanner-controls input {
+            padding: 8px 12px;
+            border: 1px solid #555;
+            border-radius: 5px;
+            background: #333;
             color: white;
+            font-size: 14px;
         }
 
-        #cameraStatus {
-            text-align: center;
-            margin-top: 10px;
-            font-weight: bold;
+        .scanner-controls input {
+            width: 80px;
         }
 
-        .scanner-active #barcode-scanner {
-            border: 3px solid #28a745;
+        .scanner-controls label {
+            color: white;
+            font-size: 14px;
+            margin-right: 5px;
+        }
+
+        .scanner-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            height: 100px;
+            border: 2px solid #00ff00;
+            background: rgba(0, 255, 0, 0.1);
+            pointer-events: none;
+            z-index: 999;
         }
     </style>
 </head>
@@ -477,16 +505,23 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
     <div id="modalCamera" class="modal-camera">
         <div class="modal-content">
             <span class="close-modal" onclick="fecharModalCamera()">&times;</span>
-            <h3>Scanner de Código de Barras</h3>
             
-            <div id="barcode-scanner"></div>
-
-            <div class="camera-buttons">
-                <button onclick="pararScanner()" class="btn btn-danger">
-                    <i class="fas fa-stop"></i> Parar Scanner
-                </button>
+            <div id="barcode-scanner">
+                <div class="scanner-overlay"></div>
+                <div class="scanner-controls">
+                    <label for="cameraSelect">Câmera:</label>
+                    <select id="cameraSelect" onchange="trocarCamera()"></select>
+                    
+                    <label for="zoomInput">Zoom:</label>
+                    <input type="number" id="zoomInput" min="1" max="10" step="0.1" value="3" onchange="aplicarZoom()">
+                    
+                    <label for="focusSelect">Foco:</label>
+                    <select id="focusSelect" onchange="aplicarFoco()">
+                        <option value="center">Centralizado</option>
+                        <option value="auto">Automático</option>
+                    </select>
+                </div>
             </div>
-            <p id="cameraStatus">Iniciando scanner...</p>
         </div>
     </div>
 
@@ -564,11 +599,15 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
     <script>
         let quaggaScanner = null;
         let scannerAtivo = false;
+        let camerasDisponiveis = [];
+        let cameraAtual = null;
         const modalCamera = document.getElementById('modalCamera');
         
         function abrirModalCamera() {
             modalCamera.style.display = 'block';
-            iniciarScanner();
+            listarCameras().then(() => {
+                iniciarScanner();
+            });
         }
         
         function fecharModalCamera() {
@@ -583,28 +622,79 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
             }
         };
         
+        async function listarCameras() {
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                camerasDisponiveis = devices.filter(device => device.kind === 'videoinput');
+                
+                const cameraSelect = document.getElementById('cameraSelect');
+                cameraSelect.innerHTML = '';
+                
+                camerasDisponiveis.forEach((camera, index) => {
+                    const option = document.createElement('option');
+                    option.value = camera.deviceId;
+                    option.text = camera.label || `Câmera ${index + 1}`;
+                    cameraSelect.appendChild(option);
+                });
+                
+                if (camerasDisponiveis.length > 0) {
+                    cameraAtual = camerasDisponiveis[0].deviceId;
+                }
+            } catch (err) {
+                console.error('Erro ao listar câmeras:', err);
+            }
+        }
+        
+        function trocarCamera() {
+            const cameraSelect = document.getElementById('cameraSelect');
+            cameraAtual = cameraSelect.value;
+            reiniciarScanner();
+        }
+        
+        function aplicarZoom() {
+            const zoomInput = document.getElementById('zoomInput');
+            reiniciarScanner();
+        }
+        
+        function aplicarFoco() {
+            reiniciarScanner();
+        }
+        
+        function reiniciarScanner() {
+            if (scannerAtivo) {
+                pararScanner();
+                setTimeout(() => iniciarScanner(), 500);
+            }
+        }
+        
         function iniciarScanner() {
             if (scannerAtivo) {
                 return;
             }
             
-            document.getElementById('cameraStatus').textContent = 'Iniciando scanner...';
-            document.querySelector('.modal-content').classList.add('scanner-active');
+            const zoomInput = document.getElementById('zoomInput');
+            const focusSelect = document.getElementById('focusSelect');
+            const zoom = parseFloat(zoomInput.value) || 3;
+            
+            const constraints = {
+                deviceId: cameraAtual ? { exact: cameraAtual } : undefined,
+                advanced: [
+                    { zoom: zoom },
+                    { focusMode: focusSelect.value === 'center' ? 'manual' : 'continuous' }
+                ]
+            };
             
             Quagga.init({
                 inputStream: {
                     name: "Live",
                     type: "LiveStream",
                     target: document.querySelector('#barcode-scanner'),
-                    constraints: {
-                        facingMode: "environment",
-                        zoom: 3 // Zoom 3x
-                    }
+                    constraints: constraints
                 },
                 decoder: {
                     readers: [
                         "code_128_reader",
-                        "ean_reader",
+                        "ean_reader", 
                         "ean_8_reader",
                         "code_39_reader",
                         "code_39_vin_reader",
@@ -621,16 +711,31 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
                 numOfWorkers: 2
             }, function(err) {
                 if (err) {
-                    console.error(err);
-                    document.getElementById('cameraStatus').textContent = 
-                        'Erro ao iniciar scanner: ' + err;
+                    console.error('Erro ao iniciar scanner:', err);
                     return;
                 }
                 
                 Quagga.start();
                 scannerAtivo = true;
-                document.getElementById('cameraStatus').textContent = 
-                    'Scanner ativo - Aponte para o código de barras';
+                
+                // Configurar foco centralizado se selecionado
+                if (focusSelect.value === 'center') {
+                    setTimeout(() => {
+                        try {
+                            const track = Quagga.CameraAccess.getActiveTrack();
+                            if (track && track.getCapabilities && track.getCapabilities().focusDistance) {
+                                const capabilities = track.getCapabilities();
+                                if (capabilities.focusDistance) {
+                                    track.applyConstraints({
+                                        advanced: [{ focusMode: 'manual', focusDistance: 0.5 }]
+                                    });
+                                }
+                            }
+                        } catch (e) {
+                            console.log('Não foi possível ajustar foco manual:', e);
+                        }
+                    }, 1000);
+                }
             });
             
             Quagga.onDetected(function(result) {
@@ -649,8 +754,6 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
             if (scannerAtivo && Quagga) {
                 Quagga.stop();
                 scannerAtivo = false;
-                document.querySelector('.modal-content').classList.remove('scanner-active');
-                document.getElementById('cameraStatus').textContent = 'Scanner parado';
             }
         }
     </script>
