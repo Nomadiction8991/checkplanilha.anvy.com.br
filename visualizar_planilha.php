@@ -29,9 +29,9 @@ $limite = 50;
 $offset = ($pagina - 1) * $limite;
 
 // Filtros
-$filtro_nome = isset($_GET['nome']) ? $_GET['nome'] : '';
-$filtro_dependencia = isset($_GET['dependencia']) ? $_GET['dependencia'] : '';
-$filtro_codigo = isset($_GET['codigo']) ? $_GET['codigo'] : '';
+$filtro_nome = $_GET['nome'] ?? '';
+$filtro_dependencia = $_GET['dependencia'] ?? '';
+$filtro_codigo = $_GET['codigo'] ?? '';
 
 // Construir a query base
 $sql = "SELECT p.*, 
@@ -46,12 +46,10 @@ if (!empty($filtro_nome)) {
     $sql .= " AND p.nome LIKE :nome";
     $params[':nome'] = '%' . $filtro_nome . '%';
 }
-
 if (!empty($filtro_dependencia)) {
     $sql .= " AND p.dependencia LIKE :dependencia";
     $params[':dependencia'] = '%' . $filtro_dependencia . '%';
 }
-
 if (!empty($filtro_codigo)) {
     $sql .= " AND p.codigo LIKE :codigo";
     $params[':codigo'] = '%' . $filtro_codigo . '%';
@@ -74,11 +72,7 @@ $params[':offset'] = $offset;
 
 $stmt = $conexao->prepare($sql);
 foreach ($params as $key => $value) {
-    if ($key === ':limite' || $key === ':offset') {
-        $stmt->bindValue($key, $value, PDO::PARAM_INT);
-    } else {
-        $stmt->bindValue($key, $value);
-    }
+    $stmt->bindValue($key, $value, ($key === ':limite' || $key === ':offset') ? PDO::PARAM_INT : PDO::PARAM_STR);
 }
 $stmt->execute();
 $produtos = $stmt->fetchAll();
@@ -100,55 +94,57 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0"></script>
 <style>
-* {margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;box-sizing:border-box}
-body {display:flex;flex-direction:column;width:100vw}
-header.cabecalho {padding:15px 5px 5px;box-shadow:0 0 10px #999;position:sticky;top:0;background:white;z-index:100}
-header.cabecalho .titulo_container {text-align:center}
-header.cabecalho a {background:#28a745;color:#fff;padding:5px 10px;border-radius:3px;text-decoration:none}
-h1.titulo {font-size:18px;color:#333;margin-left:10px;display:inline-block}
-.btn-scanner {background:#17a2b8;color:#fff;padding:8px 15px;border:none;border-radius:4px;cursor:pointer;display:flex;align-items:center;gap:8px;text-decoration:none;width:fit-content;margin:10px auto}
-table {width:100%;border-collapse:collapse}
-th {background:#007bff;color:#fff;padding:8px;text-align:left}
-td {padding:8px;color:#333;border-bottom:1px solid #e0e0e0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-tr:nth-child(4n+3), tr:nth-child(4n+4) {background:#f8f9fa}
-.linha-nome td {white-space:normal}
-.linha-checado {background:#d4edda!important}
-.linha-checado-observacao {background:#e6e6fa!important}
-.linha-observacao {background:#fff3cd!important}
-.paginacao {text-align:center;margin:20px 0}
-.paginacao a, .paginacao strong {padding:5px 10px;margin:2px;border-radius:3px}
-.paginacao a {border:1px solid #ddd;color:#007bff;text-decoration:none}
-.paginacao strong {background:#007bff;color:#fff}
+/* ===== estilo antigo da página ===== */
+body { font-family: Arial, Helvetica, sans-serif; margin: 0; padding: 0; }
+header { background: #007bff; padding: 10px; color: #fff; display: flex; align-items: center; justify-content: space-between; }
+header h1 { font-size: 18px; margin: 0; }
+header a { color: #fff; text-decoration: none; font-weight: bold; }
+form { margin: 10px 0; text-align: center; }
+form input, form select { padding: 5px; margin: 5px; }
+form button { padding: 5px 10px; }
+table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+th { background: #007bff; color: #fff; }
+tr:nth-child(even) { background: #f2f2f2; }
+.linha-checado { background: #d4edda !important; }
+.linha-checado-observacao { background: #e6e6fa !important; }
+.linha-observacao { background: #fff3cd !important; }
+.paginacao { text-align: center; margin: 20px 0; }
+.paginacao a, .paginacao strong { padding: 5px 10px; margin: 2px; border-radius: 3px; }
+.paginacao a { border: 1px solid #ddd; color: #007bff; text-decoration: none; }
+.paginacao strong { background: #007bff; color: #fff; }
+
+/* ===== estilo moderno só da câmera ===== */
 .modal-camera {display:none;position:fixed;z-index:1000;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.9)}
 .modal-content {background:#000;margin:2% auto;padding:0;width:100%;height:96%;display:flex;flex-direction:column;position:relative}
 .close-modal {position:absolute;top:15px;right:20px;color:white;font-size:36px;font-weight:bold;cursor:pointer;z-index:1001}
 #barcode-scanner {flex:1;position:relative;background:#000}
 .scanner-overlay {position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:80%;height:100px;border:2px solid #00ff00;background:rgba(0,255,0,0.1);pointer-events:none}
+.btn-scanner {background:#17a2b8;color:#fff;padding:8px 15px;border:none;border-radius:4px;cursor:pointer;display:flex;align-items:center;gap:8px;text-decoration:none;width:fit-content;margin:10px auto}
 </style>
 </head>
 <body>
 
-<header class="cabecalho">
-  <div class="titulo_container">
-    <a href="index.php">← Voltar</a>
-    <h1 class="titulo"><?php echo htmlspecialchars($planilha['descricao']); ?></h1>
-  </div>
+<header>
+  <a href="index.php">← Voltar</a>
+  <h1><?php echo htmlspecialchars($planilha['descricao']); ?></h1>
   <button onclick="abrirModalCamera()" class="btn-scanner"><i class="fas fa-camera"></i> Scannear Código</button>
-  <form method="GET">
-    <input type="hidden" name="id" value="<?php echo $id_planilha; ?>">
-    <input type="text" name="codigo" value="<?php echo htmlspecialchars($filtro_codigo); ?>" placeholder="Código...">
-    <input type="text" name="nome" value="<?php echo htmlspecialchars($filtro_nome); ?>" placeholder="Nome...">
-    <select name="dependencia">
-      <option value="">Todas</option>
-      <?php foreach ($dependencia_options as $dep): ?>
-        <option value="<?php echo htmlspecialchars($dep); ?>" <?php echo $filtro_dependencia===$dep?'selected':''; ?>>
-          <?php echo htmlspecialchars($dep); ?>
-        </option>
-      <?php endforeach; ?>
-    </select>
-    <button type="submit">🔍</button>
-  </form>
 </header>
+
+<form method="GET">
+  <input type="hidden" name="id" value="<?php echo $id_planilha; ?>">
+  <input type="text" name="codigo" value="<?php echo htmlspecialchars($filtro_codigo); ?>" placeholder="Código...">
+  <input type="text" name="nome" value="<?php echo htmlspecialchars($filtro_nome); ?>" placeholder="Nome...">
+  <select name="dependencia">
+    <option value="">Todas</option>
+    <?php foreach ($dependencia_options as $dep): ?>
+      <option value="<?php echo htmlspecialchars($dep); ?>" <?php echo $filtro_dependencia===$dep?'selected':''; ?>>
+        <?php echo htmlspecialchars($dep); ?>
+      </option>
+    <?php endforeach; ?>
+  </select>
+  <button type="submit">🔍</button>
+</form>
 
 <div id="modalCamera" class="modal-camera">
   <div class="modal-content">
