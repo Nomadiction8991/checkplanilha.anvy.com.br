@@ -147,12 +147,12 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
     td {
         padding: 8px;
         text-align: left;
-        border: 1px solid #014792ff;
     }
 
     th {
         background: #007bff;
         color: #fff;
+        border: 1px solid #014792ff;
     }
 
     tr:nth-child(even) {
