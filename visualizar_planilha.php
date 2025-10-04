@@ -137,41 +137,69 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
         padding: 5px 10px;
     }
 
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 10px;
-    }
+/* ===== ATUALIZAÇÃO DAS COLUNAS ===== */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    table-layout: fixed; /* Adiciona layout fixo para controlar larguras */
+}
 
-    th,
-    td {
-        padding: 8px;
-        text-align: left;
-    }
+th, td {
+    padding: 8px;
+    text-align: left;
+    overflow: hidden; /* Impede que o conteúdo saia da célula */
+    text-overflow: ellipsis; /* Adiciona os 3 pontinhos */
+    white-space: nowrap; /* Impede quebra de linha */
+}
 
-    th {
-        background: #007bff;
-        color: #fff;
-        border: 1px solid #014792ff;
-    }
+/* Coluna Código - 35% */
+th:nth-child(1),
+td:nth-child(1) {
+    width: 35%;
+}
 
-    tr:nth-child(even) {
-        background: #fff;
-        border-bottom: 2px solid #ccc;
-    }
+/* Coluna Dependência - 35% */
+th:nth-child(2),
+td:nth-child(2) {
+    width: 35%;
+}
 
-    .linha-checado {
-        background: #d4edda !important;
-    }
+/* Coluna Ação - 30% (restante) */
+th:nth-child(3),
+td:nth-child(3) {
+    width: 30%;
+}
 
-    .linha-checado-observacao {
-        background: #e6e6fa !important;
-    }
+/* Ajuste para a linha do nome que usa colspan */
+.linha-nome td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 
-    .linha-observacao {
-        background: #fff3cd !important;
-    }
+th {
+    background: #007bff;
+    color: #fff;
+    border: 1px solid #014792ff;
+}
 
+tr:nth-child(even) {
+    background: #fff;
+    border-bottom: 2px solid #ccc;
+}
+
+.linha-checado {
+    background: #d4edda !important;
+}
+
+.linha-checado-observacao {
+    background: #e6e6fa !important;
+}
+
+.linha-observacao {
+    background: #fff3cd !important;
+}
     .paginacao {
         text-align: center;
         margin: 20px 0;
