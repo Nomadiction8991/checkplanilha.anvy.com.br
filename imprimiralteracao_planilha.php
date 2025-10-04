@@ -23,16 +23,17 @@ try {
     die("Erro ao carregar planilha: " . $e->getMessage());
 }
 
-// Filtros do relatório - AGORA SÃO CHECKBOXES PARA SEÇÕES
-$mostrar_observacao = isset($_GET['mostrar_observacao']) ? true : true; // Padrão: SIM (sempre mostra)
+// Filtros do relatório - CHECKBOXES PARA SEÇÕES
+$mostrar_observacao = isset($_GET['mostrar_observacao']) ? true : true; // Padrão: SIM
 $mostrar_checados = isset($_GET['mostrar_checados']) ? true : false; // Padrão: NÃO
 $mostrar_ambos = isset($_GET['mostrar_ambos']) ? true : false; // Padrão: NÃO
 $mostrar_sem_observacao = isset($_GET['mostrar_sem_observacao']) ? true : false; // Padrão: NÃO
+$mostrar_dr = isset($_GET['mostrar_dr']) ? true : false; // Padrão: NÃO - NOVA SEÇÃO DR
 $filtro_dependencia = $_GET['dependencia'] ?? ''; // Filtro de dependência
 
-// Buscar TODOS os produtos (sem filtros de tipo)
+// Buscar TODOS os produtos (sem filtros de tipo) - ADICIONADO campo dr
 try {
-    $sql_produtos = "SELECT p.*, pc.checado, pc.observacoes 
+    $sql_produtos = "SELECT p.*, pc.checado, pc.dr, pc.observacoes 
                      FROM produtos p 
                      LEFT JOIN produtos_check pc ON p.id = pc.produto_id 
                      WHERE p.id_planilha = :id_planilha";
@@ -69,17 +70,22 @@ try {
     $dependencia_options = [];
 }
 
-// Agrupar produtos por tipo (independente dos filtros)
+// Agrupar produtos por tipo (independente dos filtros) - ADICIONADO DR
 $produtos_com_observacao = [];
 $produtos_checados = [];
 $produtos_ambos = [];
 $produtos_sem_observacao = [];
+$produtos_dr = []; // NOVA SEÇÃO DR
 
 foreach ($todos_produtos as $produto) {
     $tem_observacao = !empty($produto['observacoes']);
     $esta_checado = $produto['checado'] == 1;
+    $esta_no_dr = $produto['dr'] == 1; // VERIFICA SE ESTÁ NO DR
     
-    if ($tem_observacao && $esta_checado) {
+    // Produtos no DR têm prioridade
+    if ($esta_no_dr) {
+        $produtos_dr[] = $produto;
+    } elseif ($tem_observacao && $esta_checado) {
         $produtos_ambos[] = $produto;
     } elseif ($tem_observacao && !$esta_checado) {
         $produtos_com_observacao[] = $produto;
@@ -90,19 +96,21 @@ foreach ($todos_produtos as $produto) {
     }
 }
 
-// Contar totais
+// Contar totais - ADICIONADO DR
 $total_com_observacao = count($produtos_com_observacao);
 $total_checados = count($produtos_checados);
 $total_ambos = count($produtos_ambos);
 $total_sem_observacao = count($produtos_sem_observacao);
+$total_dr = count($produtos_dr); // NOVO TOTAL DR
 $total_geral = count($todos_produtos);
 
-// Calcular totais que serão mostrados baseado nos filtros
+// Calcular totais que serão mostrados baseado nos filtros - ADICIONADO DR
 $total_mostrar = 0;
 if ($mostrar_observacao) $total_mostrar += $total_com_observacao;
 if ($mostrar_checados) $total_mostrar += $total_checados;
 if ($mostrar_ambos) $total_mostrar += $total_ambos;
 if ($mostrar_sem_observacao) $total_mostrar += $total_sem_observacao;
+if ($mostrar_dr) $total_mostrar += $total_dr;
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -222,6 +230,10 @@ if ($mostrar_sem_observacao) $total_mostrar += $total_sem_observacao;
         
         .ambos-cell {
             background-color: #e6e6fa; /* Roxo claro para ambos */
+        }
+        
+        .dr-cell {
+            background-color: #f8d7da; /* Vermelho claro para DR */
         }
         
         .secao-titulo {
@@ -348,10 +360,10 @@ if ($mostrar_sem_observacao) $total_mostrar += $total_sem_observacao;
                         <label>Produtos sem observação (<?php echo $total_sem_observacao; ?>)</label>
                     </div>
                     <div class="filtro-option">
-    <input type="checkbox" name="mostrar_dr" value="1" 
-           <?php echo $mostrar_dr ? 'checked' : ''; ?>>
-    <label>Produtos no DR (<?php echo $total_dr; ?>)</label>
-</div>
+                        <input type="checkbox" name="mostrar_dr" value="1" 
+                               <?php echo $mostrar_dr ? 'checked' : ''; ?>>
+                        <label>Produtos no DR (<?php echo $total_dr; ?>)</label>
+                    </div>
                 </div>
             </div>
             
@@ -392,6 +404,7 @@ if ($mostrar_sem_observacao) $total_mostrar += $total_sem_observacao;
         if ($mostrar_checados) $secoes_texto[] = "Produtos checados (" . $total_checados . ")";
         if ($mostrar_ambos) $secoes_texto[] = "Produtos com observação e checagem (" . $total_ambos . ")";
         if ($mostrar_sem_observacao) $secoes_texto[] = "Produtos sem observação (" . $total_sem_observacao . ")";
+        if ($mostrar_dr) $secoes_texto[] = "Produtos no DR (" . $total_dr . ")";
         
         echo empty($secoes_texto) ? "Nenhuma seção selecionada" : implode(" | ", $secoes_texto);
         
@@ -422,12 +435,43 @@ if ($mostrar_sem_observacao) $total_mostrar += $total_sem_observacao;
         - Produtos checados: <?php echo $total_checados; ?><br>
         - Produtos com observação e checagem: <?php echo $total_ambos; ?><br>
         - Produtos sem observação: <?php echo $total_sem_observacao; ?><br>
+        - Produtos no DR: <?php echo $total_dr; ?><br>
         - <strong>Total a ser impresso: <?php echo $total_mostrar; ?> produtos</strong>
     </div>
 
     <?php if ($total_geral > 0): ?>
         
-        <!-- SEÇÃO 1: Produtos com Observação Apenas -->
+        <!-- SEÇÃO 1: Produtos no DR -->
+        <?php if ($mostrar_dr && $total_dr > 0): ?>
+            <div class="secao-titulo">
+                PRODUTOS NO DR (<?php echo $total_dr; ?> itens)
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th width="15%">Código</th>
+                        <th width="30%">Nome</th>
+                        <th width="25%">Dependência</th>
+                        <th width="10%">Status</th>
+                        <th width="20%">Observações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($produtos_dr as $produto): ?>
+                        <tr>
+                            <td><strong><?php echo htmlspecialchars($produto['codigo']); ?></strong></td>
+                            <td class="dr-cell"><?php echo htmlspecialchars($produto['nome']); ?></td>
+                            <td><?php echo htmlspecialchars($produto['dependencia']); ?></td>
+                            <td><?php echo htmlspecialchars($produto['status']); ?></td>
+                            <td><?php echo htmlspecialchars($produto['observacoes']); ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
+
+        <!-- SEÇÃO 2: Produtos com Observação Apenas -->
         <?php if ($mostrar_observacao && $total_com_observacao > 0): ?>
             <div class="secao-titulo">
                 PRODUTOS COM OBSERVAÇÃO (<?php echo $total_com_observacao; ?> itens)
@@ -457,7 +501,7 @@ if ($mostrar_sem_observacao) $total_mostrar += $total_sem_observacao;
             </table>
         <?php endif; ?>
 
-        <!-- SEÇÃO 2: Produtos Checados -->
+        <!-- SEÇÃO 3: Produtos Checados -->
         <?php if ($mostrar_checados && $total_checados > 0): ?>
             <div class="secao-titulo">
                 PRODUTOS CHECADOS (<?php echo $total_checados; ?> itens)
@@ -485,7 +529,7 @@ if ($mostrar_sem_observacao) $total_mostrar += $total_sem_observacao;
             </table>
         <?php endif; ?>
 
-        <!-- SEÇÃO 3: Produtos com Observação e Checagem -->
+        <!-- SEÇÃO 4: Produtos com Observação e Checagem -->
         <?php if ($mostrar_ambos && $total_ambos > 0): ?>
             <div class="secao-titulo">
                 PRODUTOS COM OBSERVAÇÃO E CHECAGEM (<?php echo $total_ambos; ?> itens)
@@ -515,7 +559,7 @@ if ($mostrar_sem_observacao) $total_mostrar += $total_sem_observacao;
             </table>
         <?php endif; ?>
 
-        <!-- SEÇÃO 4: Produtos sem Observação -->
+        <!-- SEÇÃO 5: Produtos sem Observação -->
         <?php if ($mostrar_sem_observacao && $total_sem_observacao > 0): ?>
             <div class="secao-titulo">
                 PRODUTOS SEM OBSERVAÇÃO (<?php echo $total_sem_observacao; ?> itens)

@@ -174,9 +174,6 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
 
     /* Ajuste para a linha do nome que usa colspan - FONTE MENOR */
     .linha-nome td {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
         font-size: 12px; /* Fonte menor para o nome */
         color: #666;
     }
@@ -451,14 +448,15 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
         </tr>
         <tr class="linha-nome <?php echo $classe; ?>">
             <td colspan="2">
-                <strong>Nome:</strong> <?php echo htmlspecialchars($p['nome']); ?>
+                <strong>Nome: </strong><?php echo htmlspecialchars($p['nome']); ?><br>
                 <?php if (!empty($p['dependencia'])): ?>
-                    | <strong>Dep:</strong> <?php echo htmlspecialchars($p['dependencia']); ?>
+                    | <strong>Dep:</strong> <?php echo htmlspecialchars($p['dependencia']); ?><br>
                 <?php endif; ?>
                 <?php if (!empty($p['observacoes'])): ?>
                     | <strong>Obs:</strong> <?php echo htmlspecialchars($p['observacoes']); ?>
                 <?php endif; ?>
             </td>
+            <td></td>
         </tr>
         <?php endforeach; ?>
     </tbody>
