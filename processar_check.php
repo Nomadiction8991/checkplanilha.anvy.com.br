@@ -15,7 +15,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     ];
     
     if (!$produto_id || !$id_planilha) {
-        // Redirecionar de volta se dados estiverem faltando
         $query_string = http_build_query(array_merge(['id' => $id_planilha], $filtros));
         header('Location: visualizar_planilha.php?' . $query_string);
         exit;
@@ -33,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Atualizar
             $sql = "UPDATE produtos_check SET checado = :checado, atualizado_em = NOW() WHERE produto_id = :produto_id";
         } else {
-            // Inserir
+            // Inserir - CORRIGIDO: 'criado_em' em vez de 'oriado_em'
             $sql = "INSERT INTO produtos_check (produto_id, checado, criado_em, atualizado_em) VALUES (:produto_id, :checado, NOW(), NOW())";
         }
         
@@ -48,7 +47,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
         
     } catch (Exception $e) {
-        // Em caso de erro, redirecionar com mensagem de erro
         $query_string = http_build_query(array_merge(
             ['id' => $id_planilha], 
             $filtros,
@@ -58,7 +56,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 } else {
-    // Se não for POST, redirecionar para a página principal
     header('Location: index.php');
     exit;
 }
