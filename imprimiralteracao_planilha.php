@@ -347,6 +347,11 @@ if ($mostrar_sem_observacao) $total_mostrar += $total_sem_observacao;
                                <?php echo $mostrar_sem_observacao ? 'checked' : ''; ?>>
                         <label>Produtos sem observação (<?php echo $total_sem_observacao; ?>)</label>
                     </div>
+                    <div class="filtro-option">
+    <input type="checkbox" name="mostrar_dr" value="1" 
+           <?php echo $mostrar_dr ? 'checked' : ''; ?>>
+    <label>Produtos no DR (<?php echo $total_dr; ?>)</label>
+</div>
                 </div>
             </div>
             

@@ -39,9 +39,10 @@ $filtro_nome = $_GET['nome'] ?? '';
 $filtro_dependencia = $_GET['dependencia'] ?? '';
 $filtro_codigo = $_GET['codigo'] ?? '';
 
-// Construir a query base
+// Construir a query base - ADICIONADO campo dr
 $sql = "SELECT p.*, 
                COALESCE(pc.checado, 0) as checado,
+               COALESCE(pc.dr, 0) as dr,
                pc.observacoes
         FROM produtos p 
         LEFT JOIN produtos_check pc ON p.id = pc.produto_id 
@@ -143,101 +144,99 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
         padding: 5px 10px;
     }
 
-/* ===== ATUALIZAÇÃO DAS COLUNAS ===== */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
-    table-layout: fixed; /* Adiciona layout fixo para controlar larguras */
-}
+    /* ===== ATUALIZAÇÃO DAS COLUNAS ===== */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        table-layout: fixed; /* Adiciona layout fixo para controlar larguras */
+    }
 
-th, td {
-    padding: 8px;
-    text-align: left;
-    overflow: hidden; /* Impede que o conteúdo saia da célula */
-    text-overflow: ellipsis; /* Adiciona os 3 pontinhos */
-    white-space: nowrap; /* Impede quebra de linha */
-}
+    th, td {
+        padding: 8px;
+        text-align: left;
+        overflow: hidden; /* Impede que o conteúdo saia da célula */
+        text-overflow: ellipsis; /* Adiciona os 3 pontinhos */
+        white-space: nowrap; /* Impede quebra de linha */
+    }
 
-/* Coluna Código - 35% */
-th:nth-child(1),
-td:nth-child(1) {
-    width: 45%;
-}
+    /* Coluna Código - 60% */
+    th:nth-child(1),
+    td:nth-child(1) {
+        width: 60%;
+    }
 
-/* Coluna Dependência - 35% */
-th:nth-child(2),
-td:nth-child(2) {
-    width: 35%;
-}
+    /* Coluna Ação - 40% (restante) */
+    th:nth-child(2),
+    td:nth-child(2) {
+        width: 40%;
+    }
 
-/* Coluna Ação - 30% (restante) */
-th:nth-child(3),
-td:nth-child(3) {
-    width: 10%;
-}
+    /* Ajuste para a linha do nome que usa colspan - FONTE MENOR */
+    .linha-nome td {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 12px; /* Fonte menor para o nome */
+        color: #666;
+    }
 
-/* Ajuste para a linha do nome que usa colspan */
-.linha-nome td {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
+    th {
+        background: #007bff;
+        color: #fff;
+        border: 1px solid #014792ff;
+    }
 
-th {
-    background: #007bff;
-    color: #fff;
-    border: 1px solid #014792ff;
-}
+    tr:nth-child(even) {
+        background: #fff;
+        border-bottom: 2px solid #ccc;
+    }
 
-tr:nth-child(even) {
-    background: #fff;
-    border-bottom: 2px solid #ccc;
-}
+    .linha-checado {
+        background: #d4edda !important;
+    }
 
-.linha-checado {
-    background: #d4edda !important;
-}
+    .linha-checado-observacao {
+        background: #e6e6fa !important;
+    }
 
-.linha-checado-observacao {
-    background: #e6e6fa !important;
-}
+    .linha-observacao {
+        background: #fff3cd !important;
+    }
 
-.linha-observacao {
-    background: #fff3cd !important;
-}
+    .linha-dr {
+        background: #f8d7da !important; /* Vermelho claro para DR */
+    }
 
+    td form {
+        display: inline;
+    }
 
+    td form button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 5px;
+        border-radius: 3px;
+        transition: background-color 0.2s;
+    }
 
-td form {
-    display: inline;
-}
+    td form button:hover {
+        background-color: #f8f9fa;
+    }
 
-td form button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 5px;
-    border-radius: 3px;
-    transition: background-color 0.2s;
-}
+    /* Ajuste para os ícones */
+    .fa-check-square, .fa-square {
+        font-size: 18px;
+    }
 
-td form button:hover {
-    background-color: #f8f9fa;
-}
-
-/* Ajuste para os ícones */
-.fa-check-square, .fa-square {
-    font-size: 18px;
-}
-
-/* Container das ações */
-.acao-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-}
+    /* Container das ações */
+    .acao-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+    }
 
     .paginacao {
         text-align: center;
@@ -328,22 +327,37 @@ td form button:hover {
         width: fit-content;
         margin: 10px auto
     }
+
+    /* Estilo para o botão DR */
+    .btn-dr {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 5px;
+        font-size: 18px;
+        border-radius: 3px;
+        transition: background-color 0.2s;
+    }
+
+    .btn-dr:hover {
+        background-color: #f8f9fa;
+    }
     </style>
 </head>
 
 <body>
 
-<header>
-    <a href="index.php">← Voltar</a>
-    <h1><?php echo htmlspecialchars($planilha['descricao']); ?></h1>
-    <div style="display: flex; gap: 10px; align-items: center;">
-        <button onclick="abrirModalCamera()" class="btn-scanner"><i class="fas fa-camera"></i> Scannear Código</button>
-        <a href="imprimiralteracao_planilha.php?id=<?php echo $id_planilha; ?>" 
-           style="background: #28a745; color: #fff; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; display: flex; align-items: center; gap: 8px;">
-            <i class="fas fa-print"></i> Imprimir Relatório
-        </a>
-    </div>
-</header>
+    <header>
+        <a href="index.php">← Voltar</a>
+        <h1><?php echo htmlspecialchars($planilha['descricao']); ?></h1>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <button onclick="abrirModalCamera()" class="btn-scanner"><i class="fas fa-camera"></i> Scannear Código</button>
+            <a href="imprimiralteracao_planilha.php?id=<?php echo $id_planilha; ?>" 
+               style="background: #28a745; color: #fff; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-print"></i> Imprimir Relatório
+            </a>
+        </div>
+    </header>
 
     <form method="GET">
         <input type="hidden" name="id" value="<?php echo $id_planilha; ?>">
@@ -376,22 +390,26 @@ td form button:hover {
     <thead>
         <tr>
             <th>Código</th>
-            <th>Dependência</th>
             <th>Ação</th>
         </tr>
     </thead>
     <tbody>
         <?php foreach ($produtos as $p): 
             $classe = '';
-            if ($p['checado'] == 1 && !empty($p['observacoes'])) $classe = 'linha-checado-observacao';
-            elseif ($p['checado'] == 1) $classe = 'linha-checado';
-            elseif (!empty($p['observacoes'])) $classe = 'linha-observacao';
+            if ($p['dr'] == 1) {
+                $classe = 'linha-dr';
+            } elseif ($p['checado'] == 1 && !empty($p['observacoes'])) {
+                $classe = 'linha-checado-observacao';
+            } elseif ($p['checado'] == 1) {
+                $classe = 'linha-checado';
+            } elseif (!empty($p['observacoes'])) {
+                $classe = 'linha-observacao';
+            }
         ?>
         <tr class="<?php echo $classe; ?>">
             <td><?php echo htmlspecialchars($p['codigo']); ?></td>
-            <td><?php echo htmlspecialchars($p['dependencia']); ?></td>
             <td style="text-align: center;">
-                <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                <div class="acao-container">
                     <!-- Formulário do Checkbox -->
                     <form method="POST" action="processar_check.php" style="margin: 0; display: inline;">
                         <input type="hidden" name="produto_id" value="<?php echo $p['id']; ?>">
@@ -410,15 +428,37 @@ td form button:hover {
                         </button>
                     </form>
                     
+                    <!-- Formulário do DR -->
+                    <form method="POST" action="processar_dr.php" style="margin: 0; display: inline;">
+                        <input type="hidden" name="produto_id" value="<?php echo $p['id']; ?>">
+                        <input type="hidden" name="id_planilha" value="<?php echo $id_planilha; ?>">
+                        <input type="hidden" name="dr" value="<?php echo $p['dr'] ? '0' : '1'; ?>">
+                        <input type="hidden" name="pagina" value="<?php echo $pagina; ?>">
+                        <input type="hidden" name="nome" value="<?php echo htmlspecialchars($filtro_nome); ?>">
+                        <input type="hidden" name="dependencia" value="<?php echo htmlspecialchars($filtro_dependencia); ?>">
+                        <input type="hidden" name="codigo" value="<?php echo htmlspecialchars($filtro_codigo); ?>">
+                        <button type="submit" class="btn-dr">
+                            📦
+                        </button>
+                    </form>
+                    
                     <!-- Link de Edição -->
-<a href="editar_produto.php?codigo=<?php echo urlencode($p['codigo']); ?>&id_planilha=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&filtro_codigo=<?php echo urlencode($filtro_codigo); ?>">
-    ✍
-</a>
+                    <a href="editar_produto.php?codigo=<?php echo urlencode($p['codigo']); ?>&id_planilha=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&filtro_codigo=<?php echo urlencode($filtro_codigo); ?>">
+                        ✍
+                    </a>
                 </div>
             </td>
         </tr>
         <tr class="linha-nome <?php echo $classe; ?>">
-            <td colspan="3"><?php echo htmlspecialchars($p['nome']); ?></td>
+            <td colspan="2">
+                <strong>Nome:</strong> <?php echo htmlspecialchars($p['nome']); ?>
+                <?php if (!empty($p['dependencia'])): ?>
+                    | <strong>Dep:</strong> <?php echo htmlspecialchars($p['dependencia']); ?>
+                <?php endif; ?>
+                <?php if (!empty($p['observacoes'])): ?>
+                    | <strong>Obs:</strong> <?php echo htmlspecialchars($p['observacoes']); ?>
+                <?php endif; ?>
+            </td>
         </tr>
         <?php endforeach; ?>
     </tbody>
@@ -444,7 +484,6 @@ td form button:hover {
 </div>
 <?php endif; ?>
  
-
     <?php else: ?><p style="text-align:center;margin:30px;color:#666">Nenhum produto encontrado.</p><?php endif; ?>
 
     <script>
@@ -541,5 +580,4 @@ td form button:hover {
     }
     </script>
 </body>
-
 </html>
