@@ -450,10 +450,10 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
             <td colspan="2">
                 <strong>Nome: </strong><?php echo htmlspecialchars($p['nome']); ?><br>
                 <?php if (!empty($p['dependencia'])): ?>
-                    | <strong>Dep:</strong> <?php echo htmlspecialchars($p['dependencia']); ?><br>
+                <strong>Depa:</strong> <?php echo htmlspecialchars($p['dependencia']); ?><br>
                 <?php endif; ?>
                 <?php if (!empty($p['observacoes'])): ?>
-                    | <strong>Obs:</strong> <?php echo htmlspecialchars($p['observacoes']); ?>
+                <strong>Obse:</strong> <?php echo htmlspecialchars($p['observacoes']); ?>
                 <?php endif; ?>
             </td>
             <td></td>
