@@ -103,7 +103,7 @@ form { margin: 10px 0; text-align: center; }
 form input, form select { padding: 5px; margin: 5px; }
 form button { padding: 5px 10px; }
 table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+th, td { padding: 8px; text-align: left; }
 th { background: #007bff; color: #fff; }
 tr:nth-child(even) { background: #fff; 
 border-bottom: 2px solid #ccc;
