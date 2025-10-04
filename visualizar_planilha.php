@@ -29,10 +29,9 @@ $limite = 50;
 $offset = ($pagina - 1) * $limite;
 
 // Filtros
-$filtro_nome = isset($_GET['nome']) ? $_GET['nome'] : '';
-$filtro_dependencia = isset($_GET['dependencia']) ? $_GET['dependencia'] : '';
-$filtro_status = isset($_GET['status']) ? $_GET['status'] : '';
-$filtro_codigo = isset($_GET['codigo']) ? $_GET['codigo'] : '';
+$filtro_nome = $_GET['nome'] ?? '';
+$filtro_dependencia = $_GET['dependencia'] ?? '';
+$filtro_codigo = $_GET['codigo'] ?? '';
 
 // Construir a query base
 $sql = "SELECT p.*, 
@@ -43,28 +42,20 @@ $sql = "SELECT p.*,
         WHERE p.id_planilha = :id_planilha";
 $params = [':id_planilha' => $id_planilha];
 
-// Aplicar filtros
 if (!empty($filtro_nome)) {
     $sql .= " AND p.nome LIKE :nome";
     $params[':nome'] = '%' . $filtro_nome . '%';
 }
-
 if (!empty($filtro_dependencia)) {
     $sql .= " AND p.dependencia LIKE :dependencia";
     $params[':dependencia'] = '%' . $filtro_dependencia . '%';
 }
-
-if (!empty($filtro_status)) {
-    $sql .= " AND p.status LIKE :status";
-    $params[':status'] = '%' . $filtro_status . '%';
-}
-
 if (!empty($filtro_codigo)) {
     $sql .= " AND p.codigo LIKE :codigo";
     $params[':codigo'] = '%' . $filtro_codigo . '%';
 }
 
-// Contar total de registros (para paginação)
+// Contar total
 $sql_count = "SELECT COUNT(*) as total FROM ($sql) as count_table";
 $stmt_count = $conexao->prepare($sql_count);
 foreach ($params as $key => $value) {
@@ -74,532 +65,414 @@ $stmt_count->execute();
 $total_registros = $stmt_count->fetch()['total'];
 $total_paginas = ceil($total_registros / $limite);
 
-// Adicionar ordenação e paginação à query principal
+// Ordenação e paginação
 $sql .= " ORDER BY p.id DESC LIMIT :limite OFFSET :offset";
 $params[':limite'] = $limite;
 $params[':offset'] = $offset;
 
-// Executar a query principal
 $stmt = $conexao->prepare($sql);
 foreach ($params as $key => $value) {
-    if ($key === ':limite' || $key === ':offset') {
-        $stmt->bindValue($key, $value, PDO::PARAM_INT);
-    } else {
-        $stmt->bindValue($key, $value);
-    }
+    $stmt->bindValue($key, $value, ($key === ':limite' || $key === ':offset') ? PDO::PARAM_INT : PDO::PARAM_STR);
 }
 $stmt->execute();
 $produtos = $stmt->fetchAll();
 
-// Buscar valores únicos para os filtros
-$sql_filtros = "SELECT DISTINCT status, dependencia FROM produtos WHERE id_planilha = :id_planilha ORDER BY status, dependencia";
+// Filtros únicos
+$sql_filtros = "SELECT DISTINCT dependencia FROM produtos WHERE id_planilha = :id_planilha ORDER BY dependencia";
 $stmt_filtros = $conexao->prepare($sql_filtros);
 $stmt_filtros->bindValue(':id_planilha', $id_planilha);
 $stmt_filtros->execute();
-$valores_filtros = $stmt_filtros->fetchAll();
-
-$status_options = array_unique(array_column($valores_filtros, 'status'));
-$dependencia_options = array_unique(array_column($valores_filtros, 'dependencia'));
+$dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
 ?>
 
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Visualizar Planilha - <?php echo htmlspecialchars($planilha['descricao']); ?></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-    <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0"></script>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .message { padding: 10px; margin: 10px 0; border-radius: 4px; }
-        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        
-        .filtro-container { background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
-        .filtro-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 10px; }
-        .filtro-item label { display: block; margin-bottom: 5px; font-weight: bold; }
-        .filtro-item input, .filtro-item select { width: 100%; padding: 8px; box-sizing: border-box; }
-        
-        .botoes-topo { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .btn { padding: 10px 15px; text-decoration: none; border-radius: 4px; display: inline-block; border: none; cursor: pointer; }
-        .btn-primary { background: #007bff; color: white; }
-        .btn-success { background: #28a745; color: white; }
-        .btn-warning { background: #ffc107; color: black; }
-        .btn-danger { background: #dc3545; color: white; }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; position: sticky; top: 0; }
-        
-        .linha-depreciado { background-color: #ffcccc; }
-        .linha-com-observacao { background-color: #fff3cd; }
-        .linha-checado { background-color: #d4edda; }
-        
-        .paginacao { text-align: center; margin: 20px 0; }
-        .paginacao a, .paginacao strong { padding: 5px 10px; margin: 0 2px; border: 1px solid #ddd; text-decoration: none; }
-        .paginacao strong { background: #007bff; color: white; }
-        
-        /* Modal da Câmera */
-        .modal-camera {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.8);
-        }
-        
-        .modal-content {
-            background-color: #fefefe;
-            margin: 5% auto;
-            padding: 20px;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 600px;
-            position: relative;
-        }
-        
-        .close-modal {
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            color: #aaa;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        
-        .close-modal:hover {
-            color: #000;
-        }
-        
-        #reader, #barcode-scanner {
-            width: 100%;
-            max-width: 100%;
-            margin: 10px 0;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-        }
-        
-        .camera-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin-top: 15px;
-        }
-        
-        .btn-scan {
-            background: #17a2b8;
-            color: white;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+    /* ===== estilo antigo da página ===== */
+    body {
+        font-family: Arial, Helvetica, sans-serif;
+        margin: 0;
+        padding: 0;
+    }
 
-        #cameraStatus {
-            text-align: center;
-            margin-top: 10px;
-            font-weight: bold;
-        }
+    header {
+        background: #007bff;
+        padding: 10px;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
 
-        .scanner-type-selector {
-            margin: 10px 0;
-            text-align: center;
-        }
+    header h1 {
+        font-size: 18px;
+        margin: 0;
+    }
 
-        .scanner-type-selector label {
-            margin: 0 15px;
-            cursor: pointer;
-        }
+    header a {
+        color: #fff;
+        text-decoration: none;
+        font-weight: bold;
+    }
 
-        .scanner-container {
-            display: none;
-        }
+    form {
+        margin: 10px 0;
+        text-align: center;
+    }
 
-        .active-scanner {
-            display: block;
-        }
+    form input,
+    form select {
+        padding: 5px;
+        margin: 5px;
+    }
+
+    form button {
+        padding: 5px 10px;
+    }
+
+/* ===== ATUALIZAÇÃO DAS COLUNAS ===== */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    table-layout: fixed; /* Adiciona layout fixo para controlar larguras */
+}
+
+th, td {
+    padding: 8px;
+    text-align: left;
+    overflow: hidden; /* Impede que o conteúdo saia da célula */
+    text-overflow: ellipsis; /* Adiciona os 3 pontinhos */
+    white-space: nowrap; /* Impede quebra de linha */
+}
+
+/* Coluna Código - 35% */
+th:nth-child(1),
+td:nth-child(1) {
+    width: 45%;
+}
+
+/* Coluna Dependência - 35% */
+th:nth-child(2),
+td:nth-child(2) {
+    width: 35%;
+}
+
+/* Coluna Ação - 30% (restante) */
+th:nth-child(3),
+td:nth-child(3) {
+    width: 10%;
+}
+
+/* Ajuste para a linha do nome que usa colspan */
+.linha-nome td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+th {
+    background: #007bff;
+    color: #fff;
+    border: 1px solid #014792ff;
+}
+
+tr:nth-child(even) {
+    background: #fff;
+    border-bottom: 2px solid #ccc;
+}
+
+.linha-checado {
+    background: #d4edda !important;
+}
+
+.linha-checado-observacao {
+    background: #e6e6fa !important;
+}
+
+.linha-observacao {
+    background: #fff3cd !important;
+}
+    .paginacao {
+        text-align: center;
+        margin: 20px 0;
+    }
+
+    .paginacao a,
+    .paginacao strong {
+        padding: 5px 10px;
+        margin: 2px;
+        border-radius: 3px;
+    }
+
+    .paginacao a {
+        border: 1px solid #ddd;
+        color: #007bff;
+        text-decoration: none;
+    }
+
+    .paginacao strong {
+        background: #007bff;
+        color: #fff;
+    }
+
+    /* ===== estilo moderno só da câmera ===== */
+    .modal-camera {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9)
+    }
+
+    .modal-content {
+        background: #000;
+        margin: 2% auto;
+        padding: 0;
+        width: 100%;
+        height: 96%;
+        display: flex;
+        flex-direction: column;
+        position: relative
+    }
+
+    .close-modal {
+        position: absolute;
+        top: 15px;
+        right: 20px;
+        color: white;
+        font-size: 36px;
+        font-weight: bold;
+        cursor: pointer;
+        z-index: 1001
+    }
+
+    #barcode-scanner {
+        flex: 1;
+        position: relative;
+        background: #000
+    }
+
+    .scanner-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 80%;
+        height: 100px;
+        border: 2px solid #00ff00;
+        background: rgba(0, 255, 0, 0.1);
+        pointer-events: none
+    }
+
+    .btn-scanner {
+        background: #17a2b8;
+        color: #fff;
+        padding: 8px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        width: fit-content;
+        margin: 10px auto
+    }
     </style>
 </head>
+
 <body>
-    <h1>Visualizar Planilha: <?php echo htmlspecialchars($planilha['descricao']); ?></h1>
 
-    <div class="botoes-topo">
-        <a href="index.php" class="btn btn-primary">← Voltar para Listagem</a>
-        <a href="imprimiralteracao_planilha.php?id=<?php echo $id_planilha; ?>" class="btn btn-warning" target="_blank">Imprimir Alterações</a>
-        <button onclick="abrirModalCamera()" class="btn btn-scan">
-            <i class="fas fa-camera"></i> Scannear
-        </button>
-    </div>
+    <header>
+        <a href="index.php">← Voltar</a>
+        <h1><?php echo htmlspecialchars($planilha['descricao']); ?></h1>
+        <button onclick="abrirModalCamera()" class="btn-scanner"><i class="fas fa-camera"></i> Scannear Código</button>
+    </header>
 
-    <!-- Modal da Câmera -->
+    <form method="GET">
+        <input type="hidden" name="id" value="<?php echo $id_planilha; ?>">
+        <input type="text" name="codigo" value="<?php echo htmlspecialchars($filtro_codigo); ?>"
+            placeholder="Código...">
+        <input type="text" name="nome" value="<?php echo htmlspecialchars($filtro_nome); ?>" placeholder="Nome...">
+        <select name="dependencia">
+            <option value="">Todas</option>
+            <?php foreach ($dependencia_options as $dep): ?>
+            <option value="<?php echo htmlspecialchars($dep); ?>"
+                <?php echo $filtro_dependencia===$dep?'selected':''; ?>>
+                <?php echo htmlspecialchars($dep); ?>
+            </option>
+            <?php endforeach; ?>
+        </select>
+        <button type="submit">🔍</button>
+    </form>
+
     <div id="modalCamera" class="modal-camera">
         <div class="modal-content">
             <span class="close-modal" onclick="fecharModalCamera()">&times;</span>
-            <h3>Scanner de Código</h3>
-            
-            <div class="scanner-type-selector">
-                <label>
-                    <input type="radio" name="scannerType" value="qrcode" checked onchange="trocarTipoScanner()">
-                    QR Code
-                </label>
-                <label>
-                    <input type="radio" name="scannerType" value="barcode" onchange="trocarTipoScanner()">
-                    Código de Barras
-                </label>
+            <div id="barcode-scanner">
+                <div class="scanner-overlay"></div>
             </div>
-
-            <!-- Scanner QR Code -->
-            <div id="qrcode-scanner" class="scanner-container active-scanner">
-                <div id="reader"></div>
-            </div>
-
-            <!-- Scanner Código de Barras -->
-            <div id="barcode-scanner" class="scanner-container">
-                <div id="barcode-interactive" style="width: 100%; height: 300px; background: black;"></div>
-            </div>
-
-            <div class="camera-buttons">
-                <button onclick="iniciarScanner()" class="btn btn-primary">
-                    <i class="fas fa-play"></i> Iniciar Scanner
-                </button>
-                <button onclick="pararScanner()" class="btn btn-danger">
-                    <i class="fas fa-stop"></i> Parar Scanner
-                </button>
-            </div>
-            <p id="cameraStatus">Scanner não iniciado</p>
         </div>
     </div>
 
-    <!-- Formulário de Filtros -->
-    <div class="filtro-container">
-        <h3>Filtrar Produtos</h3>
-        <form method="GET" action="">
-            <input type="hidden" name="id" value="<?php echo $id_planilha; ?>">
-            
-            <div class="filtro-grid">
-                <div class="filtro-item">
-                    <label for="codigo">Código:</label>
-                    <input type="text" id="codigo" name="codigo" value="<?php echo htmlspecialchars($filtro_codigo); ?>" placeholder="Digite o código">
-                </div>
-                
-                <div class="filtro-item">
-                    <label for="nome">Nome:</label>
-                    <input type="text" id="nome" name="nome" value="<?php echo htmlspecialchars($filtro_nome); ?>" placeholder="Digite o nome">
-                </div>
-                
-                <div class="filtro-item">
-                    <label for="dependencia">Dependência:</label>
-                    <select id="dependencia" name="dependencia">
-                        <option value="">Todas as dependências</option>
-                        <?php foreach ($dependencia_options as $dependencia): ?>
-                            <option value="<?php echo htmlspecialchars($dependencia); ?>" 
-                                <?php echo $filtro_dependencia === $dependencia ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($dependencia); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                
-                <div class="filtro-item">
-                    <label for="status">Status:</label>
-                    <select id="status" name="status">
-                        <option value="">Todos os status</option>
-                        <?php foreach ($status_options as $status): ?>
-                            <option value="<?php echo htmlspecialchars($status); ?>" 
-                                <?php echo $filtro_status === $status ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($status); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-            </div>
-            
-            <button type="submit" class="btn btn-primary">Aplicar Filtros</button>
-            <a href="visualizar_planilha.php?id=<?php echo $id_planilha; ?>" class="btn btn-primary">Limpar Filtros</a>
-        </form>
-    </div>
+    <?php if ($produtos): ?>
+    <table>
+        <thead>
+            <tr>
+                <th>Código</th>
+                <th>Dependência</th>
+                <th>Ação</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($produtos as $p): 
+    $classe='';
+    if ($p['checado']==1 && !empty($p['observacoes'])) $classe='linha-checado-observacao';
+    elseif ($p['checado']==1) $classe='linha-checado';
+    elseif (!empty($p['observacoes'])) $classe='linha-observacao';
+  ?>
+            <tr class="<?php echo $classe; ?>">
+                <td><?php echo htmlspecialchars($p['codigo']); ?></td>
+                <td><?php echo htmlspecialchars($p['dependencia']); ?></td>
+                <td><a
+                        href="editar_produto.php?codigo=<?php echo urlencode($p['codigo']); ?>&id_planilha=<?php echo $id_planilha; ?>">✍</a>
+                </td>
+            </tr>
+            <tr class="linha-nome <?php echo $classe; ?>">
+                <td colspan="3"><?php echo htmlspecialchars($p['nome']); ?></td>
+            </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
 
-    <!-- Tabela de resultados -->
-    <?php if (count($produtos) > 0): ?>
-        <table>
-            <thead>
-                <tr>
-                    <th>Código</th>
-                    <th>Nome</th>
-                    <th>Dependência</th>
-                    <th>Status</th>
-                    <th>Ações</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($produtos as $produto): ?>
-                    <?php
-                    $classe_linha = '';
-                    if ($produto['status'] === 'Depreciado') {
-                        $classe_linha = 'linha-depreciado';
-                    } elseif (!empty($produto['observacoes'])) {
-                        $classe_linha = 'linha-com-observacao';
-                    } elseif ($produto['checado'] == 1) {
-                        $classe_linha = 'linha-checado';
-                    }
-                    ?>
-                    <tr class="<?php echo $classe_linha; ?>">
-                        <td><?php echo htmlspecialchars($produto['codigo']); ?></td>
-                        <td><?php echo htmlspecialchars($produto['nome']); ?></td>
-                        <td><?php echo htmlspecialchars($produto['dependencia']); ?></td>
-                        <td><?php echo htmlspecialchars($produto['status']); ?></td>
-                        <td>
-                            <a href="editar_produto.php?codigo=<?php echo urlencode($produto['codigo']); ?>&id_planilha=<?php echo $id_planilha; ?>" 
-                               class="btn btn-success" style="padding: 5px 10px; font-size: 12px;">
-                                Editar
-                            </a>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-
-        <!-- Paginação -->
-        <?php if ($total_paginas > 1): ?>
-            <div class="paginacao">
-                <?php if ($pagina > 1): ?>
-                    <a href="?id=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina - 1; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&status=<?php echo urlencode($filtro_status); ?>&codigo=<?php echo urlencode($filtro_codigo); ?>">
-                        &laquo; Anterior
-                    </a>
-                <?php endif; ?>
-
-                <?php for ($i = 1; $i <= $total_paginas; $i++): ?>
-                    <?php if ($i == $pagina): ?>
-                        <strong><?php echo $i; ?></strong>
-                    <?php else: ?>
-                        <a href="?id=<?php echo $id_planilha; ?>&pagina=<?php echo $i; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&status=<?php echo urlencode($filtro_status); ?>&codigo=<?php echo urlencode($filtro_codigo); ?>">
-                            <?php echo $i; ?>
-                        </a>
-                    <?php endif; ?>
-                <?php endfor; ?>
-
-                <?php if ($pagina < $total_paginas): ?>
-                    <a href="?id=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina + 1; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&status=<?php echo urlencode($filtro_status); ?>&codigo=<?php echo urlencode($filtro_codigo); ?>">
-                        Próxima &raquo;
-                    </a>
-                <?php endif; ?>
-            </div>
+    <?php if ($total_paginas>1): ?>
+    <div class="paginacao">
+        <?php if ($pagina>1): ?>
+        <a
+            href="?id=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina-1; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&codigo=<?php echo urlencode($filtro_codigo); ?>">&laquo;
+            Anterior</a>
         <?php endif; ?>
-
-        <p>Mostrando <?php echo count($produtos); ?> de <?php echo $total_registros; ?> registros</p>
-
-    <?php else: ?>
-        <p>Nenhum produto encontrado para esta planilha.</p>
+        <?php for ($i=1;$i<=$total_paginas;$i++): ?>
+        <?php if ($i==$pagina): ?><strong><?php echo $i; ?></strong>
+        <?php else: ?>
+        <a
+            href="?id=<?php echo $id_planilha; ?>&pagina=<?php echo $i; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&codigo=<?php echo urlencode($filtro_codigo); ?>"><?php echo $i; ?></a>
+        <?php endif; ?>
+        <?php endfor; ?>
+        <?php if ($pagina<$total_paginas): ?>
+        <a
+            href="?id=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina+1; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&codigo=<?php echo urlencode($filtro_codigo); ?>">Próxima
+            &raquo;</a>
+        <?php endif; ?>
+    </div>
     <?php endif; ?>
 
+    <?php else: ?><p style="text-align:center;margin:30px;color:#666">Nenhum produto encontrado.</p><?php endif; ?>
+
     <script>
-        let html5QrcodeScanner = null;
-        let quaggaScanner = null;
-        let scannerAtivo = false;
-        const modalCamera = document.getElementById('modalCamera');
-        
-        function abrirModalCamera() {
-            modalCamera.style.display = 'block';
+    let mediaStream = null,
+        scanning = false,
+        barcodeDetector = ('BarcodeDetector' in window) ? new BarcodeDetector({
+            formats: ['code_128', 'ean_13', 'ean_8', 'code_39', 'upc_a', 'upc_e']
+        }) : null,
+        videoEl = null;
+
+    async function abrirModalCamera() {
+        document.getElementById('modalCamera').style.display = 'block';
+        await iniciarCamera();
+    }
+
+    function fecharModalCamera() {
+        document.getElementById('modalCamera').style.display = 'none';
+        pararCamera();
+    }
+
+    function pararCamera() {
+        if (mediaStream) {
+            mediaStream.getTracks().forEach(t => t.stop());
+            mediaStream = null;
         }
-        
-        function fecharModalCamera() {
-            modalCamera.style.display = 'none';
-            pararScanner();
+        scanning = false;
+    }
+
+    async function iniciarCamera() {
+        if (scanning) return;
+        scanning = true;
+        videoEl = document.getElementById('videoPreview');
+        if (!videoEl) {
+            videoEl = document.createElement('video');
+            videoEl.id = 'videoPreview';
+            videoEl.autoplay = true;
+            videoEl.playsInline = true;
+            videoEl.muted = true;
+            videoEl.style.width = '100%';
+            videoEl.style.height = '100%';
+            videoEl.style.objectFit = 'cover';
+            document.getElementById('barcode-scanner').prepend(videoEl);
         }
-        
-        // Fechar modal clicando fora
-        window.onclick = function(event) {
-            if (event.target === modalCamera) {
-                fecharModalCamera();
-            }
-        };
-        
-        function trocarTipoScanner() {
-            const tipoScanner = document.querySelector('input[name="scannerType"]:checked').value;
-            document.getElementById('qrcode-scanner').classList.remove('active-scanner');
-            document.getElementById('barcode-scanner').classList.remove('active-scanner');
-            
-            if (tipoScanner === 'qrcode') {
-                document.getElementById('qrcode-scanner').classList.add('active-scanner');
-            } else {
-                document.getElementById('barcode-scanner').classList.add('active-scanner');
-            }
-            
-            // Parar scanner atual se estiver ativo
-            if (scannerAtivo) {
-                pararScanner();
-            }
-        }
-        
-        function obterCameraTraseira(cameras) {
-            // Ordem de preferência: traseira -> qualquer outra -> frontal
-            const cameraTraseira = cameras.find(camera => 
-                camera.label.toLowerCase().includes('back') || 
-                camera.label.toLowerCase().includes('rear') ||
-                camera.label.toLowerCase().includes('traseira')
-            );
-            
-            if (cameraTraseira) return cameraTraseira;
-            
-            // Se não encontrar traseira, pega qualquer que não seja frontal
-            const naoFrontal = cameras.find(camera => 
-                !camera.label.toLowerCase().includes('front') && 
-                !camera.label.toLowerCase().includes('selfie') &&
-                !camera.label.toLowerCase().includes('frontal')
-            );
-            
-            return naoFrontal || cameras[0]; // Fallback para primeira câmera
-        }
-        
-        function iniciarScanner() {
-            const tipoScanner = document.querySelector('input[name="scannerType"]:checked').value;
-            
-            if (scannerAtivo) {
-                pararScanner();
-            }
-            
-            if (tipoScanner === 'qrcode') {
-                iniciarScannerQRCode();
-            } else {
-                iniciarScannerBarcode();
-            }
-        }
-        
-        function iniciarScannerQRCode() {
-            if (html5QrcodeScanner && html5QrcodeScanner.isScanning) {
-                return;
-            }
-            
-            html5QrcodeScanner = new Html5Qrcode("reader");
-            
-            Html5Qrcode.getCameras().then(cameras => {
-                if (cameras && cameras.length) {
-                    const cameraPreferida = obterCameraTraseira(cameras);
-                    
-                    html5QrcodeScanner.start(
-                        cameraPreferida.id,
-                        {
-                            fps: 10,
-                            qrbox: { width: 250, height: 250 },
-                            supportedScanTypes: [
-                                Html5QrcodeScanType.SCAN_TYPE_CAMERA
-                            ]
-                        },
-                        (decodedText) => {
-                            // Código escaneado com sucesso - redirecionar para edição
-                            window.location.href = 'editar_produto.php?codigo=' + 
-                                encodeURIComponent(decodedText.trim()) + 
-                                '&id_planilha=<?php echo $id_planilha; ?>';
-                        },
-                        (errorMessage) => {
-                            // Ignorar mensagens de erro normais durante a leitura
-                            if (!errorMessage.includes('NotFoundException') && 
-                                !errorMessage.includes('NoMultiFormatReader')) {
-                                console.log('QR Code Error:', errorMessage);
-                            }
-                        }
-                    ).then(() => {
-                        scannerAtivo = true;
-                        document.getElementById('cameraStatus').textContent = 
-                            'Scanner QR Code ativo - Aponte para o código';
-                    }).catch(err => {
-                        document.getElementById('cameraStatus').textContent = 
-                            'Erro ao iniciar scanner: ' + err;
-                    });
-                } else {
-                    document.getElementById('cameraStatus').textContent = 
-                        'Nenhuma câmera encontrada';
+        try {
+            mediaStream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: 'environment'
                 }
-            }).catch(err => {
-                document.getElementById('cameraStatus').textContent = 
-                    'Erro ao acessar câmeras: ' + err;
             });
-        }
-        
-        function iniciarScannerBarcode() {
-            if (quaggaScanner) {
-                Quagga.stop();
+            videoEl.srcObject = mediaStream;
+            if (barcodeDetector) {
+                detectarNativo();
+            } else {
+                detectarZXing();
             }
-            
-            Quagga.init({
-                inputStream: {
-                    name: "Live",
-                    type: "LiveStream",
-                    target: document.querySelector('#barcode-interactive'),
-                    constraints: {
-                        facingMode: "environment" // Preferir câmera traseira
-                    }
-                },
-                decoder: {
-                    readers: [
-                        "code_128_reader",
-                        "ean_reader",
-                        "ean_8_reader",
-                        "code_39_reader",
-                        "code_39_vin_reader",
-                        "codabar_reader",
-                        "upc_reader",
-                        "upc_e_reader"
-                    ]
-                },
-                locate: true
-            }, function(err) {
-                if (err) {
-                    console.error(err);
-                    document.getElementById('cameraStatus').textContent = 
-                        'Erro ao iniciar scanner de código de barras: ' + err;
+        } catch (e) {
+            console.error("Erro ao iniciar câmera", e);
+            scanning = false;
+        }
+    }
+
+    async function detectarNativo() {
+        const overlay = document.querySelector('.scanner-overlay');
+        const loop = async () => {
+            if (!scanning) return;
+            try {
+                const codes = await barcodeDetector.detect(videoEl);
+                if (codes.length > 0) {
+                    overlay.style.borderColor = "#0f0";
+                    const code = codes[0].rawValue.trim();
+                    pararCamera();
+                    window.location.href = 'editar_produto.php?codigo=' + encodeURIComponent(code) +
+                        '&id_planilha=<?php echo $id_planilha; ?>';
                     return;
                 }
-                
-                Quagga.start();
-                scannerAtivo = true;
-                document.getElementById('cameraStatus').textContent = 
-                    'Scanner Código de Barras ativo - Aponte para o código';
-            });
-            
-            Quagga.onDetected(function(result) {
-                const code = result.codeResult.code;
-                if (code) {
-                    // Redirecionar para edição do produto
-                    window.location.href = 'editar_produto.php?codigo=' + 
-                        encodeURIComponent(code.trim()) + 
-                        '&id_planilha=<?php echo $id_planilha; ?>';
-                }
-            });
-            
-            quaggaScanner = true;
-        }
-        
-        function pararScanner() {
-            // Parar scanner QR Code
-            if (html5QrcodeScanner) {
-                html5QrcodeScanner.stop().then(() => {
-                    html5QrcodeScanner.clear();
-                    scannerAtivo = false;
-                }).catch(err => {
-                    console.error("Erro ao parar QR scanner:", err);
-                });
+            } catch (e) {}
+            requestAnimationFrame(loop);
+        };
+        loop();
+    }
+
+    function detectarZXing() {
+        const reader = new ZXing.BrowserMultiFormatReader();
+        reader.decodeFromVideoDevice(null, videoEl, (result, err) => {
+            if (result) {
+                document.querySelector('.scanner-overlay').style.borderColor = "#0f0";
+                const code = result.text.trim();
+                pararCamera();
+                reader.reset();
+                window.location.href = 'editar_produto.php?codigo=' + encodeURIComponent(code) +
+                    '&id_planilha=<?php echo $id_planilha; ?>';
             }
-            
-            // Parar scanner código de barras
-            if (quaggaScanner) {
-                Quagga.stop();
-                quaggaScanner = null;
-                scannerAtivo = false;
-            }
-            
-            document.getElementById('cameraStatus').textContent = 'Scanner parado';
-        }
-        
-        // Parar scanner quando o modal fechar
-        modalCamera.addEventListener('hidden', function() {
-            pararScanner();
         });
+    }
     </script>
 </body>
+
 </html>
