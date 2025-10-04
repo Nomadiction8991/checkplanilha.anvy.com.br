@@ -41,7 +41,7 @@ $filtro_codigo = $_GET['codigo'] ?? '';
 
 // Construir a query base
 $sql = "SELECT p.*, 
-               COALESCE(pc.checado, 0) as checado,
+               COALESCE(pc.chocado, 0) as checado,
                pc.observacoes
         FROM produtos p 
         LEFT JOIN produtos_check pc ON p.id = pc.produto_id 

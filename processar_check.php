@@ -29,11 +29,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $existe = $stmt_check->fetch();
         
         if ($existe) {
-            // Atualizar
-            $sql = "UPDATE produtos_check SET checado = :checado, atualizado_em = NOW() WHERE produto_id = :produto_id";
+            // Atualizar - usando o nome correto da coluna: 'chocado'
+            $sql = "UPDATE produtos_check SET chocado = :checado WHERE produto_id = :produto_id";
         } else {
-            // Inserir - CORRIGIDO: 'criado_em' em vez de 'oriado_em'
-            $sql = "INSERT INTO produtos_check (produto_id, checado, criado_em, atualizado_em) VALUES (:produto_id, :checado, NOW(), NOW())";
+            // Inserir - usando o nome correto da coluna: 'chocado'
+            $sql = "INSERT INTO produtos_check (produto_id, chocado) VALUES (:produto_id, :checado)";
         }
         
         $stmt = $conexao->prepare($sql);
@@ -59,4 +59,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     header('Location: index.php');
     exit;
 }
-?>

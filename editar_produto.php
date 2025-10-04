@@ -25,20 +25,20 @@ try {
         throw new Exception('Produto não encontrado.');
     }
     
-    // Buscar dados do check (se existir)
-    $sql_check = "SELECT * FROM produtos_check WHERE produto_id = :produto_id";
-    $stmt_check = $conexao->prepare($sql_check);
-    $stmt_check->bindValue(':produto_id', $produto['id']);
-    $stmt_check->execute();
-    $check = $stmt_check->fetch();
-    
-    // Se não existir registro, criar array vazio
-    if (!$check) {
-        $check = [
-            'checado' => 0,
-            'observacoes' => ''
-        ];
-    }
+   // Buscar dados do check (se existir)
+$sql_check = "SELECT * FROM produtos_check WHERE produto_id = :produto_id";
+$stmt_check = $conexao->prepare($sql_check);
+$stmt_check->bindValue(':produto_id', $produto['id']);
+$stmt_check->execute();
+$check = $stmt_check->fetch();
+
+// Se não existir registro, criar array vazio
+if (!$check) {
+    $check = [
+        'chocado' => 0,
+        'observacoes' => ''
+    ];
+}
     
 } catch (Exception $e) {
     $mensagem = "Erro ao carregar produto: " . $e->getMessage();
@@ -51,34 +51,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $checado = isset($_POST['checado']) ? 1 : 0;
     
     try {
-        // Verificar se já existe registro na tabela produtos_check
-        $sql_verificar = "SELECT COUNT(*) as total FROM produtos_check WHERE produto_id = :produto_id";
-        $stmt_verificar = $conexao->prepare($sql_verificar);
-        $stmt_verificar->bindValue(':produto_id', $produto['id']);
-        $stmt_verificar->execute();
-        $existe_registro = $stmt_verificar->fetch()['total'] > 0;
-        
-        if ($existe_registro) {
-            // Atualizar registro existente
-            $sql_update = "UPDATE produtos_check SET checado = :checado, observacoes = :observacoes WHERE produto_id = :produto_id";
-            $stmt_update = $conexao->prepare($sql_update);
-            $stmt_update->bindValue(':checado', $checado);
-            $stmt_update->bindValue(':observacoes', $observacoes);
-            $stmt_update->bindValue(':produto_id', $produto['id']);
-            $stmt_update->execute();
-        } else {
-            // Inserir novo registro
-            $sql_insert = "INSERT INTO produtos_check (produto_id, checado, observacoes) VALUES (:produto_id, :checado, :observacoes)";
-            $stmt_insert = $conexao->prepare($sql_insert);
-            $stmt_insert->bindValue(':produto_id', $produto['id']);
-            $stmt_insert->bindValue(':checado', $checado);
-            $stmt_insert->bindValue(':observacoes', $observacoes);
-            $stmt_insert->execute();
-        }
+       // Verificar se já existe registro na tabela produtos_check
+$sql_verificar = "SELECT COUNT(*) as total FROM produtos_check WHERE produto_id = :produto_id";
+$stmt_verificar = $conexao->prepare($sql_verificar);
+$stmt_verificar->bindValue(':produto_id', $produto['id']);
+$stmt_verificar->execute();
+$existe_registro = $stmt_verificar->fetch()['total'] > 0;
+
+if ($existe_registro) {
+    // Atualizar registro existente
+    $sql_update = "UPDATE produtos_check SET chocado = :checado, observacoes = :observacoes WHERE produto_id = :produto_id";
+    $stmt_update = $conexao->prepare($sql_update);
+    $stmt_update->bindValue(':checado', $checado);
+    $stmt_update->bindValue(':observacoes', $observacoes);
+    $stmt_update->bindValue(':produto_id', $produto['id']);
+    $stmt_update->execute();
+} else {
+    // Inserir novo registro
+    $sql_insert = "INSERT INTO produtos_check (produto_id, chocado, observacoes) VALUES (:produto_id, :checado, :observacoes)";
+    $stmt_insert = $conexao->prepare($sql_insert);
+    $stmt_insert->bindValue(':produto_id', $produto['id']);
+    $stmt_insert->bindValue(':checado', $checado);
+    $stmt_insert->bindValue(':observacoes', $observacoes);
+    $stmt_insert->execute();
+}
         
         // Atualizar dados locais
-        $check['checado'] = $checado;
-        $check['observacoes'] = $observacoes;
+// Atualizar dados locais
+$check['chocado'] = $checado;
+$check['observacoes'] = $observacoes;
         
         $mensagem = "Alterações salvas com sucesso!";
         $tipo_mensagem = 'success';
