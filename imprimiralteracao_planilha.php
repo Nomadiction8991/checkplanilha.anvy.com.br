@@ -23,59 +23,36 @@ try {
     die("Erro ao carregar planilha: " . $e->getMessage());
 }
 
-// Filtros do relatório
-$filtro_observacao = $_GET['observacao'] ?? 'com_observacao'; // Padrão: com observação
-$filtro_checado = $_GET['checado'] ?? ''; // Padrão: vazio
-$filtro_ambos = $_GET['ambos'] ?? ''; // Padrão: vazio
-$filtro_sem_checar = $_GET['sem_checar'] ?? ''; // Padrão: vazio
+// Filtros do relatório - AGORA SÃO CHECKBOXES PARA SEÇÕES
+$mostrar_observacao = isset($_GET['mostrar_observacao']) ? true : true; // Padrão: SIM (sempre mostra)
+$mostrar_checados = isset($_GET['mostrar_checados']) ? true : false; // Padrão: NÃO
+$mostrar_ambos = isset($_GET['mostrar_ambos']) ? true : false; // Padrão: NÃO
+$mostrar_sem_observacao = isset($_GET['mostrar_sem_observacao']) ? true : false; // Padrão: NÃO
 $filtro_dependencia = $_GET['dependencia'] ?? ''; // Filtro de dependência
 
-// Construir query base
-$sql_base = "SELECT p.*, pc.checado, pc.observacoes 
-             FROM produtos p 
-             LEFT JOIN produtos_check pc ON p.id = pc.produto_id 
-             WHERE p.id_planilha = :id_planilha";
-
-$params = [':id_planilha' => $id_planilha];
-$conditions = [];
-
-// Aplicar filtros
-if ($filtro_observacao === 'com_observacao') {
-    $conditions[] = "pc.observacoes IS NOT NULL AND pc.observacoes != '' AND COALESCE(pc.checado, 0) = 0";
-}
-
-if ($filtro_checado === 'sim') {
-    $conditions[] = "COALESCE(pc.checado, 0) = 1";
-}
-
-if ($filtro_ambos === 'sim') {
-    $conditions[] = "COALESCE(pc.checado, 0) = 1 AND pc.observacoes IS NOT NULL AND pc.observacoes != ''";
-}
-
-if ($filtro_sem_checar === 'nao') {
-    $conditions[] = "COALESCE(pc.checado, 0) = 0";
-}
-
-if (!empty($filtro_dependencia)) {
-    $conditions[] = "p.dependencia LIKE :dependencia";
-    $params[':dependencia'] = '%' . $filtro_dependencia . '%';
-}
-
-// Combinar condições
-if (!empty($conditions)) {
-    $sql_base .= " AND (" . implode(") AND (", $conditions) . ")";
-}
-
-$sql_base .= " ORDER BY p.codigo";
-
-// Buscar produtos filtrados
+// Buscar TODOS os produtos (sem filtros de tipo)
 try {
-    $stmt_produtos = $conexao->prepare($sql_base);
+    $sql_produtos = "SELECT p.*, pc.checado, pc.observacoes 
+                     FROM produtos p 
+                     LEFT JOIN produtos_check pc ON p.id = pc.produto_id 
+                     WHERE p.id_planilha = :id_planilha";
+    
+    $params = [':id_planilha' => $id_planilha];
+    
+    // Aplicar apenas filtro de dependência
+    if (!empty($filtro_dependencia)) {
+        $sql_produtos .= " AND p.dependencia LIKE :dependencia";
+        $params[':dependencia'] = '%' . $filtro_dependencia . '%';
+    }
+    
+    $sql_produtos .= " ORDER BY p.codigo";
+    
+    $stmt_produtos = $conexao->prepare($sql_produtos);
     foreach ($params as $key => $value) {
         $stmt_produtos->bindValue($key, $value);
     }
     $stmt_produtos->execute();
-    $produtos = $stmt_produtos->fetchAll();
+    $todos_produtos = $stmt_produtos->fetchAll();
     
 } catch (Exception $e) {
     die("Erro ao carregar produtos: " . $e->getMessage());
@@ -92,13 +69,13 @@ try {
     $dependencia_options = [];
 }
 
-// Agrupar produtos por tipo
+// Agrupar produtos por tipo (independente dos filtros)
 $produtos_com_observacao = [];
 $produtos_checados = [];
 $produtos_ambos = [];
 $produtos_sem_observacao = [];
 
-foreach ($produtos as $produto) {
+foreach ($todos_produtos as $produto) {
     $tem_observacao = !empty($produto['observacoes']);
     $esta_checado = $produto['checado'] == 1;
     
@@ -118,7 +95,14 @@ $total_com_observacao = count($produtos_com_observacao);
 $total_checados = count($produtos_checados);
 $total_ambos = count($produtos_ambos);
 $total_sem_observacao = count($produtos_sem_observacao);
-$total_geral = count($produtos);
+$total_geral = count($todos_produtos);
+
+// Calcular totais que serão mostrados baseado nos filtros
+$total_mostrar = 0;
+if ($mostrar_observacao) $total_mostrar += $total_com_observacao;
+if ($mostrar_checados) $total_mostrar += $total_checados;
+if ($mostrar_ambos) $total_mostrar += $total_ambos;
+if ($mostrar_sem_observacao) $total_mostrar += $total_sem_observacao;
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -326,49 +310,42 @@ $total_geral = count($produtos);
         .btn-apply:hover {
             background: #218838;
         }
+        
+        .secao-oculta {
+            display: none;
+        }
     </style>
 </head>
 <body>
     <!-- Formulário de Filtros -->
     <div class="filtros-form no-print">
-        <h3>Filtros do Relatório</h3>
+        <h3>Seções do Relatório (Marque quais seções deseja incluir)</h3>
         
         <form method="GET">
             <input type="hidden" name="id" value="<?php echo $id_planilha; ?>">
             
             <div class="filtro-group">
-                <label>Tipo de Produtos:</label>
+                <label>Seções a Incluir:</label>
                 <div class="filtro-options">
                     <div class="filtro-option">
-                        <input type="radio" name="observacao" value="com_observacao" 
-                               <?php echo $filtro_observacao === 'com_observacao' ? 'checked' : ''; ?>>
-                        <label>Produtos com observação apenas</label>
+                        <input type="checkbox" name="mostrar_observacao" value="1" 
+                               <?php echo $mostrar_observacao ? 'checked' : ''; ?>>
+                        <label>Produtos com observação apenas (<?php echo $total_com_observacao; ?>)</label>
                     </div>
                     <div class="filtro-option">
-                        <input type="radio" name="observacao" value="" 
-                               <?php echo $filtro_observacao === '' ? 'checked' : ''; ?>>
-                        <label>Todos os produtos</label>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="filtro-group">
-                <label>Filtros Adicionais:</label>
-                <div class="filtro-options">
-                    <div class="filtro-option">
-                        <input type="checkbox" name="checado" value="sim" 
-                               <?php echo $filtro_checado === 'sim' ? 'checked' : ''; ?>>
-                        <label>Imprimir produtos checados</label>
+                        <input type="checkbox" name="mostrar_checados" value="1" 
+                               <?php echo $mostrar_checados ? 'checked' : ''; ?>>
+                        <label>Produtos checados (<?php echo $total_checados; ?>)</label>
                     </div>
                     <div class="filtro-option">
-                        <input type="checkbox" name="ambos" value="sim" 
-                               <?php echo $filtro_ambos === 'sim' ? 'checked' : ''; ?>>
-                        <label>Imprimir produtos com observação e checagem</label>
+                        <input type="checkbox" name="mostrar_ambos" value="1" 
+                               <?php echo $mostrar_ambos ? 'checked' : ''; ?>>
+                        <label>Produtos com observação e checagem (<?php echo $total_ambos; ?>)</label>
                     </div>
                     <div class="filtro-option">
-                        <input type="checkbox" name="sem_checar" value="nao" 
-                               <?php echo $filtro_sem_checar === 'nao' ? 'checked' : ''; ?>>
-                        <label>Não imprimir produtos não checados</label>
+                        <input type="checkbox" name="mostrar_sem_observacao" value="1" 
+                               <?php echo $mostrar_sem_observacao ? 'checked' : ''; ?>>
+                        <label>Produtos sem observação (<?php echo $total_sem_observacao; ?>)</label>
                     </div>
                 </div>
             </div>
@@ -403,16 +380,19 @@ $total_geral = count($produtos);
 
     <!-- Informações dos filtros aplicados -->
     <div class="filtros-info">
-        <strong>Filtros Aplicados:</strong><br>
+        <strong>Seções Incluídas:</strong><br>
         <?php
-        $filtros_texto = [];
-        if ($filtro_observacao === 'com_observacao') $filtros_texto[] = "Produtos com observação";
-        if ($filtro_checado === 'sim') $filtros_texto[] = "Produtos checados";
-        if ($filtro_ambos === 'sim') $filtros_texto[] = "Produtos com observação e checagem";
-        if ($filtro_sem_checar === 'nao') $filtros_texto[] = "Excluir produtos não checados";
-        if (!empty($filtro_dependencia)) $filtros_texto[] = "Dependência: " . htmlspecialchars($filtro_dependencia);
+        $secoes_texto = [];
+        if ($mostrar_observacao) $secoes_texto[] = "Produtos com observação (" . $total_com_observacao . ")";
+        if ($mostrar_checados) $secoes_texto[] = "Produtos checados (" . $total_checados . ")";
+        if ($mostrar_ambos) $secoes_texto[] = "Produtos com observação e checagem (" . $total_ambos . ")";
+        if ($mostrar_sem_observacao) $secoes_texto[] = "Produtos sem observação (" . $total_sem_observacao . ")";
         
-        echo empty($filtros_texto) ? "Todos os produtos" : implode(" | ", $filtros_texto);
+        echo empty($secoes_texto) ? "Nenhuma seção selecionada" : implode(" | ", $secoes_texto);
+        
+        if (!empty($filtro_dependencia)) {
+            echo "<br><strong>Dependência:</strong> " . htmlspecialchars($filtro_dependencia);
+        }
         ?>
     </div>
 
@@ -431,18 +411,19 @@ $total_geral = count($produtos);
 
     <!-- Resumo estatístico -->
     <div class="resumo">
-        <strong>RESUMO:</strong><br>
-        <?php if ($total_com_observacao > 0): ?>- Produtos com observação: <?php echo $total_com_observacao; ?><br><?php endif; ?>
-        <?php if ($total_checados > 0): ?>- Produtos checados: <?php echo $total_checados; ?><br><?php endif; ?>
-        <?php if ($total_ambos > 0): ?>- Produtos com observação e checagem: <?php echo $total_ambos; ?><br><?php endif; ?>
-        <?php if ($total_sem_observacao > 0): ?>- Produtos sem observação: <?php echo $total_sem_observacao; ?><br><?php endif; ?>
-        - Total no relatório: <?php echo $total_geral; ?><br>
+        <strong>RESUMO GERAL:</strong><br>
+        - Total de produtos na planilha: <?php echo $total_geral; ?><br>
+        - Produtos com observação: <?php echo $total_com_observacao; ?><br>
+        - Produtos checados: <?php echo $total_checados; ?><br>
+        - Produtos com observação e checagem: <?php echo $total_ambos; ?><br>
+        - Produtos sem observação: <?php echo $total_sem_observacao; ?><br>
+        - <strong>Total a ser impresso: <?php echo $total_mostrar; ?> produtos</strong>
     </div>
 
     <?php if ($total_geral > 0): ?>
         
         <!-- SEÇÃO 1: Produtos com Observação Apenas -->
-        <?php if ($total_com_observacao > 0): ?>
+        <?php if ($mostrar_observacao && $total_com_observacao > 0): ?>
             <div class="secao-titulo">
                 PRODUTOS COM OBSERVAÇÃO (<?php echo $total_com_observacao; ?> itens)
             </div>
@@ -472,7 +453,7 @@ $total_geral = count($produtos);
         <?php endif; ?>
 
         <!-- SEÇÃO 2: Produtos Checados -->
-        <?php if ($total_checados > 0): ?>
+        <?php if ($mostrar_checados && $total_checados > 0): ?>
             <div class="secao-titulo">
                 PRODUTOS CHECADOS (<?php echo $total_checados; ?> itens)
             </div>
@@ -500,7 +481,7 @@ $total_geral = count($produtos);
         <?php endif; ?>
 
         <!-- SEÇÃO 3: Produtos com Observação e Checagem -->
-        <?php if ($total_ambos > 0): ?>
+        <?php if ($mostrar_ambos && $total_ambos > 0): ?>
             <div class="secao-titulo">
                 PRODUTOS COM OBSERVAÇÃO E CHECAGEM (<?php echo $total_ambos; ?> itens)
             </div>
@@ -530,7 +511,7 @@ $total_geral = count($produtos);
         <?php endif; ?>
 
         <!-- SEÇÃO 4: Produtos sem Observação -->
-        <?php if ($total_sem_observacao > 0 && $filtro_sem_checar !== 'nao'): ?>
+        <?php if ($mostrar_sem_observacao && $total_sem_observacao > 0): ?>
             <div class="secao-titulo">
                 PRODUTOS SEM OBSERVAÇÃO (<?php echo $total_sem_observacao; ?> itens)
             </div>
@@ -557,10 +538,17 @@ $total_geral = count($produtos);
             </table>
         <?php endif; ?>
 
+        <?php if ($total_mostrar === 0): ?>
+            <div class="sem-registros" style="text-align: center; padding: 40px;">
+                <h3>Nenhuma seção selecionada</h3>
+                <p>Marque pelo menos uma seção para visualizar o relatório.</p>
+            </div>
+        <?php endif; ?>
+
     <?php else: ?>
         <div class="sem-registros" style="text-align: center; padding: 40px;">
             <h3>Nenhum produto encontrado</h3>
-            <p>Nenhum produto corresponde aos filtros aplicados.</p>
+            <p>Não há produtos cadastrados nesta planilha ou não correspondem ao filtro de dependência.</p>
         </div>
     <?php endif; ?>
 
