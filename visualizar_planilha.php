@@ -8,6 +8,12 @@ if (!$id_planilha) {
     exit;
 }
 
+// Verificar se há mensagem de erro
+$erro = $_GET['erro'] ?? '';
+if (!empty($erro)) {
+    echo "<script>alert('" . addslashes($erro) . "');</script>";
+}
+
 // Buscar dados da planilha
 try {
     $sql_planilha = "SELECT * FROM planilhas WHERE id = :id";
@@ -413,17 +419,25 @@ td form button:hover {
 </table>
 
     <?php if ($total_paginas>1): ?>
-    <div class="paginacao">
-        <?php if ($pagina>1): ?>
-        <!-- Na paginação, atualize os links para incluir os filtros -->
-<a href="?id=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina-1; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&codigo=<?php echo urlencode($filtro_codigo); ?>">&laquo; Anterior</a>
-
-<a href="?id=<?php echo $id_planilha; ?>&pagina=<?php echo $i; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&codigo=<?php echo urlencode($filtro_codigo); ?>"><?php echo $i; ?></a>
-
-<a href="?id=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina+1; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&codigo=<?php echo urlencode($filtro_codigo); ?>">Próxima &raquo;</a>
-        <?php endif; ?>
-    </div>
+<div class="paginacao">
+    <?php if ($pagina>1): ?>
+    <a href="?id=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina-1; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&codigo=<?php echo urlencode($filtro_codigo); ?>">&laquo; Anterior</a>
     <?php endif; ?>
+    
+    <?php for ($i=1;$i<=$total_paginas;$i++): ?>
+        <?php if ($i==$pagina): ?>
+            <strong><?php echo $i; ?></strong>
+        <?php else: ?>
+            <a href="?id=<?php echo $id_planilha; ?>&pagina=<?php echo $i; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&codigo=<?php echo urlencode($filtro_codigo); ?>"><?php echo $i; ?></a>
+        <?php endif; ?>
+    <?php endfor; ?>
+    
+    <?php if ($pagina<$total_paginas): ?>
+    <a href="?id=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina+1; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&codigo=<?php echo urlencode($filtro_codigo); ?>">Próxima &raquo;</a>
+    <?php endif; ?>
+</div>
+<?php endif; ?>
+ 
 
     <?php else: ?><p style="text-align:center;margin:30px;color:#666">Nenhum produto encontrado.</p><?php endif; ?>
 
