@@ -333,11 +333,17 @@ td form button:hover {
 
 <body>
 
-    <header>
-        <a href="index.php">← Voltar</a>
-        <h1><?php echo htmlspecialchars($planilha['descricao']); ?></h1>
+<header>
+    <a href="index.php">← Voltar</a>
+    <h1><?php echo htmlspecialchars($planilha['descricao']); ?></h1>
+    <div style="display: flex; gap: 10px; align-items: center;">
         <button onclick="abrirModalCamera()" class="btn-scanner"><i class="fas fa-camera"></i> Scannear Código</button>
-    </header>
+        <a href="imprimiralteracao_planilha.php?id=<?php echo $id_planilha; ?>" 
+           style="background: #28a745; color: #fff; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-print"></i> Imprimir Relatório
+        </a>
+    </div>
+</header>
 
     <form method="GET">
         <input type="hidden" name="id" value="<?php echo $id_planilha; ?>">
