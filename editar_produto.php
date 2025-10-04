@@ -35,7 +35,7 @@ $check = $stmt_check->fetch();
 // Se não existir registro, criar array vazio
 if (!$check) {
     $check = [
-        'chocado' => 0,
+        'checado' => 0,
         'observacoes' => ''
     ];
 }
@@ -60,7 +60,7 @@ $existe_registro = $stmt_verificar->fetch()['total'] > 0;
 
 if ($existe_registro) {
     // Atualizar registro existente
-    $sql_update = "UPDATE produtos_check SET chocado = :checado, observacoes = :observacoes WHERE produto_id = :produto_id";
+    $sql_update = "UPDATE produtos_check SET checado = :checado, observacoes = :observacoes WHERE produto_id = :produto_id";
     $stmt_update = $conexao->prepare($sql_update);
     $stmt_update->bindValue(':checado', $checado);
     $stmt_update->bindValue(':observacoes', $observacoes);
@@ -68,7 +68,7 @@ if ($existe_registro) {
     $stmt_update->execute();
 } else {
     // Inserir novo registro
-    $sql_insert = "INSERT INTO produtos_check (produto_id, chocado, observacoes) VALUES (:produto_id, :checado, :observacoes)";
+    $sql_insert = "INSERT INTO produtos_check (produto_id, checado, observacoes) VALUES (:produto_id, :checado, :observacoes)";
     $stmt_insert = $conexao->prepare($sql_insert);
     $stmt_insert->bindValue(':produto_id', $produto['id']);
     $stmt_insert->bindValue(':checado', $checado);
@@ -78,7 +78,7 @@ if ($existe_registro) {
         
         // Atualizar dados locais
 // Atualizar dados locais
-$check['chocado'] = $checado;
+$check['checado'] = $checado;
 $check['observacoes'] = $observacoes;
         
         $mensagem = "Alterações salvas com sucesso!";
