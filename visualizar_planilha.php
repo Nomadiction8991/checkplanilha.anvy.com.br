@@ -105,7 +105,7 @@ form button { padding: 5px 10px; }
 table { width: 100%; border-collapse: collapse; margin-top: 10px; }
 th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
 th { background: #007bff; color: #fff; }
-tr:nth-child(even) { background: #f2f2f2; }
+tr:nth-child(even) { background: #ac3131ff; }
 .linha-checado { background: #d4edda !important; }
 .linha-checado-observacao { background: #e6e6fa !important; }
 .linha-observacao { background: #fff3cd !important; }
