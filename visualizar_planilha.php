@@ -156,7 +156,7 @@ th, td {
 /* Coluna Código - 35% */
 th:nth-child(1),
 td:nth-child(1) {
-    width: 35%;
+    width: 45%;
 }
 
 /* Coluna Dependência - 35% */
@@ -168,7 +168,7 @@ td:nth-child(2) {
 /* Coluna Ação - 30% (restante) */
 th:nth-child(3),
 td:nth-child(3) {
-    width: 30%;
+    width: 10%;
 }
 
 /* Ajuste para a linha do nome que usa colspan */
