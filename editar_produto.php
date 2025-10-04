@@ -4,8 +4,23 @@ require_once 'conexao.php';
 $codigo = $_GET['codigo'] ?? null;
 $id_planilha = $_GET['id_planilha'] ?? null;
 
+// Receber filtros
+$pagina = $_GET['pagina'] ?? 1;
+$filtro_nome = $_GET['nome'] ?? '';
+$filtro_dependencia = $_GET['dependencia'] ?? '';
+$filtro_codigo = $_GET['filtro_codigo'] ?? '';
+
 if (!$codigo || !$id_planilha) {
-    header('Location: index.php');
+    // Redirecionar mantendo os filtros
+    $query_string = http_build_query([
+        'id' => $id_planilha,
+        'pagina' => $pagina,
+        'nome' => $filtro_nome,
+        'dependencia' => $filtro_dependencia,
+        'codigo' => $filtro_codigo,
+        'erro' => 'Produto não encontrado'
+    ]);
+    header('Location: visualizar_planilha.php?' . $query_string);
     exit;
 }
 
@@ -25,20 +40,20 @@ try {
         throw new Exception('Produto não encontrado.');
     }
     
-   // Buscar dados do check (se existir)
-$sql_check = "SELECT * FROM produtos_check WHERE produto_id = :produto_id";
-$stmt_check = $conexao->prepare($sql_check);
-$stmt_check->bindValue(':produto_id', $produto['id']);
-$stmt_check->execute();
-$check = $stmt_check->fetch();
+    // Buscar dados do check (se existir)
+    $sql_check = "SELECT * FROM produtos_check WHERE produto_id = :produto_id";
+    $stmt_check = $conexao->prepare($sql_check);
+    $stmt_check->bindValue(':produto_id', $produto['id']);
+    $stmt_check->execute();
+    $check = $stmt_check->fetch();
 
-// Se não existir registro, criar array vazio
-if (!$check) {
-    $check = [
-        'checado' => 0,
-        'observacoes' => ''
-    ];
-}
+    // Se não existir registro, criar array vazio
+    if (!$check) {
+        $check = [
+            'checado' => 0,
+            'observacoes' => ''
+        ];
+    }
     
 } catch (Exception $e) {
     $mensagem = "Erro ao carregar produto: " . $e->getMessage();
@@ -50,36 +65,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $observacoes = trim($_POST['observacoes'] ?? '');
     $checado = isset($_POST['checado']) ? 1 : 0;
     
+    // Receber filtros do POST também
+    $pagina = $_POST['pagina'] ?? 1;
+    $filtro_nome = $_POST['nome'] ?? '';
+    $filtro_dependencia = $_POST['dependencia'] ?? '';
+    $filtro_codigo = $_POST['filtro_codigo'] ?? '';
+    
     try {
-       // Verificar se já existe registro na tabela produtos_check
-$sql_verificar = "SELECT COUNT(*) as total FROM produtos_check WHERE produto_id = :produto_id";
-$stmt_verificar = $conexao->prepare($sql_verificar);
-$stmt_verificar->bindValue(':produto_id', $produto['id']);
-$stmt_verificar->execute();
-$existe_registro = $stmt_verificar->fetch()['total'] > 0;
+        // Verificar se já existe registro na tabela produtos_check
+        $sql_verificar = "SELECT COUNT(*) as total FROM produtos_check WHERE produto_id = :produto_id";
+        $stmt_verificar = $conexao->prepare($sql_verificar);
+        $stmt_verificar->bindValue(':produto_id', $produto['id']);
+        $stmt_verificar->execute();
+        $existe_registro = $stmt_verificar->fetch()['total'] > 0;
 
-if ($existe_registro) {
-    // Atualizar registro existente
-    $sql_update = "UPDATE produtos_check SET checado = :checado, observacoes = :observacoes WHERE produto_id = :produto_id";
-    $stmt_update = $conexao->prepare($sql_update);
-    $stmt_update->bindValue(':checado', $checado);
-    $stmt_update->bindValue(':observacoes', $observacoes);
-    $stmt_update->bindValue(':produto_id', $produto['id']);
-    $stmt_update->execute();
-} else {
-    // Inserir novo registro
-    $sql_insert = "INSERT INTO produtos_check (produto_id, checado, observacoes) VALUES (:produto_id, :checado, :observacoes)";
-    $stmt_insert = $conexao->prepare($sql_insert);
-    $stmt_insert->bindValue(':produto_id', $produto['id']);
-    $stmt_insert->bindValue(':checado', $checado);
-    $stmt_insert->bindValue(':observacoes', $observacoes);
-    $stmt_insert->execute();
-}
+        if ($existe_registro) {
+            // Atualizar registro existente
+            $sql_update = "UPDATE produtos_check SET checado = :checado, observacoes = :observacoes WHERE produto_id = :produto_id";
+            $stmt_update = $conexao->prepare($sql_update);
+            $stmt_update->bindValue(':checado', $checado);
+            $stmt_update->bindValue(':observacoes', $observacoes);
+            $stmt_update->bindValue(':produto_id', $produto['id']);
+            $stmt_update->execute();
+        } else {
+            // Inserir novo registro
+            $sql_insert = "INSERT INTO produtos_check (produto_id, checado, observacoes) VALUES (:produto_id, :checado, :observacoes)";
+            $stmt_insert = $conexao->prepare($sql_insert);
+            $stmt_insert->bindValue(':produto_id', $produto['id']);
+            $stmt_insert->bindValue(':checado', $checado);
+            $stmt_insert->bindValue(':observacoes', $observacoes);
+            $stmt_insert->execute();
+        }
         
         // Atualizar dados locais
-// Atualizar dados locais
-$check['checado'] = $checado;
-$check['observacoes'] = $observacoes;
+        $check['checado'] = $checado;
+        $check['observacoes'] = $observacoes;
         
         $mensagem = "Alterações salvas com sucesso!";
         $tipo_mensagem = 'success';
@@ -89,6 +109,18 @@ $check['observacoes'] = $observacoes;
         $tipo_mensagem = 'error';
         error_log("ERRO SALVAR PRODUTO: " . $e->getMessage());
     }
+}
+
+// Função para gerar URL de retorno com filtros
+function getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, $filtro_codigo) {
+    $params = [
+        'id' => $id_planilha,
+        'pagina' => $pagina,
+        'nome' => $filtro_nome,
+        'dependencia' => $filtro_dependencia,
+        'codigo' => $filtro_codigo
+    ];
+    return 'visualizar_planilha.php?' . http_build_query($params);
 }
 ?>
 
@@ -118,12 +150,24 @@ $check['observacoes'] = $observacoes;
         
         .product-info { background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
         .product-info h3 { margin-top: 0; }
+        
+        .filter-info { background: #e9ecef; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 14px; }
+        .filter-info strong { color: #495057; }
     </style>
 </head>
 <body>
     <h1>Editar Produto</h1>
 
-    <a href="visualizar_planilha.php?id=<?php echo $id_planilha; ?>" class="btn btn-secondary">
+    <!-- Informações dos filtros ativos -->
+    <div class="filter-info">
+        <strong>Filtros ativos:</strong>
+        <?php if ($filtro_codigo): ?>Código: <?php echo htmlspecialchars($filtro_codigo); ?> | <?php endif; ?>
+        <?php if ($filtro_nome): ?>Nome: <?php echo htmlspecialchars($filtro_nome); ?> | <?php endif; ?>
+        <?php if ($filtro_dependencia): ?>Dependência: <?php echo htmlspecialchars($filtro_dependencia); ?> | <?php endif; ?>
+        Página: <?php echo $pagina; ?>
+    </div>
+
+    <a href="<?php echo getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, $filtro_codigo); ?>" class="btn btn-secondary">
         ← Voltar para Planilha
     </a>
 
@@ -160,6 +204,12 @@ $check['observacoes'] = $observacoes;
 
     <!-- Formulário de Edição -->
     <form method="POST" action="">
+        <!-- Campos hidden para preservar filtros -->
+        <input type="hidden" name="pagina" value="<?php echo $pagina; ?>">
+        <input type="hidden" name="nome" value="<?php echo htmlspecialchars($filtro_nome); ?>">
+        <input type="hidden" name="dependencia" value="<?php echo htmlspecialchars($filtro_dependencia); ?>">
+        <input type="hidden" name="filtro_codigo" value="<?php echo htmlspecialchars($filtro_codigo); ?>">
+
         <!-- Campo Observações -->
         <div class="form-group">
             <label for="observacoes">Observações:</label>
@@ -176,7 +226,7 @@ $check['observacoes'] = $observacoes;
 
         <!-- Botões -->
         <button type="submit" class="btn btn-primary">Salvar Alterações</button>
-        <a href="visualizar_planilha.php?id=<?php echo $id_planilha; ?>" class="btn btn-secondary">Cancelar</a>
+        <a href="<?php echo getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, $filtro_codigo); ?>" class="btn btn-secondary">Cancelar</a>
     </form>
 
     <!-- Informações adicionais -->
@@ -187,6 +237,7 @@ $check['observacoes'] = $observacoes;
             <li>O campo Observações pode ser editado livremente</li>
             <li>Marque "Marcar como checado" quando o produto for verificado fisicamente</li>
             <li>As alterações serão salvas na tabela de controle de produtos</li>
+            <li>Ao salvar ou cancelar, você retornará para a página <?php echo $pagina; ?> com os filtros aplicados</li>
         </ul>
     </div>
 </body>
