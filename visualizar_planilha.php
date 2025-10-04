@@ -8,6 +8,12 @@ if (!$id_planilha) {
     exit;
 }
 
+// Verificar se há mensagem de erro
+$erro = $_GET['erro'] ?? '';
+if (!empty($erro)) {
+    echo "<script>alert('" . addslashes($erro) . "');</script>";
+}
+
 // Buscar dados da planilha
 try {
     $sql_planilha = "SELECT * FROM planilhas WHERE id = :id";
@@ -200,6 +206,39 @@ tr:nth-child(even) {
 .linha-observacao {
     background: #fff3cd !important;
 }
+
+
+
+td form {
+    display: inline;
+}
+
+td form button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 3px;
+    transition: background-color 0.2s;
+}
+
+td form button:hover {
+    background-color: #f8f9fa;
+}
+
+/* Ajuste para os ícones */
+.fa-check-square, .fa-square {
+    font-size: 18px;
+}
+
+/* Container das ações */
+.acao-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
     .paginacao {
         text-align: center;
         margin: 20px 0;
@@ -326,57 +365,79 @@ tr:nth-child(even) {
         </div>
     </div>
 
-    <?php if ($produtos): ?>
-    <table>
-        <thead>
-            <tr>
-                <th>Código</th>
-                <th>Dependência</th>
-                <th>Ação</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach ($produtos as $p): 
-    $classe='';
-    if ($p['checado']==1 && !empty($p['observacoes'])) $classe='linha-checado-observacao';
-    elseif ($p['checado']==1) $classe='linha-checado';
-    elseif (!empty($p['observacoes'])) $classe='linha-observacao';
-  ?>
-            <tr class="<?php echo $classe; ?>">
-                <td><?php echo htmlspecialchars($p['codigo']); ?></td>
-                <td><?php echo htmlspecialchars($p['dependencia']); ?></td>
-                <td><a
-                        href="editar_produto.php?codigo=<?php echo urlencode($p['codigo']); ?>&id_planilha=<?php echo $id_planilha; ?>">✍</a>
-                </td>
-            </tr>
-            <tr class="linha-nome <?php echo $classe; ?>">
-                <td colspan="3"><?php echo htmlspecialchars($p['nome']); ?></td>
-            </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
+   <?php if ($produtos): ?>
+<table>
+    <thead>
+        <tr>
+            <th>Código</th>
+            <th>Dependência</th>
+            <th>Ação</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php foreach ($produtos as $p): 
+            $classe = '';
+            if ($p['checado'] == 1 && !empty($p['observacoes'])) $classe = 'linha-checado-observacao';
+            elseif ($p['checado'] == 1) $classe = 'linha-checado';
+            elseif (!empty($p['observacoes'])) $classe = 'linha-observacao';
+        ?>
+        <tr class="<?php echo $classe; ?>">
+            <td><?php echo htmlspecialchars($p['codigo']); ?></td>
+            <td><?php echo htmlspecialchars($p['dependencia']); ?></td>
+            <td style="text-align: center;">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    <!-- Formulário do Checkbox -->
+                    <form method="POST" action="processar_check.php" style="margin: 0; display: inline;">
+                        <input type="hidden" name="produto_id" value="<?php echo $p['id']; ?>">
+                        <input type="hidden" name="id_planilha" value="<?php echo $id_planilha; ?>">
+                        <input type="hidden" name="checado" value="<?php echo $p['checado'] ? '0' : '1'; ?>">
+                        <input type="hidden" name="pagina" value="<?php echo $pagina; ?>">
+                        <input type="hidden" name="nome" value="<?php echo htmlspecialchars($filtro_nome); ?>">
+                        <input type="hidden" name="dependencia" value="<?php echo htmlspecialchars($filtro_dependencia); ?>">
+                        <input type="hidden" name="codigo" value="<?php echo htmlspecialchars($filtro_codigo); ?>">
+                        <button type="submit" style="background: none; border: none; cursor: pointer; padding: 0; margin: 0;">
+                            <?php if ($p['checado'] == 1): ?>
+                                <i class="fas fa-check-square" style="color: #28a745; font-size: 18px;"></i>
+                            <?php else: ?>
+                                <i class="far fa-square" style="color: #6c757d; font-size: 18px;"></i>
+                            <?php endif; ?>
+                        </button>
+                    </form>
+                    
+                    <!-- Link de Edição -->
+<a href="editar_produto.php?codigo=<?php echo urlencode($p['codigo']); ?>&id_planilha=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&filtro_codigo=<?php echo urlencode($filtro_codigo); ?>">
+    ✍
+</a>
+                </div>
+            </td>
+        </tr>
+        <tr class="linha-nome <?php echo $classe; ?>">
+            <td colspan="3"><?php echo htmlspecialchars($p['nome']); ?></td>
+        </tr>
+        <?php endforeach; ?>
+    </tbody>
+</table>
 
     <?php if ($total_paginas>1): ?>
-    <div class="paginacao">
-        <?php if ($pagina>1): ?>
-        <a
-            href="?id=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina-1; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&codigo=<?php echo urlencode($filtro_codigo); ?>">&laquo;
-            Anterior</a>
-        <?php endif; ?>
-        <?php for ($i=1;$i<=$total_paginas;$i++): ?>
-        <?php if ($i==$pagina): ?><strong><?php echo $i; ?></strong>
-        <?php else: ?>
-        <a
-            href="?id=<?php echo $id_planilha; ?>&pagina=<?php echo $i; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&codigo=<?php echo urlencode($filtro_codigo); ?>"><?php echo $i; ?></a>
-        <?php endif; ?>
-        <?php endfor; ?>
-        <?php if ($pagina<$total_paginas): ?>
-        <a
-            href="?id=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina+1; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&codigo=<?php echo urlencode($filtro_codigo); ?>">Próxima
-            &raquo;</a>
-        <?php endif; ?>
-    </div>
+<div class="paginacao">
+    <?php if ($pagina>1): ?>
+    <a href="?id=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina-1; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&codigo=<?php echo urlencode($filtro_codigo); ?>">&laquo; Anterior</a>
     <?php endif; ?>
+    
+    <?php for ($i=1;$i<=$total_paginas;$i++): ?>
+        <?php if ($i==$pagina): ?>
+            <strong><?php echo $i; ?></strong>
+        <?php else: ?>
+            <a href="?id=<?php echo $id_planilha; ?>&pagina=<?php echo $i; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&codigo=<?php echo urlencode($filtro_codigo); ?>"><?php echo $i; ?></a>
+        <?php endif; ?>
+    <?php endfor; ?>
+    
+    <?php if ($pagina<$total_paginas): ?>
+    <a href="?id=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina+1; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&codigo=<?php echo urlencode($filtro_codigo); ?>">Próxima &raquo;</a>
+    <?php endif; ?>
+</div>
+<?php endif; ?>
+ 
 
     <?php else: ?><p style="text-align:center;margin:30px;color:#666">Nenhum produto encontrado.</p><?php endif; ?>
 
