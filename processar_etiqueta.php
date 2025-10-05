@@ -7,12 +7,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $imprimir = $_POST['imprimir'] ?? 0;
     
     // Preservar filtros
-    $filtros = [
-        'pagina' => $_POST['pagina'] ?? 1,
-        'nome' => $_POST['nome'] ?? '',
-        'dependencia' => $_POST['dependencia'] ?? '',
-        'codigo' => $_POST['codigo'] ?? ''
-    ];
+// Adicione o filtro de status nos arrays de filtros
+$filtros = [
+    'pagina' => $_POST['pagina'] ?? 1,
+    'nome' => $_POST['nome'] ?? '',
+    'dependencia' => $_POST['dependencia'] ?? '',
+    'codigo' => $_POST['codigo'] ?? '',
+    'status' => $_POST['status'] ?? '' // Adicionar esta linha
+];
     
     if (!$produto_id || !$id_planilha) {
         $query_string = http_build_query(array_merge(['id' => $id_planilha], $filtros));

@@ -9,6 +9,7 @@ $pagina = $_GET['pagina'] ?? 1;
 $filtro_nome = $_GET['nome'] ?? '';
 $filtro_dependencia = $_GET['dependencia'] ?? '';
 $filtro_codigo = $_GET['filtro_codigo'] ?? '';
+$filtro_status = $_GET['status'] ?? '';
 
 if (!$codigo || !$id_planilha) {
     $query_string = http_build_query([
@@ -17,6 +18,7 @@ if (!$codigo || !$id_planilha) {
         'nome' => $filtro_nome,
         'dependencia' => $filtro_dependencia,
         'codigo' => $filtro_codigo,
+        'status' => $filtro_status,
         'erro' => 'Produto não encontrado'
     ]);
     header('Location: visualizar_planilha.php?' . $query_string);

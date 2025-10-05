@@ -45,7 +45,9 @@ $sql = "SELECT p.*,
                COALESCE(pc.checado, 0) as checado,
                COALESCE(pc.dr, 0) as dr,
                COALESCE(pc.imprimir, 0) as imprimir,
-               pc.observacoes
+               pc.observacoes,
+               pc.nome as nome_editado,
+               pc.dependencia as dependencia_editada
         FROM produtos p 
         LEFT JOIN produtos_check pc ON p.id = pc.produto_id 
         WHERE p.id_planilha = :id_planilha";
@@ -199,10 +201,23 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
 
     th, td {
         padding: 8px;
-        text-align: center;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+    }
+
+    /* Centralizar títulos das colunas */
+    th {
+        text-align: center;
+    }
+
+    /* Alinhar código à esquerda e ações à direita */
+    td:first-child {
+        text-align: left;
+    }
+    
+    td:last-child {
+        text-align: right;
     }
 
     th:nth-child(1),
@@ -239,19 +254,11 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
     }
 
     .linha-observacao {
-        background: #ffe8a7ff !important; /* Laranja claro */
-    }
-
-    .linha-checado-observacao {
-        background: #e9a3faff !important; /* Roxo claro */
+        background: #ffe8a7ff !important; /* Amarelo */
     }
 
     .linha-imprimir {
-        background: #faa3eeff !important; /* Azul */
-    }
-
-    .linha-observacao-imprimir {
-        background: #a3d3faff !important; /* Cinza escuro */
+        background: #a3d3faff !important; /* Azul */
     }
 
     .linha-dr {
@@ -265,7 +272,7 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
     .acao-container {
         display: flex;
         align-items: center;
-        justify-content: center;
+        justify-content: flex-end;
         gap: 10px;
     }
 
@@ -311,6 +318,12 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
         background: #007bff;
         border-color: #0056b3;
         color: white;
+    }
+
+    /* Botão de observação com fundo amarelo quando tem observação */
+    .btn-obs-active {
+        background: #ffe8a7ff !important;
+        border-color: #ffc107 !important;
     }
 
     .status-icons {
@@ -428,16 +441,8 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
                 <span>📜 Com Observações</span>
             </div>
             <div class="legenda-item">
-                <div class="legenda-cor" style="background-color: #e9a3faff;"></div>
-                <span>✅📜 Checado + Observações (Roxo claro)</span>
-            </div>
-            <div class="legenda-item">
-                <div class="legenda-cor" style="background-color: #faa3eeff;"></div>
-                <span>🏷️ Para Imprimir</span>
-            </div>
-            <div class="legenda-item">
                 <div class="legenda-cor" style="background-color: #a3d3faff;"></div>
-                <span>📜🏷️ Observação + Para Imprimir (Cinza escuro)</span>
+                <span>🏷️ Para Imprimir</span>
             </div>
             <div class="legenda-item">
                 <div class="legenda-cor" style="background-color: #faa3a3ff;"></div>
@@ -456,17 +461,13 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
     </thead>
     <tbody>
         <?php foreach ($produtos as $p): 
-            // Determinar a classe com base nos status (prioridades)
+            // Determinar a classe com base nos status
             $classe = '';
             
             if ($p['dr'] == 1) {
                 $classe = 'linha-dr';
-            } elseif ($p['imprimir'] == 1 && !empty($p['observacoes'])) {
-                $classe = 'linha-observacao-imprimir';
-            } elseif ($p['imprimir'] == 1) {
+            } elseif ($p['imprimir'] == 1 && $p['checado'] == 1) {
                 $classe = 'linha-imprimir';
-            } elseif ($p['checado'] == 1 && !empty($p['observacoes'])) {
-                $classe = 'linha-checado-observacao';
             } elseif ($p['checado'] == 1) {
                 $classe = 'linha-checado';
             } elseif (!empty($p['observacoes'])) {
@@ -474,14 +475,18 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
             }
             
             // Determinar quais botões mostrar
-            $show_check = ($p['dr'] == 0 && $p['imprimir'] == 0);
-            $show_imprimir = ($p['checado'] == 1 && $p['dr'] == 0);
-            $show_dr = !($p['checado'] == 1 || $p['imprimir'] == 1);
+            $show_check = ($p['dr'] == 0 && $p['imprimir'] == 0 && empty($p['nome_editado']) && empty($p['dependencia_editada']));
+            $show_imprimir = ($p['checado'] == 1 && $p['dr'] == 0 && empty($p['nome_editado']) && empty($p['dependencia_editada']));
+            $show_dr = !($p['checado'] == 1 || $p['imprimir'] == 1 || !empty($p['nome_editado']) || !empty($p['dependencia_editada']));
             $show_obs = ($p['dr'] == 0);
+            $show_edit = ($p['checado'] == 0 && $p['dr'] == 0);
+            
+            // Verificar se tem edição
+            $tem_edicao = !empty($p['nome_editado']) || !empty($p['dependencia_editada']);
         ?>
         <tr class="<?php echo $classe; ?>">
             <td><?php echo htmlspecialchars($p['codigo']); ?></td>
-            <td style="text-align: center;">
+            <td>
                 <div class="acao-container">
                     <!-- Formulário do Checkbox -->
                     <?php if ($show_check): ?>
@@ -493,6 +498,7 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
                         <input type="hidden" name="nome" value="<?php echo htmlspecialchars($filtro_nome); ?>">
                         <input type="hidden" name="dependencia" value="<?php echo htmlspecialchars($filtro_dependencia); ?>">
                         <input type="hidden" name="codigo" value="<?php echo htmlspecialchars($filtro_codigo); ?>">
+                        <input type="hidden" name="status" value="<?php echo htmlspecialchars($filtro_status); ?>">
                         <button type="submit" class="btn-action btn-check <?php echo $p['checado'] == 1 ? 'active' : ''; ?>">
                             <?php echo $p['checado'] == 1 ? '✅' : '⬜'; ?>
                         </button>
@@ -509,6 +515,7 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
                         <input type="hidden" name="nome" value="<?php echo htmlspecialchars($filtro_nome); ?>">
                         <input type="hidden" name="dependencia" value="<?php echo htmlspecialchars($filtro_dependencia); ?>">
                         <input type="hidden" name="codigo" value="<?php echo htmlspecialchars($filtro_codigo); ?>">
+                        <input type="hidden" name="status" value="<?php echo htmlspecialchars($filtro_status); ?>">
                         <button type="submit" class="btn-action btn-dr <?php echo $p['dr'] == 1 ? 'active' : ''; ?>">
                             📦
                         </button>
@@ -525,6 +532,7 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
                         <input type="hidden" name="nome" value="<?php echo htmlspecialchars($filtro_nome); ?>">
                         <input type="hidden" name="dependencia" value="<?php echo htmlspecialchars($filtro_dependencia); ?>">
                         <input type="hidden" name="codigo" value="<?php echo htmlspecialchars($filtro_codigo); ?>">
+                        <input type="hidden" name="status" value="<?php echo htmlspecialchars($filtro_status); ?>">
                         <button type="submit" class="btn-action btn-imprimir <?php echo $p['imprimir'] == 1 ? 'active' : ''; ?>">
                             🏷️
                         </button>
@@ -533,14 +541,32 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
                     
                     <!-- Link para Editar Observações -->
                     <?php if ($show_obs): ?>
-                    <a href="processar_obs.php?codigo=<?php echo urlencode($p['codigo']); ?>&id_planilha=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&filtro_codigo=<?php echo urlencode($filtro_codigo); ?>"
-                       class="btn-action" title="Editar Observações">📜</a>
+                    <a href="processar_obs.php?codigo=<?php echo urlencode($p['codigo']); ?>&id_planilha=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&filtro_codigo=<?php echo urlencode($filtro_codigo); ?>&status=<?php echo urlencode($filtro_status); ?>"
+                       class="btn-action <?php echo !empty($p['observacoes']) ? 'btn-obs-active' : ''; ?>" title="Editar Observações">📜</a>
+                    <?php endif; ?>
+                    
+                    <!-- Link para Editar Produto -->
+                    <?php if ($show_edit): ?>
+                    <a href="editarproduto_planilha.php?codigo=<?php echo urlencode($p['codigo']); ?>&id_planilha=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&filtro_codigo=<?php echo urlencode($filtro_codigo); ?>&status=<?php echo urlencode($filtro_status); ?>"
+                       class="btn-action" title="Editar Produto">✍</a>
                     <?php endif; ?>
                 </div>
             </td>
         </tr>
         <tr class="linha-nome <?php echo $classe; ?>">
             <td colspan="2">
+                <?php if ($tem_edicao): ?>
+                    <div style="background: #fff3cd; padding: 5px; margin-bottom: 5px; border-radius: 3px;">
+                        <strong>✍ Edição pendente:</strong> 
+                        <?php if (!empty($p['nome_editado'])): ?>
+                            <strong>Novo nome:</strong> <?php echo htmlspecialchars($p['nome_editado']); ?>
+                        <?php endif; ?>
+                        <?php if (!empty($p['dependencia_editada'])): ?>
+                            <strong>Nova dep.:</strong> <?php echo htmlspecialchars($p['dependencia_editada']); ?>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
+                
                 <strong>Nome:</strong> <?php echo htmlspecialchars($p['nome']); ?><br>
                 <?php if (!empty($p['dependencia'])): ?>
                 <strong>Dep:</strong> <?php echo htmlspecialchars($p['dependencia']); ?><br>
@@ -561,7 +587,10 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
                     <?php if ($p['imprimir'] == 1): ?>
                         <span class="status-icon" title="Marcado para impressão">🏷️</span>
                     <?php endif; ?>
-                    <?php if ($p['checado'] == 0 && empty($p['observacoes']) && $p['dr'] == 0 && $p['imprimir'] == 0): ?>
+                    <?php if ($tem_edicao): ?>
+                        <span class="status-icon" title="Produto editado">✍</span>
+                    <?php endif; ?>
+                    <?php if ($p['checado'] == 0 && empty($p['observacoes']) && $p['dr'] == 0 && $p['imprimir'] == 0 && !$tem_edicao): ?>
                         <span class="status-icon" title="Pendente">⏳</span>
                     <?php endif; ?>
                 </div>
@@ -575,11 +604,26 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
 <?php endif; ?>
 
     <div class="paginacao">
+        <?php 
+        // Paginação limitada a 3 páginas
+        $inicio = max(1, $pagina - 1);
+        $fim = min($total_paginas, $pagina + 1);
+        
+        // Ajustar para sempre mostrar 3 páginas quando possível
+        if ($fim - $inicio < 2) {
+            if ($inicio == 1) {
+                $fim = min($total_paginas, $inicio + 2);
+            } else {
+                $inicio = max(1, $fim - 2);
+            }
+        }
+        ?>
+        
         <?php if ($pagina > 1): ?>
-            <a href="?id=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina - 1; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&codigo=<?php echo urlencode($filtro_codigo); ?>&status=<?php echo urlencode($filtro_status); ?>">Anterior</a>
+            <a href="?id=<?php echo $id_planilha; ?>&pagina=1&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&codigo=<?php echo urlencode($filtro_codigo); ?>&status=<?php echo urlencode($filtro_status); ?>">Início</a>
         <?php endif; ?>
 
-        <?php for ($i = 1; $i <= $total_paginas; $i++): ?>
+        <?php for ($i = $inicio; $i <= $fim; $i++): ?>
             <?php if ($i == $pagina): ?>
                 <strong><?php echo $i; ?></strong>
             <?php else: ?>
@@ -588,7 +632,7 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
         <?php endfor; ?>
 
         <?php if ($pagina < $total_paginas): ?>
-            <a href="?id=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina + 1; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&codigo=<?php echo urlencode($filtro_codigo); ?>&status=<?php echo urlencode($filtro_status); ?>">Próxima</a>
+            <a href="?id=<?php echo $id_planilha; ?>&pagina=<?php echo $total_paginas; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&codigo=<?php echo urlencode($filtro_codigo); ?>&status=<?php echo urlencode($filtro_status); ?>">Fim</a>
         <?php endif; ?>
     </div>
 
@@ -600,7 +644,8 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
                     'Ao marcar como DR:\n' +
                     '- O campo observação será limpo\n' +
                     '- O produto será desmarcado como checado\n' +
-                    '- A etiqueta será desmarcada\n\n' +
+                    '- A etiqueta será desmarcada\n' +
+                    '- As edições serão removidas\n\n' +
                     'Deseja continuar?'
                 );
                 
@@ -614,39 +659,12 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
         function confirmarImprimir(form, imprimirAtual) {
             // Se estiver marcando para imprimir
             if (imprimirAtual == 0) {
-                // Verificar se está checado (deveria estar, mas vamos confirmar)
                 if (!confirm('Deseja marcar este produto para impressão de etiqueta?')) {
                     return false;
                 }
             }
             return true;
         }
-
-        // Validação adicional para impressão
-        document.addEventListener('DOMContentLoaded', function() {
-            const formsImprimir = document.querySelectorAll('form[action="processar_etiqueta.php"]');
-            
-            formsImprimir.forEach(form => {
-                form.addEventListener('submit', function(e) {
-                    const imprimirValue = this.querySelector('input[name="imprimir"]').value;
-                    const isMarcando = imprimirValue == '1';
-                    
-                    if (isMarcando) {
-                        // Verificar se está checado
-                        const produtoId = this.querySelector('input[name="produto_id"]').value;
-                        // Esta validação seria melhor no servidor, mas podemos fazer uma verificação básica
-                        const linha = this.closest('tr');
-                        const temCheck = linha.querySelector('.btn-check.active') !== null;
-                        
-                        if (!temCheck) {
-                            alert('Só é possível marcar para impressão produtos que estão checados!');
-                            e.preventDefault();
-                            return false;
-                        }
-                    }
-                });
-            });
-        });
     </script>
 </body>
 </html>
