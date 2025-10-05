@@ -35,7 +35,7 @@ $filtro_dependencia = $_GET['dependencia'] ?? ''; // Filtro de dependência
 
 // Buscar TODOS os produtos (sem filtros de tipo)
 try {
-    $sql_produtos = "SELECT p.*, pc.checado, pc.dr, pc.imprimir, pc.observacoes, pc.novo_nome, pc.nova_dependencia 
+    $sql_produtos = "SELECT p.*, pc.checado, pc.dr, pc.imprimir, pc.observacoes, pc.nome, pc.dependencia 
                      FROM produtos p 
                      LEFT JOIN produtos_check pc ON p.id = pc.produto_id 
                      WHERE p.id_planilha = :id_planilha";
@@ -87,9 +87,9 @@ foreach ($todos_produtos as $produto) {
     $esta_no_dr = $produto['dr'] == 1;
     $esta_etiqueta = $produto['imprimir'] == 1;
     
-    // Verificar se tem alterações (novo_nome ou nova_dependencia preenchidos e diferentes do original)
+    // Verificar se tem alterações (nome ou dependencia preenchidos e diferentes do original)
     $tem_alteracoes = false;
-    if (!empty($produto['novo_nome']) && $produto['novo_nome'] != $produto['nome']) {
+    if (!empty($produto['nome']) && $produto['nome'] != $produto['nome']) {
         $tem_alteracoes = true;
     }
     if (!empty($produto['nova_dependencia']) && $produto['nova_dependencia'] != $produto['dependencia']) {
@@ -511,7 +511,7 @@ if ($mostrar_alteracoes) $total_mostrar += $total_alteracoes; // Novo filtro
                         <tr>
                             <td><strong><?php echo htmlspecialchars($produto['codigo']); ?></strong></td>
                             <td><?php echo htmlspecialchars($produto['nome']); ?></td>
-                            <td class="alteracao-cell"><?php echo htmlspecialchars($produto['novo_nome'] ?? ''); ?></td>
+                            <td class="alteracao-cell"><?php echo htmlspecialchars($produto['nome'] ?? ''); ?></td>
                             <td><?php echo htmlspecialchars($produto['dependencia']); ?></td>
                             <td class="alteracao-cell"><?php echo htmlspecialchars($produto['nova_dependencia'] ?? ''); ?></td>
                             <td class="observacao-cell"><?php echo htmlspecialchars($produto['observacoes'] ?? ''); ?></td>
