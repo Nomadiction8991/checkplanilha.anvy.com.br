@@ -61,8 +61,8 @@ $sql = "SELECT p.*,
                 WHERE pr.id_planilha = p.id AND (COALESCE(pc.checado, 0) = 0 
                 AND (pc.observacoes IS NULL OR pc.observacoes = '') 
                 AND COALESCE(pc.dr, 0) = 0 AND COALESCE(pc.imprimir, 0) = 0
-                AND (pc.nome_editado IS NULL OR pc.nome_editado = '')
-                AND (pc.dependencia_editada IS NULL OR pc.dependencia_editada = ''))) as pendentes
+                AND (pc.nome IS NULL OR pc.nome= '')
+                AND (pc.dependenciaIS NULL OR pc.dependencia= ''))) as pendentes
         FROM planilhas p 
         WHERE 1=1";
 $params = [];
