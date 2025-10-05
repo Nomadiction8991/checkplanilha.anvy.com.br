@@ -213,24 +213,65 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
         border-bottom: 2px solid #ccc;
     }
 
+    /* CORES DOS STATUS */
     .linha-checado {
-        background: #d4edda !important;
+        background: #d4edda !important; /* Verde suave */
     }
 
     .linha-checado-observacao {
-        background: #e6e6fa !important;
+        background: #e6e6fa !important; /* Roxo suave */
     }
 
     .linha-observacao {
-        background: #fff3cd !important;
+        background: #fff3cd !important; /* Amarelo suave */
     }
 
     .linha-dr {
-        background: #f8d7da !important;
+        background: #f8d7da !important; /* Vermelho suave */
     }
 
     .linha-imprimir {
-        background: #cce7ff !important;
+        background: #cce7ff !important; /* Azul suave */
+    }
+
+    .linha-dr-imprimir {
+        background: #e9d7f8 !important; /* Roxo azulado */
+    }
+
+    .linha-checado-dr {
+        background: #f8e6d7 !important; /* Laranja suave */
+    }
+
+    .linha-checado-imprimir {
+        background: #d7f8e6 !important; /* Verde água */
+    }
+
+    .linha-observacao-dr {
+        background: #f8f0d7 !important; /* Amarelo alaranjado */
+    }
+
+    .linha-observacao-imprimir {
+        background: #e6f8d7 !important; /* Verde amarelado */
+    }
+
+    .linha-checado-observacao-dr {
+        background: #f0d7f8 !important; /* Rosa suave */
+    }
+
+    .linha-checado-observacao-imprimir {
+        background: #d7e6f8 !important; /* Azul claro */
+    }
+
+    .linha-checado-dr-imprimir {
+        background: #f8f8d7 !important; /* Amarelo claro */
+    }
+
+    .linha-observacao-dr-imprimir {
+        background: #f8e6d7 !important; /* Pêssego */
+    }
+
+    .linha-checado-observacao-dr-imprimir {
+        background: #e6f8f8 !important; /* Azul muito claro */
     }
 
     td form {
@@ -371,6 +412,41 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
     .status-icon {
         font-size: 14px;
     }
+
+    /* Legenda de cores */
+    .legenda {
+        background: #f8f9fa;
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 5px;
+        border: 1px solid #dee2e6;
+        font-size: 12px;
+    }
+
+    .legenda h3 {
+        margin: 0 0 8px 0;
+        font-size: 14px;
+        color: #007bff;
+    }
+
+    .legenda-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .legenda-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .legenda-cor {
+        width: 15px;
+        height: 15px;
+        border-radius: 3px;
+        border: 1px solid #ccc;
+    }
     </style>
 </head>
 
@@ -400,8 +476,47 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
             </option>
             <?php endforeach; ?>
         </select>
-        <button type="submit">🔍</button>
+        <button type="submit">🔍 Aplicar Filtros</button>
     </form>
+
+    <!-- Legenda de cores -->
+    <div class="legenda">
+        <h3>🎨 Legenda de Cores:</h3>
+        <div class="legenda-container">
+            <div class="legenda-item">
+                <div class="legenda-cor" style="background-color: #d4edda;"></div>
+                <span>✅ Checado</span>
+            </div>
+            <div class="legenda-item">
+                <div class="legenda-cor" style="background-color: #fff3cd;"></div>
+                <span>📜 Com Observações</span>
+            </div>
+            <div class="legenda-item">
+                <div class="legenda-cor" style="background-color: #e6e6fa;"></div>
+                <span>✅📜 Checado + Observações</span>
+            </div>
+            <div class="legenda-item">
+                <div class="legenda-cor" style="background-color: #f8d7da;"></div>
+                <span>📦 No DR</span>
+            </div>
+            <div class="legenda-item">
+                <div class="legenda-cor" style="background-color: #cce7ff;"></div>
+                <span>🖨️ Para Imprimir</span>
+            </div>
+            <div class="legenda-item">
+                <div class="legenda-cor" style="background-color: #e9d7f8;"></div>
+                <span>📦🖨️ DR + Imprimir</span>
+            </div>
+            <div class="legenda-item">
+                <div class="legenda-cor" style="background-color: #f8e6d7;"></div>
+                <span>✅📦 Checado + DR</span>
+            </div>
+            <div class="legenda-item">
+                <div class="legenda-cor" style="background-color: #d7f8e6;"></div>
+                <span>✅🖨️ Checado + Imprimir</span>
+            </div>
+        </div>
+    </div>
 
     <div id="modalCamera" class="modal-camera">
         <div class="modal-content">
@@ -422,8 +537,31 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
     </thead>
     <tbody>
         <?php foreach ($produtos as $p): 
+            // Determinar a classe com base nos status
             $classe = '';
-            if ($p['dr'] == 1) {
+            
+            // Verificar combinações de status
+            if ($p['dr'] == 1 && $p['imprimir'] == 1 && $p['checado'] == 1 && !empty($p['observacoes'])) {
+                $classe = 'linha-checado-observacao-dr-imprimir';
+            } elseif ($p['dr'] == 1 && $p['imprimir'] == 1 && $p['checado'] == 1) {
+                $classe = 'linha-checado-dr-imprimir';
+            } elseif ($p['dr'] == 1 && $p['imprimir'] == 1 && !empty($p['observacoes'])) {
+                $classe = 'linha-observacao-dr-imprimir';
+            } elseif ($p['dr'] == 1 && $p['imprimir'] == 1) {
+                $classe = 'linha-dr-imprimir';
+            } elseif ($p['dr'] == 1 && $p['checado'] == 1 && !empty($p['observacoes'])) {
+                $classe = 'linha-checado-observacao-dr';
+            } elseif ($p['imprimir'] == 1 && $p['checado'] == 1 && !empty($p['observacoes'])) {
+                $classe = 'linha-checado-observacao-imprimir';
+            } elseif ($p['dr'] == 1 && $p['checado'] == 1) {
+                $classe = 'linha-checado-dr';
+            } elseif ($p['imprimir'] == 1 && $p['checado'] == 1) {
+                $classe = 'linha-checado-imprimir';
+            } elseif ($p['dr'] == 1 && !empty($p['observacoes'])) {
+                $classe = 'linha-observacao-dr';
+            } elseif ($p['imprimir'] == 1 && !empty($p['observacoes'])) {
+                $classe = 'linha-observacao-imprimir';
+            } elseif ($p['dr'] == 1) {
                 $classe = 'linha-dr';
             } elseif ($p['imprimir'] == 1) {
                 $classe = 'linha-imprimir';
@@ -486,7 +624,7 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
                     </form>
                     
                     <!-- Link para Editar Observações -->
-                    <a href="processar_obs.php?codigo=<?php echo urlencode($p['codigo']); ?>&id_planilha=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&codigo=<?php echo urlencode($filtro_codigo); ?>"
+                    <a href="processar_obs.php?codigo=<?php echo urlencode($p['codigo']); ?>&id_planilha=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&filtro_codigo=<?php echo urlencode($filtro_codigo); ?>"
                        class="btn-action" title="Editar Observações">📜</a>
                 </div>
             </td>
