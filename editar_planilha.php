@@ -53,7 +53,6 @@ try {
 // Processar o formulário quando enviado
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $descricao = trim($_POST['descricao'] ?? '');
-    $status = trim($_POST['status'] ?? '');
     $ativo = isset($_POST['ativo']) ? 1 : 0;
     $linhas_pular = (int)($_POST['linhas_pular'] ?? 25);
     
@@ -79,24 +78,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception('A descrição é obrigatória.');
         }
 
-        if (empty($status)) {
-            throw new Exception('O status é obrigatório.');
-        }
-
-        // Validar se o status é um dos valores permitidos
-        $status_permitidos = ['Pendente', 'Em Execução', 'Concluído'];
-        if (!in_array($status, $status_permitidos)) {
-            throw new Exception('Status inválido. Valores permitidos: Pendente, Em Execução, Concluído.');
-        }
-
-        // Iniciar transação para garantir consistência dos dados
+        // Iniciar transação
         $conexao->beginTransaction();
 
-        // Atualizar dados da planilha
-        $sql_update_planilha = "UPDATE planilhas SET descricao = :descricao, status = :status, ativo = :ativo WHERE id = :id";
+        // Atualizar dados da planilha (removido o campo status)
+        $sql_update_planilha = "UPDATE planilhas SET descricao = :descricao, ativo = :ativo WHERE id = :id";
         $stmt_update_planilha = $conexao->prepare($sql_update_planilha);
         $stmt_update_planilha->bindValue(':descricao', $descricao);
-        $stmt_update_planilha->bindValue(':status', $status);
         $stmt_update_planilha->bindValue(':ativo', $ativo);
         $stmt_update_planilha->bindValue(':id', $id_planilha);
         $stmt_update_planilha->execute();
@@ -302,31 +290,164 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editar Planilha</title>
+    <title>Editar Planilha - <?php echo htmlspecialchars($planilha['descricao']); ?></title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .message { padding: 10px; margin: 10px 0; border-radius: 4px; }
-        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input, select { padding: 8px; width: 100%; max-width: 400px; }
-        .mapeamento-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 15px 0; }
-        .mapeamento-item { display: flex; align-items: center; gap: 10px; }
-        .mapeamento-label { min-width: 150px; }
-        .mapeamento-input { width: 60px; text-align: center; }
-        button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        button:hover { background: #0056b3; }
-        small { color: #666; font-style: italic; }
-        .checkbox-group { display: flex; align-items: center; gap: 10px; }
-        .checkbox-group input { width: auto; }
+    body {
+        font-family: Arial, Helvetica, sans-serif;
+        margin: 0;
+        padding: 0;
+    }
+
+    header {
+        background: #007bff;
+        padding: 5px 10px;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 50px;
+    }
+
+    .header-title {
+        width: 50%;
+        font-size: 16px;
+        margin: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .header-actions {
+        width: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    .header-btn {
+        background: none;
+        border: none;
+        color: #fff;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 4px;
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.2s;
+        text-decoration: none;
+    }
+
+    .header-btn:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .message {
+        padding: 10px;
+        margin: 10px;
+        border-radius: 4px;
+        text-align: center;
+    }
+
+    .success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .form-container {
+        padding: 15px;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+
+    input, select {
+        padding: 8px;
+        width: 100%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+
+    .mapeamento-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin: 15px 0;
+    }
+
+    .mapeamento-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .mapeamento-label {
+        min-width: 150px;
+    }
+
+    .mapeamento-input {
+        width: 60px;
+        text-align: center;
+    }
+
+    button {
+        padding: 10px 20px;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-right: 10px;
+    }
+
+    button:hover {
+        background: #0056b3;
+    }
+
+    .btn-cancel {
+        background: #6c757d;
+    }
+
+    .btn-cancel:hover {
+        background: #545b62;
+    }
+
+    .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .checkbox-group input {
+        width: auto;
+    }
     </style>
 </head>
 <body>
-    <h1>Editar Planilha</h1>
-
-    <a href="index.php" style="display: inline-block; margin-bottom: 20px; padding: 8px 15px; background: #6c757d; color: white; text-decoration: none; border-radius: 4px;">
-        ← Voltar para Listagem
-    </a>
+    <header>
+        <a href="index.php" class="header-btn" title="Fechar">❌</a>
+        <h1 class="header-title">Editar Planilha - <?php echo htmlspecialchars($planilha['descricao']); ?></h1>
+        <div class="header-actions"></div>
+    </header>
 
     <?php if (!empty($mensagem)): ?>
         <div class="message <?php echo $tipo_mensagem; ?>">
@@ -334,134 +455,124 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     <?php endif; ?>
 
-    <form method="POST" enctype="multipart/form-data">
-        <!-- Campo Descrição -->
-        <div class="form-group">
-            <label for="descricao">Descrição da Planilha:</label>
-            <input type="text" id="descricao" name="descricao" 
-                   value="<?php echo htmlspecialchars($planilha['descricao'] ?? ''); ?>" 
-                   required placeholder="Digite um nome para identificar esta planilha">
-        </div>
-
-        <!-- Campo Status -->
-        <div class="form-group">
-            <label for="status">Status da Planilha:</label>
-            <select id="status" name="status" required>
-                <option value="">Selecione um status</option>
-                <option value="Pendente" <?php echo ($planilha['status'] ?? '') === 'Pendente' ? 'selected' : ''; ?>>Pendente</option>
-                <option value="Em Execução" <?php echo ($planilha['status'] ?? '') === 'Em Execução' ? 'selected' : ''; ?>>Em Execução</option>
-                <option value="Concluído" <?php echo ($planilha['status'] ?? '') === 'Concluído' ? 'selected' : ''; ?>>Concluído</option>
-            </select>
-        </div>
-
-        <!-- Campo Ativo -->
-        <div class="form-group checkbox-group">
-            <label for="ativo">Planilha Ativa:</label>
-            <input type="checkbox" id="ativo" name="ativo" value="1" 
-                   <?php echo ($planilha['ativo'] ?? 0) == 1 ? 'checked' : ''; ?>>
-            <small>Desmarque para inativar esta planilha</small>
-        </div>
-
-        <!-- Campo Arquivo (Opcional) -->
-        <div class="form-group">
-            <label for="arquivo">Novo Arquivo CSV (opcional):</label>
-            <input type="file" id="arquivo" name="arquivo" accept=".csv">
-            <small>Selecione um novo arquivo apenas se desejar atualizar os dados dos produtos</small>
-        </div>
-
-        <!-- Configurações de Mapeamento -->
-        <h3>Configurações de Importação</h3>
-
-        <!-- Linhas a pular -->
-        <div class="form-group">
-            <label for="linhas_pular">Linhas iniciais a pular:</label>
-            <input type="number" id="linhas_pular" name="linhas_pular" 
-                   value="<?php echo $config['pulo_linhas'] ?? 25; ?>" min="0" required>
-            <small>Número de linhas do cabeçalho que devem ser ignoradas</small>
-        </div>
-
-        <!-- Mapeamento de Colunas -->
-        <h3>Mapeamento de Colunas</h3>
-        <p>Defina a letra da coluna para cada campo:</p>
-
-        <div class="mapeamento-grid">
-            <div class="mapeamento-item">
-                <span class="mapeamento-label">Código:</span>
-                <input type="text" class="mapeamento-input" name="codigo" 
-                       value="<?php echo $mapeamento_array['codigo'] ?? 'A'; ?>" maxlength="2" required>
+    <div class="form-container">
+        <form method="POST" enctype="multipart/form-data">
+            <!-- Campo Descrição -->
+            <div class="form-group">
+                <label for="descricao">Descrição da Planilha:</label>
+                <input type="text" id="descricao" name="descricao" 
+                       value="<?php echo htmlspecialchars($planilha['descricao'] ?? ''); ?>" 
+                       required placeholder="Digite um nome para identificar esta planilha">
             </div>
 
-            <div class="mapeamento-item">
-                <span class="mapeamento-label">Nome:</span>
-                <input type="text" class="mapeamento-input" name="nome" 
-                       value="<?php echo $mapeamento_array['nome'] ?? 'D'; ?>" maxlength="2" required>
+            <!-- Campo Ativo -->
+            <div class="form-group checkbox-group">
+                <input type="checkbox" id="ativo" name="ativo" value="1" 
+                       <?php echo ($planilha['ativo'] ?? 0) == 1 ? 'checked' : ''; ?>>
+                <label for="ativo">Planilha Ativa</label>
             </div>
 
-            <div class="mapeamento-item">
-                <span class="mapeamento-label">Fornecedor:</span>
-                <input type="text" class="mapeamento-input" name="fornecedor" 
-                       value="<?php echo $mapeamento_array['fornecedor'] ?? 'G'; ?>" maxlength="2" required>
+            <!-- Campo Arquivo (Opcional) -->
+            <div class="form-group">
+                <label for="arquivo">Novo Arquivo CSV (opcional):</label>
+                <input type="file" id="arquivo" name="arquivo" accept=".csv">
+                <small>Selecione um novo arquivo apenas se desejar atualizar os dados dos produtos</small>
             </div>
 
-            <div class="mapeamento-item">
-                <span class="mapeamento-label">Localidade:</span>
-                <input type="text" class="mapeamento-input" name="localidade" 
-                       value="<?php echo $mapeamento_array['localidade'] ?? 'K'; ?>" maxlength="2" required>
+            <!-- Configurações de Mapeamento -->
+            <h3>Configurações de Importação</h3>
+
+            <!-- Linhas a pular -->
+            <div class="form-group">
+                <label for="linhas_pular">Linhas iniciais a pular:</label>
+                <input type="number" id="linhas_pular" name="linhas_pular" 
+                       value="<?php echo $config['pulo_linhas'] ?? 25; ?>" min="0" required>
+                <small>Número de linhas do cabeçalho que devem ser ignoradas</small>
             </div>
 
-            <div class="mapeamento-item">
-                <span class="mapeamento-label">Conta:</span>
-                <input type="text" class="mapeamento-input" name="conta" 
-                       value="<?php echo $mapeamento_array['conta'] ?? 'L'; ?>" maxlength="2" required>
+            <!-- Mapeamento de Colunas -->
+            <h3>Mapeamento de Colunas</h3>
+            <p>Defina a letra da coluna para cada campo:</p>
+
+            <div class="mapeamento-grid">
+                <div class="mapeamento-item">
+                    <span class="mapeamento-label">Código:</span>
+                    <input type="text" class="mapeamento-input" name="codigo" 
+                           value="<?php echo $mapeamento_array['codigo'] ?? 'A'; ?>" maxlength="2" required>
+                </div>
+
+                <div class="mapeamento-item">
+                    <span class="mapeamento-label">Nome:</span>
+                    <input type="text" class="mapeamento-input" name="nome" 
+                           value="<?php echo $mapeamento_array['nome'] ?? 'D'; ?>" maxlength="2" required>
+                </div>
+
+                <div class="mapeamento-item">
+                    <span class="mapeamento-label">Fornecedor:</span>
+                    <input type="text" class="mapeamento-input" name="fornecedor" 
+                           value="<?php echo $mapeamento_array['fornecedor'] ?? 'G'; ?>" maxlength="2" required>
+                </div>
+
+                <div class="mapeamento-item">
+                    <span class="mapeamento-label">Localidade:</span>
+                    <input type="text" class="mapeamento-input" name="localidade" 
+                           value="<?php echo $mapeamento_array['localidade'] ?? 'K'; ?>" maxlength="2" required>
+                </div>
+
+                <div class="mapeamento-item">
+                    <span class="mapeamento-label">Conta:</span>
+                    <input type="text" class="mapeamento-input" name="conta" 
+                           value="<?php echo $mapeamento_array['conta'] ?? 'L'; ?>" maxlength="2" required>
+                </div>
+
+                <div class="mapeamento-item">
+                    <span class="mapeamento-label">Número Documento:</span>
+                    <input type="text" class="mapeamento-input" name="numero_documento" 
+                           value="<?php echo $mapeamento_array['numero_documento'] ?? 'N'; ?>" maxlength="2" required>
+                </div>
+
+                <div class="mapeamento-item">
+                    <span class="mapeamento-label">Dependência:</span>
+                    <input type="text" class="mapeamento-input" name="dependencia" 
+                           value="<?php echo $mapeamento_array['dependencia'] ?? 'P'; ?>" maxlength="2" required>
+                </div>
+
+                <div class="mapeamento-item">
+                    <span class="mapeamento-label">Data Aquisição:</span>
+                    <input type="text" class="mapeamento-input" name="data_aquisicao" 
+                           value="<?php echo $mapeamento_array['data_aquisicao'] ?? 'T'; ?>" maxlength="2" required>
+                </div>
+
+                <div class="mapeamento-item">
+                    <span class="mapeamento-label">Valor Aquisição:</span>
+                    <input type="text" class="mapeamento-input" name="valor_aquisicao" 
+                           value="<?php echo $mapeamento_array['valor_aquisicao'] ?? 'V'; ?>" maxlength="2" required>
+                </div>
+
+                <div class="mapeamento-item">
+                    <span class="mapeamento-label">Valor Depreciação:</span>
+                    <input type="text" class="mapeamento-input" name="valor_depreciacao" 
+                           value="<?php echo $mapeamento_array['valor_depreciacao'] ?? 'W'; ?>" maxlength="2" required>
+                </div>
+
+                <div class="mapeamento-item">
+                    <span class="mapeamento-label">Valor Atual:</span>
+                    <input type="text" class="mapeamento-input" name="valor_atual" 
+                           value="<?php echo $mapeamento_array['valor_atual'] ?? 'AB'; ?>" maxlength="2" required>
+                </div>
+
+                <div class="mapeamento-item">
+                    <span class="mapeamento-label">Status (Coluna):</span>
+                    <input type="text" class="mapeamento-input" name="status_coluna" 
+                           value="<?php echo $mapeamento_array['status'] ?? 'AF'; ?>" maxlength="2" required>
+                </div>
             </div>
 
-            <div class="mapeamento-item">
-                <span class="mapeamento-label">Número Documento:</span>
-                <input type="text" class="mapeamento-input" name="numero_documento" 
-                       value="<?php echo $mapeamento_array['numero_documento'] ?? 'N'; ?>" maxlength="2" required>
-            </div>
-
-            <div class="mapeamento-item">
-                <span class="mapeamento-label">Dependência:</span>
-                <input type="text" class="mapeamento-input" name="dependencia" 
-                       value="<?php echo $mapeamento_array['dependencia'] ?? 'P'; ?>" maxlength="2" required>
-            </div>
-
-            <div class="mapeamento-item">
-                <span class="mapeamento-label">Data Aquisição:</span>
-                <input type="text" class="mapeamento-input" name="data_aquisicao" 
-                       value="<?php echo $mapeamento_array['data_aquisicao'] ?? 'T'; ?>" maxlength="2" required>
-            </div>
-
-            <div class="mapeamento-item">
-                <span class="mapeamento-label">Valor Aquisição:</span>
-                <input type="text" class="mapeamento-input" name="valor_aquisicao" 
-                       value="<?php echo $mapeamento_array['valor_aquisicao'] ?? 'V'; ?>" maxlength="2" required>
-            </div>
-
-            <div class="mapeamento-item">
-                <span class="mapeamento-label">Valor Depreciação:</span>
-                <input type="text" class="mapeamento-input" name="valor_depreciacao" 
-                       value="<?php echo $mapeamento_array['valor_depreciacao'] ?? 'W'; ?>" maxlength="2" required>
-            </div>
-
-            <div class="mapeamento-item">
-                <span class="mapeamento-label">Valor Atual:</span>
-                <input type="text" class="mapeamento-input" name="valor_atual" 
-                       value="<?php echo $mapeamento_array['valor_atual'] ?? 'AB'; ?>" maxlength="2" required>
-            </div>
-
-            <div class="mapeamento-item">
-                <span class="mapeamento-label">Status (Coluna):</span>
-                <input type="text" class="mapeamento-input" name="status_coluna" 
-                       value="<?php echo $mapeamento_array['status'] ?? 'AF'; ?>" maxlength="2" required>
-            </div>
-        </div>
-
-        <button type="submit">Atualizar Planilha</button>
-        <a href="index.php" style="padding: 10px 20px; background: #6c757d; color: white; text-decoration: none; border-radius: 4px; display: inline-block; margin-left: 10px;">
-            Cancelar
-        </a>
-    </form>
+            <button type="submit">Atualizar Planilha</button>
+            <a href="index.php" class="btn-cancel" style="padding: 10px 20px; background: #6c757d; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">
+                Cancelar
+            </a>
+        </form>
+    </div>
 </body>
 </html>
