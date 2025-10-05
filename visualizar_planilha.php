@@ -39,10 +39,11 @@ $filtro_nome = $_GET['nome'] ?? '';
 $filtro_dependencia = $_GET['dependencia'] ?? '';
 $filtro_codigo = $_GET['codigo'] ?? '';
 
-// Construir a query base - ADICIONADO campo dr
+// Construir a query base - ADICIONADO campo imprimir
 $sql = "SELECT p.*, 
                COALESCE(pc.checado, 0) as checado,
                COALESCE(pc.dr, 0) as dr,
+               COALESCE(pc.imprimir, 0) as imprimir,
                pc.observacoes
         FROM produtos p 
         LEFT JOIN produtos_check pc ON p.id = pc.produto_id 
@@ -111,22 +112,43 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
 
     header {
         background: #007bff;
-        padding: 10px;
+        padding: 5px 10px;
         color: #fff;
         display: flex;
         align-items: center;
         justify-content: space-between;
+        height: 50px;
     }
 
     header h1 {
-        font-size: 18px;
+        font-size: 16px;
         margin: 0;
+        text-align: center;
+        flex: 1;
     }
 
-    header a {
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .header-btn {
+        background: none;
+        border: none;
         color: #fff;
-        text-decoration: none;
-        font-weight: bold;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 4px;
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.2s;
+    }
+
+    .header-btn:hover {
+        background-color: rgba(255, 255, 255, 0.2);
     }
 
     form {
@@ -149,15 +171,15 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
         width: 100%;
         border-collapse: collapse;
         margin-top: 10px;
-        table-layout: fixed; /* Adiciona layout fixo para controlar larguras */
+        table-layout: fixed;
     }
 
     th, td {
         padding: 8px;
         text-align: left;
-        overflow: hidden; /* Impede que o conteúdo saia da célula */
-        text-overflow: ellipsis; /* Adiciona os 3 pontinhos */
-        white-space: nowrap; /* Impede quebra de linha */
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     /* Coluna Código - 60% */
@@ -174,8 +196,29 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
 
     /* Ajuste para a linha do nome que usa colspan - FONTE MENOR */
     .linha-nome td {
-        font-size: 12px; /* Fonte menor para o nome */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 12px;
         color: #666;
+    }
+
+    /* Nova linha de status */
+    .linha-status td {
+        font-size: 14px;
+        padding: 4px 8px;
+        background: #f8f9fa;
+        border-top: 1px solid #dee2e6;
+    }
+
+    .status-icons {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .status-icon {
+        font-size: 14px;
     }
 
     th {
@@ -202,7 +245,11 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
     }
 
     .linha-dr {
-        background: #f8d7da !important; /* Vermelho claro para DR */
+        background: #f8d7da !important;
+    }
+
+    .linha-imprimir {
+        background: #cce7ff !important;
     }
 
     td form {
@@ -232,7 +279,7 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 15px;
+        gap: 10px;
     }
 
     .paginacao {
@@ -310,23 +357,8 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
         pointer-events: none
     }
 
-    .btn-scanner {
-        background: #17a2b8;
-        color: #fff;
-        padding: 8px 15px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        text-decoration: none;
-        width: fit-content;
-        margin: 10px auto
-    }
-
-    /* Estilo para o botão DR */
-    .btn-dr {
+    /* Estilo para os botões de ação */
+    .btn-action {
         background: none;
         border: none;
         cursor: pointer;
@@ -336,8 +368,16 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
         transition: background-color 0.2s;
     }
 
-    .btn-dr:hover {
+    .btn-action:hover {
         background-color: #f8f9fa;
+    }
+
+    .btn-imprimir.active {
+        background-color: #cce7ff;
+    }
+
+    .btn-dr.active {
+        background-color: #f8d7da;
     }
     </style>
 </head>
@@ -345,14 +385,11 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
 <body>
 
     <header>
-        <a href="index.php">← Voltar</a>
+        <button class="header-btn" onclick="window.history.back()" title="Voltar">🔙</button>
         <h1><?php echo htmlspecialchars($planilha['descricao']); ?></h1>
-        <div style="display: flex; gap: 10px; align-items: center;">
-            <button onclick="abrirModalCamera()" class="btn-scanner"><i class="fas fa-camera"></i> Scannear Código</button>
-            <a href="imprimiralteracao_planilha.php?id=<?php echo $id_planilha; ?>" 
-               style="background: #28a745; color: #fff; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; display: flex; align-items: center; gap: 8px;">
-                <i class="fas fa-print"></i> Imprimir Relatório
-            </a>
+        <div class="header-actions">
+            <button class="header-btn" onclick="abrirModalCamera()" title="Scannear Código">📷</button>
+            <a href="imprimiralteracao_planilha.php?id=<?php echo $id_planilha; ?>" class="header-btn" title="Imprimir Relatório">🖨️</a>
         </div>
     </header>
 
@@ -395,6 +432,8 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
             $classe = '';
             if ($p['dr'] == 1) {
                 $classe = 'linha-dr';
+            } elseif ($p['imprimir'] == 1) {
+                $classe = 'linha-imprimir';
             } elseif ($p['checado'] == 1 && !empty($p['observacoes'])) {
                 $classe = 'linha-checado-observacao';
             } elseif ($p['checado'] == 1) {
@@ -416,11 +455,11 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
                         <input type="hidden" name="nome" value="<?php echo htmlspecialchars($filtro_nome); ?>">
                         <input type="hidden" name="dependencia" value="<?php echo htmlspecialchars($filtro_dependencia); ?>">
                         <input type="hidden" name="codigo" value="<?php echo htmlspecialchars($filtro_codigo); ?>">
-                        <button type="submit" style="background: none; border: none; cursor: pointer; padding: 0; margin: 0;">
+                        <button type="submit" class="btn-action">
                             <?php if ($p['checado'] == 1): ?>
-                                <i class="fas fa-check-square" style="color: #28a745; font-size: 18px;"></i>
+                                <i class="fas fa-check-square" style="color: #28a745;"></i>
                             <?php else: ?>
-                                <i class="far fa-square" style="color: #6c757d; font-size: 18px;"></i>
+                                <i class="far fa-square" style="color: #6c757d;"></i>
                             <?php endif; ?>
                         </button>
                     </form>
@@ -434,13 +473,27 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
                         <input type="hidden" name="nome" value="<?php echo htmlspecialchars($filtro_nome); ?>">
                         <input type="hidden" name="dependencia" value="<?php echo htmlspecialchars($filtro_dependencia); ?>">
                         <input type="hidden" name="codigo" value="<?php echo htmlspecialchars($filtro_codigo); ?>">
-                        <button type="submit" class="btn-dr">
+                        <button type="submit" class="btn-action btn-dr <?php echo $p['dr'] == 1 ? 'active' : ''; ?>">
                             📦
                         </button>
                     </form>
                     
+                    <!-- Formulário da Impressão -->
+                    <form method="POST" action="processar_imprimir.php" style="margin: 0; display: inline;">
+                        <input type="hidden" name="produto_id" value="<?php echo $p['id']; ?>">
+                        <input type="hidden" name="id_planilha" value="<?php echo $id_planilha; ?>">
+                        <input type="hidden" name="imprimir" value="<?php echo $p['imprimir'] ? '0' : '1'; ?>">
+                        <input type="hidden" name="pagina" value="<?php echo $pagina; ?>">
+                        <input type="hidden" name="nome" value="<?php echo htmlspecialchars($filtro_nome); ?>">
+                        <input type="hidden" name="dependencia" value="<?php echo htmlspecialchars($filtro_dependencia); ?>">
+                        <input type="hidden" name="codigo" value="<?php echo htmlspecialchars($filtro_codigo); ?>">
+                        <button type="submit" class="btn-action btn-imprimir <?php echo $p['imprimir'] == 1 ? 'active' : ''; ?>">
+                            🖨️
+                        </button>
+                    </form>
+                    
                     <!-- Link de Edição -->
-                    <a href="editar_produto.php?codigo=<?php echo urlencode($p['codigo']); ?>&id_planilha=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&filtro_codigo=<?php echo urlencode($filtro_codigo); ?>">
+                    <a href="editar_produto.php?codigo=<?php echo urlencode($p['codigo']); ?>&id_planilha=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&filtro_codigo=<?php echo urlencode($filtro_codigo); ?>" class="btn-action">
                         ✍
                     </a>
                 </div>
@@ -448,15 +501,32 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
         </tr>
         <tr class="linha-nome <?php echo $classe; ?>">
             <td colspan="2">
-                <strong>Nome: </strong><?php echo htmlspecialchars($p['nome']); ?><br>
+                <strong>Nome:</strong> <?php echo htmlspecialchars($p['nome']); ?>
                 <?php if (!empty($p['dependencia'])): ?>
-                <strong>Depa:</strong> <?php echo htmlspecialchars($p['dependencia']); ?><br>
+                    | <strong>Dep:</strong> <?php echo htmlspecialchars($p['dependencia']); ?>
                 <?php endif; ?>
                 <?php if (!empty($p['observacoes'])): ?>
-                <strong>Obse:</strong> <?php echo htmlspecialchars($p['observacoes']); ?>
+                    | <strong>Obs:</strong> <?php echo htmlspecialchars($p['observacoes']); ?>
                 <?php endif; ?>
             </td>
-            <td></td>
+        </tr>
+        <tr class="linha-status <?php echo $classe; ?>">
+            <td colspan="2">
+                <div class="status-icons">
+                    <?php if ($p['checado'] == 1): ?>
+                        <span class="status-icon" title="Produto checado">✅</span>
+                    <?php endif; ?>
+                    <?php if (!empty($p['observacoes'])): ?>
+                        <span class="status-icon" title="Possui observações">📜</span>
+                    <?php endif; ?>
+                    <?php if ($p['dr'] == 1): ?>
+                        <span class="status-icon" title="No DR">📦</span>
+                    <?php endif; ?>
+                    <?php if ($p['imprimir'] == 1): ?>
+                        <span class="status-icon" title="Marcado para impressão">🖨️</span>
+                    <?php endif; ?>
+                </div>
+            </td>
         </tr>
         <?php endforeach; ?>
     </tbody>
