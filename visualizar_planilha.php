@@ -557,9 +557,9 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
             <td colspan="2">
                 <?php if ($tem_edicao): ?>
                     <div style="background: #fff3cd; padding: 5px; margin-bottom: 5px; border-radius: 3px;">
-                        <strong>✍ Edição pendente:</strong> 
+                        <strong>✍ Edição pendente:</strong><br> 
                         <?php if (!empty($p['nome_editado'])): ?>
-                            <strong>Novo nome:</strong> <?php echo htmlspecialchars($p['nome_editado']); ?>
+                            <strong>Novo nome:</strong> <?php echo htmlspecialchars($p['nome_editado']); ?><br>
                         <?php endif; ?>
                         <?php if (!empty($p['dependencia_editada'])): ?>
                             <strong>Nova dep.:</strong> <?php echo htmlspecialchars($p['dependencia_editada']); ?>
