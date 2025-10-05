@@ -4,14 +4,13 @@ require_once 'conexao.php';
 $codigo = $_GET['codigo'] ?? null;
 $id_planilha = $_GET['id_planilha'] ?? null;
 
-// Receber filtros - CORREÇÃO: usar 'filtro_codigo' em vez de 'codigo' para o filtro
+// Receber filtros
 $pagina = $_GET['pagina'] ?? 1;
 $filtro_nome = $_GET['nome'] ?? '';
 $filtro_dependencia = $_GET['dependencia'] ?? '';
-$filtro_codigo = $_GET['filtro_codigo'] ?? ''; // CORREÇÃO: usar filtro_codigo
+$filtro_codigo = $_GET['filtro_codigo'] ?? '';
 
 if (!$codigo || !$id_planilha) {
-    // Redirecionar mantendo os filtros
     $query_string = http_build_query([
         'id' => $id_planilha,
         'pagina' => $pagina,
@@ -65,13 +64,12 @@ try {
 // Processar o formulário quando enviado
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $observacoes = trim($_POST['observacoes'] ?? '');
-    $checado = isset($_POST['checado']) ? 1 : 0;
     
-    // Receber filtros do POST também - CORREÇÃO: usar 'filtro_codigo'
+    // Receber filtros do POST também
     $pagina = $_POST['pagina'] ?? 1;
     $filtro_nome = $_POST['nome'] ?? '';
     $filtro_dependencia = $_POST['dependencia'] ?? '';
-    $filtro_codigo = $_POST['filtro_codigo'] ?? ''; // CORREÇÃO: usar filtro_codigo
+    $filtro_codigo = $_POST['filtro_codigo'] ?? '';
     
     try {
         // Verificar se já existe registro na tabela produtos_check
@@ -83,33 +81,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($existe_registro) {
             // Atualizar registro existente
-            $sql_update = "UPDATE produtos_check SET checado = :checado, observacoes = :observacoes WHERE produto_id = :produto_id";
+            $sql_update = "UPDATE produtos_check SET observacoes = :observacoes WHERE produto_id = :produto_id";
             $stmt_update = $conexao->prepare($sql_update);
-            $stmt_update->bindValue(':checado', $checado);
             $stmt_update->bindValue(':observacoes', $observacoes);
             $stmt_update->bindValue(':produto_id', $produto['id']);
             $stmt_update->execute();
         } else {
             // Inserir novo registro
-            $sql_insert = "INSERT INTO produtos_check (produto_id, checado, observacoes) VALUES (:produto_id, :checado, :observacoes)";
+            $sql_insert = "INSERT INTO produtos_check (produto_id, observacoes) VALUES (:produto_id, :observacoes)";
             $stmt_insert = $conexao->prepare($sql_insert);
             $stmt_insert->bindValue(':produto_id', $produto['id']);
-            $stmt_insert->bindValue(':checado', $checado);
             $stmt_insert->bindValue(':observacoes', $observacoes);
             $stmt_insert->execute();
         }
         
         // Atualizar dados locais
-        $check['checado'] = $checado;
         $check['observacoes'] = $observacoes;
         
-        $mensagem = "Alterações salvas com sucesso!";
+        $mensagem = "Observações salvas com sucesso!";
         $tipo_mensagem = 'success';
         
     } catch (Exception $e) {
-        $mensagem = "Erro ao salvar alterações: " . $e->getMessage();
+        $mensagem = "Erro ao salvar observações: " . $e->getMessage();
         $tipo_mensagem = 'error';
-        error_log("ERRO SALVAR PRODUTO: " . $e->getMessage());
+        error_log("ERRO SALVAR OBSERVAÇÕES: " . $e->getMessage());
     }
 }
 
@@ -150,16 +145,20 @@ function getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, 
             height: 50px;
         }
 
-        header h1 {
+        .header-title {
+            width: 50%;
             font-size: 16px;
             margin: 0;
-            text-align: center;
-            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .header-actions {
+            width: 50%;
             display: flex;
             align-items: center;
+            justify-content: flex-end;
             gap: 10px;
         }
 
@@ -234,40 +233,6 @@ function getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, 
             font-size: 16px;
         }
 
-        .status-badges {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-top: 10px;
-        }
-
-        .status-badge {
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .status-checked {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .status-observation {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .status-dr {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .status-print {
-            background: #cce7ff;
-            color: #004085;
-        }
-
         .form-group {
             margin-bottom: 20px;
         }
@@ -289,17 +254,6 @@ function getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, 
             font-size: 14px;
         }
 
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .checkbox-group input {
-            width: auto;
-            transform: scale(1.2);
-        }
-
         .btn {
             padding: 10px 20px;
             text-decoration: none;
@@ -314,17 +268,6 @@ function getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, 
         .btn-primary {
             background: #007bff;
             color: white;
-        }
-
-        .btn-secondary {
-            background: #6c757d;
-            color: white;
-        }
-
-        .btn-container {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
         }
 
         .filter-info {
@@ -342,11 +285,9 @@ function getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, 
 </head>
 <body>
     <header>
-        <button class="header-btn" onclick="window.history.back()" title="Voltar">🔙</button>
-        <h1>Editar Observações - <?php echo htmlspecialchars($produto['codigo'] ?? ''); ?></h1>
-        <div class="header-actions">
-            <a href="<?php echo getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, $filtro_codigo); ?>" class="header-btn" title="Fechar">❌</a>
-        </div>
+        <a href="<?php echo getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, $filtro_codigo); ?>" class="header-btn" title="Fechar">❌</a>
+        <h1 class="header-title">Editar Observações - <?php echo htmlspecialchars($produto['codigo'] ?? ''); ?></h1>
+        <div class="header-actions"></div>
     </header>
 
     <div class="container">
@@ -383,33 +324,6 @@ function getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, 
                 <div class="field-label">Dependência:</div>
                 <div class="field-value"><?php echo htmlspecialchars($produto['dependencia'] ?? ''); ?></div>
             </div>
-
-            <div class="product-field">
-                <div class="field-label">Status Original:</div>
-                <div class="field-value"><?php echo htmlspecialchars($produto['status'] ?? ''); ?></div>
-            </div>
-
-            <!-- Status do Produto -->
-            <div class="product-field">
-                <div class="field-label">Status Atual:</div>
-                <div class="status-badges">
-                    <?php if ($check['checado'] == 1): ?>
-                        <span class="status-badge status-checked">✅ Checado</span>
-                    <?php endif; ?>
-                    <?php if (!empty($check['observacoes'])): ?>
-                        <span class="status-badge status-observation">📜 Com Observações</span>
-                    <?php endif; ?>
-                    <?php if ($check['dr'] == 1): ?>
-                        <span class="status-badge status-dr">📦 No DR</span>
-                    <?php endif; ?>
-                    <?php if ($check['imprimir'] == 1): ?>
-                        <span class="status-badge status-print">🖨️ Para Imprimir</span>
-                    <?php endif; ?>
-                    <?php if ($check['checado'] == 0 && empty($check['observacoes']) && $check['dr'] == 0 && $check['imprimir'] == 0): ?>
-                        <span class="status-badge" style="background: #e9ecef; color: #6c757d;">⏳ Pendente</span>
-                    <?php endif; ?>
-                </div>
-            </div>
         </div>
 
         <!-- Formulário de Edição -->
@@ -427,18 +341,8 @@ function getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, 
                           placeholder="Digite observações sobre este produto..."><?php echo htmlspecialchars($check['observacoes'] ?? ''); ?></textarea>
             </div>
 
-            <!-- Checkbox Marcar como Checado -->
-            <div class="form-group checkbox-group">
-                <input type="checkbox" id="checado" name="checado" value="1" 
-                       <?php echo ($check['checado'] ?? 0) == 1 ? 'checked' : ''; ?>>
-                <label for="checado" class="form-label">Marcar como checado</label>
-            </div>
-
-            <!-- Botões -->
-            <div class="btn-container">
-                <button type="submit" class="btn btn-primary">Salvar Alterações</button>
-                <a href="<?php echo getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, $filtro_codigo); ?>" class="btn btn-secondary">Cancelar</a>
-            </div>
+            <!-- Botão Salvar -->
+            <button type="submit" class="btn btn-primary">Salvar Observações</button>
         </form>
     </div>
 </body>

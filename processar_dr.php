@@ -21,19 +21,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     try {
-        // Verificar se já existe registro
-        $sql_check = "SELECT * FROM produtos_check WHERE produto_id = :produto_id";
-        $stmt_check = $conexao->prepare($sql_check);
-        $stmt_check->bindValue(':produto_id', $produto_id);
-        $stmt_check->execute();
-        $existe = $stmt_check->fetch();
-        
-        if ($existe) {
-            // Atualizar
-            $sql = "UPDATE produtos_check SET dr = :dr WHERE produto_id = :produto_id";
+        // Se estiver marcando DR (dr = 1), limpar observações e desmarcar imprimir
+        if ($dr == 1) {
+            // Verificar se já existe registro
+            $sql_check = "SELECT * FROM produtos_check WHERE produto_id = :produto_id";
+            $stmt_check = $conexao->prepare($sql_check);
+            $stmt_check->bindValue(':produto_id', $produto_id);
+            $stmt_check->execute();
+            $existe = $stmt_check->fetch();
+            
+            if ($existe) {
+                // Atualizar - limpar observações e desmarcar imprimir
+                $sql = "UPDATE produtos_check SET dr = :dr, observacoes = '', imprimir = 0 WHERE produto_id = :produto_id";
+            } else {
+                // Inserir com valores padrão
+                $sql = "INSERT INTO produtos_check (produto_id, dr, observacoes, imprimir) VALUES (:produto_id, :dr, '', 0)";
+            }
         } else {
-            // Inserir
-            $sql = "INSERT INTO produtos_check (produto_id, dr) VALUES (:produto_id, :dr)";
+            // Se estiver desmarcando DR, manter outros valores
+            $sql_check = "SELECT * FROM produtos_check WHERE produto_id = :produto_id";
+            $stmt_check = $conexao->prepare($sql_check);
+            $stmt_check->bindValue(':produto_id', $produto_id);
+            $stmt_check->execute();
+            $existe = $stmt_check->fetch();
+            
+            if ($existe) {
+                $sql = "UPDATE produtos_check SET dr = :dr WHERE produto_id = :produto_id";
+            } else {
+                $sql = "INSERT INTO produtos_check (produto_id, dr) VALUES (:produto_id, :dr)";
+            }
         }
         
         $stmt = $conexao->prepare($sql);

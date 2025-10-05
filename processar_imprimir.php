@@ -21,6 +21,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     try {
+        // Validar se pode marcar para impressão (deve estar checado e não estar no DR)
+        if ($imprimir == 1) {
+            $sql_verifica = "SELECT p.*, COALESCE(pc.checado, 0) as checado, COALESCE(pc.dr, 0) as dr 
+                            FROM produtos p 
+                            LEFT JOIN produtos_check pc ON p.id = pc.produto_id 
+                            WHERE p.id = :produto_id";
+            $stmt_verifica = $conexao->prepare($sql_verifica);
+            $stmt_verifica->bindValue(':produto_id', $produto_id);
+            $stmt_verifica->execute();
+            $produto_info = $stmt_verifica->fetch();
+            
+            if (!$produto_info || $produto_info['checado'] == 0 || $produto_info['dr'] == 1) {
+                $query_string = http_build_query(array_merge(
+                    ['id' => $id_planilha], 
+                    $filtros,
+                    ['erro' => 'Só é possível marcar para impressão produtos que estão checados e não estão no DR.']
+                ));
+                header('Location: visualizar_planilha.php?' . $query_string);
+                exit;
+            }
+        }
+        
         // Verificar se já existe registro
         $sql_check = "SELECT * FROM produtos_check WHERE produto_id = :produto_id";
         $stmt_check = $conexao->prepare($sql_check);

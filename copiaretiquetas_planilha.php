@@ -47,7 +47,7 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Imprimir Etiquetas - <?php echo htmlspecialchars($planilha['descricao']); ?></title>
+    <title>Copiar Etiquetas - <?php echo htmlspecialchars($planilha['descricao']); ?></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
@@ -66,16 +66,20 @@ try {
             height: 50px;
         }
 
-        header h1 {
+        .header-title {
+            width: 50%;
             font-size: 16px;
             margin: 0;
-            text-align: center;
-            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .header-actions {
+            width: 50%;
             display: flex;
             align-items: center;
+            justify-content: flex-end;
             gap: 10px;
         }
 
@@ -149,10 +153,10 @@ try {
             background: #007bff;
             color: white;
             border: none;
-            padding: 8px 12px;
+            padding: 8px;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 18px;
             transition: background-color 0.2s;
         }
 
@@ -191,45 +195,6 @@ try {
             color: #6c757d;
         }
 
-        .btn-container {
-            display: flex;
-            gap: 10px;
-            margin-top: 30px;
-            justify-content: center;
-        }
-
-        .btn {
-            padding: 12px 24px;
-            text-decoration: none;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.2s;
-        }
-
-        .btn-primary {
-            background: #007bff;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #0056b3;
-        }
-
-        .btn-secondary {
-            background: #6c757d;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #545b62;
-        }
-
         .message {
             padding: 15px;
             margin: 20px 0;
@@ -258,11 +223,9 @@ try {
 </head>
 <body>
     <header>
-        <button class="header-btn" onclick="window.history.back()" title="Voltar">🔙</button>
-        <h1>Imprimir Etiquetas - <?php echo htmlspecialchars($planilha['descricao']); ?></h1>
-        <div class="header-actions">
-            <a href="visualizar_planilha.php?id=<?php echo $id_planilha; ?>" class="header-btn" title="Fechar">❌</a>
-        </div>
+        <a href="visualizar_planilha.php?id=<?php echo $id_planilha; ?>" class="header-btn" title="Fechar">❌</a>
+        <h1 class="header-title">Copiar Etiquetas - <?php echo htmlspecialchars($planilha['descricao']); ?></h1>
+        <div class="header-actions"></div>
     </header>
 
     <div class="container">
@@ -273,8 +236,8 @@ try {
         <?php endif; ?>
 
         <div class="info-card">
-            <h2>📋 Códigos para Impressão de Etiquetas</h2>
-            <p>Esta lista contém todos os produtos marcados com 🖨️ "Para Imprimir" na planilha.</p>
+            <h2>🏷️ Códigos para Impressão de Etiquetas</h2>
+            <p>Esta lista contém todos os produtos marcados com 🏷️ "Para Imprimir" na planilha.</p>
             
             <div class="stats">
                 <div class="stat-item">
@@ -296,7 +259,7 @@ try {
                         onclick="this.select()"
                     ><?php echo htmlspecialchars($codigos); ?></textarea>
                     <button class="copy-btn" onclick="copiarCodigos()" title="Copiar para área de transferência">
-                        📋 Copiar
+                        📋
                     </button>
                 </div>
                 
@@ -306,19 +269,8 @@ try {
             <?php else: ?>
                 <div class="message warning">
                     <strong>Nenhum produto marcado para impressão!</strong><br>
-                    Volte para a planilha e marque alguns produtos com o ícone 🖨️ para vê-los aqui.
+                    Volte para a planilha e marque alguns produtos com o ícone 🏷️ para vê-los aqui.
                 </div>
-            <?php endif; ?>
-        </div>
-
-        <div class="btn-container">
-            <a href="visualizar_planilha.php?id=<?php echo $id_planilha; ?>" class="btn btn-secondary">
-                🔙 Voltar para Planilha
-            </a>
-            <?php if (!empty($produtos)): ?>
-                <button class="btn btn-primary" onclick="imprimirLista()">
-                    🖨️ Imprimir Lista
-                </button>
             <?php endif; ?>
         </div>
     </div>
@@ -333,29 +285,25 @@ try {
             
             try {
                 navigator.clipboard.writeText(codigosField.value).then(() => {
-                    copyBtn.textContent = '✅ Copiado!';
+                    copyBtn.textContent = '✅';
                     copyBtn.classList.add('copied');
                     
                     setTimeout(() => {
-                        copyBtn.textContent = '📋 Copiar';
+                        copyBtn.textContent = '📋';
                         copyBtn.classList.remove('copied');
                     }, 2000);
                 });
             } catch (err) {
                 // Fallback para navegadores mais antigos
                 document.execCommand('copy');
-                copyBtn.textContent = '✅ Copiado!';
+                copyBtn.textContent = '✅';
                 copyBtn.classList.add('copied');
                 
                 setTimeout(() => {
-                    copyBtn.textContent = '📋 Copiar';
+                    copyBtn.textContent = '📋';
                     copyBtn.classList.remove('copied');
                 }, 2000);
             }
-        }
-
-        function imprimirLista() {
-            window.print();
         }
 
         // Selecionar automaticamente ao focar no campo
