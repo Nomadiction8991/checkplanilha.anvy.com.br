@@ -30,11 +30,12 @@ $mostrar_observacao = isset($_GET['mostrar_observacao']) ? true : false;
 $mostrar_checados_observacao = isset($_GET['mostrar_checados_observacao']) ? true : false;
 $mostrar_dr = isset($_GET['mostrar_dr']) ? true : false;
 $mostrar_etiqueta = isset($_GET['mostrar_etiqueta']) ? true : false;
+$mostrar_alteracoes = isset($_GET['mostrar_alteracoes']) ? true : false; // Novo filtro
 $filtro_dependencia = $_GET['dependencia'] ?? ''; // Filtro de dependência
 
 // Buscar TODOS os produtos (sem filtros de tipo)
 try {
-    $sql_produtos = "SELECT p.*, pc.checado, pc.dr, pc.imprimir, pc.observacoes 
+    $sql_produtos = "SELECT p.*, pc.checado, pc.dr, pc.imprimir, pc.observacoes, pc.novo_nome, pc.nova_dependencia 
                      FROM produtos p 
                      LEFT JOIN produtos_check pc ON p.id = pc.produto_id 
                      WHERE p.id_planilha = :id_planilha";
@@ -78,6 +79,7 @@ $produtos_observacao = [];
 $produtos_checados_observacao = [];
 $produtos_dr = [];
 $produtos_etiqueta = [];
+$produtos_alteracoes = []; // Novo array para alterações
 
 foreach ($todos_produtos as $produto) {
     $tem_observacao = !empty($produto['observacoes']);
@@ -85,7 +87,18 @@ foreach ($todos_produtos as $produto) {
     $esta_no_dr = $produto['dr'] == 1;
     $esta_etiqueta = $produto['imprimir'] == 1;
     
-    if ($esta_no_dr) {
+    // Verificar se tem alterações (novo_nome ou nova_dependencia preenchidos e diferentes do original)
+    $tem_alteracoes = false;
+    if (!empty($produto['novo_nome']) && $produto['novo_nome'] != $produto['nome']) {
+        $tem_alteracoes = true;
+    }
+    if (!empty($produto['nova_dependencia']) && $produto['nova_dependencia'] != $produto['dependencia']) {
+        $tem_alteracoes = true;
+    }
+    
+    if ($tem_alteracoes) {
+        $produtos_alteracoes[] = $produto;
+    } elseif ($esta_no_dr) {
         $produtos_dr[] = $produto;
     } elseif ($esta_etiqueta) {
         $produtos_etiqueta[] = $produto;
@@ -107,6 +120,7 @@ $total_observacao = count($produtos_observacao);
 $total_checados_observacao = count($produtos_checados_observacao);
 $total_dr = count($produtos_dr);
 $total_etiqueta = count($produtos_etiqueta);
+$total_alteracoes = count($produtos_alteracoes); // Novo total
 $total_geral = count($todos_produtos);
 
 // Calcular totais que serão mostrados baseado nos filtros
@@ -117,6 +131,7 @@ if ($mostrar_observacao) $total_mostrar += $total_observacao;
 if ($mostrar_checados_observacao) $total_mostrar += $total_checados_observacao;
 if ($mostrar_dr) $total_mostrar += $total_dr;
 if ($mostrar_etiqueta) $total_mostrar += $total_etiqueta;
+if ($mostrar_alteracoes) $total_mostrar += $total_alteracoes; // Novo filtro
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -292,6 +307,11 @@ if ($mostrar_etiqueta) $total_mostrar += $total_etiqueta;
             background-color: #cce7ff; /* Azul claro para etiqueta */
         }
         
+        .alteracao-cell {
+            background-color: #fff3cd; /* Amarelo claro para alterações */
+            font-weight: bold;
+        }
+        
         .secao-titulo {
             background-color: #6c757d;
             color: white;
@@ -412,6 +432,11 @@ if ($mostrar_etiqueta) $total_mostrar += $total_etiqueta;
                                <?php echo $mostrar_etiqueta ? 'checked' : ''; ?>>
                         <label>Imprimir produtos de etiqueta (<?php echo $total_etiqueta; ?>)</label>
                     </div>
+                    <div class="filtro-option">
+                        <input type="checkbox" name="mostrar_alteracoes" value="1" 
+                               <?php echo $mostrar_alteracoes ? 'checked' : ''; ?>>
+                        <label>Imprimir produtos com alterações (<?php echo $total_alteracoes; ?>)</label>
+                    </div>
                 </div>
             </div>
             
@@ -456,6 +481,7 @@ if ($mostrar_etiqueta) $total_mostrar += $total_etiqueta;
         <p><strong>Produtos do DR:</strong> <?php echo $total_dr; ?></p>
         <p><strong>Produtos com etiqueta:</strong> <?php echo $total_etiqueta; ?></p>
         <p><strong>Produtos pendentes:</strong> <?php echo $total_pendentes; ?></p>
+        <p><strong>Produtos com alterações:</strong> <?php echo $total_alteracoes; ?></p>
         <p style="font-weight: bold; border-top: 1px solid #ccc; padding-top: 8px; margin-top: 8px;">
             Total a ser impresso: <?php echo $total_mostrar; ?> produtos
         </p>
@@ -463,6 +489,38 @@ if ($mostrar_etiqueta) $total_mostrar += $total_etiqueta;
 
     <?php if ($total_geral > 0 && $total_mostrar > 0): ?>
         
+        <!-- SEÇÃO: Produtos com Alterações -->
+        <?php if ($mostrar_alteracoes && $total_alteracoes > 0): ?>
+            <div class="secao-titulo">
+                PRODUTOS COM ALTERAÇÕES (<?php echo $total_alteracoes; ?> itens)
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th width="15%">Código</th>
+                        <th width="25%">Nome Original</th>
+                        <th width="25%">Novo Nome</th>
+                        <th width="20%">Dependência Original</th>
+                        <th width="20%">Nova Dependência</th>
+                        <th width="20%">Observações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($produtos_alteracoes as $produto): ?>
+                        <tr>
+                            <td><strong><?php echo htmlspecialchars($produto['codigo']); ?></strong></td>
+                            <td><?php echo htmlspecialchars($produto['nome']); ?></td>
+                            <td class="alteracao-cell"><?php echo htmlspecialchars($produto['novo_nome'] ?? ''); ?></td>
+                            <td><?php echo htmlspecialchars($produto['dependencia']); ?></td>
+                            <td class="alteracao-cell"><?php echo htmlspecialchars($produto['nova_dependencia'] ?? ''); ?></td>
+                            <td class="observacao-cell"><?php echo htmlspecialchars($produto['observacoes'] ?? ''); ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
+
         <!-- SEÇÃO: Produtos Pendentes -->
         <?php if ($mostrar_pendentes && $total_pendentes > 0): ?>
             <div class="secao-titulo">
@@ -576,9 +634,10 @@ if ($mostrar_etiqueta) $total_mostrar += $total_etiqueta;
             <table>
                 <thead>
                     <tr>
-                        <th width="20%">Código</th>
-                        <th width="50%">Nome</th>
-                        <th width="30%">Dependência</th>
+                        <th width="15%">Código</th>
+                        <th width="35%">Nome</th>
+                        <th width="25%">Dependência</th>
+                        <th width="25%">Observações</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -587,6 +646,7 @@ if ($mostrar_etiqueta) $total_mostrar += $total_etiqueta;
                             <td><strong><?php echo htmlspecialchars($produto['codigo']); ?></strong></td>
                             <td class="dr-cell"><?php echo htmlspecialchars($produto['nome']); ?></td>
                             <td><?php echo htmlspecialchars($produto['dependencia']); ?></td>
+                            <td class="observacao-cell"><?php echo htmlspecialchars($produto['observacoes'] ?? ''); ?></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
