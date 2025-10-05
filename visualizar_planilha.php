@@ -145,6 +145,7 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
         align-items: center;
         justify-content: center;
         transition: background-color 0.2s;
+        text-decoration: none;
     }
 
     .header-btn:hover {
@@ -196,7 +197,6 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
 
     /* Ajuste para a linha do nome que usa colspan - FONTE MENOR */
     .linha-nome td {
-
         font-size: 12px;
         color: #666;
     }
@@ -387,6 +387,7 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
         <h1><?php echo htmlspecialchars($planilha['descricao']); ?></h1>
         <div class="header-actions">
             <button class="header-btn" onclick="abrirModalCamera()" title="Scannear Código">📷</button>
+            <a href="imprimiretiquetas_planilha.php?id=<?php echo $id_planilha; ?>" class="header-btn" title="Imprimir Etiquetas">🏷️</a>
             <a href="imprimiralteracao_planilha.php?id=<?php echo $id_planilha; ?>" class="header-btn" title="Imprimir Relatório">🖨️</a>
         </div>
     </header>
@@ -455,9 +456,9 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
                         <input type="hidden" name="codigo" value="<?php echo htmlspecialchars($filtro_codigo); ?>">
                         <button type="submit" class="btn-action">
                             <?php if ($p['checado'] == 1): ?>
-                                <i class="fas fa-check-square" style="color: #28a745;"></i>
+                                ✅
                             <?php else: ?>
-                                <i class="far fa-square" style="color: #6c757d;"></i>
+                                ⬜
                             <?php endif; ?>
                         </button>
                     </form>
@@ -490,154 +491,101 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
                         </button>
                     </form>
                     
-                    <!-- Link de Edição -->
-                    <a href="editar_produto.php?codigo=<?php echo urlencode($p['codigo']); ?>&id_planilha=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&filtro_codigo=<?php echo urlencode($filtro_codigo); ?>" class="btn-action">
-                        ✍
-                    </a>
+                    <!-- Link para Editar Observações -->
+                    <a href="processar_obs.php?codigo=<?php echo urlencode($p['codigo']); ?>&id_planilha=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&codigo=<?php echo urlencode($filtro_codigo); ?>"
+                       class="btn-action" title="Editar Observações">📜</a>
                 </div>
             </td>
         </tr>
-        <tr class="linha-nome <?php echo $classe; ?>">
+        <tr class="linha-nome">
+            <td colspan="2"><?php echo htmlspecialchars($p['nome']); ?></td>
+        </tr>
+        <tr class="linha-status">
             <td colspan="2">
-                <strong>Nome:</strong> <?php echo htmlspecialchars($p['nome']); ?><br>
-                <?php if (!empty($p['dependencia'])): ?>
-                <strong>Dep:</strong> <?php echo htmlspecialchars($p['dependencia']); ?><br>
-                <?php endif; ?>
-                <?php if (!empty($p['observacoes'])): ?>
-                <strong>Obs:</strong> <?php echo htmlspecialchars($p['observacoes']); ?><br>
-                <?php endif; ?>
+                <div class="status-icons">
                     <?php if ($p['checado'] == 1): ?>
-                        <span class="status-icon" title="Produto checado">✅</span>
+                        <span class="status-icon">✅ Checado</span>
                     <?php endif; ?>
                     <?php if (!empty($p['observacoes'])): ?>
-                        <span class="status-icon" title="Possui observações">📜</span>
+                        <span class="status-icon">📜 Com Observações</span>
                     <?php endif; ?>
                     <?php if ($p['dr'] == 1): ?>
-                        <span class="status-icon" title="No DR">📦</span>
+                        <span class="status-icon">📦 No DR</span>
                     <?php endif; ?>
                     <?php if ($p['imprimir'] == 1): ?>
-                        <span class="status-icon" title="Marcado para impressão">🖨️</span>
+                        <span class="status-icon">🖨️ Para Imprimir</span>
                     <?php endif; ?>
+                    <?php if ($p['checado'] == 0 && empty($p['observacoes']) && $p['dr'] == 0 && $p['imprimir'] == 0): ?>
+                        <span class="status-icon">⏳ Pendente</span>
+                    <?php endif; ?>
+                </div>
             </td>
         </tr>
         <?php endforeach; ?>
     </tbody>
 </table>
-
-    <?php if ($total_paginas>1): ?>
-<div class="paginacao">
-    <?php if ($pagina>1): ?>
-    <a href="?id=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina-1; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&codigo=<?php echo urlencode($filtro_codigo); ?>">&laquo; Anterior</a>
-    <?php endif; ?>
-    
-    <?php for ($i=1;$i<=$total_paginas;$i++): ?>
-        <?php if ($i==$pagina): ?>
-            <strong><?php echo $i; ?></strong>
-        <?php else: ?>
-            <a href="?id=<?php echo $id_planilha; ?>&pagina=<?php echo $i; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&codigo=<?php echo urlencode($filtro_codigo); ?>"><?php echo $i; ?></a>
-        <?php endif; ?>
-    <?php endfor; ?>
-    
-    <?php if ($pagina<$total_paginas): ?>
-    <a href="?id=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina+1; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&codigo=<?php echo urlencode($filtro_codigo); ?>">Próxima &raquo;</a>
-    <?php endif; ?>
-</div>
+<?php else: ?>
+    <p style="text-align: center; margin-top: 20px;">Nenhum produto encontrado.</p>
 <?php endif; ?>
- 
-    <?php else: ?><p style="text-align:center;margin:30px;color:#666">Nenhum produto encontrado.</p><?php endif; ?>
+
+    <div class="paginacao">
+        <?php if ($pagina > 1): ?>
+            <a href="?id=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina - 1; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&codigo=<?php echo urlencode($filtro_codigo); ?>">Anterior</a>
+        <?php endif; ?>
+
+        <?php for ($i = 1; $i <= $total_paginas; $i++): ?>
+            <?php if ($i == $pagina): ?>
+                <strong><?php echo $i; ?></strong>
+            <?php else: ?>
+                <a href="?id=<?php echo $id_planilha; ?>&pagina=<?php echo $i; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&codigo=<?php echo urlencode($filtro_codigo); ?>"><?php echo $i; ?></a>
+            <?php endif; ?>
+        <?php endfor; ?>
+
+        <?php if ($pagina < $total_paginas): ?>
+            <a href="?id=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina + 1; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&codigo=<?php echo urlencode($filtro_codigo); ?>">Próxima</a>
+        <?php endif; ?>
+    </div>
 
     <script>
-    let mediaStream = null,
-        scanning = false,
-        barcodeDetector = ('BarcodeDetector' in window) ? new BarcodeDetector({
-            formats: ['code_128', 'ean_13', 'ean_8', 'code_39', 'upc_a', 'upc_e']
-        }) : null,
-        videoEl = null;
+        let codeReader = null;
 
-    async function abrirModalCamera() {
-        document.getElementById('modalCamera').style.display = 'block';
-        await iniciarCamera();
-    }
-
-    function fecharModalCamera() {
-        document.getElementById('modalCamera').style.display = 'none';
-        pararCamera();
-    }
-
-    function pararCamera() {
-        if (mediaStream) {
-            mediaStream.getTracks().forEach(t => t.stop());
-            mediaStream = null;
+        function abrirModalCamera() {
+            document.getElementById('modalCamera').style.display = 'block';
+            iniciarScanner();
         }
-        scanning = false;
-    }
 
-    async function iniciarCamera() {
-        if (scanning) return;
-        scanning = true;
-        videoEl = document.getElementById('videoPreview');
-        if (!videoEl) {
-            videoEl = document.createElement('video');
-            videoEl.id = 'videoPreview';
-            videoEl.autoplay = true;
-            videoEl.playsInline = true;
-            videoEl.muted = true;
-            videoEl.style.width = '100%';
-            videoEl.style.height = '100%';
-            videoEl.style.objectFit = 'cover';
-            document.getElementById('barcode-scanner').prepend(videoEl);
+        function fecharModalCamera() {
+            document.getElementById('modalCamera').style.display = 'none';
+            if (codeReader) {
+                codeReader.reset();
+            }
         }
-        try {
-            mediaStream = await navigator.mediaDevices.getUserMedia({
-                video: {
-                    facingMode: 'environment'
+
+        function iniciarScanner() {
+            const videoElem = document.getElementById('barcode-scanner');
+            codeReader = new ZXing.BrowserMultiFormatReader();
+
+            codeReader.decodeFromVideoDevice(null, 'barcode-scanner', (result, err) => {
+                if (result) {
+                    const codigo = result.text;
+                    codeReader.reset();
+                    fecharModalCamera();
+                    // Redirecionar para a página de processamento
+                    window.location.href = `processar_check.php?codigo=${encodeURIComponent(codigo)}&id_planilha=<?php echo $id_planilha; ?>`;
+                }
+                if (err && !(err instanceof ZXing.NotFoundException)) {
+                    console.error(err);
                 }
             });
-            videoEl.srcObject = mediaStream;
-            if (barcodeDetector) {
-                detectarNativo();
-            } else {
-                detectarZXing();
-            }
-        } catch (e) {
-            console.error("Erro ao iniciar câmera", e);
-            scanning = false;
         }
-    }
 
-    async function detectarNativo() {
-        const overlay = document.querySelector('.scanner-overlay');
-        const loop = async () => {
-            if (!scanning) return;
-            try {
-                const codes = await barcodeDetector.detect(videoEl);
-                if (codes.length > 0) {
-                    overlay.style.borderColor = "#0f0";
-                    const code = codes[0].rawValue.trim();
-                    pararCamera();
-                    window.location.href = 'editar_produto.php?codigo=' + encodeURIComponent(code) +
-                        '&id_planilha=<?php echo $id_planilha; ?>';
-                    return;
-                }
-            } catch (e) {}
-            requestAnimationFrame(loop);
-        };
-        loop();
-    }
-
-    function detectarZXing() {
-        const reader = new ZXing.BrowserMultiFormatReader();
-        reader.decodeFromVideoDevice(null, videoEl, (result, err) => {
-            if (result) {
-                document.querySelector('.scanner-overlay').style.borderColor = "#0f0";
-                const code = result.text.trim();
-                pararCamera();
-                reader.reset();
-                window.location.href = 'editar_produto.php?codigo=' + encodeURIComponent(code) +
-                    '&id_planilha=<?php echo $id_planilha; ?>';
+        // Fechar modal ao clicar fora
+        window.onclick = function(event) {
+            const modal = document.getElementById('modalCamera');
+            if (event.target === modal) {
+                fecharModalCamera();
             }
-        });
-    }
+        }
     </script>
 </body>
 </html>
