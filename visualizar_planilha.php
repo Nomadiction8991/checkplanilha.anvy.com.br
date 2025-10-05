@@ -506,13 +506,8 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
                     | <strong>Dep:</strong> <?php echo htmlspecialchars($p['dependencia']); ?>
                 <?php endif; ?>
                 <?php if (!empty($p['observacoes'])): ?>
-                    | <strong>Obs:</strong> <?php echo htmlspecialchars($p['observacoes']); ?>
+                    | <strong>Obs:</strong> <?php echo htmlspecialchars($p['observacoes']); ?><br>
                 <?php endif; ?>
-            </td>
-        </tr>
-        <tr class="linha-status <?php echo $classe; ?>">
-            <td colspan="2">
-                <div class="status-icons">
                     <?php if ($p['checado'] == 1): ?>
                         <span class="status-icon" title="Produto checado">✅</span>
                     <?php endif; ?>
@@ -525,7 +520,6 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
                     <?php if ($p['imprimir'] == 1): ?>
                         <span class="status-icon" title="Marcado para impressão">🖨️</span>
                     <?php endif; ?>
-                </div>
             </td>
         </tr>
         <?php endforeach; ?>
