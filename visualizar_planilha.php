@@ -199,24 +199,7 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
     .linha-nome td {
         font-size: 12px;
         color: #666;
-    }
-
-    /* Nova linha de status */
-    .linha-status td {
-        font-size: 14px;
-        padding: 4px 8px;
-        background: #f8f9fa;
-        border-top: 1px solid #dee2e6;
-    }
-
-    .status-icons {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-    }
-
-    .status-icon {
-        font-size: 14px;
+        white-space: normal;
     }
 
     th {
@@ -377,6 +360,17 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
     .btn-dr.active {
         background-color: #f8d7da;
     }
+
+    .status-icons {
+        display: flex;
+        gap: 5px;
+        align-items: center;
+        margin-top: 5px;
+    }
+
+    .status-icon {
+        font-size: 14px;
+    }
     </style>
 </head>
 
@@ -497,26 +491,30 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
                 </div>
             </td>
         </tr>
-        <tr class="linha-nome">
-            <td colspan="2"><?php echo htmlspecialchars($p['nome']); ?></td>
-        </tr>
-        <tr class="linha-status">
+        <tr class="linha-nome <?php echo $classe; ?>">
             <td colspan="2">
+                <strong>Nome:</strong> <?php echo htmlspecialchars($p['nome']); ?><br>
+                <?php if (!empty($p['dependencia'])): ?>
+                <strong>Dep:</strong> <?php echo htmlspecialchars($p['dependencia']); ?><br>
+                <?php endif; ?>
+                <?php if (!empty($p['observacoes'])): ?>
+                <strong>Obs:</strong> <?php echo htmlspecialchars($p['observacoes']); ?><br>
+                <?php endif; ?>
                 <div class="status-icons">
                     <?php if ($p['checado'] == 1): ?>
-                        <span class="status-icon">✅ Checado</span>
+                        <span class="status-icon" title="Produto checado">✅</span>
                     <?php endif; ?>
                     <?php if (!empty($p['observacoes'])): ?>
-                        <span class="status-icon">📜 Com Observações</span>
+                        <span class="status-icon" title="Possui observações">📜</span>
                     <?php endif; ?>
                     <?php if ($p['dr'] == 1): ?>
-                        <span class="status-icon">📦 No DR</span>
+                        <span class="status-icon" title="No DR">📦</span>
                     <?php endif; ?>
                     <?php if ($p['imprimir'] == 1): ?>
-                        <span class="status-icon">🖨️ Para Imprimir</span>
+                        <span class="status-icon" title="Marcado para impressão">🖨️</span>
                     <?php endif; ?>
                     <?php if ($p['checado'] == 0 && empty($p['observacoes']) && $p['dr'] == 0 && $p['imprimir'] == 0): ?>
-                        <span class="status-icon">⏳ Pendente</span>
+                        <span class="status-icon" title="Pendente">⏳</span>
                     <?php endif; ?>
                 </div>
             </td>
@@ -570,8 +568,8 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
                     const codigo = result.text;
                     codeReader.reset();
                     fecharModalCamera();
-                    // Redirecionar para a página de processamento
-                    window.location.href = `processar_check.php?codigo=${encodeURIComponent(codigo)}&id_planilha=<?php echo $id_planilha; ?>`;
+                    // Redirecionar para a página de edição de observações
+                    window.location.href = `processar_obs.php?codigo=${encodeURIComponent(codigo)}&id_planilha=<?php echo $id_planilha; ?>`;
                 }
                 if (err && !(err instanceof ZXing.NotFoundException)) {
                     console.error(err);

@@ -8,7 +8,7 @@ $id_planilha = $_GET['id_planilha'] ?? null;
 $pagina = $_GET['pagina'] ?? 1;
 $filtro_nome = $_GET['nome'] ?? '';
 $filtro_dependencia = $_GET['dependencia'] ?? '';
-$filtro_codigo = $_GET['filtro_codigo'] ?? '';
+$filtro_codigo = $_GET['codigo'] ?? ''; // CORREÇÃO: era 'filtro_codigo' mas deve ser 'codigo'
 
 if (!$codigo || !$id_planilha) {
     // Redirecionar mantendo os filtros
@@ -71,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $pagina = $_POST['pagina'] ?? 1;
     $filtro_nome = $_POST['nome'] ?? '';
     $filtro_dependencia = $_POST['dependencia'] ?? '';
-    $filtro_codigo = $_POST['filtro_codigo'] ?? '';
+    $filtro_codigo = $_POST['codigo'] ?? ''; // CORREÇÃO: era 'filtro_codigo' mas deve ser 'codigo'
     
     try {
         // Verificar se já existe registro na tabela produtos_check
@@ -418,7 +418,7 @@ function getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, 
             <input type="hidden" name="pagina" value="<?php echo $pagina; ?>">
             <input type="hidden" name="nome" value="<?php echo htmlspecialchars($filtro_nome); ?>">
             <input type="hidden" name="dependencia" value="<?php echo htmlspecialchars($filtro_dependencia); ?>">
-            <input type="hidden" name="filtro_codigo" value="<?php echo htmlspecialchars($filtro_codigo); ?>">
+            <input type="hidden" name="codigo" value="<?php echo htmlspecialchars($filtro_codigo); ?>">
 
             <!-- Campo Observações -->
             <div class="form-group">
