@@ -239,7 +239,7 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
     }
 
     .linha-observacao {
-        background: rgba(255, 232, 167, 1) !important; /* Laranja claro */
+        background: #ffe8a7ff !important; /* Laranja claro */
     }
 
     .linha-checado-observacao {
@@ -420,27 +420,27 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
         <h3>🎨 Legenda de Cores:</h3>
         <div class="legenda-container">
             <div class="legenda-item">
-                <div class="legenda-cor" style="background-color: #d4edda;"></div>
+                <div class="legenda-cor" style="background-color: #a3fab7ff;"></div>
                 <span>✅ Checado</span>
             </div>
             <div class="legenda-item">
-                <div class="legenda-cor" style="background-color: #ffe6cc;"></div>
+                <div class="legenda-cor" style="background-color: #ffe8a7ff;"></div>
                 <span>📜 Com Observações</span>
             </div>
             <div class="legenda-item">
-                <div class="legenda-cor" style="background-color: #e6e6fa;"></div>
+                <div class="legenda-cor" style="background-color: #e9a3faff;"></div>
                 <span>✅📜 Checado + Observações (Roxo claro)</span>
             </div>
             <div class="legenda-item">
-                <div class="legenda-cor" style="background-color: #cce7ff;"></div>
+                <div class="legenda-cor" style="background-color: #faa3eeff;"></div>
                 <span>🏷️ Para Imprimir</span>
             </div>
             <div class="legenda-item">
-                <div class="legenda-cor" style="background-color: #a9a9a9;"></div>
+                <div class="legenda-cor" style="background-color: #a3d3faff;"></div>
                 <span>📜🏷️ Observação + Para Imprimir (Cinza escuro)</span>
             </div>
             <div class="legenda-item">
-                <div class="legenda-cor" style="background-color: #f8d7da;"></div>
+                <div class="legenda-cor" style="background-color: #faa3a3ff;"></div>
                 <span>📦 No DR</span>
             </div>
         </div>

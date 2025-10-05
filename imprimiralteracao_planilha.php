@@ -302,20 +302,6 @@ if ($mostrar_etiqueta) $total_mostrar += $total_etiqueta;
             page-break-before: always;
         }
         
-        .btn-print {
-            background: #007bff;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-bottom: 20px;
-        }
-        
-        .btn-print:hover {
-            background: #0056b3;
-        }
-        
         .sem-registros {
             text-align: center;
             padding: 20px;
@@ -446,17 +432,6 @@ if ($mostrar_etiqueta) $total_mostrar += $total_etiqueta;
         </form>
     </div>
 
-    <!-- Botão de impressão (não aparece na impressão) -->
-    <div class="no-print" style="text-align: center; margin-bottom: 20px;">
-        <button class="btn-print" onclick="window.print()">
-            🖨️ Imprimir Relatório
-        </button>
-        <a href="visualizar_planilha.php?id=<?php echo $id_planilha; ?>" 
-           style="padding: 10px 20px; background: #6c757d; color: white; text-decoration: none; border-radius: 4px; margin-left: 10px;">
-            ← Voltar para Planilha
-        </a>
-    </div>
-
     <!-- INÍCIO DO CONTEÚDO IMPRESSÃO -->
     
     <!-- Cabeçalho do relatório -->
@@ -468,8 +443,7 @@ if ($mostrar_etiqueta) $total_mostrar += $total_etiqueta;
 
     <!-- Informações da planilha -->
     <div class="info-planilha">
-        <strong>Status da Planilha:</strong> <?php echo ucfirst($planilha['status']); ?> | 
-        <strong>Data de Criação:</strong> <?php echo date('d/m/Y', strtotime($planilha['data_criacao'])); ?>
+        <strong>Status da Planilha:</strong> <?php echo ucfirst($planilha['status']); ?>
     </div>
 
     <!-- Resumo estatístico -->
