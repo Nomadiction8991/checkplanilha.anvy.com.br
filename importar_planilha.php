@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     ];
 
     $mensagem = '';
-    $tipo_mensagem = '';
+    $tipo_mensagem = ''; // success ou error
 
     try {
         // Validar campos obrigatórios
@@ -46,22 +46,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception('Apenas arquivos CSV são permitidos.');
         }
 
-        // Iniciar transação
+        // Iniciar transação para garantir consistência dos dados
         $conexao->beginTransaction();
 
-        // Inserir a planilha
+        // Inserir a planilha na tabela planilhas (apenas descrição, status e ativo são padrão)
         $sql_planilha = "INSERT INTO planilhas (descricao) VALUES (:descricao)";
         $stmt_planilha = $conexao->prepare($sql_planilha);
         $stmt_planilha->bindValue(':descricao', $descricao);
         $stmt_planilha->execute();
         $id_planilha = $conexao->lastInsertId();
 
-        // Salvar configurações de mapeamento
+        // Salvar configurações de mapeamento na tabela config_planilha
         $mapeamento_string = '';
         foreach ($mapeamento as $coluna_banco => $letra_planilha) {
             $mapeamento_string .= "{$coluna_banco}={$letra_planilha};";
         }
-        $mapeamento_string = rtrim($mapeamento_string, ';');
+        $mapeamento_string = rtrim($mapeamento_string, ';'); // Remove o último ;
 
         $sql_config = "INSERT INTO config_planilha (id_planilha, pulo_linhas, mapeamento_colunas) 
                       VALUES (:id_planilha, :pulo_linhas, :mapeamento_colunas)";
@@ -91,13 +91,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $indice = $indice * 26 + (ord($coluna[$i]) - ord('A') + 1);
             }
             
-            return $indice - 1;
+            return $indice - 1; // Subtrai 1 porque arrays são base 0
         }
 
         // Função para converter valores monetários
         function converterValor($valor) {
             if (empty(trim($valor))) return null;
             
+            // Remove R$, espaços e trata formato brasileiro
             $valor = str_replace(['R$', ' ', '.'], '', trim($valor));
             $valor = str_replace(',', '.', $valor);
             $valor = preg_replace('/[^0-9.]/', '', $valor);
@@ -141,8 +142,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $data_raw = isset($linha[colunaParaIndice($mapeamento['data_aquisicao'])]) ? trim($linha[colunaParaIndice($mapeamento['data_aquisicao'])]) : '';
                 if (!empty($data_raw)) {
                     if (is_numeric($data_raw)) {
+                        // Se for número do Excel (formato date)
                         $data_aquisicao = Date::excelToDateTimeObject($data_raw)->format('Y-m-d');
                     } else {
+                        // Tentar converter de formato texto
                         $data_timestamp = strtotime(str_replace('/', '-', $data_raw));
                         if ($data_timestamp !== false) {
                             $data_aquisicao = date('Y-m-d', $data_timestamp);
@@ -154,6 +157,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $valor_depreciacao = converterValor(isset($linha[colunaParaIndice($mapeamento['valor_depreciacao'])]) ? $linha[colunaParaIndice($mapeamento['valor_depreciacao'])] : '');
                 $valor_atual = converterValor(isset($linha[colunaParaIndice($mapeamento['valor_atual'])]) ? $linha[colunaParaIndice($mapeamento['valor_atual'])] : '');
                 $status = isset($linha[colunaParaIndice($mapeamento['status'])]) ? trim($linha[colunaParaIndice($mapeamento['status'])]) : '';
+
+                // Debug: mostrar dados que serão inseridos
+                error_log("Linha {$linha_atual}: Código: {$codigo}, Nome: {$nome}");
 
                 // Inserir o produto
                 $sql_produto = "INSERT INTO produtos 
@@ -222,7 +228,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $mensagem = "Erro na importação: " . $e->getMessage();
         $tipo_mensagem = 'error';
         
+        // Log detalhado do erro
         error_log("ERRO IMPORTACAO: " . $e->getMessage());
+        error_log("Trace: " . $e->getTraceAsString());
     }
 }
 ?>
@@ -233,158 +241,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Importar Planilha</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-    body {
-        font-family: Arial, Helvetica, sans-serif;
-        margin: 0;
-        padding: 0;
-    }
-
-    header {
-        background: #007bff;
-        padding: 5px 10px;
-        color: #fff;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        height: 50px;
-    }
-
-    .header-title {
-        width: 50%;
-        font-size: 16px;
-        margin: 0;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .header-actions {
-        width: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        gap: 10px;
-    }
-
-    .header-btn {
-        background: none;
-        border: none;
-        color: #fff;
-        cursor: pointer;
-        padding: 8px;
-        border-radius: 4px;
-        font-size: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: background-color 0.2s;
-        text-decoration: none;
-    }
-
-    .header-btn:hover {
-        background-color: rgba(255, 255, 255, 0.2);
-    }
-
-    .message {
-        padding: 10px;
-        margin: 10px;
-        border-radius: 4px;
-        text-align: center;
-    }
-
-    .success {
-        background: #d4edda;
-        color: #155724;
-        border: 1px solid #c3e6cb;
-    }
-
-    .error {
-        background: #f8d7da;
-        color: #721c24;
-        border: 1px solid #f5c6cb;
-    }
-
-    .form-container {
-        padding: 15px;
-        max-width: 800px;
-        margin: 0 auto;
-    }
-
-    .form-group {
-        margin-bottom: 15px;
-    }
-
-    label {
-        display: block;
-        margin-bottom: 5px;
-        font-weight: bold;
-    }
-
-    input, select {
-        padding: 8px;
-        width: 100%;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-    }
-
-    .mapeamento-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-        margin: 15px 0;
-    }
-
-    .mapeamento-item {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .mapeamento-label {
-        min-width: 150px;
-    }
-
-    .mapeamento-input {
-        width: 60px;
-        text-align: center;
-    }
-
-    button {
-        padding: 10px 20px;
-        background: #007bff;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        margin-right: 10px;
-    }
-
-    button:hover {
-        background: #0056b3;
-    }
-
-    .btn-cancel {
-        background: #6c757d;
-    }
-
-    .btn-cancel:hover {
-        background: #545b62;
-    }
-
-    small {
-        color: #666;
-        font-style: italic;
-    }
+        .message { padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select { padding: 8px; width: 100%; max-width: 400px; }
+        .mapeamento-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 15px 0; }
+        .mapeamento-item { display: flex; align-items: center; gap: 10px; }
+        .mapeamento-label { min-width: 150px; }
+        .mapeamento-input { width: 60px; text-align: center; }
+        button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        small { color: #666; font-style: italic; }
+        .debug-info { background: #f8f9fa; padding: 10px; border: 1px solid #dee2e6; margin: 10px 0; }
     </style>
 </head>
 <body>
-    <header>
-        <a href="index.php" class="header-btn" title="Fechar">❌</a>
-        <h1 class="header-title">Importar Nova Planilha</h1>
-        <div class="header-actions"></div>
-    </header>
+    <h1>Importar Planilha</h1>
+
+    <a href="index.php" style="display: inline-block; margin-bottom: 20px; padding: 8px 15px; background: #6c757d; color: white; text-decoration: none; border-radius: 4px;">
+        ← Voltar para Listagem
+    </a>
 
     <?php if (!empty($mensagem)): ?>
         <div class="message <?php echo $tipo_mensagem; ?>">
@@ -392,116 +271,119 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     <?php endif; ?>
 
-    <div class="form-container">
-        <form method="POST" enctype="multipart/form-data">
-            <!-- Campo Descrição -->
-            <div class="form-group">
-                <label for="descricao">Descrição da Planilha:</label>
-                <input type="text" id="descricao" name="descricao" 
-                       value="<?php echo htmlspecialchars($_POST['descricao'] ?? ''); ?>" 
-                       required placeholder="Digite um nome para identificar esta planilha">
-            </div>
-
-            <!-- Campo Arquivo -->
-            <div class="form-group">
-                <label for="arquivo">Arquivo CSV:</label>
-                <input type="file" id="arquivo" name="arquivo" accept=".csv" required>
-            </div>
-
-            <!-- Configurações de Mapeamento -->
-            <h3>Configurações de Importação</h3>
-
-            <!-- Linhas a pular -->
-            <div class="form-group">
-                <label for="linhas_pular">Linhas iniciais a pular:</label>
-                <input type="number" id="linhas_pular" name="linhas_pular" 
-                       value="<?php echo $_POST['linhas_pular'] ?? 25; ?>" min="0" required>
-                <small>Número de linhas do cabeçalho que devem ser ignoradas</small>
-            </div>
-
-            <!-- Mapeamento de Colunas -->
-            <h3>Mapeamento de Colunas</h3>
-            <p>Defina a letra da coluna para cada campo:</p>
-
-            <div class="mapeamento-grid">
-                <div class="mapeamento-item">
-                    <span class="mapeamento-label">Código:</span>
-                    <input type="text" class="mapeamento-input" name="codigo" 
-                           value="<?php echo $_POST['codigo'] ?? 'A'; ?>" maxlength="2" required>
-                </div>
-
-                <div class="mapeamento-item">
-                    <span class="mapeamento-label">Nome:</span>
-                    <input type="text" class="mapeamento-input" name="nome" 
-                           value="<?php echo $_POST['nome'] ?? 'D'; ?>" maxlength="2" required>
-                </div>
-
-                <div class="mapeamento-item">
-                    <span class="mapeamento-label">Fornecedor:</span>
-                    <input type="text" class="mapeamento-input" name="fornecedor" 
-                           value="<?php echo $_POST['fornecedor'] ?? 'G'; ?>" maxlength="2" required>
-                </div>
-
-                <div class="mapeamento-item">
-                    <span class="mapeamento-label">Localidade:</span>
-                    <input type="text" class="mapeamento-input" name="localidade" 
-                           value="<?php echo $_POST['localidade'] ?? 'K'; ?>" maxlength="2" required>
-                </div>
-
-                <div class="mapeamento-item">
-                    <span class="mapeamento-label">Conta:</span>
-                    <input type="text" class="mapeamento-input" name="conta" 
-                           value="<?php echo $_POST['conta'] ?? 'L'; ?>" maxlength="2" required>
-                </div>
-
-                <div class="mapeamento-item">
-                    <span class="mapeamento-label">Número Documento:</span>
-                    <input type="text" class="mapeamento-input" name="numero_documento" 
-                           value="<?php echo $_POST['numero_documento'] ?? 'N'; ?>" maxlength="2" required>
-                </div>
-
-                <div class="mapeamento-item">
-                    <span class="mapeamento-label">Dependência:</span>
-                    <input type="text" class="mapeamento-input" name="dependencia" 
-                           value="<?php echo $_POST['dependencia'] ?? 'P'; ?>" maxlength="2" required>
-                </div>
-
-                <div class="mapeamento-item">
-                    <span class="mapeamento-label">Data Aquisição:</span>
-                    <input type="text" class="mapeamento-input" name="data_aquisicao" 
-                           value="<?php echo $_POST['data_aquisicao'] ?? 'T'; ?>" maxlength="2" required>
-                </div>
-
-                <div class="mapeamento-item">
-                    <span class="mapeamento-label">Valor Aquisição:</span>
-                    <input type="text" class="mapeamento-input" name="valor_aquisicao" 
-                           value="<?php echo $_POST['valor_aquisicao'] ?? 'V'; ?>" maxlength="2" required>
-                </div>
-
-                <div class="mapeamento-item">
-                    <span class="mapeamento-label">Valor Depreciação:</span>
-                    <input type="text" class="mapeamento-input" name="valor_depreciacao" 
-                           value="<?php echo $_POST['valor_depreciacao'] ?? 'W'; ?>" maxlength="2" required>
-                </div>
-
-                <div class="mapeamento-item">
-                    <span class="mapeamento-label">Valor Atual:</span>
-                    <input type="text" class="mapeamento-input" name="valor_atual" 
-                           value="<?php echo $_POST['valor_atual'] ?? 'AB'; ?>" maxlength="2" required>
-                </div>
-
-                <div class="mapeamento-item">
-                    <span class="mapeamento-label">Status:</span>
-                    <input type="text" class="mapeamento-input" name="status" 
-                           value="<?php echo $_POST['status'] ?? 'AF'; ?>" maxlength="2" required>
-                </div>
-            </div>
-
-            <button type="submit">Importar Planilha</button>
-            <a href="index.php" class="btn-cancel" style="padding: 10px 20px; background: #6c757d; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">
-                Cancelar
-            </a>
-        </form>
+    <!-- Debug Info -->
+    <div class="debug-info">
+        <strong>Informações de Debug:</strong><br>
+        - Certifique-se de que a tabela 'produtos' existe com as colunas corretas<br>
+        - Verifique se as letras das colunas correspondem ao seu arquivo CSV<br>
+        - Ajuste o número de linhas a pular conforme necessário
     </div>
+
+    <form method="POST" enctype="multipart/form-data">
+        <!-- Campo Descrição -->
+        <div class="form-group">
+            <label for="descricao">Descrição da Planilha:</label>
+            <input type="text" id="descricao" name="descricao" 
+                   value="<?php echo htmlspecialchars($_POST['descricao'] ?? ''); ?>" 
+                   required placeholder="Digite um nome para identificar esta planilha">
+        </div>
+
+        <!-- Campo Arquivo -->
+        <div class="form-group">
+            <label for="arquivo">Arquivo CSV:</label>
+            <input type="file" id="arquivo" name="arquivo" accept=".csv" required>
+        </div>
+
+        <!-- Configurações de Mapeamento -->
+        <h3>Configurações de Importação</h3>
+
+        <!-- Linhas a pular -->
+        <div class="form-group">
+            <label for="linhas_pular">Linhas iniciais a pular:</label>
+            <input type="number" id="linhas_pular" name="linhas_pular" 
+                   value="<?php echo $_POST['linhas_pular'] ?? 25; ?>" min="0" required>
+            <small>Número de linhas do cabeçalho que devem ser ignoradas</small>
+        </div>
+
+        <!-- Mapeamento de Colunas -->
+        <h3>Mapeamento de Colunas</h3>
+        <p>Defina a letra da coluna para cada campo (as configurações serão salvas):</p>
+
+        <div class="mapeamento-grid">
+            <div class="mapeamento-item">
+                <span class="mapeamento-label">Código:</span>
+                <input type="text" class="mapeamento-input" name="codigo" 
+                       value="<?php echo $_POST['codigo'] ?? 'A'; ?>" maxlength="2" required>
+            </div>
+
+            <div class="mapeamento-item">
+                <span class="mapeamento-label">Nome:</span>
+                <input type="text" class="mapeamento-input" name="nome" 
+                       value="<?php echo $_POST['nome'] ?? 'D'; ?>" maxlength="2" required>
+            </div>
+
+            <div class="mapeamento-item">
+                <span class="mapeamento-label">Fornecedor:</span>
+                <input type="text" class="mapeamento-input" name="fornecedor" 
+                       value="<?php echo $_POST['fornecedor'] ?? 'G'; ?>" maxlength="2" required>
+            </div>
+
+            <div class="mapeamento-item">
+                <span class="mapeamento-label">Localidade:</span>
+                <input type="text" class="mapeamento-input" name="localidade" 
+                       value="<?php echo $_POST['localidade'] ?? 'K'; ?>" maxlength="2" required>
+            </div>
+
+            <div class="mapeamento-item">
+                <span class="mapeamento-label">Conta:</span>
+                <input type="text" class="mapeamento-input" name="conta" 
+                       value="<?php echo $_POST['conta'] ?? 'L'; ?>" maxlength="2" required>
+            </div>
+
+            <div class="mapeamento-item">
+                <span class="mapeamento-label">Número Documento:</span>
+                <input type="text" class="mapeamento-input" name="numero_documento" 
+                       value="<?php echo $_POST['numero_documento'] ?? 'N'; ?>" maxlength="2" required>
+            </div>
+
+            <div class="mapeamento-item">
+                <span class="mapeamento-label">Dependência:</span>
+                <input type="text" class="mapeamento-input" name="dependencia" 
+                       value="<?php echo $_POST['dependencia'] ?? 'P'; ?>" maxlength="2" required>
+            </div>
+
+            <div class="mapeamento-item">
+                <span class="mapeamento-label">Data Aquisição:</span>
+                <input type="text" class="mapeamento-input" name="data_aquisicao" 
+                       value="<?php echo $_POST['data_aquisicao'] ?? 'T'; ?>" maxlength="2" required>
+            </div>
+
+            <div class="mapeamento-item">
+                <span class="mapeamento-label">Valor Aquisição:</span>
+                <input type="text" class="mapeamento-input" name="valor_aquisicao" 
+                       value="<?php echo $_POST['valor_aquisicao'] ?? 'V'; ?>" maxlength="2" required>
+            </div>
+
+            <div class="mapeamento-item">
+                <span class="mapeamento-label">Valor Depreciação:</span>
+                <input type="text" class="mapeamento-input" name="valor_depreciacao" 
+                       value="<?php echo $_POST['valor_depreciacao'] ?? 'W'; ?>" maxlength="2" required>
+            </div>
+
+            <div class="mapeamento-item">
+                <span class="mapeamento-label">Valor Atual:</span>
+                <input type="text" class="mapeamento-input" name="valor_atual" 
+                       value="<?php echo $_POST['valor_atual'] ?? 'AB'; ?>" maxlength="2" required>
+            </div>
+
+            <div class="mapeamento-item">
+                <span class="mapeamento-label">Status:</span>
+                <input type="text" class="mapeamento-input" name="status" 
+                       value="<?php echo $_POST['status'] ?? 'AF'; ?>" maxlength="2" required>
+            </div>
+        </div>
+
+        <button type="submit">Importar Planilha</button>
+    </form>
 </body>
 </html>
