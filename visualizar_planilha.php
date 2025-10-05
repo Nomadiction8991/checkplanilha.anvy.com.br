@@ -235,27 +235,27 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
 
     /* NOVAS CORES SIMPLIFICADAS */
     .linha-checado {
-        background: #d4edda !important; /* Verde */
+        background: #a3fab7ff !important; /* Verde */
     }
 
     .linha-observacao {
-        background: #ffe6cc !important; /* Laranja claro */
+        background: rgba(255, 232, 167, 1) !important; /* Laranja claro */
     }
 
     .linha-checado-observacao {
-        background: #e6e6fa !important; /* Roxo claro */
+        background: #e9a3faff !important; /* Roxo claro */
     }
 
     .linha-imprimir {
-        background: #cce7ff !important; /* Azul */
+        background: #faa3eeff !important; /* Azul */
     }
 
     .linha-observacao-imprimir {
-        background: #a9a9a9 !important; /* Cinza escuro */
+        background: #a3d3faff !important; /* Cinza escuro */
     }
 
     .linha-dr {
-        background: #f8d7da !important; /* Vermelho */
+        background: #faa3a3ff !important; /* Vermelho */
     }
 
     td form {
