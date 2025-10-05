@@ -222,11 +222,10 @@ try {
     </style>
 </head>
 <body>
-    <header>
-        <a href="visualizar_planilha.php?id=<?php echo $id_planilha; ?>" class="header-btn" title="Fechar">❌</a>
-        <h1 class="header-title">Copiar Etiquetas - <?php echo htmlspecialchars($planilha['descricao']); ?></h1>
-        <div class="header-actions"></div>
-    </header>
+<header>
+    <a href="visualizar_planilha.php?id=<?php echo $id_planilha; ?>" class="header-btn" title="Fechar">❌</a>
+    <h1 class="header-title">Copiar Etiquetas</h1>
+</header>
 
     <div class="container">
         <?php if (!empty($mensagem)): ?>

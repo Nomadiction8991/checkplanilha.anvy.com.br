@@ -23,17 +23,18 @@ try {
     die("Erro ao carregar planilha: " . $e->getMessage());
 }
 
-// Filtros do relatório - CHECKBOXES PARA SEÇÕES
-$mostrar_observacao = isset($_GET['mostrar_observacao']) ? true : true; // Padrão: SIM
-$mostrar_checados = isset($_GET['mostrar_checados']) ? true : false; // Padrão: NÃO
-$mostrar_ambos = isset($_GET['mostrar_ambos']) ? true : false; // Padrão: NÃO
-$mostrar_sem_observacao = isset($_GET['mostrar_sem_observacao']) ? true : false; // Padrão: NÃO
-$mostrar_dr = isset($_GET['mostrar_dr']) ? true : false; // Padrão: NÃO - NOVA SEÇÃO DR
+// Filtros do relatório - CHECKBOXES PARA SEÇÕES (sempre desmarcados por padrão)
+$mostrar_pendentes = isset($_GET['mostrar_pendentes']) ? true : false;
+$mostrar_checados = isset($_GET['mostrar_checados']) ? true : false;
+$mostrar_observacao = isset($_GET['mostrar_observacao']) ? true : false;
+$mostrar_checados_observacao = isset($_GET['mostrar_checados_observacao']) ? true : false;
+$mostrar_dr = isset($_GET['mostrar_dr']) ? true : false;
+$mostrar_etiqueta = isset($_GET['mostrar_etiqueta']) ? true : false;
 $filtro_dependencia = $_GET['dependencia'] ?? ''; // Filtro de dependência
 
-// Buscar TODOS os produtos (sem filtros de tipo) - ADICIONADO campo dr
+// Buscar TODOS os produtos (sem filtros de tipo)
 try {
-    $sql_produtos = "SELECT p.*, pc.checado, pc.dr, pc.observacoes 
+    $sql_produtos = "SELECT p.*, pc.checado, pc.dr, pc.imprimir, pc.observacoes 
                      FROM produtos p 
                      LEFT JOIN produtos_check pc ON p.id = pc.produto_id 
                      WHERE p.id_planilha = :id_planilha";
@@ -70,59 +71,64 @@ try {
     $dependencia_options = [];
 }
 
-// Agrupar produtos por tipo (independente dos filtros) - ADICIONADO DR
-$produtos_com_observacao = [];
+// Agrupar produtos por tipo (independente dos filtros)
+$produtos_pendentes = [];
 $produtos_checados = [];
-$produtos_ambos = [];
-$produtos_sem_observacao = [];
-$produtos_dr = []; // NOVA SEÇÃO DR
+$produtos_observacao = [];
+$produtos_checados_observacao = [];
+$produtos_dr = [];
+$produtos_etiqueta = [];
 
 foreach ($todos_produtos as $produto) {
     $tem_observacao = !empty($produto['observacoes']);
     $esta_checado = $produto['checado'] == 1;
-    $esta_no_dr = $produto['dr'] == 1; // VERIFICA SE ESTÁ NO DR
+    $esta_no_dr = $produto['dr'] == 1;
+    $esta_etiqueta = $produto['imprimir'] == 1;
     
-    // Produtos no DR têm prioridade
     if ($esta_no_dr) {
         $produtos_dr[] = $produto;
+    } elseif ($esta_etiqueta) {
+        $produtos_etiqueta[] = $produto;
     } elseif ($tem_observacao && $esta_checado) {
-        $produtos_ambos[] = $produto;
-    } elseif ($tem_observacao && !$esta_checado) {
-        $produtos_com_observacao[] = $produto;
-    } elseif (!$tem_observacao && $esta_checado) {
+        $produtos_checados_observacao[] = $produto;
+    } elseif ($tem_observacao) {
+        $produtos_observacao[] = $produto;
+    } elseif ($esta_checado) {
         $produtos_checados[] = $produto;
     } else {
-        $produtos_sem_observacao[] = $produto;
+        $produtos_pendentes[] = $produto;
     }
 }
 
-// Contar totais - ADICIONADO DR
-$total_com_observacao = count($produtos_com_observacao);
+// Contar totais
+$total_pendentes = count($produtos_pendentes);
 $total_checados = count($produtos_checados);
-$total_ambos = count($produtos_ambos);
-$total_sem_observacao = count($produtos_sem_observacao);
-$total_dr = count($produtos_dr); // NOVO TOTAL DR
+$total_observacao = count($produtos_observacao);
+$total_checados_observacao = count($produtos_checados_observacao);
+$total_dr = count($produtos_dr);
+$total_etiqueta = count($produtos_etiqueta);
 $total_geral = count($todos_produtos);
 
-// Calcular totais que serão mostrados baseado nos filtros - ADICIONADO DR
+// Calcular totais que serão mostrados baseado nos filtros
 $total_mostrar = 0;
-if ($mostrar_observacao) $total_mostrar += $total_com_observacao;
+if ($mostrar_pendentes) $total_mostrar += $total_pendentes;
 if ($mostrar_checados) $total_mostrar += $total_checados;
-if ($mostrar_ambos) $total_mostrar += $total_ambos;
-if ($mostrar_sem_observacao) $total_mostrar += $total_sem_observacao;
+if ($mostrar_observacao) $total_mostrar += $total_observacao;
+if ($mostrar_checados_observacao) $total_mostrar += $total_checados_observacao;
 if ($mostrar_dr) $total_mostrar += $total_dr;
+if ($mostrar_etiqueta) $total_mostrar += $total_etiqueta;
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relatório de Alterações - <?php echo htmlspecialchars($planilha['descricao']); ?></title>
+    <title>Impressão de Alterações - <?php echo htmlspecialchars($planilha['descricao']); ?></title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 0;
             color: #000;
             font-size: 12px;
             line-height: 1.4;
@@ -158,22 +164,67 @@ if ($mostrar_dr) $total_mostrar += $total_dr;
             }
         }
         
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #000;
-            padding-bottom: 10px;
+        /* Novo Header */
+        header {
+            background: #007bff;
+            padding: 5px 10px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 50px;
         }
-        
-        .header h1 {
+
+        .header-title {
+            width: 70%;
+            font-size: 16px;
             margin: 0;
-            font-size: 18px;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .header-actions {
+            width: 30%;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .header-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+            text-decoration: none;
+        }
+
+        .header-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
         }
         
-        .header h2 {
-            margin: 5px 0;
-            font-size: 14px;
-            font-weight: normal;
+        .header-print {
+            background: none;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+            text-decoration: none;
         }
         
         .info-planilha {
@@ -193,9 +244,10 @@ if ($mostrar_dr) $total_mostrar += $total_dr;
         
         .resumo {
             margin-bottom: 20px;
-            padding: 10px;
+            padding: 15px;
             background: #e9ecef;
             border-radius: 4px;
+            border: 1px solid #ced4da;
         }
         
         table {
@@ -236,6 +288,10 @@ if ($mostrar_dr) $total_mostrar += $total_dr;
             background-color: #f8d7da; /* Vermelho claro para DR */
         }
         
+        .etiqueta-cell {
+            background-color: #cce7ff; /* Azul claro para etiqueta */
+        }
+        
         .secao-titulo {
             background-color: #6c757d;
             color: white;
@@ -243,11 +299,7 @@ if ($mostrar_dr) $total_mostrar += $total_dr;
             margin: 20px 0 10px 0;
             font-weight: bold;
             border-left: 4px solid #495057;
-        }
-        
-        .valor-monetario {
-            text-align: right;
-            white-space: nowrap;
+            page-break-before: always;
         }
         
         .btn-print {
@@ -322,13 +374,18 @@ if ($mostrar_dr) $total_mostrar += $total_dr;
         .btn-apply:hover {
             background: #218838;
         }
-        
-        .secao-oculta {
-            display: none;
-        }
     </style>
 </head>
 <body>
+    <!-- Header -->
+    <header class="no-print">
+        <a href="visualizar_planilha.php?id=<?php echo $id_planilha; ?>" class="header-btn" title="Fechar">❌</a>
+        <h1 class="header-title">Impressão de Alterações</h1>
+        <div class="header-actions">
+            <button class="header-print" onclick="window.print()" title="Imprimir">🖨️</button>
+        </div>
+    </header>
+
     <!-- Formulário de Filtros -->
     <div class="filtros-form no-print">
         <h3>Seções do Relatório (Marque quais seções deseja incluir)</h3>
@@ -340,29 +397,34 @@ if ($mostrar_dr) $total_mostrar += $total_dr;
                 <label>Seções a Incluir:</label>
                 <div class="filtro-options">
                     <div class="filtro-option">
-                        <input type="checkbox" name="mostrar_observacao" value="1" 
-                               <?php echo $mostrar_observacao ? 'checked' : ''; ?>>
-                        <label>Produtos com observação apenas (<?php echo $total_com_observacao; ?>)</label>
+                        <input type="checkbox" name="mostrar_pendentes" value="1" 
+                               <?php echo $mostrar_pendentes ? 'checked' : ''; ?>>
+                        <label>Imprimir produtos pendentes (<?php echo $total_pendentes; ?>)</label>
                     </div>
                     <div class="filtro-option">
                         <input type="checkbox" name="mostrar_checados" value="1" 
                                <?php echo $mostrar_checados ? 'checked' : ''; ?>>
-                        <label>Produtos checados (<?php echo $total_checados; ?>)</label>
+                        <label>Imprimir produtos checados (<?php echo $total_checados; ?>)</label>
                     </div>
                     <div class="filtro-option">
-                        <input type="checkbox" name="mostrar_ambos" value="1" 
-                               <?php echo $mostrar_ambos ? 'checked' : ''; ?>>
-                        <label>Produtos com observação e checagem (<?php echo $total_ambos; ?>)</label>
+                        <input type="checkbox" name="mostrar_observacao" value="1" 
+                               <?php echo $mostrar_observacao ? 'checked' : ''; ?>>
+                        <label>Imprimir produtos com observação (<?php echo $total_observacao; ?>)</label>
                     </div>
                     <div class="filtro-option">
-                        <input type="checkbox" name="mostrar_sem_observacao" value="1" 
-                               <?php echo $mostrar_sem_observacao ? 'checked' : ''; ?>>
-                        <label>Produtos sem observação (<?php echo $total_sem_observacao; ?>)</label>
+                        <input type="checkbox" name="mostrar_checados_observacao" value="1" 
+                               <?php echo $mostrar_checados_observacao ? 'checked' : ''; ?>>
+                        <label>Imprimir produtos checados + observação (<?php echo $total_checados_observacao; ?>)</label>
                     </div>
                     <div class="filtro-option">
                         <input type="checkbox" name="mostrar_dr" value="1" 
                                <?php echo $mostrar_dr ? 'checked' : ''; ?>>
-                        <label>Produtos no DR (<?php echo $total_dr; ?>)</label>
+                        <label>Imprimir produtos do DR (<?php echo $total_dr; ?>)</label>
+                    </div>
+                    <div class="filtro-option">
+                        <input type="checkbox" name="mostrar_etiqueta" value="1" 
+                               <?php echo $mostrar_etiqueta ? 'checked' : ''; ?>>
+                        <label>Imprimir produtos de etiqueta (<?php echo $total_etiqueta; ?>)</label>
                     </div>
                 </div>
             </div>
@@ -395,30 +457,13 @@ if ($mostrar_dr) $total_mostrar += $total_dr;
         </a>
     </div>
 
-    <!-- Informações dos filtros aplicados -->
-    <div class="filtros-info">
-        <strong>Seções Incluídas:</strong><br>
-        <?php
-        $secoes_texto = [];
-        if ($mostrar_observacao) $secoes_texto[] = "Produtos com observação (" . $total_com_observacao . ")";
-        if ($mostrar_checados) $secoes_texto[] = "Produtos checados (" . $total_checados . ")";
-        if ($mostrar_ambos) $secoes_texto[] = "Produtos com observação e checagem (" . $total_ambos . ")";
-        if ($mostrar_sem_observacao) $secoes_texto[] = "Produtos sem observação (" . $total_sem_observacao . ")";
-        if ($mostrar_dr) $secoes_texto[] = "Produtos no DR (" . $total_dr . ")";
-        
-        echo empty($secoes_texto) ? "Nenhuma seção selecionada" : implode(" | ", $secoes_texto);
-        
-        if (!empty($filtro_dependencia)) {
-            echo "<br><strong>Dependência:</strong> " . htmlspecialchars($filtro_dependencia);
-        }
-        ?>
-    </div>
-
+    <!-- INÍCIO DO CONTEÚDO IMPRESSÃO -->
+    
     <!-- Cabeçalho do relatório -->
-    <div class="header">
-        <h1>RELATÓRIO DE ALTERAÇÕES - CONTROLE DE PATRIMÔNIO</h1>
-        <h2>Planilha: <?php echo htmlspecialchars($planilha['descricao']); ?></h2>
-        <p>Data de geração: <?php echo date('d/m/Y H:i:s'); ?></p>
+    <div class="header-impressao" style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px;">
+        <h1 style="margin: 0; font-size: 18px;">RELATÓRIO DE ALTERAÇÕES - CONTROLE DE PATRIMÔNIO</h1>
+        <h2 style="margin: 5px 0; font-size: 14px; font-weight: normal;">Planilha: <?php echo htmlspecialchars($planilha['descricao']); ?></h2>
+        <p style="margin: 0;">Data de geração: <?php echo date('d/m/Y H:i:s'); ?></p>
     </div>
 
     <!-- Informações da planilha -->
@@ -429,79 +474,48 @@ if ($mostrar_dr) $total_mostrar += $total_dr;
 
     <!-- Resumo estatístico -->
     <div class="resumo">
-        <strong>RESUMO GERAL:</strong><br>
-        - Total de produtos na planilha: <?php echo $total_geral; ?><br>
-        - Produtos com observação: <?php echo $total_com_observacao; ?><br>
-        - Produtos checados: <?php echo $total_checados; ?><br>
-        - Produtos com observação e checagem: <?php echo $total_ambos; ?><br>
-        - Produtos sem observação: <?php echo $total_sem_observacao; ?><br>
-        - Produtos no DR: <?php echo $total_dr; ?><br>
-        - <strong>Total a ser impresso: <?php echo $total_mostrar; ?> produtos</strong>
+        <h3 style="margin-top: 0; color: #007bff;">RESUMO GERAL</h3>
+        <p><strong>Total de produtos na planilha:</strong> <?php echo $total_geral; ?></p>
+        <p><strong>Produtos checados:</strong> <?php echo $total_checados; ?></p>
+        <p><strong>Produtos com observação:</strong> <?php echo $total_observacao; ?></p>
+        <p><strong>Produtos checado + observação:</strong> <?php echo $total_checados_observacao; ?></p>
+        <p><strong>Produtos do DR:</strong> <?php echo $total_dr; ?></p>
+        <p><strong>Produtos com etiqueta:</strong> <?php echo $total_etiqueta; ?></p>
+        <p><strong>Produtos pendentes:</strong> <?php echo $total_pendentes; ?></p>
+        <p style="font-weight: bold; border-top: 1px solid #ccc; padding-top: 8px; margin-top: 8px;">
+            Total a ser impresso: <?php echo $total_mostrar; ?> produtos
+        </p>
     </div>
 
-    <?php if ($total_geral > 0): ?>
+    <?php if ($total_geral > 0 && $total_mostrar > 0): ?>
         
-        <!-- SEÇÃO 1: Produtos no DR -->
-        <?php if ($mostrar_dr && $total_dr > 0): ?>
+        <!-- SEÇÃO: Produtos Pendentes -->
+        <?php if ($mostrar_pendentes && $total_pendentes > 0): ?>
             <div class="secao-titulo">
-                PRODUTOS NO DR (<?php echo $total_dr; ?> itens)
+                PRODUTOS PENDENTES (<?php echo $total_pendentes; ?> itens)
             </div>
             
             <table>
                 <thead>
                     <tr>
-                        <th width="15%">Código</th>
-                        <th width="30%">Nome</th>
-                        <th width="25%">Dependência</th>
-                        <th width="10%">Status</th>
-                        <th width="20%">Observações</th>
+                        <th width="20%">Código</th>
+                        <th width="50%">Nome</th>
+                        <th width="30%">Dependência</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($produtos_dr as $produto): ?>
-                        <tr>
-                            <td><strong><?php echo htmlspecialchars($produto['codigo']); ?></strong></td>
-                            <td class="dr-cell"><?php echo htmlspecialchars($produto['nome']); ?></td>
-                            <td><?php echo htmlspecialchars($produto['dependencia']); ?></td>
-                            <td><?php echo htmlspecialchars($produto['status']); ?></td>
-                            <td><?php echo htmlspecialchars($produto['observacoes']); ?></td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        <?php endif; ?>
-
-        <!-- SEÇÃO 2: Produtos com Observação Apenas -->
-        <?php if ($mostrar_observacao && $total_com_observacao > 0): ?>
-            <div class="secao-titulo">
-                PRODUTOS COM OBSERVAÇÃO (<?php echo $total_com_observacao; ?> itens)
-            </div>
-            
-            <table>
-                <thead>
-                    <tr>
-                        <th width="15%">Código</th>
-                        <th width="30%">Nome</th>
-                        <th width="25%">Dependência</th>
-                        <th width="10%">Status</th>
-                        <th width="20%">Observações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($produtos_com_observacao as $produto): ?>
+                    <?php foreach ($produtos_pendentes as $produto): ?>
                         <tr>
                             <td><strong><?php echo htmlspecialchars($produto['codigo']); ?></strong></td>
                             <td><?php echo htmlspecialchars($produto['nome']); ?></td>
                             <td><?php echo htmlspecialchars($produto['dependencia']); ?></td>
-                            <td><?php echo htmlspecialchars($produto['status']); ?></td>
-                            <td class="observacao-cell"><?php echo htmlspecialchars($produto['observacoes']); ?></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
         <?php endif; ?>
 
-        <!-- SEÇÃO 3: Produtos Checados -->
+        <!-- SEÇÃO: Produtos Checados -->
         <?php if ($mostrar_checados && $total_checados > 0): ?>
             <div class="secao-titulo">
                 PRODUTOS CHECADOS (<?php echo $total_checados; ?> itens)
@@ -510,10 +524,9 @@ if ($mostrar_dr) $total_mostrar += $total_dr;
             <table>
                 <thead>
                     <tr>
-                        <th width="15%">Código</th>
-                        <th width="40%">Nome</th>
+                        <th width="20%">Código</th>
+                        <th width="50%">Nome</th>
                         <th width="30%">Dependência</th>
-                        <th width="15%">Status</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -522,36 +535,57 @@ if ($mostrar_dr) $total_mostrar += $total_dr;
                             <td><strong><?php echo htmlspecialchars($produto['codigo']); ?></strong></td>
                             <td class="checado-cell"><?php echo htmlspecialchars($produto['nome']); ?></td>
                             <td><?php echo htmlspecialchars($produto['dependencia']); ?></td>
-                            <td><?php echo htmlspecialchars($produto['status']); ?></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
         <?php endif; ?>
 
-        <!-- SEÇÃO 4: Produtos com Observação e Checagem -->
-        <?php if ($mostrar_ambos && $total_ambos > 0): ?>
+        <!-- SEÇÃO: Produtos com Observação -->
+        <?php if ($mostrar_observacao && $total_observacao > 0): ?>
             <div class="secao-titulo">
-                PRODUTOS COM OBSERVAÇÃO E CHECAGEM (<?php echo $total_ambos; ?> itens)
+                PRODUTOS COM OBSERVAÇÃO (<?php echo $total_observacao; ?> itens)
             </div>
             
             <table>
                 <thead>
                     <tr>
-                        <th width="15%">Código</th>
-                        <th width="30%">Nome</th>
-                        <th width="25%">Dependência</th>
-                        <th width="10%">Status</th>
-                        <th width="20%">Observações</th>
+                        <th width="20%">Código</th>
+                        <th width="40%">Nome</th>
+                        <th width="40%">Observações</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($produtos_ambos as $produto): ?>
+                    <?php foreach ($produtos_observacao as $produto): ?>
+                        <tr>
+                            <td><strong><?php echo htmlspecialchars($produto['codigo']); ?></strong></td>
+                            <td><?php echo htmlspecialchars($produto['nome']); ?></td>
+                            <td class="observacao-cell"><?php echo htmlspecialchars($produto['observacoes']); ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
+
+        <!-- SEÇÃO: Produtos Checados + Observação -->
+        <?php if ($mostrar_checados_observacao && $total_checados_observacao > 0): ?>
+            <div class="secao-titulo">
+                PRODUTOS CHECADOS + OBSERVAÇÃO (<?php echo $total_checados_observacao; ?> itens)
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th width="20%">Código</th>
+                        <th width="40%">Nome</th>
+                        <th width="40%">Observações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($produtos_checados_observacao as $produto): ?>
                         <tr>
                             <td><strong><?php echo htmlspecialchars($produto['codigo']); ?></strong></td>
                             <td class="ambos-cell"><?php echo htmlspecialchars($produto['nome']); ?></td>
-                            <td><?php echo htmlspecialchars($produto['dependencia']); ?></td>
-                            <td><?php echo htmlspecialchars($produto['status']); ?></td>
                             <td class="ambos-cell"><?php echo htmlspecialchars($produto['observacoes']); ?></td>
                         </tr>
                     <?php endforeach; ?>
@@ -559,41 +593,63 @@ if ($mostrar_dr) $total_mostrar += $total_dr;
             </table>
         <?php endif; ?>
 
-        <!-- SEÇÃO 5: Produtos sem Observação -->
-        <?php if ($mostrar_sem_observacao && $total_sem_observacao > 0): ?>
+        <!-- SEÇÃO: Produtos no DR -->
+        <?php if ($mostrar_dr && $total_dr > 0): ?>
             <div class="secao-titulo">
-                PRODUTOS SEM OBSERVAÇÃO (<?php echo $total_sem_observacao; ?> itens)
+                PRODUTOS NO DR (<?php echo $total_dr; ?> itens)
             </div>
             
             <table>
                 <thead>
                     <tr>
-                        <th width="15%">Código</th>
-                        <th width="40%">Nome</th>
+                        <th width="20%">Código</th>
+                        <th width="50%">Nome</th>
                         <th width="30%">Dependência</th>
-                        <th width="15%">Status</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($produtos_sem_observacao as $produto): ?>
+                    <?php foreach ($produtos_dr as $produto): ?>
                         <tr>
                             <td><strong><?php echo htmlspecialchars($produto['codigo']); ?></strong></td>
-                            <td><?php echo htmlspecialchars($produto['nome']); ?></td>
+                            <td class="dr-cell"><?php echo htmlspecialchars($produto['nome']); ?></td>
                             <td><?php echo htmlspecialchars($produto['dependencia']); ?></td>
-                            <td><?php echo htmlspecialchars($produto['status']); ?></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
         <?php endif; ?>
 
-        <?php if ($total_mostrar === 0): ?>
-            <div class="sem-registros" style="text-align: center; padding: 40px;">
-                <h3>Nenhuma seção selecionada</h3>
-                <p>Marque pelo menos uma seção para visualizar o relatório.</p>
+        <!-- SEÇÃO: Produtos com Etiqueta -->
+        <?php if ($mostrar_etiqueta && $total_etiqueta > 0): ?>
+            <div class="secao-titulo">
+                PRODUTOS COM ETIQUETA (<?php echo $total_etiqueta; ?> itens)
             </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th width="20%">Código</th>
+                        <th width="50%">Nome</th>
+                        <th width="30%">Dependência</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($produtos_etiqueta as $produto): ?>
+                        <tr>
+                            <td><strong><?php echo htmlspecialchars($produto['codigo']); ?></strong></td>
+                            <td class="etiqueta-cell"><?php echo htmlspecialchars($produto['nome']); ?></td>
+                            <td><?php echo htmlspecialchars($produto['dependencia']); ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
         <?php endif; ?>
 
+    <?php elseif ($total_geral > 0 && $total_mostrar === 0): ?>
+        <div class="sem-registros" style="text-align: center; padding: 40px;">
+            <h3>Nenhuma seção selecionada</h3>
+            <p>Marque pelo menos uma seção para visualizar o relatório.</p>
+        </div>
     <?php else: ?>
         <div class="sem-registros" style="text-align: center; padding: 40px;">
             <h3>Nenhum produto encontrado</h3>

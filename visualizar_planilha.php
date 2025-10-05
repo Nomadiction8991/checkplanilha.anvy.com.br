@@ -199,7 +199,7 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
 
     th, td {
         padding: 8px;
-        text-align: left;
+        text-align: center;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -219,6 +219,7 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
         font-size: 12px;
         color: #666;
         white-space: normal;
+        text-align: left;
     }
 
     th {
@@ -242,11 +243,15 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
     }
 
     .linha-checado-observacao {
-        background: #fff3cd !important; /* Amarelo claro */
+        background: #e6e6fa !important; /* Roxo claro */
     }
 
     .linha-imprimir {
         background: #cce7ff !important; /* Azul */
+    }
+
+    .linha-observacao-imprimir {
+        background: #a9a9a9 !important; /* Cinza escuro */
     }
 
     .linha-dr {
@@ -359,14 +364,14 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
 
     .legenda-container {
         display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
+        flex-direction: column;
+        gap: 5px;
     }
 
     .legenda-item {
         display: flex;
         align-items: center;
-        gap: 5px;
+        gap: 8px;
     }
 
     .legenda-cor {
@@ -423,12 +428,16 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
                 <span>📜 Com Observações</span>
             </div>
             <div class="legenda-item">
-                <div class="legenda-cor" style="background-color: #fff3cd;"></div>
-                <span>✅📜 Checado + Observações</span>
+                <div class="legenda-cor" style="background-color: #e6e6fa;"></div>
+                <span>✅📜 Checado + Observações (Roxo claro)</span>
             </div>
             <div class="legenda-item">
                 <div class="legenda-cor" style="background-color: #cce7ff;"></div>
                 <span>🏷️ Para Imprimir</span>
+            </div>
+            <div class="legenda-item">
+                <div class="legenda-cor" style="background-color: #a9a9a9;"></div>
+                <span>📜🏷️ Observação + Para Imprimir (Cinza escuro)</span>
             </div>
             <div class="legenda-item">
                 <div class="legenda-cor" style="background-color: #f8d7da;"></div>
@@ -452,6 +461,8 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
             
             if ($p['dr'] == 1) {
                 $classe = 'linha-dr';
+            } elseif ($p['imprimir'] == 1 && !empty($p['observacoes'])) {
+                $classe = 'linha-observacao-imprimir';
             } elseif ($p['imprimir'] == 1) {
                 $classe = 'linha-imprimir';
             } elseif ($p['checado'] == 1 && !empty($p['observacoes'])) {
@@ -465,6 +476,7 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
             // Determinar quais botões mostrar
             $show_check = ($p['dr'] == 0 && $p['imprimir'] == 0);
             $show_imprimir = ($p['checado'] == 1 && $p['dr'] == 0);
+            $show_dr = !($p['checado'] == 1 || $p['imprimir'] == 1);
             $show_obs = ($p['dr'] == 0);
         ?>
         <tr class="<?php echo $classe; ?>">
@@ -488,6 +500,7 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
                     <?php endif; ?>
                     
                     <!-- Formulário do DR -->
+                    <?php if ($show_dr): ?>
                     <form method="POST" action="processar_dr.php" style="margin: 0; display: inline;" onsubmit="return confirmarDR(this, <?php echo $p['dr']; ?>)">
                         <input type="hidden" name="produto_id" value="<?php echo $p['id']; ?>">
                         <input type="hidden" name="id_planilha" value="<?php echo $id_planilha; ?>">
@@ -500,10 +513,11 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
                             📦
                         </button>
                     </form>
+                    <?php endif; ?>
                     
                     <!-- Formulário da Impressão -->
                     <?php if ($show_imprimir): ?>
-                    <form method="POST" action="processar_imprimir.php" style="margin: 0; display: inline;" onsubmit="return confirmarImprimir(this, <?php echo $p['imprimir']; ?>)">
+                    <form method="POST" action="processar_etiqueta.php" style="margin: 0; display: inline;" onsubmit="return confirmarImprimir(this, <?php echo $p['imprimir']; ?>)">
                         <input type="hidden" name="produto_id" value="<?php echo $p['id']; ?>">
                         <input type="hidden" name="id_planilha" value="<?php echo $id_planilha; ?>">
                         <input type="hidden" name="imprimir" value="<?php echo $p['imprimir'] ? '0' : '1'; ?>">
@@ -610,7 +624,7 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
 
         // Validação adicional para impressão
         document.addEventListener('DOMContentLoaded', function() {
-            const formsImprimir = document.querySelectorAll('form[action="processar_imprimir.php"]');
+            const formsImprimir = document.querySelectorAll('form[action="processar_etiqueta.php"]');
             
             formsImprimir.forEach(form => {
                 form.addEventListener('submit', function(e) {

@@ -95,11 +95,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt_insert->execute();
         }
         
-        // Atualizar dados locais
-        $check['observacoes'] = $observacoes;
-        
-        $mensagem = "Observações salvas com sucesso!";
-        $tipo_mensagem = 'success';
+        // Redirecionar de volta para visualizar_planilha.php
+        $query_string = http_build_query([
+            'id' => $id_planilha,
+            'pagina' => $pagina,
+            'nome' => $filtro_nome,
+            'dependencia' => $filtro_dependencia,
+            'codigo' => $filtro_codigo
+        ]);
+        header('Location: visualizar_planilha.php?' . $query_string);
+        exit;
         
     } catch (Exception $e) {
         $mensagem = "Erro ao salvar observações: " . $e->getMessage();
@@ -126,7 +131,7 @@ function getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editar Observações - <?php echo htmlspecialchars($produto['codigo'] ?? ''); ?></title>
+    <title>Editar Observações</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
@@ -146,20 +151,13 @@ function getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, 
         }
 
         .header-title {
-            width: 50%;
+            width: 100%;
             font-size: 16px;
             margin: 0;
+            text-align: center;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-        }
-
-        .header-actions {
-            width: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 10px;
         }
 
         .header-btn {
@@ -175,6 +173,8 @@ function getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, 
             justify-content: center;
             transition: background-color 0.2s;
             text-decoration: none;
+            position: absolute;
+            left: 10px;
         }
 
         .header-btn:hover {
@@ -233,6 +233,45 @@ function getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, 
             font-size: 16px;
         }
 
+        .status-info {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-checado {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-observacao {
+            background: #ffe6cc;
+            color: #856404;
+        }
+
+        .status-dr {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-imprimir {
+            background: #cce7ff;
+            color: #004085;
+        }
+
+        .status-pendente {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
         .form-group {
             margin-bottom: 20px;
         }
@@ -286,8 +325,7 @@ function getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, 
 <body>
     <header>
         <a href="<?php echo getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, $filtro_codigo); ?>" class="header-btn" title="Fechar">❌</a>
-        <h1 class="header-title">Editar Observações - <?php echo htmlspecialchars($produto['codigo'] ?? ''); ?></h1>
-        <div class="header-actions"></div>
+        <h1 class="header-title">Editar Observações</h1>
     </header>
 
     <div class="container">
@@ -323,6 +361,27 @@ function getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, 
             <div class="product-field">
                 <div class="field-label">Dependência:</div>
                 <div class="field-value"><?php echo htmlspecialchars($produto['dependencia'] ?? ''); ?></div>
+            </div>
+
+            <div class="product-field">
+                <div class="field-label">Status do Produto:</div>
+                <div class="status-info">
+                    <?php if ($check['checado'] == 1): ?>
+                        <span class="status-badge status-checado">✅ Checado</span>
+                    <?php endif; ?>
+                    <?php if (!empty($check['observacoes'])): ?>
+                        <span class="status-badge status-observacao">📜 Com Observações</span>
+                    <?php endif; ?>
+                    <?php if ($check['dr'] == 1): ?>
+                        <span class="status-badge status-dr">📦 No DR</span>
+                    <?php endif; ?>
+                    <?php if ($check['imprimir'] == 1): ?>
+                        <span class="status-badge status-imprimir">🏷️ Para Imprimir</span>
+                    <?php endif; ?>
+                    <?php if ($check['checado'] == 0 && empty($check['observacoes']) && $check['dr'] == 0 && $check['imprimir'] == 0): ?>
+                        <span class="status-badge status-pendente">⏳ Pendente</span>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
 
