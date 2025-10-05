@@ -207,12 +207,12 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
 
     th:nth-child(1),
     td:nth-child(1) {
-        width: 60%;
+        width: 40%;
     }
 
     th:nth-child(2),
     td:nth-child(2) {
-        width: 40%;
+        width: 60%;
     }
 
     .linha-nome td {
