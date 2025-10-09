@@ -35,7 +35,12 @@ try {
     $stmt_produtos->execute();
     $produtos = $stmt_produtos->fetchAll(PDO::FETCH_COLUMN);
     
-    $codigos = implode(', ', $produtos);
+    // Remover espaços dos códigos
+    $produtos_sem_espacos = array_map(function($codigo) {
+        return str_replace(' ', '', $codigo);
+    }, $produtos);
+    
+    $codigos = implode(', ', $produtos_sem_espacos);
 } catch (Exception $e) {
     $codigos = '';
     $mensagem = "Erro ao carregar produtos: " . $e->getMessage();
@@ -244,7 +249,7 @@ try {
                     <div class="stat-label">Produtos para Imprimir</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-number"><?php echo count(array_unique($produtos)); ?></div>
+                    <div class="stat-number"><?php echo count(array_unique($produtos_sem_espacos ?? [])); ?></div>
                     <div class="stat-label">Códigos Únicos</div>
                 </div>
             </div>
