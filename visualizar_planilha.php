@@ -401,7 +401,7 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
         <h1 class="header-title"><?php echo htmlspecialchars($planilha['descricao']); ?></h1>
         <div class="header-actions">
             <a href="copiaretiquetas_planilha.php?id=<?php echo $id_planilha; ?>" class="header-btn" title="Copiar Etiquetas">🏷️</a>
-            <a href="imprimiralteracao_planilha.php?id=<?php echo $id_planilha; ?>" class="header-btn" title="Imprimir Relatório">🖨️</a>
+            <a href="imprecoes.php?id=<?php echo $id_planilha; ?>" class="header-btn" title="Opções de Impressão">🖨️</a>
         </div>
     </header>
 

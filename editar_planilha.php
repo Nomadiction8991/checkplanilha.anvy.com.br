@@ -277,17 +277,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Confirmar transação
         $conexao->commit();
 
-        // PROCESSAR PRODUTOS CADASTRADOS SE UM NOVO ARQUIVO FOI ENVIADO
-        if (isset($_FILES['arquivo']) && $_FILES['arquivo']['error'] === UPLOAD_ERR_OK) {
-            try {
-                processarProdutosCadastros($conexao, $id_planilha);
-                $mensagem .= "<br>Cadastros de produtos processados com sucesso!";
-            } catch (Exception $e) {
-                error_log("Erro ao processar produtos cadastros: " . $e->getMessage());
-                $mensagem .= "<br>Aviso: Erro ao processar cadastros de produtos: " . $e->getMessage();
-            }
-        }
-
         $mensagem = "Planilha atualizada com sucesso!";
         
         if (isset($registros_importados)) {
