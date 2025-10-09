@@ -223,6 +223,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Confirmar transação
         $conexao->commit();
 
+        // PROCESSAR PRODUTOS CADASTRADOS APÓS IMPORTACAO
+        try {
+            processarProdutosCadastros($conexao, $id_planilha);
+            $mensagem .= "<br>Cadastros de produtos processados com sucesso!";
+        } catch (Exception $e) {
+            error_log("Erro ao processar produtos cadastros: " . $e->getMessage());
+            $mensagem .= "<br>Aviso: Erro ao processar cadastros de produtos: " . $e->getMessage();
+        }
+
         $mensagem = "Importação concluída com sucesso!<br>
                     Planilha: {$descricao}<br>
                     Registros importados: {$registros_importados}<br>
