@@ -40,8 +40,19 @@ if (!$id_planilha) {
         }
 
         .no-print {
+            background: white;
+            max-width: 210mm;
+            margin: 0 auto 20px auto;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .botoes-topo {
             text-align: center;
             margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
         }
 
         .btn-voltar {
@@ -75,287 +86,136 @@ if (!$id_planilha) {
             background: #0056b3;
         }
 
-        .formulario {
-            background: white;
-            max-width: 210mm;
-            margin: 0 auto;
-            padding: 15mm;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-
-        /* Tabela principal externa */
-        .tabela-externa {
-            border: 3px solid #000;
-            width: 100%;
-        }
-
-        /* Cabeçalho CCB */
-        .cabecalho-ccb {
-            border-collapse: collapse;
-            width: 100%;
-        }
-
-        .cabecalho-ccb td {
-            border: 2px solid #000;
-            padding: 8px;
-            font-size: 11px;
-        }
-
-        .ccb-logo {
-            width: 100px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 36px;
-            vertical-align: middle;
-        }
-
-        .titulo-manual {
-            text-align: center;
-            font-weight: bold;
-            font-size: 18px;
-            vertical-align: middle;
-        }
-
-        .info-label {
-            width: 100px;
-            background: #d9d9d9;
-            font-weight: bold;
-            font-size: 10px;
-            text-align: left;
-            vertical-align: middle;
-        }
-
-        .info-valor {
-            width: 80px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 12px;
-            vertical-align: middle;
-        }
-
-        .assunto-label {
-            width: 100px;
-            background: #d9d9d9;
-            font-weight: bold;
-            font-size: 10px;
-            text-align: left;
-        }
-
-        .assunto-texto {
-            text-align: center;
-            font-weight: bold;
-            font-size: 14px;
-        }
-
-        /* Título do formulário */
-        .titulo-formulario {
-            background: #000;
-            color: white;
-            padding: 8px;
-            font-weight: bold;
-            font-size: 11px;
-            text-align: left;
-        }
-
-        /* Título da declaração */
-        .titulo-declaracao {
-            border: 2px solid #000;
-            padding: 10px;
-            margin: 15px 0;
-        }
-
-        .titulo-declaracao-principal {
-            font-weight: bold;
-            font-size: 13px;
-            color: #666;
-            margin-bottom: 5px;
-        }
-
-        .titulo-declaracao-subtitulo {
-            font-weight: bold;
-            font-size: 14px;
-            margin-bottom: 8px;
-        }
-
-        .formulario-info {
-            text-align: right;
-            font-size: 10px;
-        }
-
-        .formulario-numero {
-            font-weight: bold;
-            font-size: 11px;
-            margin-bottom: 3px;
-        }
-
-        /* Seções */
-        .secao {
-            border: 2px solid #000;
-            margin-bottom: 15px;
-        }
-
-        .secao-titulo {
-            background: #808080;
-            color: white;
-            padding: 6px 10px;
-            font-weight: bold;
-            font-size: 11px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .letra-secao {
-            background: #404040;
-            width: 22px;
-            height: 22px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-        }
-
-        .secao-conteudo {
-            padding: 10px;
-        }
-
-        /* Tabela interna das seções */
-        .tabela-secao {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .tabela-secao td {
-            border: 2px solid #000;
-            padding: 5px 8px;
-            font-size: 10px;
-            vertical-align: top;
-        }
-
-        .tabela-secao td.campo-label {
-            font-weight: bold;
-            background: #f0f0f0;
-            width: 30%;
-        }
-
-        .tabela-secao td.campo-valor {
-            background: white;
-        }
-
-        .tabela-secao input[type="text"] {
-            width: 100%;
-            border: none;
-            font-size: 10px;
-            font-family: Arial, sans-serif;
-            padding: 2px;
-            background: transparent;
-        }
-
-        .tabela-secao textarea {
-            width: 100%;
-            border: none;
-            font-size: 10px;
-            font-family: Arial, sans-serif;
-            padding: 2px;
-            background: transparent;
-            resize: none;
-            min-height: 120px;
-        }
-
-        /* Seção B - Descrição */
-        .texto-declaracao {
-            font-size: 10px;
-            line-height: 1.5;
-            text-align: justify;
-            margin: 10px 0;
-        }
-
-        .checkbox-options {
-            margin: 10px 0;
-        }
-
-        .checkbox-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 8px;
-            margin: 8px 0;
-            font-size: 10px;
-        }
-
-        .checkbox-item input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            margin-top: 2px;
-            flex-shrink: 0;
-        }
-
-        .local-data {
-            margin: 20px 0 10px 0;
-            font-size: 10px;
-        }
-
-        /* Seção C - Doador */
-        .tabela-doador {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-
-        .tabela-doador td {
-            border: 2px solid #000;
-            padding: 5px 8px;
-            font-size: 10px;
-        }
-
-        .tabela-doador .header-doador {
-            text-align: center;
-            font-weight: bold;
-            background: #f0f0f0;
-        }
-
-        .tabela-doador .label-row {
-            font-weight: bold;
-            width: 120px;
-            background: #f0f0f0;
-        }
-
-        .espaco-assinatura {
-            height: 60px;
-            border: 2px solid #000;
-        }
-
-        /* Seção D - Termo de Aceite */
-        .tabela-aceite {
-            width: 100%;
-            border-collapse: collapse;
+        .fonte-selector {
             margin-top: 15px;
         }
 
-        .tabela-aceite td {
-            border: 2px solid #000;
-            padding: 5px 8px;
-            font-size: 10px;
-        }
-
-        .tabela-aceite .label-col {
+        .fonte-selector label {
+            font-size: 14px;
+            margin-right: 10px;
             font-weight: bold;
-            background: #f0f0f0;
-            width: 150px;
         }
 
-        /* Rodapé */
-        .rodape-externa {
-            border: 3px solid #000;
-            border-top: none;
+        .fonte-selector select {
+            padding: 8px;
+            font-size: 14px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        .formulario-inputs {
+            margin-top: 20px;
+        }
+
+        .secao-input {
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+        }
+
+        .secao-input h3 {
+            margin-bottom: 15px;
+            color: #007bff;
+            font-size: 16px;
+        }
+
+        .campo-grupo {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .campo-input {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .campo-input label {
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .campo-input input,
+        .campo-input textarea {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: Arial, sans-serif;
+        }
+
+        .campo-input textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .campo-input.completo {
+            grid-column: 1 / -1;
+        }
+
+        /* Container do formulário impresso */
+        .formulario-container {
+            background: white;
+            max-width: 210mm;
+            margin: 0 auto;
+            position: relative;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .formulario-imagem {
             width: 100%;
+            height: auto;
+            display: block;
         }
 
-        .rodape {
-            text-align: center;
-            padding: 10px;
-            font-size: 11px;
-            border-top: 2px solid #000;
+        /* Camada de overlay para os textos */
+        .texto-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
         }
+
+        .texto-campo {
+            position: absolute;
+            font-family: 'Caveat', cursive;
+            color: #1a4d8f;
+            font-size: 16px;
+            font-weight: 600;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        /* Posicionamento dos campos - ajustar conforme necessário */
+        .campo-administracao { top: 17.5%; left: 13%; width: 20%; }
+        .campo-cidade { top: 17.5%; left: 40%; width: 20%; }
+        .campo-setor { top: 17.5%; left: 70%; width: 15%; }
+        .campo-cnpj { top: 21.5%; left: 19%; width: 18%; }
+        .campo-relatorio { top: 21.5%; left: 45%; width: 15%; }
+        .campo-casa-oracao { top: 21.5%; left: 71%; width: 14%; }
+        
+        .campo-descricao { top: 28%; left: 8%; width: 84%; height: 15%; font-size: 14px; }
+        .campo-nota-fiscal { top: 44%; left: 13%; width: 12%; }
+        .campo-data-emissao { top: 44%; left: 32%; width: 12%; }
+        .campo-valor { top: 44%; left: 50%; width: 10%; }
+        .campo-fornecedor { top: 44%; left: 67%; width: 18%; }
+        
+        .campo-local-data { top: 59%; left: 15%; width: 50%; }
+        
+        .campo-nome-doador { top: 66%; left: 10%; width: 80%; }
+        .campo-endereco { top: 69.5%; left: 12%; width: 78%; }
+        .campo-cpf { top: 73%; left: 8%; width: 35%; }
+        .campo-rg { top: 73%; left: 48%; width: 40%; }
+        
+        .campo-administrador { top: 87%; left: 18%; width: 30%; }
+        .campo-doador-aceite { top: 90.5%; left: 12%; width: 30%; }
 
         @media print {
             body {
@@ -364,26 +224,22 @@ if (!$id_planilha) {
             }
 
             .no-print {
-                display: none;
+                display: none !important;
             }
 
-            .formulario {
+            .formulario-container {
                 box-shadow: none;
                 max-width: 100%;
-                padding: 0;
+                page-break-inside: avoid;
             }
 
-            /* Aplicar fonte manuscrita e cor azul de caneta nos inputs ao imprimir */
-            input[type="text"],
-            textarea {
+            body[data-fonte="Caveat"] .texto-campo {
                 font-family: 'Caveat', cursive !important;
-                color: #1a4d8f !important;
-                font-size: 14px !important;
-                font-weight: 500;
             }
 
-            textarea {
-                font-size: 13px !important;
+            body[data-fonte="DancingScript"] .texto-campo {
+                font-family: 'DancingScript', cursive !important;
+                font-size: 15px;
             }
 
             @page {
@@ -393,222 +249,185 @@ if (!$id_planilha) {
         }
     </style>
 </head>
-<body>
+<body data-fonte="Caveat">
+    
+    <!-- Formulário de Inputs (não imprime) -->
     <div class="no-print">
-        <a href="imprecoes.php?id=<?php echo $id_planilha; ?>" class="btn-voltar">← Voltar</a>
-        <button onclick="window.print()" class="btn-imprimir">🖨️ Imprimir (Ctrl+P)</button>
+        <div class="botoes-topo">
+            <a href="imprecoes.php?id=<?php echo $id_planilha; ?>" class="btn-voltar">← Voltar</a>
+            <button onclick="window.print()" class="btn-imprimir">🖨️ Imprimir (Ctrl+P)</button>
+            
+            <div class="fonte-selector">
+                <label for="fonte-select">✍️ Estilo da letra:</label>
+                <select id="fonte-select">
+                    <option value="Caveat">Caveat (Casual)</option>
+                    <option value="DancingScript">Dancing Script (Elegante)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="formulario-inputs">
+            <!-- Seção A -->
+            <div class="secao-input">
+                <h3>📍 Seção A - Localidade Recebedora</h3>
+                <div class="campo-grupo">
+                    <div class="campo-input">
+                        <label>Administração</label>
+                        <input type="text" id="administracao" oninput="atualizarCampo('administracao')">
+                    </div>
+                    <div class="campo-input">
+                        <label>Cidade</label>
+                        <input type="text" id="cidade" oninput="atualizarCampo('cidade')">
+                    </div>
+                    <div class="campo-input">
+                        <label>Setor</label>
+                        <input type="text" id="setor" oninput="atualizarCampo('setor')">
+                    </div>
+                </div>
+                <div class="campo-grupo">
+                    <div class="campo-input">
+                        <label>CNPJ da Administração</label>
+                        <input type="text" id="cnpj" oninput="atualizarCampo('cnpj')">
+                    </div>
+                    <div class="campo-input">
+                        <label>N° Relatório</label>
+                        <input type="text" id="relatorio" oninput="atualizarCampo('relatorio')">
+                    </div>
+                    <div class="campo-input">
+                        <label>Casa de Oração</label>
+                        <input type="text" id="casa-oracao" oninput="atualizarCampo('casa-oracao')">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção B -->
+            <div class="secao-input">
+                <h3>📦 Seção B - Descrição do Bem</h3>
+                <div class="campo-grupo">
+                    <div class="campo-input completo">
+                        <label>Descrição do Bem</label>
+                        <textarea id="descricao" oninput="atualizarCampo('descricao')"></textarea>
+                    </div>
+                </div>
+                <div class="campo-grupo">
+                    <div class="campo-input">
+                        <label>N° Nota Fiscal</label>
+                        <input type="text" id="nota-fiscal" oninput="atualizarCampo('nota-fiscal')">
+                    </div>
+                    <div class="campo-input">
+                        <label>Data de Emissão</label>
+                        <input type="text" id="data-emissao" oninput="atualizarCampo('data-emissao')">
+                    </div>
+                    <div class="campo-input">
+                        <label>Valor</label>
+                        <input type="text" id="valor" oninput="atualizarCampo('valor')">
+                    </div>
+                </div>
+                <div class="campo-grupo">
+                    <div class="campo-input completo">
+                        <label>Fornecedor</label>
+                        <input type="text" id="fornecedor" oninput="atualizarCampo('fornecedor')">
+                    </div>
+                </div>
+                <div class="campo-grupo">
+                    <div class="campo-input completo">
+                        <label>Local e Data</label>
+                        <input type="text" id="local-data" oninput="atualizarCampo('local-data')">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção C -->
+            <div class="secao-input">
+                <h3>👤 Seção C - Doador</h3>
+                <div class="campo-grupo">
+                    <div class="campo-input completo">
+                        <label>Nome do Doador</label>
+                        <input type="text" id="nome-doador" oninput="atualizarCampo('nome-doador')">
+                    </div>
+                </div>
+                <div class="campo-grupo">
+                    <div class="campo-input completo">
+                        <label>Endereço</label>
+                        <input type="text" id="endereco" oninput="atualizarCampo('endereco')">
+                    </div>
+                </div>
+                <div class="campo-grupo">
+                    <div class="campo-input">
+                        <label>CPF</label>
+                        <input type="text" id="cpf" oninput="atualizarCampo('cpf')">
+                    </div>
+                    <div class="campo-input">
+                        <label>RG</label>
+                        <input type="text" id="rg" oninput="atualizarCampo('rg')">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção D -->
+            <div class="secao-input">
+                <h3>✅ Seção D - Termo de Aceite</h3>
+                <div class="campo-grupo">
+                    <div class="campo-input">
+                        <label>Administrador/Assessor</label>
+                        <input type="text" id="administrador" oninput="atualizarCampo('administrador')">
+                    </div>
+                    <div class="campo-input">
+                        <label>Doador (Nome)</label>
+                        <input type="text" id="doador-aceite" oninput="atualizarCampo('doador-aceite')">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulário Impresso com Imagem de Fundo -->
+    <div class="formulario-container">
+        <!-- IMPORTANTE: Substitua o src pela imagem real do formulário -->
+        <img src="formulario_14_1.jpg" alt="Formulário 14.1" class="formulario-imagem">
         
-        <div style="margin-top: 15px;">
-            <label for="fonte-select" style="font-size: 14px; margin-right: 10px;">✍️ Estilo da letra manuscrita:</label>
-            <select id="fonte-select" style="padding: 8px; font-size: 14px; border-radius: 4px; border: 1px solid #ccc;">
-                <option value="Caveat">Caveat (Casual)</option>
-                <option value="DancingScript">Dancing Script (Elegante)</option>
-            </select>
+        <!-- Overlay com os textos preenchidos -->
+        <div class="texto-overlay">
+            <div class="texto-campo campo-administracao" id="texto-administracao"></div>
+            <div class="texto-campo campo-cidade" id="texto-cidade"></div>
+            <div class="texto-campo campo-setor" id="texto-setor"></div>
+            <div class="texto-campo campo-cnpj" id="texto-cnpj"></div>
+            <div class="texto-campo campo-relatorio" id="texto-relatorio"></div>
+            <div class="texto-campo campo-casa-oracao" id="texto-casa-oracao"></div>
+            
+            <div class="texto-campo campo-descricao" id="texto-descricao"></div>
+            <div class="texto-campo campo-nota-fiscal" id="texto-nota-fiscal"></div>
+            <div class="texto-campo campo-data-emissao" id="texto-data-emissao"></div>
+            <div class="texto-campo campo-valor" id="texto-valor"></div>
+            <div class="texto-campo campo-fornecedor" id="texto-fornecedor"></div>
+            
+            <div class="texto-campo campo-local-data" id="texto-local-data"></div>
+            
+            <div class="texto-campo campo-nome-doador" id="texto-nome-doador"></div>
+            <div class="texto-campo campo-endereco" id="texto-endereco"></div>
+            <div class="texto-campo campo-cpf" id="texto-cpf"></div>
+            <div class="texto-campo campo-rg" id="texto-rg"></div>
+            
+            <div class="texto-campo campo-administrador" id="texto-administrador"></div>
+            <div class="texto-campo campo-doador-aceite" id="texto-doador-aceite"></div>
         </div>
     </div>
 
-    <div class="formulario">
-        <div class="tabela-externa">
-            <!-- Cabeçalho CCB -->
-            <table class="cabecalho-ccb">
-                <tr>
-                    <td class="ccb-logo" rowspan="3">CCB</td>
-                    <td class="titulo-manual" rowspan="3">MANUAL ADMINISTRATIVO</td>
-                    <td class="info-label">SEÇÃO:</td>
-                    <td class="info-valor">14</td>
-                </tr>
-                <tr>
-                    <td class="info-label">FL./FLS:</td>
-                    <td class="info-valor">36/46</td>
-                </tr>
-                <tr>
-                    <td class="info-label">DATA REVISÃO:</td>
-                    <td class="info-valor">24/09/2019</td>
-                </tr>
-                <tr>
-                    <td class="assunto-label">ASSUNTO</td>
-                    <td class="assunto-texto" colspan="3">PATRIMÔNIO – BENS MÓVEIS</td>
-                </tr>
-                <tr>
-                    <td colspan="2"></td>
-                    <td class="info-label">EDIÇÃO:</td>
-                    <td class="info-valor">6</td>
-                </tr>
-                <tr>
-                    <td colspan="2"></td>
-                    <td class="info-label">REVISÃO:</td>
-                    <td class="info-valor">1</td>
-                </tr>
-            </table>
+    <script>
+        // Atualizar fonte selecionada
+        const fonteSelect = document.getElementById('fonte-select');
+        fonteSelect.addEventListener('change', function() {
+            document.body.setAttribute('data-fonte', this.value);
+        });
 
-            <div class="titulo-formulario">
-                FORMULÁRIO 14.1: DECLARAÇÃO DE DOAÇÃO DE BEM MÓVEL
-            </div>
-
-            <!-- Título da Declaração -->
-            <div class="titulo-declaracao">
-                <div class="titulo-declaracao-principal">CONGREGAÇÃO CRISTÃ NO BRASIL</div>
-                <div class="titulo-declaracao-subtitulo">DECLARAÇÃO DE DOAÇÃO DE BENS MÓVEIS</div>
-                <div class="formulario-info">
-                    <div class="formulario-numero">FORMULÁRIO 14.1</div>
-                    <div>Data Emissão: _____ / _____ / _________</div>
-                </div>
-            </div>
-
-            <!-- Seção A: Localidade Recebedora -->
-            <div class="secao">
-                <div class="secao-titulo">
-                    <span class="letra-secao">A</span>
-                    <span>LOCALIDADE RECEBEDORA</span>
-                </div>
-                <div class="secao-conteudo">
-                    <table class="tabela-secao">
-                        <tr>
-                            <td class="campo-label">Administração</td>
-                            <td class="campo-valor" colspan="3"><input type="text" id="administracao"></td>
-                            <td class="campo-label">Cidade</td>
-                            <td class="campo-valor" colspan="3"><input type="text" id="cidade"></td>
-                            <td class="campo-label">Setor</td>
-                            <td class="campo-valor"><input type="text" id="setor"></td>
-                        </tr>
-                        <tr>
-                            <td class="campo-label">CNPJ da Administração</td>
-                            <td class="campo-valor" colspan="3"><input type="text" id="cnpj"></td>
-                            <td class="campo-label">N° Relatório</td>
-                            <td class="campo-valor" colspan="3"><input type="text" id="relatorio"></td>
-                            <td class="campo-label">Casa de Oração</td>
-                            <td class="campo-valor"><input type="text" id="casa_oracao"></td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Seção B: Descrição do Bem -->
-            <div class="secao">
-                <div class="secao-titulo">
-                    <span class="letra-secao">B</span>
-                    <span>DESCRIÇÃO DO BEM</span>
-                </div>
-                <div class="secao-conteudo">
-                    <table class="tabela-secao">
-                        <tr>
-                            <td class="campo-valor" colspan="10">
-                                <textarea id="descricao_bem" placeholder="Descrição do bem..."></textarea>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="campo-label">N° Nota fiscal</td>
-                            <td class="campo-valor" colspan="2"><input type="text" id="nota_fiscal"></td>
-                            <td class="campo-label">Data de emissão</td>
-                            <td class="campo-valor" colspan="2"><input type="text" id="data_emissao"></td>
-                            <td class="campo-label">Valor</td>
-                            <td class="campo-valor" colspan="1"><input type="text" id="valor"></td>
-                            <td class="campo-label">Fornecedor</td>
-                            <td class="campo-valor"><input type="text" id="fornecedor"></td>
-                        </tr>
-                    </table>
-
-                    <div class="texto-declaracao">
-                        Declaramos que estamos doando à CONGREGAÇÃO CRISTÃ NO BRASIL o bem acima descrito, de nossa propriedade, livre e desembaraçado de dívidas e ônus, para uso na Casa de Oração acima identificada.
-                    </div>
-
-                    <div class="checkbox-options">
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="check1">
-                            <label for="check1">O bem tem mais de cinco anos de uso e o documento fiscal de aquisição está anexo.</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="check2">
-                            <label for="check2">O bem tem mais de cinco anos de uso, porém o documento fiscal de aquisição foi extraviado.</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="check3">
-                            <label for="check3">O bem tem até cinco anos de uso e o documento fiscal de aquisição está anexo.</label>
-                        </div>
-                    </div>
-
-                    <div class="texto-declaracao">
-                        Por ser verdade firmamos esta declaração.
-                    </div>
-
-                    <div class="local-data">
-                        Local e data: _________________________________________________________________
-                    </div>
-                </div>
-            </div>
-
-            <!-- Seção C: Doador -->
-            <div class="secao">
-                <div class="secao-titulo">
-                    <span class="letra-secao">C</span>
-                    <span>DOADOR</span>
-                </div>
-                <div class="secao-conteudo">
-                    <table class="tabela-doador">
-                        <tr>
-                            <td class="header-doador" colspan="5">Dados do doador</td>
-                            <td class="header-doador" colspan="5">Dados do cônjuge</td>
-                        </tr>
-                        <tr>
-                            <td class="label-row">Nome</td>
-                            <td colspan="9"><input type="text" id="nome_doador"></td>
-                        </tr>
-                        <tr>
-                            <td class="label-row">Endereço</td>
-                            <td colspan="9"><input type="text" id="endereco"></td>
-                        </tr>
-                        <tr>
-                            <td class="label-row">CPF</td>
-                            <td colspan="9"><input type="text" id="cpf"></td>
-                        </tr>
-                        <tr>
-                            <td class="label-row">RG</td>
-                            <td colspan="9"><input type="text" id="rg"></td>
-                        </tr>
-                        <tr>
-                            <td class="label-row">Assinatura</td>
-                            <td colspan="4" class="espaco-assinatura"></td>
-                            <td colspan="5" class="espaco-assinatura"></td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Seção D: Termo de Aceite -->
-            <div class="secao">
-                <div class="secao-titulo">
-                    <span class="letra-secao">D</span>
-                    <span>TERMO DE ACEITE DA DOAÇÃO</span>
-                </div>
-                <div class="secao-conteudo">
-                    <div class="texto-declaracao">
-                        A Congregação Cristã No Brasil aceita a presente doação por atender necessidade do momento.
-                    </div>
-
-                    <table class="tabela-aceite">
-                        <tr>
-                            <td class="label-col">Administrador/<br>Assessor</td>
-                            <td><input type="text" id="administrador_assessor"></td>
-                            <td class="label-col">Assinatura</td>
-                            <td class="espaco-assinatura"></td>
-                        </tr>
-                        <tr>
-                            <td class="label-col">Doador</td>
-                            <td><input type="text" id="doador_nome"></td>
-                            <td class="label-col">Assinatura</td>
-                            <td class="espaco-assinatura"></td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- Rodapé -->
-        <div class="rodape-externa">
-            <div class="rodape">
-                sp.saopaulo.manualadm@congregacao.org.br
-            </div>
-        </div>
-    </div>
+        // Função para atualizar os campos no overlay
+        function atualizarCampo(campo) {
+            const input = document.getElementById(campo);
+            const texto = document.getElementById('texto-' + campo);
+            if (input && texto) {
+                texto.textContent = input.value;
+            }
+        }
+    </script>
 </body>
 </html>
