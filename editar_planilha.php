@@ -164,6 +164,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 return is_numeric($valor) ? (float)$valor : null;
             }
 
+            // Função para corrigir encoding dos textos
+            function corrigirEncoding($texto) {
+                if (empty($texto)) return $texto;
+                
+                // Tenta detectar e converter para UTF-8
+                $encoding = mb_detect_encoding($texto, ['UTF-8', 'ISO-8859-1', 'Windows-1252'], true);
+                
+                if ($encoding !== 'UTF-8') {
+                    $texto = mb_convert_encoding($texto, 'UTF-8', $encoding);
+                }
+                
+                return $texto;
+            }
+
             foreach ($linhas as $linha) {
                 $linha_atual++;
 
@@ -187,13 +201,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         continue;
                     }
 
-                    // Obter outros valores
-                    $nome = isset($linha[colunaParaIndice($mapeamento['nome'])]) ? trim($linha[colunaParaIndice($mapeamento['nome'])]) : '';
-                    $fornecedor = isset($linha[colunaParaIndice($mapeamento['fornecedor'])]) ? trim($linha[colunaParaIndice($mapeamento['fornecedor'])]) : '';
-                    $localidade = isset($linha[colunaParaIndice($mapeamento['localidade'])]) ? trim($linha[colunaParaIndice($mapeamento['localidade'])]) : '';
-                    $conta = isset($linha[colunaParaIndice($mapeamento['conta'])]) ? trim($linha[colunaParaIndice($mapeamento['conta'])]) : '';
-                    $numero_documento = isset($linha[colunaParaIndice($mapeamento['numero_documento'])]) ? trim($linha[colunaParaIndice($mapeamento['numero_documento'])]) : '';
-                    $dependencia = isset($linha[colunaParaIndice($mapeamento['dependencia'])]) ? trim($linha[colunaParaIndice($mapeamento['dependencia'])]) : '';
+                    // Obter outros valores com correção de encoding
+                    $nome = isset($linha[colunaParaIndice($mapeamento['nome'])]) ? corrigirEncoding(trim($linha[colunaParaIndice($mapeamento['nome'])])) : '';
+                    $fornecedor = isset($linha[colunaParaIndice($mapeamento['fornecedor'])]) ? corrigirEncoding(trim($linha[colunaParaIndice($mapeamento['fornecedor'])])) : '';
+                    $localidade = isset($linha[colunaParaIndice($mapeamento['localidade'])]) ? corrigirEncoding(trim($linha[colunaParaIndice($mapeamento['localidade'])])) : '';
+                    $conta = isset($linha[colunaParaIndice($mapeamento['conta'])]) ? corrigirEncoding(trim($linha[colunaParaIndice($mapeamento['conta'])])) : '';
+                    $numero_documento = isset($linha[colunaParaIndice($mapeamento['numero_documento'])]) ? corrigirEncoding(trim($linha[colunaParaIndice($mapeamento['numero_documento'])])) : '';
+                    $dependencia = isset($linha[colunaParaIndice($mapeamento['dependencia'])]) ? corrigirEncoding(trim($linha[colunaParaIndice($mapeamento['dependencia'])])) : '';
                     
                     // Processar data
                     $data_aquisicao = null;
@@ -212,7 +226,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $valor_aquisicao = converterValor(isset($linha[colunaParaIndice($mapeamento['valor_aquisicao'])]) ? $linha[colunaParaIndice($mapeamento['valor_aquisicao'])] : '');
                     $valor_depreciacao = converterValor(isset($linha[colunaParaIndice($mapeamento['valor_depreciacao'])]) ? $linha[colunaParaIndice($mapeamento['valor_depreciacao'])] : '');
                     $valor_atual = converterValor(isset($linha[colunaParaIndice($mapeamento['valor_atual'])]) ? $linha[colunaParaIndice($mapeamento['valor_atual'])] : '');
-                    $status_produto = isset($linha[colunaParaIndice($mapeamento['status'])]) ? trim($linha[colunaParaIndice($mapeamento['status'])]) : '';
+                    $status_produto = isset($linha[colunaParaIndice($mapeamento['status'])]) ? corrigirEncoding(trim($linha[colunaParaIndice($mapeamento['status'])])) : '';
 
                     // Inserir o produto
                     $sql_produto = "INSERT INTO produtos 
@@ -258,16 +272,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($registros_importados === 0 && $registros_erros > 0) {
                 throw new Exception("Nenhum registro foi importado. Erro: " . $erro_detalhado);
             }
-
-            $mensagem_arquivo = " Arquivo reprocessado: {$registros_importados} registros importados, {$registros_erros} erros.";
-        } else {
-            $mensagem_arquivo = " Dados atualizados sem alteração do arquivo.";
         }
 
         // Confirmar transação
         $conexao->commit();
 
-        $mensagem = "Planilha atualizada com sucesso!" . $mensagem_arquivo;
+        $mensagem = "Planilha atualizada com sucesso!";
+        
+        if (isset($registros_importados)) {
+            $mensagem .= "<br>Registros importados: {$registros_importados}<br>Erros: {$registros_erros}";
+        }
+        
         $tipo_mensagem = 'success';
 
         // Recarregar dados atualizados
@@ -277,11 +292,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt_config->execute();
         $config = $stmt_config->fetch();
         
-        // Atualizar mapeamento
         $mapeamento_array = [];
         $mapeamentos = explode(';', $config['mapeamento_colunas']);
-        foreach ($mapeamentos as $mapeamento_item) {
-            list($campo, $letra) = explode('=', $mapeamento_item);
+        foreach ($mapeamentos as $mapeamento) {
+            list($campo, $letra) = explode('=', $mapeamento);
             $mapeamento_array[$campo] = $letra;
         }
 
@@ -292,7 +306,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $mensagem = "Erro na atualização: " . $e->getMessage();
         $tipo_mensagem = 'error';
+        
         error_log("ERRO ATUALIZACAO: " . $e->getMessage());
+        error_log("Trace: " . $e->getTraceAsString());
     }
 }
 ?>
@@ -347,7 +363,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="form-group">
             <label for="status">Status da Planilha:</label>
             <select id="status" name="status" required>
-                <option value="">Selecione um status</option>
                 <option value="Pendente" <?php echo ($planilha['status'] ?? '') === 'Pendente' ? 'selected' : ''; ?>>Pendente</option>
                 <option value="Em Execução" <?php echo ($planilha['status'] ?? '') === 'Em Execução' ? 'selected' : ''; ?>>Em Execução</option>
                 <option value="Concluído" <?php echo ($planilha['status'] ?? '') === 'Concluído' ? 'selected' : ''; ?>>Concluído</option>
@@ -355,18 +370,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
 
         <!-- Campo Ativo -->
-        <div class="form-group checkbox-group">
-            <label for="ativo">Planilha Ativa:</label>
-            <input type="checkbox" id="ativo" name="ativo" value="1" 
-                   <?php echo ($planilha['ativo'] ?? 0) == 1 ? 'checked' : ''; ?>>
-            <small>Desmarque para inativar esta planilha</small>
+        <div class="form-group">
+            <div class="checkbox-group">
+                <input type="checkbox" id="ativo" name="ativo" value="1" 
+                       <?php echo ($planilha['ativo'] ?? 0) ? 'checked' : ''; ?>>
+                <label for="ativo">Planilha ativa</label>
+            </div>
+            <small>Desmarque para desativar esta planilha</small>
         </div>
 
         <!-- Campo Arquivo (Opcional) -->
         <div class="form-group">
             <label for="arquivo">Novo Arquivo CSV (opcional):</label>
             <input type="file" id="arquivo" name="arquivo" accept=".csv">
-            <small>Selecione um novo arquivo apenas se desejar atualizar os dados dos produtos</small>
+            <small>Selecione um novo arquivo apenas se desejar substituir os dados atuais</small>
         </div>
 
         <!-- Configurações de Mapeamento -->
@@ -459,9 +476,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
 
         <button type="submit">Atualizar Planilha</button>
-        <a href="index.php" style="padding: 10px 20px; background: #6c757d; color: white; text-decoration: none; border-radius: 4px; display: inline-block; margin-left: 10px;">
-            Cancelar
-        </a>
     </form>
 </body>
 </html>
