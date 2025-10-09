@@ -40,7 +40,8 @@ try {
         return str_replace(' ', '', $codigo);
     }, $produtos);
     
-    $codigos = implode(', ', $produtos_sem_espacos);
+    // Juntar os códigos sem espaços após a vírgula
+    $codigos = implode(',', $produtos_sem_espacos);
 } catch (Exception $e) {
     $codigos = '';
     $mensagem = "Erro ao carregar produtos: " . $e->getMessage();

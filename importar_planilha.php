@@ -71,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt_config->bindValue(':mapeamento_colunas', $mapeamento_string);
         $stmt_config->execute();
 
-        // Processar o arquivo CSV
+        // Processar o arquivo CSV com encoding UTF-8
         $planilha = IOFactory::load($arquivo_tmp);
         $aba_ativa = $planilha->getActiveSheet();
         $linhas = $aba_ativa->toArray();
@@ -106,6 +106,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             return is_numeric($valor) ? (float)$valor : null;
         }
 
+        // Função para corrigir encoding dos textos
+        function corrigirEncoding($texto) {
+            if (empty($texto)) return $texto;
+            
+            // Tenta detectar e converter para UTF-8
+            $encoding = mb_detect_encoding($texto, ['UTF-8', 'ISO-8859-1', 'Windows-1252'], true);
+            
+            if ($encoding !== 'UTF-8') {
+                $texto = mb_convert_encoding($texto, 'UTF-8', $encoding);
+            }
+            
+            return $texto;
+        }
+
         foreach ($linhas as $linha) {
             $linha_atual++;
 
@@ -129,13 +143,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     continue;
                 }
 
-                // Obter outros valores
-                $nome = isset($linha[colunaParaIndice($mapeamento['nome'])]) ? trim($linha[colunaParaIndice($mapeamento['nome'])]) : '';
-                $fornecedor = isset($linha[colunaParaIndice($mapeamento['fornecedor'])]) ? trim($linha[colunaParaIndice($mapeamento['fornecedor'])]) : '';
-                $localidade = isset($linha[colunaParaIndice($mapeamento['localidade'])]) ? trim($linha[colunaParaIndice($mapeamento['localidade'])]) : '';
-                $conta = isset($linha[colunaParaIndice($mapeamento['conta'])]) ? trim($linha[colunaParaIndice($mapeamento['conta'])]) : '';
-                $numero_documento = isset($linha[colunaParaIndice($mapeamento['numero_documento'])]) ? trim($linha[colunaParaIndice($mapeamento['numero_documento'])]) : '';
-                $dependencia = isset($linha[colunaParaIndice($mapeamento['dependencia'])]) ? trim($linha[colunaParaIndice($mapeamento['dependencia'])]) : '';
+                // Obter outros valores com correção de encoding
+                $nome = isset($linha[colunaParaIndice($mapeamento['nome'])]) ? corrigirEncoding(trim($linha[colunaParaIndice($mapeamento['nome'])])) : '';
+                $fornecedor = isset($linha[colunaParaIndice($mapeamento['fornecedor'])]) ? corrigirEncoding(trim($linha[colunaParaIndice($mapeamento['fornecedor'])])) : '';
+                $localidade = isset($linha[colunaParaIndice($mapeamento['localidade'])]) ? corrigirEncoding(trim($linha[colunaParaIndice($mapeamento['localidade'])])) : '';
+                $conta = isset($linha[colunaParaIndice($mapeamento['conta'])]) ? corrigirEncoding(trim($linha[colunaParaIndice($mapeamento['conta'])])) : '';
+                $numero_documento = isset($linha[colunaParaIndice($mapeamento['numero_documento'])]) ? corrigirEncoding(trim($linha[colunaParaIndice($mapeamento['numero_documento'])])) : '';
+                $dependencia = isset($linha[colunaParaIndice($mapeamento['dependencia'])]) ? corrigirEncoding(trim($linha[colunaParaIndice($mapeamento['dependencia'])])) : '';
                 
                 // Processar data
                 $data_aquisicao = null;
@@ -156,7 +170,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $valor_aquisicao = converterValor(isset($linha[colunaParaIndice($mapeamento['valor_aquisicao'])]) ? $linha[colunaParaIndice($mapeamento['valor_aquisicao'])] : '');
                 $valor_depreciacao = converterValor(isset($linha[colunaParaIndice($mapeamento['valor_depreciacao'])]) ? $linha[colunaParaIndice($mapeamento['valor_depreciacao'])] : '');
                 $valor_atual = converterValor(isset($linha[colunaParaIndice($mapeamento['valor_atual'])]) ? $linha[colunaParaIndice($mapeamento['valor_atual'])] : '');
-                $status = isset($linha[colunaParaIndice($mapeamento['status'])]) ? trim($linha[colunaParaIndice($mapeamento['status'])]) : '';
+                $status = isset($linha[colunaParaIndice($mapeamento['status'])]) ? corrigirEncoding(trim($linha[colunaParaIndice($mapeamento['status'])])) : '';
 
                 // Debug: mostrar dados que serão inseridos
                 error_log("Linha {$linha_atual}: Código: {$codigo}, Nome: {$nome}");
