@@ -1,3 +1,11 @@
+<?php
+$id_planilha = $_GET['id_planilha'] ?? null;
+
+if (!$id_planilha) {
+    header('Location: ../index.php');
+    exit;
+}
+?>
 <!DOCTYPE html>
 <html lang="pt-br">
 
@@ -17,7 +25,7 @@
     </header>
     <section class="conteudo">
         <nav class="menu">
-            <a class="opcao op1" href="read-produto.php">Cadastrar Produto</a>
+            <a class="opcao op1" href="../CRUD/READ/produto.php?id_planilha=<?php echo $id_planilha; ?>"">Cadastrar Produto</a>
             <a class="opcao op2" href="#">Em Desenvolvimento</a>
             <a class="opcao op3" href="#">Em Desenvolvimento</a>
             <a class="opcao op4" href="#">Em Desenvolvimento</a>
