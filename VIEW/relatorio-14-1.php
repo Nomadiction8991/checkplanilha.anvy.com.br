@@ -142,7 +142,7 @@ require_once '../CRUD/READ/relatorio-14-1.php';
     <tr class="row9">
         <td class="col1" colspan="4">
             <textarea name="descricao_bem" id="descricao_bem_<?php echo $row['id']; ?>" readonly 
-                style="background-color: #f0f0f0; width: 100%; height: auto; min-height: 40px; border: 1px solid #ccc; padding: 5px; resize: none; font-family: inherit; font-size: inherit; white-space: pre-wrap; word-wrap: break-word;"><?php 
+            ><?php 
                 echo htmlspecialchars($row['tipo_codigo'] . ' - ' . $row['tipo_descricao']);
                 echo ' [' . htmlspecialchars($row['tipo_ben']) . ']';
                 echo ' ' . htmlspecialchars($row['complemento']);
