@@ -34,8 +34,5 @@ $stmt->bindValue(':id_planilha', $id_planilha);
 $stmt->execute();
 $produtos = $stmt->fetchAll();
 
-// Fechar conexão
-$conexao->close();
-
 // As variáveis $produtos e $comum_planilha estarão disponíveis para o HTML
 ?>
