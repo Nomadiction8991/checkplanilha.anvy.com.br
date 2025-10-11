@@ -1,5 +1,3 @@
-[file name]: menu-create.css
-[file content begin]
 * {
     margin: 0;
     padding: 0;
@@ -15,49 +13,41 @@ body {
 
 .cabecalho {
     background: #007bff;
-    padding: 12px 15px;
+    padding: 15px 20px;
     color: #fff;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 15px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    position: fixed;
+    position: sticky;
     top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-    height: 60px;
+    z-index: 100;
+    height: 55px;
 }
 
-.titulo {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+.cabecalho h1 {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0;
 }
 
 .voltar {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    transition: background-color 0.3s;
-    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 6px;
+    transition: background-color 0.2s;
 }
 
 .voltar:hover {
     background-color: rgba(255, 255, 255, 0.2);
 }
 
-.cabecalho h1 {
-    font-size: 18px;
-    font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 200px;
-    flex-shrink: 1;
+.voltar svg {
+    width: 28px;
+    height: 28px;
 }
 
 /* Conteúdo Principal */
@@ -65,7 +55,6 @@ body {
     padding: 20px;
     max-width: 100%;
     margin: 0 auto;
-    margin-top: 80px; /* Adicionado para compensar o cabeçalho fixo */
 }
 
 .menu {
@@ -149,30 +138,3 @@ body {
 .op5:hover {
     background: linear-gradient(135deg, #f5c2c7, #f1a8af);
 }
-@media (max-width: 480px) {
-    .cabecalho {
-        padding: 10px 12px;
-        height: 55px;
-    }
-    
-    .cabecalho h1 {
-        font-size: 16px;
-        max-width: 150px;
-    }
-    
-    .voltar {
-        width: 32px;
-        height: 32px;
-    }
-    
-    .voltar svg {
-        width: 36px;
-        height: 36px;
-    }
-    
-    .conteudo {
-        margin-top: 75px;
-        padding: 15px;
-    }
-}
-[file content end]
