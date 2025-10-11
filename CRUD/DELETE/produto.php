@@ -1,5 +1,5 @@
 <?php
-require_once '../conexao.php';
+require_once '../CRUD/conexao.php';
 
 $id_produto = $_GET['id'] ?? null;
 $id_planilha = $_GET['id_planilha'] ?? null;

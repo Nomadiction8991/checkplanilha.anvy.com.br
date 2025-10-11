@@ -1,5 +1,5 @@
 <?php
-require_once 'conexao.php';
+require_once '../CRUD/conexao.php';
 require_once 'vendor/autoload.php';
 
 use PhpOffice\PhpSpreadsheet\IOFactory;

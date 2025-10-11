@@ -65,6 +65,26 @@ require_once 'CRUD/READ/index.php';
         </form>
     </section>
 
+    <!-- Legenda -->
+    <section class="legenda">
+        <div class="item-legenda">
+            <span class="cor-legenda cor-inativo"></span>
+            <span>Inativo</span>
+        </div>
+        <div class="item-legenda">
+            <span class="cor-legenda cor-concluido"></span>
+            <span>Concluído</span>
+        </div>
+        <div class="item-legenda">
+            <span class="cor-legenda cor-pendente"></span>
+            <span>Pendente</span>
+        </div>
+        <div class="item-legenda">
+            <span class="cor-legenda cor-andamento"></span>
+            <span>Em Andamento</span>
+        </div>
+    </section>
+
     <section class="conteudo">
         <table>
             <thead>
@@ -77,7 +97,30 @@ require_once 'CRUD/READ/index.php';
             <tbody>
                 <?php if (count($planilhas) > 0): ?>
                     <?php foreach ($planilhas as $planilha): ?>
-                    <tr class="<?php echo $planilha['ativo'] == 0 ? 'inativo' : ''; ?>">
+                    <?php
+                    // Determinar as classes CSS baseadas no status e ativo
+                    $classes = [];
+                    if ($planilha['ativo'] == 0) {
+                        $classes[] = 'inativo';
+                    } else {
+                        // Aplica cores apenas se estiver ativo
+                        switch (strtolower($planilha['status'])) {
+                            case 'concluido':
+                            case 'concluído':
+                                $classes[] = 'concluido';
+                                break;
+                            case 'pendente':
+                                $classes[] = 'pendente';
+                                break;
+                            case 'andamento':
+                            case 'em andamento':
+                                $classes[] = 'andamento';
+                                break;
+                        }
+                    }
+                    $class_string = implode(' ', $classes);
+                    ?>
+                    <tr class="<?php echo $class_string; ?>">
                         <td class="centered"><?php echo htmlspecialchars($planilha['comum']); ?></td>
                         <td class="centered"><?php echo ucfirst($planilha['status']); ?></td>
                         <td class="centered">

@@ -158,6 +158,52 @@ body {
     background: #0056b3;
 }
 
+/* LEGENDA */
+.legenda {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    padding: 10px 15px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #eee;
+    flex-wrap: wrap;
+}
+
+.item-legenda {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #555;
+}
+
+.cor-legenda {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    display: inline-block;
+}
+
+.cor-inativo {
+    background-color: #ffcccc;
+    border: 1px solid #ff9999;
+}
+
+.cor-concluido {
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+}
+
+.cor-pendente {
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+}
+
+.cor-andamento {
+    background-color: #cce7ff;
+    border: 1px solid #99ceff;
+}
+
 .conteudo {
     padding: 15px;
     width: 100%;
@@ -235,13 +281,37 @@ tbody tr:hover {
     background-color: #f8f9fa;
 }
 
-/* Linhas inativas - fundo vermelho claro */
+/* CORES POR STATUS - INATIVO SOBREPÕE TODOS */
 tr.inativo {
     background-color: #ffe6e6 !important;
 }
 
 tr.inativo:hover {
     background-color: #ffd6d6 !important;
+}
+
+tr.concluido:not(.inativo) {
+    background-color: #d4edda !important;
+}
+
+tr.concluido:not(.inativo):hover {
+    background-color: #c3e6cb !important;
+}
+
+tr.pendente:not(.inativo) {
+    background-color: #fff3cd !important;
+}
+
+tr.pendente:not(.inativo):hover {
+    background-color: #ffeaa7 !important;
+}
+
+tr.andamento:not(.inativo) {
+    background-color: #cce7ff !important;
+}
+
+tr.andamento:not(.inativo):hover {
+    background-color: #99ceff !important;
 }
 
 /* Container para ações */
@@ -425,6 +495,15 @@ td:nth-child(1) {
         height: 32px;
         font-size: 12px;
     }
+    
+    .legenda {
+        gap: 10px;
+        padding: 8px 10px;
+    }
+    
+    .item-legenda {
+        font-size: 11px;
+    }
 }
 
 /* Celulares - 1 coluna */
@@ -510,6 +589,17 @@ td:nth-child(1) {
         font-size: 16px;
         max-width: 100%;
         box-sizing: border-box;
+    }
+    
+    .legenda {
+        flex-direction: column;
+        gap: 5px;
+        align-items: center;
+        padding: 8px;
+    }
+    
+    .item-legenda {
+        font-size: 10px;
     }
 }
 
