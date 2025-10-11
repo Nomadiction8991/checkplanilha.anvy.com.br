@@ -94,11 +94,31 @@ try {
     $stmt->execute();
     $produtos = $stmt->fetchAll();
     
-    // Calcular total de páginas
-    $total_paginas = ceil($total_registros / $produtos_por_paginas);
+    // Calcular total de páginas - CORREÇÃO AQUI: usar $produtos_por_pagina (sem 's')
+    $total_paginas = ceil($total_registros / $produtos_por_pagina);
     
 } catch (Exception $e) {
     die("Erro ao carregar produtos: " . $e->getMessage());
+}
+
+// Função para gerar parâmetros de filtro para URLs
+function gerarParametrosFiltro($incluirPagina = false) {
+    $params = [];
+    
+    if (!empty($_GET['pesquisa_id'])) {
+        $params['pesquisa_id'] = $_GET['pesquisa_id'];
+    }
+    if (!empty($_GET['pesquisa_descricao'])) {
+        $params['pesquisa_descricao'] = $_GET['pesquisa_descricao'];
+    }
+    if (!empty($_GET['filtro_status'])) {
+        $params['filtro_status'] = $_GET['filtro_status'];
+    }
+    if ($incluirPagina && !empty($_GET['pagina'])) {
+        $params['pagina'] = $_GET['pagina'];
+    }
+    
+    return http_build_query($params);
 }
 
 // As variáveis estarão disponíveis para o HTML

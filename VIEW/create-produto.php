@@ -30,3 +30,22 @@ if (!$id_planilha) {
     </section>
 </body>
 </html>
+
+// Após a operação (criação, edição ou exclusão), redirecionar de volta mantendo os filtros
+$parametros_retorno = '';
+if (!empty($_GET['pesquisa_id'])) {
+    $parametros_retorno .= '&pesquisa_id=' . urlencode($_GET['pesquisa_id']);
+}
+if (!empty($_GET['pesquisa_descricao'])) {
+    $parametros_retorno .= '&pesquisa_descricao=' . urlencode($_GET['pesquisa_descricao']);
+}
+if (!empty($_GET['filtro_status'])) {
+    $parametros_retorno .= '&filtro_status=' . urlencode($_GET['filtro_status']);
+}
+if (!empty($_GET['pagina'])) {
+    $parametros_retorno .= '&pagina=' . urlencode($_GET['pagina']);
+}
+
+// No redirecionamento, use:
+header('Location: read-produto.php?id_planilha=' . $id_planilha . $parametros_retorno);
+exit;
