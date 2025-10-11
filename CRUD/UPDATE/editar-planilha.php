@@ -1,9 +1,9 @@
 <?php
-require_once '../CRUD/conexao.php';
-require_once '../vendor/autoload.php';
+require_once '../conexao.php';
+require_once '../../vendor/autoload.php';
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
-use PhpOffice\PhpSpreadsheet\Shared\Date;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 
 $id_planilha = $_GET['id'] ?? null;
 $mensagem = '';
@@ -54,7 +54,7 @@ try {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $ativo = isset($_POST['ativo']) ? 1 : 0;
     $linhas_pular = (int)($_POST['linhas_pular'] ?? 25);
-    $localizacao_comum = trim($_POST['localizacao_comum'] ?? 'D16'); // Nome corrigido
+    $localizacao_comum = trim($_POST['localizacao_comum'] ?? 'D16');
     
     // Mapeamento simplificado
     $mapeamento = [
@@ -86,30 +86,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $planilha_obj = IOFactory::load($arquivo_tmp);
             $aba_ativa = $planilha_obj->getActiveSheet();
             
-            // Função para converter referência de célula (ex: D16) para coordenadas
-            function referenciaParaCoordenadas($referencia) {
-                preg_match('/([A-Z]+)(\d+)/', $referencia, $matches);
-                if (count($matches) !== 3) {
-                    throw new Exception('Formato de referência de célula inválido: ' . $referencia);
-                }
-                
-                $coluna = $matches[1];
-                $linha = (int)$matches[2];
-                
-                // Converter coluna para índice (A=0, B=1, etc.)
-                $indice_coluna = 0;
-                $tamanho = strlen($coluna);
-                for ($i = 0; $i < $tamanho; $i++) {
-                    $indice_coluna = $indice_coluna * 26 + (ord($coluna[$i]) - ord('A') + 1);
-                }
-                $indice_coluna--; // Ajustar para base 0
-                
-                return ['coluna' => $indice_coluna, 'linha' => $linha - 1]; // Ajustar linha para base 0
-            }
-
-            // Obter o valor da célula comum
-            $coordenadas_comum = referenciaParaCoordenadas($localizacao_comum);
-            $novo_valor_comum = $aba_ativa->getCellByColumnAndRow($coordenadas_comum['coluna'] + 1, $coordenadas_comum['linha'] + 1)->getValue();
+            // Obter o valor da célula comum usando o método correto
+            $novo_valor_comum = $aba_ativa->getCell($localizacao_comum)->getCalculatedValue();
             
             if (empty($novo_valor_comum)) {
                 throw new Exception('A célula ' . $localizacao_comum . ' está vazia no arquivo CSV.');
