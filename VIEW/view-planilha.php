@@ -1,5 +1,11 @@
 <?php
-// Inclui o arquivo PHP que contém a lógica
+$id_planilha = $_GET['id_planilha'] ?? null;
+
+if (!$id_planilha) {
+    header('Location: ../index.php');
+    exit;
+}
+
 require_once '../CRUD/READ/view-planilha.php';
 ?>
 
