@@ -10,7 +10,42 @@ require_once '../CRUD/DELETE/produto.php';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Excluir Produto</title>
     <link rel="stylesheet" href="../STYLE/create-produto.css">
-    <link rel="stylesheet" href="../STYLE/delete-produto.css">
+    <style>
+        .form-control:disabled {
+            background-color: #f8f9fa;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        
+        .checkbox-item input:disabled {
+            cursor: not-allowed;
+        }
+        
+        .checkbox-item label {
+            cursor: default;
+        }
+        
+        .btn-delete {
+            background: #dc3545;
+        }
+        
+        .btn-delete:hover {
+            background: #c82333;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        }
+        
+        .warning-message {
+            background: #fff3cd;
+            color: #856404;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border: 1px solid #ffeaa7;
+            text-align: center;
+            font-weight: 600;
+        }
+    </style>
 </head>
 <body>
     <header class="cabecalho">
@@ -76,7 +111,7 @@ require_once '../CRUD/DELETE/produto.php';
                 </div>
                 
                 <div class="form-group">
-                    <label for="id_dependencia">Dependência</label>
+                    <label for="id_dependencia" class="required">Dependência</label>
                     <select id="id_dependencia" name="id_dependencia" class="form-control select" disabled>
                         <option value="">Selecione uma dependência</option>
                         <?php if (!empty($produto['id_dependencia'])): ?>
@@ -95,8 +130,8 @@ require_once '../CRUD/DELETE/produto.php';
                             <label for="possui_nota">Possui Nota</label>
                         </div>
                         <div class="checkbox-item">
-                            <input type="checkbox" id="imprimir_doacao" name="imprimir_doacao" value="1" <?php echo ($produto['imprimir_doacao'] == 1) ? 'checked' : ''; ?> disabled>
-                            <label for="imprimir_doacao">Imprimir Doação</label>
+                            <input type="checkbox" id="imprimir_14_1" name="imprimir_14_1" value="1" <?php echo ($produto['imprimir_14_1'] == 1) ? 'checked' : ''; ?> disabled>
+                            <label for="imprimir_14_1">Imprimir 14.1</label>
                         </div>
                     </div>
                 </div>

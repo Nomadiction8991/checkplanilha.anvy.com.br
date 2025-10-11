@@ -1,11 +1,4 @@
 <?php
-$id_planilha = $_GET['id_planilha'] ?? null;
-
-if (!$id_planilha) {
-    header('Location: menu-create.php');
-    exit;
-}
-
 // Inclui o arquivo PHP que contém a lógica do create
 require_once '../CRUD/CREATE/produto.php';
 ?>
@@ -15,7 +8,7 @@ require_once '../CRUD/CREATE/produto.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadastrar Produto</title>
+    <title>Create Produto</title>
     <link rel="stylesheet" href="../STYLE/create-produto.css">
 </head>
 <body>
@@ -24,7 +17,7 @@ require_once '../CRUD/CREATE/produto.php';
             <a href="read-produto.php?id_planilha=<?php echo $id_planilha; ?>&<?php echo gerarParametrosFiltro(); ?>" class="voltar">
                 <svg xmlns="http://www.w3.org/2000/svg" height="48px" viewBox="0 -960 960 960" width="48px"fill="#FFFFFF"><path d="m274-450 248 248-42 42-320-320 320-320 42 42-248 248h526v60H274Z" /></svg>
             </a>
-            <h1>Cadastrar Produto</h1>
+            <h1>Create Produto</h1>
         </section>
     </header>
     
@@ -69,17 +62,17 @@ require_once '../CRUD/CREATE/produto.php';
                               rows="3" placeholder="Digite o complemento do produto" required><?php echo htmlspecialchars($_POST['complemento'] ?? ''); ?></textarea>
                 </div>
                 
-<div class="form-group">
-    <label for="id_dependencia" class="required">Dependência</label>
-    <select id="id_dependencia" name="id_dependencia" class="form-control select" required>
-        <option value="">Selecione uma dependência</option>
-        <?php foreach ($dependencias as $dep): ?>
-            <option value="<?php echo $dep['id']; ?>" <?php echo (isset($_POST['id_dependencia']) && $_POST['id_dependencia'] == $dep['id']) ? 'selected' : ''; ?>>
-                <?php echo htmlspecialchars($dep['descricao']); ?>
-            </option>
-        <?php endforeach; ?>
-    </select>
-</div>
+                <div class="form-group">
+                    <label for="id_dependencia" class="required">Dependência</label>
+                    <select id="id_dependencia" name="id_dependencia" class="form-control select" required>
+                        <option value="">Selecione uma dependência</option>
+                        <?php foreach ($dependencias as $dep): ?>
+                            <option value="<?php echo $dep['id']; ?>" <?php echo (isset($_POST['id_dependencia']) && $_POST['id_dependencia'] == $dep['id']) ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($dep['descricao']); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
                 
                 <div class="form-group">
                     <label>Status</label>
@@ -88,10 +81,10 @@ require_once '../CRUD/CREATE/produto.php';
                             <input type="checkbox" id="possui_nota" name="possui_nota" value="1" <?php echo (isset($_POST['possui_nota']) && $_POST['possui_nota'] == 1) ? 'checked' : ''; ?>>
                             <label for="possui_nota">Possui Nota</label>
                         </div>
- <div class="checkbox-item">
-    <input type="checkbox" id="imprimir_14_1" name="imprimir_14_1" value="1" <?php echo (isset($_POST['imprimir_14_1']) && $_POST['imprimir_14_1'] == 1) ? 'checked' : ''; ?>>
-    <label for="imprimir_14_1">Imprimir 14.1</label>
-</div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="imprimir_14_1" name="imprimir_14_1" value="1" <?php echo (isset($_POST['imprimir_14_1']) && $_POST['imprimir_14_1'] == 1) ? 'checked' : ''; ?>>
+                            <label for="imprimir_14_1">Imprimir 14.1</label>
+                        </div>
                     </div>
                 </div>
                 

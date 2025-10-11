@@ -5,7 +5,7 @@ $id_produto = $_GET['id'] ?? null;
 $id_planilha = $_GET['id_planilha'] ?? null;
 
 if (!$id_produto || !$id_planilha) {
-    header('Location: ../../VIEW/menu-create.php');
+    header('Location: ../VIEW/menu-create.php');
     exit;
 }
 
