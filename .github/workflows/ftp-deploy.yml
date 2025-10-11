@@ -33,10 +33,15 @@ jobs:
           state-name: ftp-state-dev.json
           log-level: verbose
           exclude: |
+            **/.git/**
             **/.git*
             **/.github/**
             **/node_modules/**
             **/*.md
+            **/.env*
+            **/docker-compose*
+            **/README*
+            **/LICENSE*
 
   deploy-prod:
     name: Deploy PROD
@@ -59,7 +64,12 @@ jobs:
           state-name: ftp-state-prod.json
           log-level: verbose
           exclude: |
+            **/.git/**
             **/.git*
             **/.github/**
             **/node_modules/**
             **/*.md
+            **/.env*
+            **/docker-compose*
+            **/README*
+            **/LICENSE*
