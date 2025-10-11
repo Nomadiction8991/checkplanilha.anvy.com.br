@@ -284,7 +284,7 @@ table tbody tr td a{
                         <td><?php echo htmlspecialchars($planilha['descricao']); ?></td>
                         <td><?php echo ucfirst($planilha['status']); ?></td>
                         <td>
-                            <a href="visualizar_planilha.php?id=<?php echo $planilha['id']; ?>">
+                            <a href="VIEW/view-planilha.php?id=<?php echo $planilha['id']; ?>">
                                 🔍
                             </a>
                             <a href="editar_planilha.php?id=<?php echo $planilha['id']; ?>">
