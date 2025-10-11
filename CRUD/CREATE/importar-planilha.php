@@ -64,13 +64,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $mapeamento_string = rtrim($mapeamento_string, ';');
 
-        $sql_config = "INSERT INTO config_planilha (id_planilha, pulo_linhas, mapeamento_colunas, localizacao_comum) 
-                      VALUES (:id_planilha, :pulo_linhas, :mapeamento_colunas, :localizacao_comum)";
+        // CORREÇÃO: Usar 'comum' em vez de 'localizacao_comum'
+        $sql_config = "INSERT INTO config_planilha (id_planilha, pulo_linhas, mapeamento_colunas, comum) 
+                      VALUES (:id_planilha, :pulo_linhas, :mapeamento_colunas, :comum)";
         $stmt_config = $conexao->prepare($sql_config);
         $stmt_config->bindValue(':id_planilha', $id_planilha);
         $stmt_config->bindValue(':pulo_linhas', $linhas_pular);
         $stmt_config->bindValue(':mapeamento_colunas', $mapeamento_string);
-        $stmt_config->bindValue(':localizacao_comum', $localizacao_comum);
+        $stmt_config->bindValue(':comum', $localizacao_comum); // Aqui salva a localização (ex: D16)
         $stmt_config->execute();
 
         // Processar as linhas de dados do CSV

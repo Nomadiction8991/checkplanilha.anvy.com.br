@@ -1,6 +1,6 @@
 <?php
-require_once '../conexao.php';
-require_once '../../vendor/autoload.php';
+require_once '../CRUD/conexao.php';
+require_once '../vendor/autoload.php';
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
@@ -208,11 +208,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $mapeamento_string = rtrim($mapeamento_string, ';');
 
-        $sql_update_config = "UPDATE config_planilha SET pulo_linhas = :pulo_linhas, mapeamento_colunas = :mapeamento_colunas, localizacao_comum = :localizacao_comum WHERE id_planilha = :id_planilha";
+        // CORREÇÃO: Usar 'comum' em vez de 'localizacao_comum'
+        $sql_update_config = "UPDATE config_planilha SET pulo_linhas = :pulo_linhas, mapeamento_colunas = :mapeamento_colunas, comum = :comum WHERE id_planilha = :id_planilha";
         $stmt_update_config = $conexao->prepare($sql_update_config);
         $stmt_update_config->bindValue(':pulo_linhas', $linhas_pular);
         $stmt_update_config->bindValue(':mapeamento_colunas', $mapeamento_string);
-        $stmt_update_config->bindValue(':localizacao_comum', $localizacao_comum);
+        $stmt_update_config->bindValue(':comum', $localizacao_comum); // Aqui salva a localização (ex: D16)
         $stmt_update_config->bindValue(':id_planilha', $id_planilha);
         $stmt_update_config->execute();
 

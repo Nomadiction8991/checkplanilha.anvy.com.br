@@ -69,7 +69,7 @@ require_once '../CRUD/UPDATE/editar-planilha.php';
                     <div class="form-group">
                         <label for="localizacao_comum">Localização da Célula Comum:</label>
                         <input type="text" id="localizacao_comum" name="localizacao_comum" 
-                               value="<?php echo htmlspecialchars($config['localizacao_comum'] ?? 'D16'); ?>" 
+                               value="<?php echo htmlspecialchars($config['comum'] ?? 'D16'); ?>" 
                                required placeholder="Ex: D16">
                         <small>Localização da célula no arquivo CSV que contém o valor comum (ex: D16)</small>
                     </div>
