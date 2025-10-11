@@ -20,11 +20,48 @@ require_once '../CRUD/READ/produto.php';
             <h1>Read Produtos</h1>
         </section>
         <section class="acoes">
-            <a href="../CREATE/create-produto.php?id_planilha=<?php echo $id_planilha; ?>">
+            <a href="create-produto.php?id_planilha=<?php echo $id_planilha; ?>">
                 <svg xmlns="http://www.w3.org/2000/svg" height="48px" viewBox="0 -960 960 960" width="48px" fill="#FFFFFF"><path d="M450-450H200v-60h250v-250h60v250h250v60H510v250h-60v-250Z"/></svg>
             </a>
         </section>
     </header>
+
+    <!-- Seção de Pesquisa -->
+    <section class="pesquisa-container">
+        <form method="GET" class="form-pesquisa">
+            <input type="hidden" name="id_planilha" value="<?php echo $id_planilha; ?>">
+            
+            <div class="campo-pesquisa">
+                <label for="pesquisa_id">ID</label>
+                <input type="number" id="pesquisa_id" name="pesquisa_id" value="<?php echo htmlspecialchars($pesquisa_id); ?>" placeholder="Digite o ID">
+            </div>
+            
+            <div class="campo-pesquisa">
+                <label for="pesquisa_descricao">Descrição</label>
+                <input type="text" id="pesquisa_descricao" name="pesquisa_descricao" value="<?php echo htmlspecialchars($pesquisa_descricao); ?>" placeholder="Pesquisar na descrição">
+            </div>
+            
+            <div class="campo-pesquisa">
+                <label for="filtro_status">Status</label>
+                <select id="filtro_status" name="filtro_status">
+                    <option value="">Todos</option>
+                    <option value="com_nota" <?php echo $filtro_status === 'com_nota' ? 'selected' : ''; ?>>Com Nota</option>
+                    <option value="com_doacao" <?php echo $filtro_status === 'com_doacao' ? 'selected' : ''; ?>>Com Doação</option>
+                    <option value="sem_status" <?php echo $filtro_status === 'sem_status' ? 'selected' : ''; ?>>Sem Status</option>
+                </select>
+            </div>
+            
+            <div class="botao-pesquisa">
+                <button type="submit" class="btn-filtrar">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#FFFFFF">
+                        <path d="M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z"/>
+                    </svg>
+                    Filtrar
+                </button>
+            </div>
+        </form>
+    </section>
+
     <section class="conteudo">
         <table>
             <thead>
@@ -82,12 +119,59 @@ require_once '../CRUD/READ/produto.php';
                 <?php else: ?>
                     <tr>
                         <td colspan="4" style="text-align: center; padding: 20px;">
-                            Nenhum produto cadastrado para esta planilha.
+                            <?php echo ($pesquisa_id || $pesquisa_descricao || $filtro_status) ? 
+                                'Nenhum produto encontrado com os filtros aplicados.' : 
+                                'Nenhum produto cadastrado para esta planilha.'; ?>
                         </td>
                     </tr>
                 <?php endif; ?>
             </tbody>
         </table>
+
+        <!-- Paginação -->
+        <?php if ($total_paginas > 1): ?>
+        <div class="paginacao">
+            <?php
+            // Calcular páginas para mostrar
+            $pagina_inicial = max(1, $pagina - 1);
+            $pagina_final = min($total_paginas, $pagina + 1);
+            
+            // Ajustar para mostrar sempre 3 páginas quando possível
+            if ($pagina_final - $pagina_inicial < 2) {
+                if ($pagina_inicial == 1 && $total_paginas >= 3) {
+                    $pagina_final = 3;
+                } elseif ($pagina_final == $total_paginas && $total_paginas >= 3) {
+                    $pagina_inicial = $total_paginas - 2;
+                }
+            }
+            ?>
+
+            <!-- Primeira página -->
+            <?php if ($pagina > 2): ?>
+                <a href="?id_planilha=<?php echo $id_planilha; ?>&pagina=1&pesquisa_id=<?php echo $pesquisa_id; ?>&pesquisa_descricao=<?php echo urlencode($pesquisa_descricao); ?>&filtro_status=<?php echo $filtro_status; ?>" class="pagina-item icone">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="currentColor">
+                        <path d="M440-240 200-480l240-240 56 56-183 184 183 184-56 56Zm264 0L464-480l240-240 56 56-183 184 183 184-56 56Z"/>
+                    </svg>
+                </a>
+            <?php endif; ?>
+
+            <!-- Páginas numeradas -->
+            <?php for ($i = $pagina_inicial; $i <= $pagina_final; $i++): ?>
+                <a href="?id_planilha=<?php echo $id_planilha; ?>&pagina=<?php echo $i; ?>&pesquisa_id=<?php echo $pesquisa_id; ?>&pesquisa_descricao=<?php echo urlencode($pesquisa_descricao); ?>&filtro_status=<?php echo $filtro_status; ?>" class="pagina-item <?php echo $i == $pagina ? 'ativa' : ''; ?>">
+                    <?php echo $i; ?>
+                </a>
+            <?php endfor; ?>
+
+            <!-- Última página -->
+            <?php if ($pagina < $total_paginas - 1): ?>
+                <a href="?id_planilha=<?php echo $id_planilha; ?>&pagina=<?php echo $total_paginas; ?>&pesquisa_id=<?php echo $pesquisa_id; ?>&pesquisa_descricao=<?php echo urlencode($pesquisa_descricao); ?>&filtro_status=<?php echo $filtro_status; ?>" class="pagina-item icone">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="currentColor">
+                        <path d="M383-480 200-664l56-56 240 240-240 240-56-56 183-184Zm264 0L464-664l56-56 240 240-240 240-56-56 183-184Z"/>
+                    </svg>
+                </a>
+            <?php endif; ?>
+        </div>
+        <?php endif; ?>
     </section>
 </body>
 </html>

@@ -71,11 +71,80 @@ body {
     background-color: rgba(255, 255, 255, 0.2);
 }
 
-.conteudo {
+/* SEÇÃO DE PESQUISA */
+.pesquisa-container {
+    background: #fff;
     padding: 15px;
     margin-top: 60px;
+    border-bottom: 1px solid #eee;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.form-pesquisa {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    align-items: end;
+}
+
+.campo-pesquisa {
+    display: flex;
+    flex-direction: column;
+}
+
+.campo-pesquisa label {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: #555;
+}
+
+.campo-pesquisa input,
+.campo-pesquisa select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    background: #fff;
+}
+
+.campo-pesquisa input:focus,
+.campo-pesquisa select:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
+.botao-pesquisa {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: center;
+    margin-top: 5px;
+}
+
+.btn-filtrar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.btn-filtrar:hover {
+    background: #0056b3;
+}
+
+.conteudo {
+    padding: 15px;
     width: 100%;
-    overflow-x: auto; /* Permite scroll horizontal se necessário */
+    overflow-x: auto;
 }
 
 table {
@@ -86,7 +155,7 @@ table {
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     font-size: 12px;
-    min-width: 500px; /* Largura mínima para manter as colunas */
+    min-width: 500px;
 }
 
 /* Cabeçalho visível em mobile */
@@ -208,6 +277,64 @@ tbody tr:hover {
     background: rgba(234, 51, 35, 0.1);
 }
 
+/* PAGINAÇÃO */
+.paginacao {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 20px;
+    padding: 15px;
+}
+
+.pagina-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: #fff;
+    color: #333;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.pagina-item:hover {
+    background: #f8f9fa;
+    border-color: #007bff;
+}
+
+.pagina-item.ativa {
+    background: #007bff;
+    color: #fff;
+    border-color: #007bff;
+}
+
+.pagina-item.icone {
+    background: transparent;
+    border: none;
+    color: #5985E1;
+}
+
+.pagina-item.icone:hover {
+    background: rgba(89, 133, 225, 0.1);
+}
+
+.pagina-item.desabilitada {
+    color: #ccc;
+    cursor: not-allowed;
+}
+
+.pagina-item.desabilitada:hover {
+    background: #fff;
+    border-color: #ddd;
+}
+
 /* Mensagem de lista vazia */
 td[colspan] {
     text-align: center;
@@ -221,13 +348,22 @@ td:nth-child(2) {
     word-wrap: break-word;
     overflow-wrap: break-word;
     line-height: 1.3;
-    text-align: center; /* Centraliza o texto da descrição */
+    text-align: center;
 }
 
 /* Ajustes para telas muito pequenas */
 @media (max-width: 480px) {
     .conteudo {
         padding: 10px 8px;
+    }
+    
+    .pesquisa-container {
+        padding: 10px;
+    }
+    
+    .form-pesquisa {
+        grid-template-columns: 1fr;
+        gap: 8px;
     }
     
     table {
@@ -256,5 +392,16 @@ td:nth-child(2) {
     .status-container,
     .acoes-container {
         gap: 6px;
+    }
+    
+    .paginacao {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    
+    .pagina-item {
+        min-width: 32px;
+        height: 32px;
+        font-size: 12px;
     }
 }
