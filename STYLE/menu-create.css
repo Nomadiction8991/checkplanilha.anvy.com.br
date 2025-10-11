@@ -86,19 +86,19 @@ body {
 
 /* Cores diferentes para cada opção */
 .op1 {
-    background: linear-gradient(135deg, #a3fab7ff, #8df5a8);
-    border-color: #28a745;
-    color: #155724;
+    background: linear-gradient(135deg, #a3d3faff, #8bc5ff);
+    border-color: #007bff;
+    color: #004085;
 }
 
 .op2 {
-    background: linear-gradient(135deg, #ffe8a7ff, #ffdf8e);
-    border-color: #ffc107;
-    color: #856404;
+    background: linear-gradient(135deg, #f8d7daff, #f5c2c7);
+    border-color: #dc3545;
+    color: #721c24;
 }
 
 .op3 {
-    background: linear-gradient(135deg, #a3d3faff, #8bc5ff);
+    background: linear-gradient(135deg, #f8d7daff, #f5c2c7);
     border-color: #007bff;
     color: #004085;
 }
@@ -110,9 +110,9 @@ body {
 }
 
 .op5 {
-    background: linear-gradient(135deg, #e2e3e5ff, #d6d8db);
-    border-color: #6c757d;
-    color: #383d41;
+    background: linear-gradient(135deg, #f8d7daff, #f5c2c7);
+    border-color: #dc3545;
+    color: #721c24;
 }
 
 /* Efeitos hover */
