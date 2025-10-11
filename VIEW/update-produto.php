@@ -63,8 +63,8 @@ require_once '../CRUD/UPDATE/produto.php';
                 </div>
                 
                 <div class="form-group">
-                    <label for="id_dependencia">Dependência</label>
-                    <select id="id_dependencia" name="id_dependencia" class="form-control select">
+                    <label for="id_dependencia" class="required">Dependência</label>
+                    <select id="id_dependencia" name="id_dependencia" class="form-control select" required>
                         <option value="">Selecione uma dependência</option>
                         <?php foreach ($dependencias as $dep): ?>
                             <option value="<?php echo $dep['id']; ?>" <?php echo ($produto['id_dependencia'] == $dep['id']) ? 'selected' : ''; ?>>
@@ -82,8 +82,8 @@ require_once '../CRUD/UPDATE/produto.php';
                             <label for="possui_nota">Possui Nota</label>
                         </div>
                         <div class="checkbox-item">
-                            <input type="checkbox" id="imprimir_doacao" name="imprimir_doacao" value="1" <?php echo ($produto['imprimir_doacao'] == 1) ? 'checked' : ''; ?>>
-                            <label for="imprimir_doacao">Imprimir Doação</label>
+                            <input type="checkbox" id="imprimir_14_1" name="imprimir_14_1" value="1" <?php echo ($produto['imprimir_14_1'] == 1) ? 'checked' : ''; ?>>
+                            <label for="imprimir_14_1">Imprimir 14.1</label>
                         </div>
                     </div>
                 </div>

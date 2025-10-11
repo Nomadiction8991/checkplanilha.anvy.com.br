@@ -69,17 +69,17 @@ require_once '../CRUD/CREATE/produto.php';
                               rows="3" placeholder="Digite o complemento do produto" required><?php echo htmlspecialchars($_POST['complemento'] ?? ''); ?></textarea>
                 </div>
                 
-                <div class="form-group">
-                    <label for="id_dependencia">Dependência</label>
-                    <select id="id_dependencia" name="id_dependencia" class="form-control select">
-                        <option value="">Selecione uma dependência</option>
-                        <?php foreach ($dependencias as $dep): ?>
-                            <option value="<?php echo $dep['id']; ?>" <?php echo (isset($_POST['id_dependencia']) && $_POST['id_dependencia'] == $dep['id']) ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($dep['descricao']); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
+<div class="form-group">
+    <label for="id_dependencia" class="required">Dependência</label>
+    <select id="id_dependencia" name="id_dependencia" class="form-control select" required>
+        <option value="">Selecione uma dependência</option>
+        <?php foreach ($dependencias as $dep): ?>
+            <option value="<?php echo $dep['id']; ?>" <?php echo (isset($_POST['id_dependencia']) && $_POST['id_dependencia'] == $dep['id']) ? 'selected' : ''; ?>>
+                <?php echo htmlspecialchars($dep['descricao']); ?>
+            </option>
+        <?php endforeach; ?>
+    </select>
+</div>
                 
                 <div class="form-group">
                     <label>Status</label>
@@ -88,10 +88,10 @@ require_once '../CRUD/CREATE/produto.php';
                             <input type="checkbox" id="possui_nota" name="possui_nota" value="1" <?php echo (isset($_POST['possui_nota']) && $_POST['possui_nota'] == 1) ? 'checked' : ''; ?>>
                             <label for="possui_nota">Possui Nota</label>
                         </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="imprimir_doacao" name="imprimir_doacao" value="1" <?php echo (isset($_POST['imprimir_doacao']) && $_POST['imprimir_doacao'] == 1) ? 'checked' : ''; ?>>
-                            <label for="imprimir_doacao">Imprimir Doação</label>
-                        </div>
+ <div class="checkbox-item">
+    <input type="checkbox" id="imprimir_14_1" name="imprimir_14_1" value="1" <?php echo (isset($_POST['imprimir_14_1']) && $_POST['imprimir_14_1'] == 1) ? 'checked' : ''; ?>>
+    <label for="imprimir_14_1">Imprimir 14.1</label>
+</div>
                     </div>
                 </div>
                 

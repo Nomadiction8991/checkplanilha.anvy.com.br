@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $complemento = $_POST['complemento'] ?? '';
     $id_dependencia = $_POST['id_dependencia'] ?? '';
     $possui_nota = isset($_POST['possui_nota']) ? 1 : 0;
-    $imprimir_doacao = isset($_POST['imprimir_doacao']) ? 1 : 0;
+    $imprimir_14_1 = isset($_POST['imprimir_14_1']) ? 1 : 0;
     
     // Validações básicas
     $erros = [];
@@ -62,6 +62,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $erros[] = "O complemento é obrigatório";
     }
     
+    if (empty($id_dependencia)) {
+        $erros[] = "A dependência é obrigatória";
+    }
+    
     // Se não há erros, atualizar no banco
     if (empty($erros)) {
         try {
@@ -71,16 +75,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                  complemento = :complemento,
                                  id_dependencia = :id_dependencia,
                                  possui_nota = :possui_nota,
-                                 imprimir_doacao = :imprimir_doacao
+                                 imprimir_14_1 = :imprimir_14_1
                              WHERE id = :id AND id_planilha = :id_planilha";
             
             $stmt_atualizar = $conexao->prepare($sql_atualizar);
             $stmt_atualizar->bindValue(':id_tipo_ben', $id_tipo_ben);
             $stmt_atualizar->bindValue(':tipo_ben', $tipo_ben);
             $stmt_atualizar->bindValue(':complemento', $complemento);
-            $stmt_atualizar->bindValue(':id_dependencia', $id_dependencia ?: null);
+            $stmt_atualizar->bindValue(':id_dependencia', $id_dependencia);
             $stmt_atualizar->bindValue(':possui_nota', $possui_nota);
-            $stmt_atualizar->bindValue(':imprimir_doacao', $imprimir_doacao);
+            $stmt_atualizar->bindValue(':imprimir_14_1', $imprimir_14_1);
             $stmt_atualizar->bindValue(':id', $id_produto);
             $stmt_atualizar->bindValue(':id_planilha', $id_planilha);
             

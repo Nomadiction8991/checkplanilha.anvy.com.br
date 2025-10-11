@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $complemento = $_POST['complemento'] ?? '';
     $id_dependencia = $_POST['id_dependencia'] ?? '';
     $possui_nota = isset($_POST['possui_nota']) ? 1 : 0;
-    $imprimir_doacao = isset($_POST['imprimir_doacao']) ? 1 : 0;
+    $imprimir_14_1 = isset($_POST['imprimir_14_1']) ? 1 : 0;
     
     // Validações básicas
     $erros = [];
@@ -44,22 +44,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $erros[] = "O complemento é obrigatório";
     }
     
+    if (empty($id_dependencia)) {
+        $erros[] = "A dependência é obrigatória";
+    }
+    
     // Se não há erros, inserir no banco
     if (empty($erros)) {
         try {
             $sql_inserir = "INSERT INTO produtos_cadastro 
-                           (id_planilha, id_tipo_ben, tipo_ben, complemento, id_dependencia, possui_nota, imprimir_doacao) 
+                           (id_planilha, id_tipo_ben, tipo_ben, complemento, id_dependencia, possui_nota, imprimir_14_1) 
                            VALUES 
-                           (:id_planilha, :id_tipo_ben, :tipo_ben, :complemento, :id_dependencia, :possui_nota, :imprimir_doacao)";
+                           (:id_planilha, :id_tipo_ben, :tipo_ben, :complemento, :id_dependencia, :possui_nota, :imprimir_14_1)";
             
             $stmt_inserir = $conexao->prepare($sql_inserir);
             $stmt_inserir->bindValue(':id_planilha', $id_planilha);
             $stmt_inserir->bindValue(':id_tipo_ben', $id_tipo_ben);
             $stmt_inserir->bindValue(':tipo_ben', $tipo_ben);
             $stmt_inserir->bindValue(':complemento', $complemento);
-            $stmt_inserir->bindValue(':id_dependencia', $id_dependencia ?: null);
+            $stmt_inserir->bindValue(':id_dependencia', $id_dependencia);
             $stmt_inserir->bindValue(':possui_nota', $possui_nota);
-            $stmt_inserir->bindValue(':imprimir_doacao', $imprimir_doacao);
+            $stmt_inserir->bindValue(':imprimir_14_1', $imprimir_14_1);
             
             $stmt_inserir->execute();
             
@@ -104,6 +108,4 @@ function gerarParametrosFiltro() {
     
     return $params;
 }
-
-// As variáveis estarão disponíveis para o HTML
 ?>

@@ -27,7 +27,7 @@ $sql = "SELECT
             pc.tipo_ben,
             pc.complemento,
             pc.possui_nota,
-            pc.imprimir_doacao,
+            pc.imprimir_14_1,
             tb.codigo as tipo_codigo,
             tb.descricao as tipo_descricao,
             d.descricao as dependencia_descricao
@@ -121,10 +121,10 @@ if (!empty($filtro_dependencia)) {
 if (!empty($filtro_status)) {
     if ($filtro_status === 'com_nota') {
         $condicoes[] = "pc.possui_nota = 1";
-    } elseif ($filtro_status === 'com_doacao') {
-        $condicoes[] = "pc.imprimir_doacao = 1";
+    } elseif ($filtro_status === 'com_14_1') {  // MUDADO AQUI
+        $condicoes[] = "pc.imprimir_14_1 = 1";  // MUDADO AQUI
     } elseif ($filtro_status === 'sem_status') {
-        $condicoes[] = "pc.possui_nota = 0 AND pc.imprimir_doacao = 0";
+        $condicoes[] = "pc.possui_nota = 0 AND pc.imprimir_14_1 = 0";  // MUDADO AQUI
     }
 }
 

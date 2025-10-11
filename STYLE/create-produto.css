@@ -97,11 +97,6 @@ body {
     background: #fff;
 }
 
-.form-control:focus {
-    outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
-}
 
 .form-control.select {
     cursor: pointer;
@@ -270,11 +265,4 @@ body {
         animation: none;
         transition: none;
     }
-}
-
-/* Foco visível para acessibilidade */
-.form-control:focus-visible,
-.btn-submit:focus-visible {
-    outline: 2px solid #007bff;
-    outline-offset: 2px;
 }
