@@ -99,9 +99,9 @@ body {
 }
 
 .op2 {
-    background: linear-gradient(135deg, #f8d7daff, #f5c2c7);
-    border-color: #dc3545;
-    color: #721c24;
+    background: linear-gradient(135deg, #a3d3faff, #8bc5ff);
+    border-color: #007bff;
+    color: #004085;
 }
 
 .op3 {
@@ -133,7 +133,7 @@ body {
 }
 
 .op2:hover {
-    background: linear-gradient(135deg, #f5c2c7, #f1a8af);
+       background: linear-gradient(135deg, #8bc5ff, #79b8ff);
 }
 
 .op3:hover {

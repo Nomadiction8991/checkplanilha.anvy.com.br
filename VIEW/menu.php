@@ -29,8 +29,8 @@ if (!$id_planilha) {
     </header>
     <section class="conteudo">
         <nav class="menu">
-            <a href="read-produto.php?id=<?php echo $id_planilha; ?>" class="opcao op1">Cadastrar Produto</a>
-            <a class="opcao op2" href="#">Em Desenvolvimento</a>
+            <a class="opcao op1" href="read-produto.php?id=<?php echo $id_planilha; ?>">Cadastrar Produto</a>
+            <a class="opcao op2" href="relatorio-14-1.php?id=<?php echo $id_planilha; ?>">Imprimir 14.1</a>
             <a class="opcao op3" href="#">Em Desenvolvimento</a>
             <a class="opcao op4" href="#">Em Desenvolvimento</a>
             <a class="opcao op5" href="#">Em Desenvolvimento</a>
