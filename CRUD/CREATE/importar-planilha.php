@@ -7,7 +7,6 @@ use PhpOffice\PhpSpreadsheet\Shared\Date;
 
 // Processar o formulário quando enviado
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $descricao = trim($_POST['descricao'] ?? '');
     $linhas_pular = (int)($_POST['linhas_pular'] ?? 25);
     $comum = trim($_POST['comum'] ?? 'D16');
     
@@ -22,11 +21,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $tipo_mensagem = '';
 
     try {
-        // Validar campos obrigatórios
-        if (empty($descricao)) {
-            throw new Exception('A descrição é obrigatória.');
-        }
-
         if (empty($comum)) {
             throw new Exception('O campo comum é obrigatório.');
         }
@@ -46,9 +40,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $conexao->beginTransaction();
 
         // Inserir a planilha na tabela planilhas
-        $sql_planilha = "INSERT INTO planilhas (descricao, comum) VALUES (:descricao, :comum)";
+        $sql_planilha = "INSERT INTO planilhas (comum) VALUES (:comum)";
         $stmt_planilha = $conexao->prepare($sql_planilha);
-        $stmt_planilha->bindValue(':descricao', $descricao);
         $stmt_planilha->bindValue(':comum', $comum);
         $stmt_planilha->execute();
         $id_planilha = $conexao->lastInsertId();
@@ -168,7 +161,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $conexao->commit();
 
         $mensagem = "Importação concluída com sucesso!<br>
-                    Planilha: {$descricao}<br>
                     Comum: {$comum}<br>
                     Registros importados: {$registros_importados}<br>
                     Erros: {$registros_erros}";

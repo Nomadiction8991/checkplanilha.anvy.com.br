@@ -167,7 +167,7 @@ body {
 /* BOTÕES */
 .botoes {
     display: flex;
-    gap: 10px;
+    justify-content: center;
     margin-top: 25px;
 }
 
@@ -176,7 +176,7 @@ body {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 12px 20px;
+    padding: 12px 30px;
     border: none;
     border-radius: 4px;
     font-size: 14px;
@@ -184,25 +184,16 @@ body {
     text-decoration: none;
     cursor: pointer;
     transition: all 0.2s;
-    flex: 1;
+    min-width: 200px;
 }
 
 .btn-primary {
-    background: #007bff;
+    background: #28a745;
     color: #fff;
 }
 
 .btn-primary:hover {
-    background: #0056b3;
-}
-
-.btn-secondary {
-    background: #6c757d;
-    color: #fff;
-}
-
-.btn-secondary:hover {
-    background: #545b62;
+    background: #218838;
 }
 
 /* MENSAGENS */
@@ -242,12 +233,8 @@ body {
         grid-template-columns: 1fr;
     }
     
-    .botoes {
-        flex-direction: column;
-    }
-    
     .btn {
-        flex: none;
+        min-width: 180px;
     }
 }
 
@@ -306,14 +293,11 @@ body {
         max-width: 80px;
     }
     
-    .botoes {
-        flex-direction: column;
-        gap: 8px;
-    }
-    
     .btn {
         padding: 14px 20px;
         font-size: 16px;
+        min-width: 160px;
+        width: 100%;
     }
     
     .message {
@@ -328,13 +312,8 @@ body {
         grid-template-columns: repeat(2, 1fr);
     }
     
-    .botoes {
-        justify-content: flex-end;
-    }
-    
     .btn {
-        flex: none;
-        min-width: 140px;
+        min-width: 220px;
     }
 }
 

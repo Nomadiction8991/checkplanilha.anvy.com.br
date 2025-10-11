@@ -30,25 +30,7 @@ require_once '../CRUD/CREATE/importar-planilha.php';
         <?php endif; ?>
 
         <div class="card">
-            <h2>Informações da Planilha</h2>
             <form method="POST" enctype="multipart/form-data">
-                <!-- Campo Descrição -->
-                <div class="form-group">
-                    <label for="descricao">Descrição da Planilha:</label>
-                    <input type="text" id="descricao" name="descricao" 
-                           value="<?php echo htmlspecialchars($_POST['descricao'] ?? ''); ?>" 
-                           required placeholder="Digite um nome para identificar esta planilha">
-                </div>
-
-                <!-- Campo Comum -->
-                <div class="form-group">
-                    <label for="comum">Localização Comum:</label>
-                    <input type="text" id="comum" name="comum" 
-                           value="<?php echo htmlspecialchars($_POST['comum'] ?? 'D16'); ?>" 
-                           required placeholder="Ex: D16">
-                    <small>Localização padrão que será salva na planilha</small>
-                </div>
-
                 <!-- Campo Arquivo -->
                 <div class="form-group">
                     <label for="arquivo">Arquivo CSV:</label>
@@ -66,6 +48,15 @@ require_once '../CRUD/CREATE/importar-planilha.php';
                         <input type="number" id="linhas_pular" name="linhas_pular" 
                                value="<?php echo $_POST['linhas_pular'] ?? 25; ?>" min="0" required>
                         <small>Número de linhas do cabeçalho que devem ser ignoradas</small>
+                    </div>
+
+                    <!-- Campo Comum -->
+                    <div class="form-group">
+                        <label for="comum">Localização Comum:</label>
+                        <input type="text" id="comum" name="comum" 
+                               value="<?php echo htmlspecialchars($_POST['comum'] ?? 'D16'); ?>" 
+                               required placeholder="Ex: D16">
+                        <small>Localização padrão que será salva na planilha</small>
                     </div>
 
                     <!-- Mapeamento de Colunas -->
@@ -94,12 +85,6 @@ require_once '../CRUD/CREATE/importar-planilha.php';
                 </div>
 
                 <div class="botoes">
-                    <a href="../index.php" class="btn btn-secondary">
-                        <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#FFFFFF">
-                            <path d="m274-450 248 248-42 42-320-320 320-320 42 42-248 248h526v60H274Z"/>
-                        </svg>
-                        Cancelar
-                    </a>
                     <button type="submit" class="btn btn-primary">
                         <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#FFFFFF">
                             <path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/>
