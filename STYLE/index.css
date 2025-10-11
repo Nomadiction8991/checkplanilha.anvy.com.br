@@ -235,6 +235,15 @@ tbody tr:hover {
     background-color: #f8f9fa;
 }
 
+/* Linhas inativas - fundo vermelho claro */
+tr.inativo {
+    background-color: #ffe6e6 !important;
+}
+
+tr.inativo:hover {
+    background-color: #ffd6d6 !important;
+}
+
 /* Container para ações */
 .acoes-container {
     display: flex;

@@ -46,10 +46,12 @@ require_once 'CRUD/READ/index.php';
             </div>
             
             <div class="campo-pesquisa">
-                <label>
-                    <input type="checkbox" name="mostrar_inativos" value="1" <?php echo $mostrar_inativos ? 'checked' : ''; ?>> 
-                    Mostrar Inativos
-                </label>
+                <label for="ativo">Exibir</label>
+                <select id="ativo" name="ativo">
+                    <option value="1" <?php echo $filtro_ativo === '1' ? 'selected' : ''; ?>>Apenas Ativos</option>
+                    <option value="0" <?php echo $filtro_ativo === '0' ? 'selected' : ''; ?>>Apenas Inativos</option>
+                    <option value="todos" <?php echo $filtro_ativo === 'todos' ? 'selected' : ''; ?>>Todos</option>
+                </select>
             </div>
             
             <div class="botao-pesquisa">
@@ -75,7 +77,7 @@ require_once 'CRUD/READ/index.php';
             <tbody>
                 <?php if (count($planilhas) > 0): ?>
                     <?php foreach ($planilhas as $planilha): ?>
-                    <tr>
+                    <tr class="<?php echo $planilha['ativo'] == 0 ? 'inativo' : ''; ?>">
                         <td class="centered"><?php echo htmlspecialchars($planilha['comum']); ?></td>
                         <td class="centered"><?php echo ucfirst($planilha['status']); ?></td>
                         <td class="centered">
@@ -108,7 +110,7 @@ require_once 'CRUD/READ/index.php';
         <?php if ($total_paginas > 1): ?>
         <div class="paginacao">
             <?php if ($pagina > 1): ?>
-                <a href="?pagina=<?php echo $pagina - 1; ?>&comum=<?php echo urlencode($filtro_comum); ?>&status=<?php echo urlencode($filtro_status); ?>&mostrar_inativos=<?php echo $mostrar_inativos ? '1' : '0'; ?>" class="pagina-item">
+                <a href="?pagina=<?php echo $pagina - 1; ?>&comum=<?php echo urlencode($filtro_comum); ?>&status=<?php echo urlencode($filtro_status); ?>&ativo=<?php echo $filtro_ativo; ?>" class="pagina-item">
                     &laquo; Anterior
                 </a>
             <?php endif; ?>
@@ -117,14 +119,14 @@ require_once 'CRUD/READ/index.php';
                 <?php if ($i == $pagina): ?>
                     <strong class="pagina-item ativa"><?php echo $i; ?></strong>
                 <?php else: ?>
-                    <a href="?pagina=<?php echo $i; ?>&comum=<?php echo urlencode($filtro_comum); ?>&status=<?php echo urlencode($filtro_status); ?>&mostrar_inativos=<?php echo $mostrar_inativos ? '1' : '0'; ?>" class="pagina-item">
+                    <a href="?pagina=<?php echo $i; ?>&comum=<?php echo urlencode($filtro_comum); ?>&status=<?php echo urlencode($filtro_status); ?>&ativo=<?php echo $filtro_ativo; ?>" class="pagina-item">
                         <?php echo $i; ?>
                     </a>
                 <?php endif; ?>
             <?php endfor; ?>
 
             <?php if ($pagina < $total_paginas): ?>
-                <a href="?pagina=<?php echo $pagina + 1; ?>&comum=<?php echo urlencode($filtro_comum); ?>&status=<?php echo urlencode($filtro_status); ?>&mostrar_inativos=<?php echo $mostrar_inativos ? '1' : '0'; ?>" class="pagina-item">
+                <a href="?pagina=<?php echo $pagina + 1; ?>&comum=<?php echo urlencode($filtro_comum); ?>&status=<?php echo urlencode($filtro_status); ?>&ativo=<?php echo $filtro_ativo; ?>" class="pagina-item">
                     Próxima &raquo;
                 </a>
             <?php endif; ?>

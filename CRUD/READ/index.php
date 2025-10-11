@@ -1,5 +1,5 @@
 <?php
-require_once 'CRUD/conexao.php';
+require_once '../conexao.php';
 
 // Parâmetros da paginação
 $pagina = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
@@ -9,7 +9,7 @@ $offset = ($pagina - 1) * $limite;
 // Filtros
 $filtro_comum = isset($_GET['comum']) ? $_GET['comum'] : '';
 $filtro_status = isset($_GET['status']) ? $_GET['status'] : '';
-$mostrar_inativos = isset($_GET['mostrar_inativos']) && $_GET['mostrar_inativos'] == '1';
+$filtro_ativo = isset($_GET['ativo']) ? $_GET['ativo'] : '1'; // Padrão: apenas ativos
 
 // Construir a query base
 $sql = "SELECT * FROM planilhas WHERE 1=1";
@@ -27,11 +27,10 @@ if (!empty($filtro_status)) {
     $params[':status'] = $filtro_status;
 }
 
-// Lógica para ativo/inativo
-if ($mostrar_inativos) {
-    $sql .= " AND ativo = 0";
-} else {
-    $sql .= " AND ativo = 1";
+// Aplicar filtro de ativo/inativo
+if ($filtro_ativo !== 'todos') {
+    $sql .= " AND ativo = :ativo";
+    $params[':ativo'] = $filtro_ativo;
 }
 
 // Contar total de registros (para paginação)
