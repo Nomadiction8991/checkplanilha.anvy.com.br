@@ -67,12 +67,6 @@ try {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $observacoes = trim($_POST['observacoes'] ?? '');
     
-    // Receber filtros do POST também
-    $pagina = $_POST['pagina'] ?? 1;
-    $filtro_nome = $_POST['nome'] ?? '';
-    $filtro_dependencia = $_POST['dependencia'] ?? '';
-    $filtro_codigo = $_POST['filtro_codigo'] ?? '';
-    
     try {
         // Se as observações estiverem vazias, vamos limpar o campo no banco
         if (empty($observacoes)) {

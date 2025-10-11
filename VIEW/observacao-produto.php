@@ -7,21 +7,25 @@
     <link rel="stylesheet" href="../STYLE/observacao-produto.css">
 </head>
 <body>
+    <!-- CABEÇALHO NO ESTILO DO READ-PRODUTO -->
     <header class="cabecalho">
-        <div class="titulo">
-            <a href="<?php echo getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, $filtro_codigo, $filtro_status); ?>" class="voltar" title="Voltar">←</a>
+        <section class="titulo">
+            <a href="<?php echo getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, $filtro_codigo, $filtro_status); ?>" class="voltar">
+                <svg xmlns="http://www.w3.org/2000/svg" height="48px" viewBox="0 -960 960 960" width="48px" fill="#FFFFFF"><path d="m274-450 248 248-42 42-320-320 320-320 42 42-248 248h526v60H274Z"/></svg>
+            </a>
             <h1>Editar Observações</h1>
-        </div>
+        </section>
     </header>
 
-    <div class="conteudo">
+    <!-- CONTEÚDO NO ESTILO DO READ-PRODUTO -->
+    <section class="conteudo">
         <?php if (!empty($mensagem)): ?>
             <div class="message <?php echo $tipo_mensagem; ?>">
                 <?php echo $mensagem; ?>
             </div>
         <?php endif; ?>
 
-        <!-- Informações do Produto -->
+        <!-- CARD DO PRODUTO NO ESTILO DA TABELA -->
         <div class="product-card">
             <h3>Informações do Produto</h3>
             
@@ -62,7 +66,7 @@
             </div>
         </div>
 
-        <!-- Formulário de Edição -->
+        <!-- FORMULÁRIO NO ESTILO DO READ-PRODUTO -->
         <form method="POST" action="">
             <!-- Campos hidden para preservar filtros -->
             <input type="hidden" name="pagina" value="<?php echo $pagina; ?>">
@@ -79,8 +83,13 @@
             </div>
 
             <!-- Botão Salvar -->
-            <button type="submit" class="btn btn-primary">Salvar Observações</button>
+            <button type="submit" class="btn btn-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#FFFFFF">
+                    <path d="M840-680v480q0 33-23.5 56.5T760-120H200q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h480l160 160Zm-80 34L646-760H200v560h560v-446ZM480-240q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35ZM240-560h360v-160H240v160Zm-40-86v446-560 114Z"/>
+                </svg>
+                Salvar Observações
+            </button>
         </form>
-    </div>
+    </section>
 </body>
 </html>

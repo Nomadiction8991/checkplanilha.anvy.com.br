@@ -1,4 +1,4 @@
-/* STYLE/observacao-produto.css - PADRÃO VIEW PLANILHA */
+/* STYLE/observacao-produto.css - PADRÃO READ-PRODUTO */
 * {
     margin: 0;
     padding: 0;
@@ -9,10 +9,11 @@ body {
     font-family: Arial, Helvetica, sans-serif;
     background: #f5f5f5;
     color: #333;
-    line-height: 1.6;
+    font-size: 14px;
+    line-height: 1.4;
 }
 
-/* Cabeçalho Padrão */
+/* Cabeçalho Padrão - IGUAL AO READ-PRODUTO */
 .cabecalho {
     background: #007bff;
     padding: 12px 15px;
@@ -46,8 +47,6 @@ body {
     flex-shrink: 0;
     text-decoration: none;
     color: #fff;
-    font-weight: bold;
-    font-size: 18px;
 }
 
 .voltar:hover {
@@ -64,49 +63,51 @@ body {
     flex-shrink: 1;
 }
 
-/* Conteúdo Principal */
+/* Conteúdo Principal - ESTILO DO READ-PRODUTO */
 .conteudo {
-    padding: 20px;
-    max-width: 100%;
-    margin: 0 auto;
+    padding: 15px;
+    width: 100%;
     margin-top: 60px;
 }
 
-/* Mensagens */
+/* Mensagens - ESTILO SIMILAR AO READ-PRODUTO */
 .message {
     padding: 15px;
     margin: 15px 0;
     border-radius: 8px;
     font-weight: 500;
     font-size: 14px;
+    background: #fff;
+    border-left: 4px solid;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .success {
     background: #d4edda;
     color: #155724;
-    border: 1px solid #c3e6cb;
+    border-left-color: #28a745;
 }
 
 .error {
     background: #f8d7da;
     color: #721c24;
-    border: 1px solid #f5c6cb;
+    border-left-color: #dc3545;
 }
 
 .warning {
     background: #fff3cd;
     color: #856404;
-    border: 1px solid #ffeaa7;
+    border-left-color: #ffc107;
 }
 
-/* Card do Produto */
+/* Card do Produto - ESTILO DA TABELA DO READ-PRODUTO */
 .product-card {
     background: #fff;
-    border-radius: 10px;
-    padding: 20px;
-    margin-bottom: 20px;
-    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    overflow: hidden;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    padding: 20px;
 }
 
 .product-card h3 {
@@ -122,7 +123,7 @@ body {
 .product-field {
     margin-bottom: 15px;
     padding-bottom: 15px;
-    border-bottom: 1px solid #e9ecef;
+    border-bottom: 1px solid #eee;
 }
 
 .product-field:last-child {
@@ -143,7 +144,7 @@ body {
     font-size: 14px;
 }
 
-/* Status Badges */
+/* Status Badges - ESTILO DOS ÍCONES DO READ-PRODUTO */
 .status-info {
     display: flex;
     gap: 8px;
@@ -191,7 +192,7 @@ body {
     border: 1px solid #ddd;
 }
 
-/* Formulário */
+/* Formulário - ESTILO DOS FORMULÁRIOS DO READ-PRODUTO */
 .form-group {
     margin-bottom: 20px;
 }
@@ -208,7 +209,7 @@ body {
     width: 100%;
     padding: 10px 12px;
     border: 1px solid #ddd;
-    border-radius: 6px;
+    border-radius: 4px;
     box-sizing: border-box;
     font-family: inherit;
     font-size: 14px;
@@ -226,11 +227,11 @@ textarea.form-control {
     resize: vertical;
 }
 
-/* Botões */
+/* Botões - ESTILO DO BOTÃO FILTRAR DO READ-PRODUTO */
 .btn {
     padding: 12px 25px;
     text-decoration: none;
-    border-radius: 6px;
+    border-radius: 4px;
     border: none;
     cursor: pointer;
     display: inline-flex;
@@ -242,6 +243,8 @@ textarea.form-control {
     transition: all 0.3s;
     background: #007bff;
     color: #fff;
+    width: auto;
+    min-width: 120px;
 }
 
 .btn:hover {
@@ -259,7 +262,9 @@ textarea.form-control {
     background: #0056b3;
 }
 
-/* Responsividade */
+/* ========== RESPONSIVIDADE ========== */
+
+/* Tablets */
 @media (max-width: 768px) {
     .conteudo {
         padding: 15px;
@@ -299,6 +304,7 @@ textarea.form-control {
     }
 }
 
+/* Celulares */
 @media (max-width: 480px) {
     .conteudo {
         padding: 10px;
@@ -314,5 +320,26 @@ textarea.form-control {
     
     .btn {
         padding: 10px 20px;
+        width: 100%;
+    }
+    
+    .cabecalho {
+        padding: 10px 12px;
+        height: 55px;
+    }
+    
+    .cabecalho h1 {
+        font-size: 16px;
+        max-width: 150px;
+    }
+    
+    .voltar {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .voltar svg {
+        width: 36px;
+        height: 36px;
     }
 }
