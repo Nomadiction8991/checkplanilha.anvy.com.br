@@ -63,6 +63,7 @@ body {
     padding: 20px;
     max-width: 100%;
     margin: 0 auto;
+    margin-top: 60px;
 }
 
 .menu {
@@ -166,6 +167,9 @@ body {
     .cabecalho {
         padding: 10px 12px;
         height: 55px;
+    }
+    .conteudo{
+        margin-top: 55px;
     }
 
 }
