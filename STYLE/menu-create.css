@@ -13,16 +13,18 @@ body {
 
 .cabecalho {
     background: #007bff;
-    padding: 15px 20px;
+    padding: 12px 15px;
     color: #fff;
     display: flex;
     align-items: center;
-    gap: 15px;
+    justify-content: space-between;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    position: sticky;
+    position: fixed;
     top: 0;
-    z-index: 100;
-    height: 55px;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    height: 60px;
 }
 
 .titulo{
@@ -30,6 +32,16 @@ body {
     align-items: center;
     gap: 12px;
 }
+.cabecalho h1 {
+    font-size: 18px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+    flex-shrink: 1;
+}
+
 
 .voltar {
     display: flex;
@@ -145,6 +157,15 @@ body {
     .voltar svg{
         width: 36px;
         height: 36px;
+    }
+
+        .cabecalho h1 {
+        font-size: 16px;
+        max-width: 150px;
+    }
+    .cabecalho {
+        padding: 10px 12px;
+        height: 55px;
     }
 
 }
