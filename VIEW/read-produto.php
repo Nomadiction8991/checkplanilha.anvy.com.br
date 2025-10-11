@@ -9,7 +9,7 @@ require_once '../CRUD/READ/produto.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Read Produtos</title>
-    <link rel="stylesheet" href="../../STYLE/read-produto.css">
+    <link rel="stylesheet" href="../STYLE/read-produto.css">
 </head>
 <body>
     <header class="cabecalho">
@@ -20,7 +20,7 @@ require_once '../CRUD/READ/produto.php';
             <h1>Read Produtos</h1>
         </section>
         <section class="acoes">
-            <a href="../CREATE/create-produto.php?id_planilha=<?php echo $id_planilha; ?>">
+            <a href="../create-produto.php?id_planilha=<?php echo $id_planilha; ?>">
                 <svg xmlns="http://www.w3.org/2000/svg" height="48px" viewBox="0 -960 960 960" width="48px" fill="#FFFFFF"><path d="M450-450H200v-60h250v-250h60v250h250v60H510v250h-60v-250Z"/></svg>
             </a>
         </section>
