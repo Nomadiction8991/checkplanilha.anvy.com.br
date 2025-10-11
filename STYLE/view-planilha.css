@@ -211,23 +211,23 @@ td {
 
 /* Linhas coloridas */
 .linha-checado {
-    background: #a3fab7 !important;
+    background: rgba(163, 250, 183, 0.3) !important;
 }
 
 .linha-observacao {
-    background: #ffe8a7 !important;
+    background: rgba(255, 232, 167, 0.3) !important;
 }
 
 .linha-imprimir {
-    background: #a3d3fa !important;
+    background: rgba(163, 211, 250, 0.3) !important;
 }
 
 .linha-dr {
-    background: #faa3a3 !important;
+    background: rgba(250, 163, 163, 0.3) !important;
 }
 
 .linha-pendente {
-    background: #ffffaa !important;
+    background: rgba(255, 255, 170, 0.3) !important;
 }
 
 /* Container de ações */
