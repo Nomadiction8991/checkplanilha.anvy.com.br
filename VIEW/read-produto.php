@@ -1,5 +1,6 @@
 <?php
-extract($dados_view);
+// Inclui o arquivo PHP que contém a lógica
+require_once '../../CRUD/READ/produto.php';
 ?>
 
 <!DOCTYPE html>
@@ -39,33 +40,33 @@ extract($dados_view);
                     <?php foreach ($produtos as $produto): ?>
                     <tr>
                         <td data-label="ID"><?php echo htmlspecialchars($produto['id']); ?></td>
-<td data-label="Descrição">
-    <?php 
-    echo htmlspecialchars($produto['tipo_codigo'] . ' - ' . $produto['tipo_descricao']);
-    echo ' [' . htmlspecialchars($produto['tipo_ben']) . ']';
-    echo ' ' . htmlspecialchars($produto['complemento']);
-    if (!empty($produto['dependencia_descricao'])) {
-        echo ' (' . htmlspecialchars($produto['dependencia_descricao']) . ')';
-    }
-    ?>
-</td>
-<td data-label="Status">
-    <?php if ($produto['possui_nota'] == 1): ?>
-        <span class="status-badge status-nota">Nota</span>
-    <?php endif; ?>
-    <?php if ($produto['imprimir_doacao'] == 1): ?>
-        <span class="status-badge status-imprimir">Imprimir</span>
-    <?php endif; ?>
-    <?php if ($produto['possui_nota'] == 0 && $produto['imprimir_doacao'] == 0): ?>
-        <span>-</span>
-    <?php endif; ?>
-</td>
-<td data-label="Ações">
-    <div class="acoes-links">
-        <a href="../UPDATE/editar-produto.php?id=<?php echo $produto['id']; ?>&id_planilha=<?php echo $id_planilha; ?>" class="btn-acao btn-editar">Editar</a>
-        <a href="../DELETE/excluir-produto.php?id=<?php echo $produto['id']; ?>&id_planilha=<?php echo $id_planilha; ?>" class="btn-acao btn-excluir" onclick="return confirm('Tem certeza que deseja excluir este produto?')">Excluir</a>
-    </div>
-</td>
+                        <td data-label="Descrição">
+                            <?php 
+                            echo htmlspecialchars($produto['tipo_codigo'] . ' - ' . $produto['tipo_descricao']);
+                            echo ' [' . htmlspecialchars($produto['tipo_ben']) . ']';
+                            echo ' ' . htmlspecialchars($produto['complemento']);
+                            if (!empty($produto['dependencia_descricao'])) {
+                                echo ' (' . htmlspecialchars($produto['dependencia_descricao']) . ')';
+                            }
+                            ?>
+                        </td>
+                        <td data-label="Status">
+                            <?php if ($produto['possui_nota'] == 1): ?>
+                                <span class="status-badge status-nota">Nota</span>
+                            <?php endif; ?>
+                            <?php if ($produto['imprimir_doacao'] == 1): ?>
+                                <span class="status-badge status-imprimir">Imprimir</span>
+                            <?php endif; ?>
+                            <?php if ($produto['possui_nota'] == 0 && $produto['imprimir_doacao'] == 0): ?>
+                                <span>-</span>
+                            <?php endif; ?>
+                        </td>
+                        <td data-label="Ações">
+                            <div class="acoes-links">
+                                <a href="../UPDATE/editar-produto.php?id=<?php echo $produto['id']; ?>&id_planilha=<?php echo $id_planilha; ?>" class="btn-acao btn-editar">Editar</a>
+                                <a href="../DELETE/excluir-produto.php?id=<?php echo $produto['id']; ?>&id_planilha=<?php echo $id_planilha; ?>" class="btn-acao btn-excluir" onclick="return confirm('Tem certeza que deseja excluir este produto?')">Excluir</a>
+                            </div>
+                        </td>
                     </tr>
                     <?php endforeach; ?>
                 <?php else: ?>

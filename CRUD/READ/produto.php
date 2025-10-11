@@ -33,12 +33,5 @@ try {
     die("Erro ao carregar produtos: " . $e->getMessage());
 }
 
-// Preparar dados para a view
-$dados_view = [
-    'id_planilha' => $id_planilha,
-    'produtos' => $produtos
-];
-
-// Incluir a view
-include '../../VIEW/read-produto.php';
+// As variáveis $id_planilha e $produtos estarão disponíveis para o HTML
 ?>
