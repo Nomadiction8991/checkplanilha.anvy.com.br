@@ -9,7 +9,7 @@ require_once '../CRUD/READ/view-planilha.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Visualizar Planilha - <?php echo htmlspecialchars($planilha['descricao']); ?></title>
-    <link rel="stylesheet" href="view-planilha.css">
+    <link rel="stylesheet" href="../STYLE/view-planilha.css">
 </head>
 <body>
     <header class="cabecalho">
