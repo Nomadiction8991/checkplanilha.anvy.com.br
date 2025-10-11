@@ -11,6 +11,7 @@ if (!$id_planilha) {
 // Parâmetros de pesquisa
 $pesquisa_id = $_GET['pesquisa_id'] ?? '';
 $filtro_tipo_ben = $_GET['filtro_tipo_ben'] ?? '';
+$filtro_tipo_ben_codigo = $_GET['filtro_tipo_ben_codigo'] ?? ''; // NOVO FILTRO
 $filtro_complemento = $_GET['filtro_complemento'] ?? '';
 $filtro_dependencia = $_GET['filtro_dependencia'] ?? '';
 $filtro_status = $_GET['filtro_status'] ?? '';
@@ -48,6 +49,14 @@ $sql_tipos_bens = "SELECT DISTINCT tb.id, tb.codigo, tb.descricao
                    WHERE pc.id_planilha = :id_planilha
                    ORDER BY tb.codigo";
 
+// Buscar códigos tipo_ben disponíveis para o select (NOVO)
+$sql_tipos_ben_codigo = "SELECT DISTINCT pc.tipo_ben 
+                         FROM produtos_cadastro pc
+                         WHERE pc.id_planilha = :id_planilha 
+                         AND pc.tipo_ben IS NOT NULL 
+                         AND pc.tipo_ben != ''
+                         ORDER BY pc.tipo_ben";
+
 // Buscar dependências disponíveis para o select
 $sql_dependencias = "SELECT DISTINCT d.id, d.descricao 
                     FROM produtos_cadastro pc
@@ -62,6 +71,12 @@ try {
     $stmt_tipos->execute();
     $tipos_bens = $stmt_tipos->fetchAll();
 
+    // Buscar códigos tipo_ben (NOVO)
+    $stmt_tipos_ben = $conexao->prepare($sql_tipos_ben_codigo);
+    $stmt_tipos_ben->bindValue(':id_planilha', $id_planilha);
+    $stmt_tipos_ben->execute();
+    $tipos_ben_codigos = $stmt_tipos_ben->fetchAll();
+
     // Buscar dependências
     $stmt_deps = $conexao->prepare($sql_dependencias);
     $stmt_deps->bindValue(':id_planilha', $id_planilha);
@@ -69,6 +84,7 @@ try {
     $dependencias = $stmt_deps->fetchAll();
 } catch (Exception $e) {
     $tipos_bens = [];
+    $tipos_ben_codigos = [];
     $dependencias = [];
 }
 
@@ -84,6 +100,12 @@ if (!empty($pesquisa_id)) {
 if (!empty($filtro_tipo_ben)) {
     $condicoes[] = "pc.id_tipo_ben = :filtro_tipo_ben";
     $params[':filtro_tipo_ben'] = $filtro_tipo_ben;
+}
+
+// NOVO FILTRO - tipo_ben (código entre colchetes)
+if (!empty($filtro_tipo_ben_codigo)) {
+    $condicoes[] = "pc.tipo_ben = :filtro_tipo_ben_codigo";
+    $params[':filtro_tipo_ben_codigo'] = $filtro_tipo_ben_codigo;
 }
 
 if (!empty($filtro_complemento)) {
@@ -153,6 +175,9 @@ function gerarParametrosFiltro($incluirPagina = false) {
     }
     if (!empty($_GET['filtro_tipo_ben'])) {
         $params['filtro_tipo_ben'] = $_GET['filtro_tipo_ben'];
+    }
+    if (!empty($_GET['filtro_tipo_ben_codigo'])) {
+        $params['filtro_tipo_ben_codigo'] = $_GET['filtro_tipo_ben_codigo'];
     }
     if (!empty($_GET['filtro_complemento'])) {
         $params['filtro_complemento'] = $_GET['filtro_complemento'];

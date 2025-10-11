@@ -48,6 +48,19 @@ require_once '../CRUD/READ/produto.php';
             </select>
         </div>
         
+        <!-- NOVO FILTRO - Tipo Ben Código -->
+        <div class="campo-pesquisa">
+            <label for="filtro_tipo_ben_codigo">Código Tipo Ben</label>
+            <select id="filtro_tipo_ben_codigo" name="filtro_tipo_ben_codigo">
+                <option value="">Todos</option>
+                <?php foreach ($tipos_ben_codigos as $tipo_codigo): ?>
+                    <option value="<?php echo htmlspecialchars($tipo_codigo['tipo_ben']); ?>" <?php echo $filtro_tipo_ben_codigo == $tipo_codigo['tipo_ben'] ? 'selected' : ''; ?>>
+                        <?php echo htmlspecialchars($tipo_codigo['tipo_ben']); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        
         <div class="campo-pesquisa">
             <label for="filtro_complemento">Complemento</label>
             <input type="text" id="filtro_complemento" name="filtro_complemento" value="<?php echo htmlspecialchars($filtro_complemento); ?>" placeholder="Pesquisar no complemento">

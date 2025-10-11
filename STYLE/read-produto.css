@@ -82,7 +82,7 @@ body {
 
 .form-pesquisa {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
     gap: 10px;
     align-items: end;
 }
@@ -351,6 +351,13 @@ td:nth-child(2) {
     text-align: center;
 }
 
+/* Ajustes para telas grandes */
+@media (max-width: 1024px) {
+    .form-pesquisa {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+}
+
 /* Ajustes para telas médias */
 @media (max-width: 768px) {
     .form-pesquisa {
@@ -531,4 +538,110 @@ td:nth-child(2) {
 .voltar,
 .acoes a {
     transition: all 0.2s ease-in-out;
+}
+
+/* Botão limpar filtros */
+.btn-limpar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: #6c757d;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    text-decoration: none;
+}
+
+.btn-limpar:hover {
+    background: #545b62;
+}
+
+.botoes-pesquisa {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+/* Melhorias para selects longos */
+.campo-pesquisa select {
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Indicador de filtros ativos */
+.filtros-ativos {
+    background: #e7f3ff;
+    border-left: 4px solid #007bff;
+    padding: 10px 15px;
+    margin: 10px 0;
+    font-size: 12px;
+    color: #0066cc;
+}
+
+/* Placeholder personalizado */
+.campo-pesquisa input::placeholder {
+    color: #999;
+    font-size: 13px;
+}
+
+/* Estados desabilitados */
+.campo-pesquisa input:disabled,
+.campo-pesquisa select:disabled {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    cursor: not-allowed;
+}
+
+/* Scrollbar personalizado para tabela */
+.conteudo::-webkit-scrollbar {
+    height: 8px;
+}
+
+.conteudo::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.conteudo::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.conteudo::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Melhorias de impressão */
+@media print {
+    .cabecalho,
+    .pesquisa-container,
+    .paginacao,
+    .btn-acao {
+        display: none !important;
+    }
+    
+    .conteudo {
+        margin-top: 0;
+        padding: 0;
+    }
+    
+    table {
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
+    
+    body {
+        background: white;
+        font-size: 12px;
+    }
 }
