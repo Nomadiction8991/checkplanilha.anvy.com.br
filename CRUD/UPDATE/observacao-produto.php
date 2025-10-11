@@ -21,7 +21,7 @@ if (!$codigo || !$id_planilha) {
         'status' => $filtro_status,
         'erro' => 'Produto não encontrado'
     ]);
-    header('Location: ../../VIEW/visualizar_planilha.php?' . $query_string);
+    header('Location: ../../VIEW/view-planilha.php?' . $query_string);
     exit;
 }
 
@@ -97,7 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt_insert->execute();
         }
         
-        // Redirecionar de volta para visualizar_planilha.php
+        // Redirecionar de volta para view-planilha.php
         $query_string = http_build_query([
             'id' => $id_planilha,
             'pagina' => $pagina,
@@ -105,7 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'dependencia' => $filtro_dependencia,
             'codigo' => $filtro_codigo
         ]);
-        header('Location: ../../VIEW/visualizar_planilha.php?' . $query_string);
+        header('Location: ../../VIEW/view-planilha.php?' . $query_string);
         exit;
         
     } catch (Exception $e) {
@@ -125,6 +125,6 @@ function getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, 
         'codigo' => $filtro_codigo,
         'status' => $filtro_status
     ];
-    return '../../VIEW/visualizar_planilha.php?' . http_build_query($params);
+    return '../../VIEW/view-planilha.php?' . http_build_query($params);
 }
 ?>
