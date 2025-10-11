@@ -40,5 +40,5 @@ $dados_view = [
 ];
 
 // Incluir a view
-include '../../VIEW/READ/read-produto.php';
+include '../../VIEW/read-produto.php';
 ?>
