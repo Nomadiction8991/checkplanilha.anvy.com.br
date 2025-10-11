@@ -209,7 +209,7 @@ td {
     border-bottom: 1px solid #eee;
 }
 
-/* Linhas coloridas */
+/* Linhas coloridas - CORREÇÕES */
 .linha-checado {
     background: rgba(163, 250, 183, 0.3) !important;
 }
@@ -226,9 +226,91 @@ td {
     background: rgba(250, 163, 163, 0.3) !important;
 }
 
+/* ADICIONAR ESTA CLASSE PARA EDIÇÃO */
+.linha-editado {
+    background: rgba(200, 167, 255, 0.3) !important;
+}
+
+/* CORRIGIR ESTA CLASSE */
 .linha-pendente {
     background: #fff !important;
 }
+
+/* Paginação - ESTILIZAÇÃO MELHORADA */
+.paginacao {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+    padding: 15px;
+}
+
+.pagina-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    padding: 0 12px;
+    border: 2px solid #007bff;
+    border-radius: 8px;
+    background: #fff;
+    color: #007bff;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.pagina-item:hover {
+    background: #007bff;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+}
+
+.pagina-item.ativa {
+    background: #007bff;
+    color: #fff;
+    border-color: #007bff;
+    transform: none;
+    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
+}
+
+.pagina-anterior,
+.pagina-proxima {
+    background: #f8f9fa;
+    border-color: #6c757d;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.pagina-anterior:hover,
+.pagina-proxima:hover {
+    background: #6c757d;
+    color: #fff;
+    border-color: #6c757d;
+}
+
+/* Indicador de página atual */
+.pagina-atual {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    padding: 0 12px;
+    border: 2px solid #007bff;
+    border-radius: 8px;
+    background: #007bff;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+}
+
 
 /* Container de ações */
 .acao-container {
@@ -414,5 +496,17 @@ td {
     .btn-acao svg {
         width: 20px;
         height: 20px;
+    }
+    .paginacao {
+        gap: 6px;
+        padding: 10px;
+    }
+    
+    .pagina-item,
+    .pagina-atual {
+        min-width: 36px;
+        height: 36px;
+        padding: 0 8px;
+        font-size: 13px;
     }
 }
