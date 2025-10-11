@@ -10,6 +10,8 @@ $offset = ($pagina - 1) * $limite;
 $filtro_comum = isset($_GET['comum']) ? $_GET['comum'] : '';
 $filtro_status = isset($_GET['status']) ? $_GET['status'] : '';
 $filtro_ativo = isset($_GET['ativo']) ? $_GET['ativo'] : '1'; // Padrão: apenas ativos
+$filtro_data_inicio = isset($_GET['data_inicio']) ? $_GET['data_inicio'] : '';
+$filtro_data_fim = isset($_GET['data_fim']) ? $_GET['data_fim'] : '';
 
 // Construir a query base
 $sql = "SELECT * FROM planilhas WHERE 1=1";
@@ -33,6 +35,17 @@ if ($filtro_ativo !== 'todos') {
     $params[':ativo'] = $filtro_ativo;
 }
 
+// Aplicar filtro de intervalo de datas
+if (!empty($filtro_data_inicio)) {
+    $sql .= " AND DATE(data_posicao) >= :data_inicio";
+    $params[':data_inicio'] = $filtro_data_inicio;
+}
+
+if (!empty($filtro_data_fim)) {
+    $sql .= " AND DATE(data_posicao) <= :data_fim";
+    $params[':data_fim'] = $filtro_data_fim;
+}
+
 // Contar total de registros (para paginação)
 $sql_count = "SELECT COUNT(*) as total FROM ($sql) as count_table";
 $stmt_count = $conexao->prepare($sql_count);
@@ -44,7 +57,7 @@ $total_registros = $stmt_count->fetch()['total'];
 $total_paginas = ceil($total_registros / $limite);
 
 // Adicionar ordenação e paginação à query principal
-$sql .= " ORDER BY id DESC LIMIT :limite OFFSET :offset";
+$sql .= " ORDER BY data_posicao DESC, id DESC LIMIT :limite OFFSET :offset";
 $params[':limite'] = $limite;
 $params[':offset'] = $offset;
 

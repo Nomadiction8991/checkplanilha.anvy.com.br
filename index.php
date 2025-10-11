@@ -1,7 +1,3 @@
-<?php
-require_once 'CRUD/READ/index.php';
-?>
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -54,6 +50,17 @@ require_once 'CRUD/READ/index.php';
                 </select>
             </div>
             
+            <!-- Novos campos de data -->
+            <div class="campo-pesquisa">
+                <label for="data_inicio">Data Início</label>
+                <input type="date" id="data_inicio" name="data_inicio" value="<?php echo htmlspecialchars($filtro_data_inicio); ?>">
+            </div>
+            
+            <div class="campo-pesquisa">
+                <label for="data_fim">Data Fim</label>
+                <input type="date" id="data_fim" name="data_fim" value="<?php echo htmlspecialchars($filtro_data_fim); ?>">
+            </div>
+            
             <div class="botao-pesquisa">
                 <button type="submit" class="btn-filtrar">
                     <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#FFFFFF">
@@ -90,6 +97,7 @@ require_once 'CRUD/READ/index.php';
             <thead>
                 <tr>
                     <th>Comum</th>
+                    <th>Data Posição</th>
                     <th>Status</th>
                     <th>Ações</th>
                 </tr>
@@ -120,9 +128,16 @@ require_once 'CRUD/READ/index.php';
                         }
                     }
                     $class_string = implode(' ', $classes);
+                    
+                    // Formatar data para exibição
+                    $data_posicao = '';
+                    if (!empty($planilha['data_posicao']) && $planilha['data_posicao'] != '0000-00-00') {
+                        $data_posicao = date('d/m/Y', strtotime($planilha['data_posicao']));
+                    }
                     ?>
                     <tr class="<?php echo $class_string; ?>">
                         <td class="centered"><?php echo htmlspecialchars($planilha['comum']); ?></td>
+                        <td class="centered"><?php echo $data_posicao; ?></td>
                         <td class="centered"><?php echo ucfirst($planilha['status']); ?></td>
                         <td class="centered">
                             <div class="acoes-container">
@@ -142,7 +157,7 @@ require_once 'CRUD/READ/index.php';
                     <?php endforeach; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="3" style="text-align: center; padding: 20px;">
+                        <td colspan="4" style="text-align: center; padding: 20px;">
                             Nenhuma planilha encontrada.
                         </td>
                     </tr>
@@ -154,7 +169,7 @@ require_once 'CRUD/READ/index.php';
         <?php if ($total_paginas > 1): ?>
         <div class="paginacao">
             <?php if ($pagina > 1): ?>
-                <a href="?pagina=<?php echo $pagina - 1; ?>&comum=<?php echo urlencode($filtro_comum); ?>&status=<?php echo urlencode($filtro_status); ?>&ativo=<?php echo $filtro_ativo; ?>" class="pagina-item">
+                <a href="?pagina=<?php echo $pagina - 1; ?>&comum=<?php echo urlencode($filtro_comum); ?>&status=<?php echo urlencode($filtro_status); ?>&ativo=<?php echo $filtro_ativo; ?>&data_inicio=<?php echo urlencode($filtro_data_inicio); ?>&data_fim=<?php echo urlencode($filtro_data_fim); ?>" class="pagina-item">
                     &laquo; Anterior
                 </a>
             <?php endif; ?>
@@ -163,14 +178,14 @@ require_once 'CRUD/READ/index.php';
                 <?php if ($i == $pagina): ?>
                     <strong class="pagina-item ativa"><?php echo $i; ?></strong>
                 <?php else: ?>
-                    <a href="?pagina=<?php echo $i; ?>&comum=<?php echo urlencode($filtro_comum); ?>&status=<?php echo urlencode($filtro_status); ?>&ativo=<?php echo $filtro_ativo; ?>" class="pagina-item">
+                    <a href="?pagina=<?php echo $i; ?>&comum=<?php echo urlencode($filtro_comum); ?>&status=<?php echo urlencode($filtro_status); ?>&ativo=<?php echo $filtro_ativo; ?>&data_inicio=<?php echo urlencode($filtro_data_inicio); ?>&data_fim=<?php echo urlencode($filtro_data_fim); ?>" class="pagina-item">
                         <?php echo $i; ?>
                     </a>
                 <?php endif; ?>
             <?php endfor; ?>
 
             <?php if ($pagina < $total_paginas): ?>
-                <a href="?pagina=<?php echo $pagina + 1; ?>&comum=<?php echo urlencode($filtro_comum); ?>&status=<?php echo urlencode($filtro_status); ?>&ativo=<?php echo $filtro_ativo; ?>" class="pagina-item">
+                <a href="?pagina=<?php echo $pagina + 1; ?>&comum=<?php echo urlencode($filtro_comum); ?>&status=<?php echo urlencode($filtro_status); ?>&ativo=<?php echo $filtro_ativo; ?>&data_inicio=<?php echo urlencode($filtro_data_inicio); ?>&data_fim=<?php echo urlencode($filtro_data_fim); ?>" class="pagina-item">
                     Próxima &raquo;
                 </a>
             <?php endif; ?>

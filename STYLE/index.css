@@ -88,7 +88,7 @@ body {
 
 .form-pesquisa {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
     gap: 10px;
     align-items: end;
     width: 100%;
@@ -204,8 +204,6 @@ body {
     border: 1px solid #99ceff;
 }
 
-
-
 .conteudo {
     padding: 15px;
     width: 100%;
@@ -240,20 +238,25 @@ th {
     letter-spacing: 0.5px;
 }
 
-/* Ajuste das colunas para mobile */
+/* Ajuste das colunas para mobile com a nova coluna de data */
 th:nth-child(1), td:nth-child(1) { /* Comum */
-    width: 50%;
-    min-width: 150px;
+    width: 35%;
+    min-width: 120px;
 }
 
-th:nth-child(2), td:nth-child(2) { /* Status */
+th:nth-child(2), td:nth-child(2) { /* Data Posição */
     width: 20%;
+    max-width: 100px;
+}
+
+th:nth-child(3), td:nth-child(3) { /* Status */
+    width: 15%;
     max-width: 80px;
 }
 
-th:nth-child(3), td:nth-child(3) { /* Ações */
+th:nth-child(4), td:nth-child(4) { /* Ações */
     width: 30%;
-    max-width: 120px;
+    max-width: 100px;
 }
 
 td {
@@ -427,10 +430,10 @@ td:nth-child(1) {
 
 /* ========== RESPONSIVIDADE ========== */
 
-/* Tablets - 3 colunas */
+/* Tablets - 5 colunas */
 @media (max-width: 1024px) and (min-width: 769px) {
     .form-pesquisa {
-        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
         gap: 8px;
     }
     
@@ -445,10 +448,10 @@ td:nth-child(1) {
     }
 }
 
-/* Tablets pequenos - 2 colunas */
+/* Tablets pequenos - 3 colunas */
 @media (max-width: 768px) and (min-width: 481px) {
     .form-pesquisa {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr 1fr 1fr;
         gap: 8px;
     }
     
@@ -469,12 +472,21 @@ td:nth-child(1) {
         padding: 10px 6px;
     }
     
+    /* Ajuste das colunas para tablet */
     th:nth-child(1), td:nth-child(1) {
-        width: 45%;
+        width: 30%;
     }
     
     th:nth-child(2), td:nth-child(2) {
-        width: 25%;
+        width: 20%;
+    }
+    
+    th:nth-child(3), td:nth-child(3) {
+        width: 20%;
+    }
+    
+    th:nth-child(4), td:nth-child(4) {
+        width: 30%;
     }
     
     .btn-acao {
@@ -533,11 +545,20 @@ td:nth-child(1) {
         padding: 8px 4px;
     }
     
+    /* Ajuste das colunas para mobile */
     th:nth-child(1), td:nth-child(1) {
-        width: 40%;
+        width: 25%;
     }
     
     th:nth-child(2), td:nth-child(2) {
+        width: 20%;
+    }
+    
+    th:nth-child(3), td:nth-child(3) {
+        width: 25%;
+    }
+    
+    th:nth-child(4), td:nth-child(4) {
         width: 30%;
     }
     
@@ -591,6 +612,12 @@ td:nth-child(1) {
         font-size: 16px;
         max-width: 100%;
         box-sizing: border-box;
+    }
+    
+    /* Ajuste específico para inputs de data em mobile */
+    .campo-pesquisa input[type="date"] {
+        font-size: 14px;
+        padding: 6px 8px;
     }
     
     .legenda {
@@ -671,4 +698,82 @@ td:nth-child(1) {
 img, svg {
     max-width: 100%;
     height: auto;
+}
+
+/* Melhorias de acessibilidade */
+@media (prefers-reduced-motion: reduce) {
+    .btn-filtrar,
+    .btn-acao,
+    .pagina-item,
+    .acoes a,
+    tbody tr {
+        transition: none;
+    }
+}
+
+/* Foco visível para acessibilidade */
+.btn-filtrar:focus,
+.btn-acao:focus,
+.pagina-item:focus,
+.campo-pesquisa input:focus,
+.campo-pesquisa select:focus {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .cabecalho {
+        background: #000;
+        border-bottom: 2px solid #fff;
+    }
+    
+    .btn-filtrar {
+        background: #000;
+        border: 2px solid #fff;
+    }
+    
+    th {
+        background: #000;
+        border: 1px solid #fff;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    body {
+        background: #1a1a1a;
+        color: #e0e0e0;
+    }
+    
+    .pesquisa-container,
+    .legenda {
+        background: #2d2d2d;
+        border-color: #404040;
+    }
+    
+    .campo-pesquisa input,
+    .campo-pesquisa select {
+        background: #3d3d3d;
+        border-color: #555;
+        color: #e0e0e0;
+    }
+    
+    table {
+        background: #2d2d2d;
+    }
+    
+    td {
+        border-color: #404040;
+    }
+    
+    .pagina-item {
+        background: #3d3d3d;
+        border-color: #555;
+        color: #e0e0e0;
+    }
+    
+    .pagina-item:hover {
+        background: #4d4d4d;
+    }
 }
