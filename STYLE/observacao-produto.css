@@ -229,28 +229,26 @@ textarea.form-control {
 
 /* Botões - ESTILO DO BOTÃO FILTRAR DO READ-PRODUTO */
 .btn {
-    padding: 12px 25px;
-    text-decoration: none;
-    border-radius: 4px;
-    border: none;
-    cursor: pointer;
-    display: inline-flex;
+    display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    transition: all 0.3s;
+    padding: 10px 20px;
     background: #007bff;
     color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s;
     width: auto;
     min-width: 120px;
+    text-decoration: none;
 }
 
 .btn:hover {
     background: #0056b3;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
 }
 
 .btn-primary {
@@ -339,7 +337,7 @@ textarea.form-control {
     }
     
     .voltar svg {
-        width: 36px;
-        height: 36px;
+        width: 24px;
+        height: 24px;
     }
 }

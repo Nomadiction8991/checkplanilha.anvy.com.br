@@ -1,6 +1,7 @@
 <?php
 require_once '../conexao.php';
 
+// Receber parâmetros via GET
 $codigo = $_GET['codigo'] ?? null;
 $id_planilha = $_GET['id_planilha'] ?? null;
 
@@ -11,6 +12,7 @@ $filtro_dependencia = $_GET['dependencia'] ?? '';
 $filtro_codigo = $_GET['filtro_codigo'] ?? '';
 $filtro_status = $_GET['status'] ?? '';
 
+// Validação dos parâmetros obrigatórios
 if (!$codigo || !$id_planilha) {
     $query_string = http_build_query([
         'id' => $id_planilha,
@@ -19,14 +21,22 @@ if (!$codigo || !$id_planilha) {
         'dependencia' => $filtro_dependencia,
         'codigo' => $filtro_codigo,
         'status' => $filtro_status,
-        'erro' => 'Produto não encontrado'
+        'erro' => 'Parâmetros inválidos para acessar a página'
     ]);
     header('Location: ../VIEW/view-planilha.php?' . $query_string);
     exit;
 }
 
+// Inicializar variáveis
 $mensagem = '';
 $tipo_mensagem = '';
+$produto = [];
+$check = [
+    'checado' => 0,
+    'observacoes' => '',
+    'dr' => 0,
+    'imprimir' => 0
+];
 
 // Buscar dados do produto
 try {
@@ -38,7 +48,7 @@ try {
     $produto = $stmt_produto->fetch();
     
     if (!$produto) {
-        throw new Exception('Produto não encontrado.');
+        throw new Exception('Produto não encontrado na planilha.');
     }
     
     // Buscar dados do check (se existir)
@@ -46,16 +56,11 @@ try {
     $stmt_check = $conexao->prepare($sql_check);
     $stmt_check->bindValue(':produto_id', $produto['id']);
     $stmt_check->execute();
-    $check = $stmt_check->fetch();
+    $check_result = $stmt_check->fetch();
 
-    // Se não existir registro, criar array vazio
-    if (!$check) {
-        $check = [
-            'checado' => 0,
-            'observacoes' => '',
-            'dr' => 0,
-            'imprimir' => 0
-        ];
+    // Se existir registro, atualizar array $check
+    if ($check_result) {
+        $check = $check_result;
     }
     
 } catch (Exception $e) {
@@ -67,11 +72,12 @@ try {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $observacoes = trim($_POST['observacoes'] ?? '');
     
-    // Receber filtros do POST também
+    // Receber filtros do POST
     $pagina = $_POST['pagina'] ?? 1;
     $filtro_nome = $_POST['nome'] ?? '';
     $filtro_dependencia = $_POST['dependencia'] ?? '';
     $filtro_codigo = $_POST['filtro_codigo'] ?? '';
+    $filtro_status = $_POST['status'] ?? '';
     
     try {
         // Verificar se já existe registro na tabela produtos_check
@@ -88,6 +94,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt_update->bindValue(':observacoes', $observacoes);
             $stmt_update->bindValue(':produto_id', $produto['id']);
             $stmt_update->execute();
+            
+            $mensagem = "Observações atualizadas com sucesso!";
+            $tipo_mensagem = 'success';
         } else {
             // Inserir novo registro
             $sql_insert = "INSERT INTO produtos_check (produto_id, observacoes) VALUES (:produto_id, :observacoes)";
@@ -95,18 +104,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt_insert->bindValue(':produto_id', $produto['id']);
             $stmt_insert->bindValue(':observacoes', $observacoes);
             $stmt_insert->execute();
+            
+            $mensagem = "Observações salvas com sucesso!";
+            $tipo_mensagem = 'success';
         }
         
-        // Redirecionar de volta para view-planilha.php
-        $query_string = http_build_query([
-            'id' => $id_planilha,
-            'pagina' => $pagina,
-            'nome' => $filtro_nome,
-            'dependencia' => $filtro_dependencia,
-            'codigo' => $filtro_codigo
-        ]);
-        header('Location: ../VIEW/view-planilha.php?' . $query_string);
-        exit;
+        // Atualizar dados do check após salvar
+        $stmt_check->execute();
+        $check_result = $stmt_check->fetch();
+        if ($check_result) {
+            $check = $check_result;
+        }
         
     } catch (Exception $e) {
         $mensagem = "Erro ao salvar observações: " . $e->getMessage();
