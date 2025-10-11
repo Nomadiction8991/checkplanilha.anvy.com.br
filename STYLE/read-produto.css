@@ -546,9 +546,7 @@ td:nth-child(2) {
         max-width: 100%;
         box-sizing: border-box;
     }
-    .campo-pesquisa select{
-        width: 90%;
-    }
+
     
     /* Previne zoom em iOS */
     @media (max-width: 480px) {
