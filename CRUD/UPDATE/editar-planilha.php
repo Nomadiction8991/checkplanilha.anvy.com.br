@@ -1,6 +1,6 @@
 <?php
-require_once 'conexao.php';
-require_once 'vendor/autoload.php';
+require_once '../CRUD/conexao.php';
+require_once '../vendor/autoload.php';
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
@@ -52,11 +52,9 @@ try {
 
 // Processar o formulário quando enviado
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $descricao = trim($_POST['descricao'] ?? '');
-    $status = trim($_POST['status'] ?? '');
     $ativo = isset($_POST['ativo']) ? 1 : 0;
     $linhas_pular = (int)($_POST['linhas_pular'] ?? 25);
-    $comum = trim($_POST['comum'] ?? 'D16'); // Novo campo
+    $comum = trim($_POST['comum'] ?? 'D16');
     
     // Mapeamento simplificado
     $mapeamento = [
@@ -66,33 +64,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     ];
 
     try {
-        // Validar campos obrigatórios
-        if (empty($descricao)) {
-            throw new Exception('A descrição é obrigatória.');
-        }
-
-        if (empty($status)) {
-            throw new Exception('O status é obrigatório.');
-        }
-
         if (empty($comum)) {
             throw new Exception('O campo comum é obrigatório.');
-        }
-
-        // Validar se o status é um dos valores permitidos
-        $status_permitidos = ['Pendente', 'Em Execução', 'Concluído'];
-        if (!in_array($status, $status_permitidos)) {
-            throw new Exception('Status inválido. Valores permitidos: Pendente, Em Execução, Concluído.');
         }
 
         // Iniciar transação
         $conexao->beginTransaction();
 
         // Atualizar dados da planilha
-        $sql_update_planilha = "UPDATE planilhas SET descricao = :descricao, status = :status, ativo = :ativo, comum = :comum WHERE id = :id";
+        $sql_update_planilha = "UPDATE planilhas SET ativo = :ativo, comum = :comum WHERE id = :id";
         $stmt_update_planilha = $conexao->prepare($sql_update_planilha);
-        $stmt_update_planilha->bindValue(':descricao', $descricao);
-        $stmt_update_planilha->bindValue(':status', $status);
         $stmt_update_planilha->bindValue(':ativo', $ativo);
         $stmt_update_planilha->bindValue(':comum', $comum);
         $stmt_update_planilha->bindValue(':id', $id_planilha);
@@ -261,125 +242,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editar Planilha</title>
-    <style>
-        .message { padding: 10px; margin: 10px 0; border-radius: 4px; }
-        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input, select { padding: 8px; width: 100%; max-width: 400px; }
-        .mapeamento-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 15px 0; }
-        .mapeamento-item { display: flex; align-items: center; gap: 10px; }
-        .mapeamento-label { min-width: 150px; }
-        .mapeamento-input { width: 60px; text-align: center; }
-        button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        button:hover { background: #0056b3; }
-        small { color: #666; font-style: italic; }
-        .checkbox-group { display: flex; align-items: center; gap: 10px; }
-        .checkbox-group input { width: auto; }
-    </style>
-</head>
-<body>
-    <h1>Editar Planilha</h1>
-
-    <a href="index.php" style="display: inline-block; margin-bottom: 20px; padding: 8px 15px; background: #6c757d; color: white; text-decoration: none; border-radius: 4px;">
-        ← Voltar para Listagem
-    </a>
-
-    <?php if (!empty($mensagem)): ?>
-        <div class="message <?php echo $tipo_mensagem; ?>">
-            <?php echo $mensagem; ?>
-        </div>
-    <?php endif; ?>
-
-    <form method="POST" enctype="multipart/form-data">
-        <!-- Campo Descrição -->
-        <div class="form-group">
-            <label for="descricao">Descrição da Planilha:</label>
-            <input type="text" id="descricao" name="descricao" 
-                   value="<?php echo htmlspecialchars($planilha['descricao'] ?? ''); ?>" 
-                   required placeholder="Digite um nome para identificar esta planilha">
-        </div>
-
-        <!-- Campo Comum -->
-        <div class="form-group">
-            <label for="comum">Localização Comum:</label>
-            <input type="text" id="comum" name="comum" 
-                   value="<?php echo htmlspecialchars($planilha['comum'] ?? 'D16'); ?>" 
-                   required placeholder="Ex: D16">
-            <small>Localização padrão que será salva na planilha</small>
-        </div>
-
-        <!-- Campo Status -->
-        <div class="form-group">
-            <label for="status">Status da Planilha:</label>
-            <select id="status" name="status" required>
-                <option value="Pendente" <?php echo ($planilha['status'] ?? '') === 'Pendente' ? 'selected' : ''; ?>>Pendente</option>
-                <option value="Em Execução" <?php echo ($planilha['status'] ?? '') === 'Em Execução' ? 'selected' : ''; ?>>Em Execução</option>
-                <option value="Concluído" <?php echo ($planilha['status'] ?? '') === 'Concluído' ? 'selected' : ''; ?>>Concluído</option>
-            </select>
-        </div>
-
-        <!-- Campo Ativo -->
-        <div class="form-group">
-            <div class="checkbox-group">
-                <input type="checkbox" id="ativo" name="ativo" value="1" 
-                       <?php echo ($planilha['ativo'] ?? 0) ? 'checked' : ''; ?>>
-                <label for="ativo">Planilha ativa</label>
-            </div>
-            <small>Desmarque para desativar esta planilha</small>
-        </div>
-
-        <!-- Campo Arquivo (Opcional) -->
-        <div class="form-group">
-            <label for="arquivo">Novo Arquivo CSV (opcional):</label>
-            <input type="file" id="arquivo" name="arquivo" accept=".csv">
-            <small>Selecione um novo arquivo apenas se desejar substituir os dados atuais</small>
-        </div>
-
-        <!-- Configurações de Mapeamento -->
-        <h3>Configurações de Importação</h3>
-
-        <!-- Linhas a pular -->
-        <div class="form-group">
-            <label for="linhas_pular">Linhas iniciais a pular:</label>
-            <input type="number" id="linhas_pular" name="linhas_pular" 
-                   value="<?php echo $config['pulo_linhas'] ?? 25; ?>" min="0" required>
-            <small>Número de linhas do cabeçalho que devem ser ignoradas</small>
-        </div>
-
-        <!-- Mapeamento de Colunas Simplificado -->
-        <h3>Mapeamento de Colunas</h3>
-        <p>Defina a letra da coluna para cada campo:</p>
-
-        <div class="mapeamento-grid">
-            <div class="mapeamento-item">
-                <span class="mapeamento-label">Código:</span>
-                <input type="text" class="mapeamento-input" name="codigo" 
-                       value="<?php echo $mapeamento_array['codigo'] ?? 'A'; ?>" maxlength="2" required>
-            </div>
-
-            <div class="mapeamento-item">
-                <span class="mapeamento-label">Nome:</span>
-                <input type="text" class="mapeamento-input" name="nome" 
-                       value="<?php echo $mapeamento_array['nome'] ?? 'D'; ?>" maxlength="2" required>
-            </div>
-
-            <div class="mapeamento-item">
-                <span class="mapeamento-label">Dependência:</span>
-                <input type="text" class="mapeamento-input" name="dependencia" 
-                       value="<?php echo $mapeamento_array['dependencia'] ?? 'P'; ?>" maxlength="2" required>
-            </div>
-        </div>
-
-        <button type="submit">Atualizar Planilha</button>
-    </form>
-</body>
-</html>
