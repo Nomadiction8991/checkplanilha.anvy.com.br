@@ -16,10 +16,13 @@
         <h1>Menu</h1>
     </header>
     <section class="conteudo">
-        <nav>
-            <a href="cadastro-produto.php">Cadastrar Produto</a>
+        <nav class="menu">
+            <a class="opcao op1" href="cadastro-produto.php">Cadastrar Produto</a>
+            <a class="opcao op2" href="#">Em Desenvolvimento</a>
+            <a class="opcao op3" href="#">Em Desenvolvimento</a>
+            <a class="opcao op4" href="#">Em Desenvolvimento</a>
+            <a class="opcao op5" href="#">Em Desenvolvimento</a>
         </nav>
     </section>
 </body>
-
 </html>

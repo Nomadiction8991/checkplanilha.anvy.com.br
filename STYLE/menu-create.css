@@ -1,0 +1,190 @@
+/* menu-create.css */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f5f5f5;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* Cabeçalho - mantendo o mesmo estilo do visualizar_planilha */
+.cabecalho {
+    background: #007bff;
+    padding: 15px 20px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.cabecalho h1 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.voltar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+}
+
+.voltar:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.voltar svg {
+    width: 28px;
+    height: 28px;
+}
+
+/* Conteúdo Principal */
+.conteudo {
+    padding: 20px;
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+/* Menu de Opções */
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.opcao {
+    display: block;
+    padding: 20px;
+    text-decoration: none;
+    color: #333;
+    background: #fff;
+    border-radius: 10px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 600;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Cores diferentes para cada opção */
+.op1 {
+    background: linear-gradient(135deg, #a3fab7ff, #8df5a8);
+    border-color: #28a745;
+    color: #155724;
+}
+
+.op2 {
+    background: linear-gradient(135deg, #ffe8a7ff, #ffdf8e);
+    border-color: #ffc107;
+    color: #856404;
+}
+
+.op3 {
+    background: linear-gradient(135deg, #a3d3faff, #8bc5ff);
+    border-color: #007bff;
+    color: #004085;
+}
+
+.op4 {
+    background: linear-gradient(135deg, #f8d7daff, #f5c2c7);
+    border-color: #dc3545;
+    color: #721c24;
+}
+
+.op5 {
+    background: linear-gradient(135deg, #e2e3e5ff, #d6d8db);
+    border-color: #6c757d;
+    color: #383d41;
+}
+
+/* Efeitos hover */
+.opcao:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    text-decoration: none;
+}
+
+.op1:hover {
+    background: linear-gradient(135deg, #8df5a8, #7ae895);
+}
+
+.op2:hover {
+    background: linear-gradient(135deg, #ffdf8e, #ffd870);
+}
+
+.op3:hover {
+    background: linear-gradient(135deg, #8bc5ff, #79b8ff);
+}
+
+.op4:hover {
+    background: linear-gradient(135deg, #f5c2c7, #f1a8af);
+}
+
+.op5:hover {
+    background: linear-gradient(135deg, #d6d8db, #c8cbcf);
+}
+
+/* Indicador de "Em Desenvolvimento" */
+.opcao[href="#"]::after {
+    content: "🛠️";
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    font-size: 16px;
+    opacity: 0.8;
+}
+
+/* Efeito de clique */
+.opcao:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* Responsividade adicional para telas muito pequenas */
+@media (max-width: 380px) {
+    .conteudo {
+        padding: 15px;
+    }
+    
+    .opcao {
+        padding: 18px 15px;
+        font-size: 16px;
+    }
+    
+    .cabecalho {
+        padding: 12px 15px;
+    }
+    
+    .cabecalho h1 {
+        font-size: 18px;
+    }
+}
+
+/* Loading state para links que funcionam */
+.opcao:not([href="#"]) {
+    cursor: pointer;
+}
+
+/* Melhorar acessibilidade para foco */
+.opcao:focus {
+    outline: 3px solid #007bff;
+    outline-offset: 2px;
+}
