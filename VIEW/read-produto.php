@@ -20,7 +20,7 @@ require_once '../CRUD/READ/produto.php';
             <h1>Read Produtos</h1>
         </section>
         <section class="acoes">
-            <a href="../create-produto.php?id_planilha=<?php echo $id_planilha; ?>">
+            <a href="../CREATE/create-produto.php?id_planilha=<?php echo $id_planilha; ?>">
                 <svg xmlns="http://www.w3.org/2000/svg" height="48px" viewBox="0 -960 960 960" width="48px" fill="#FFFFFF"><path d="M450-450H200v-60h250v-250h60v250h250v60H510v250h-60v-250Z"/></svg>
             </a>
         </section>
@@ -39,8 +39,8 @@ require_once '../CRUD/READ/produto.php';
                 <?php if ($produtos): ?>
                     <?php foreach ($produtos as $produto): ?>
                     <tr>
-                        <td data-label="ID"><?php echo htmlspecialchars($produto['id']); ?></td>
-                        <td data-label="Descrição">
+                        <td><?php echo htmlspecialchars($produto['id']); ?></td>
+                        <td>
                             <?php 
                             echo htmlspecialchars($produto['tipo_codigo'] . ' - ' . $produto['tipo_descricao']);
                             echo ' [' . htmlspecialchars($produto['tipo_ben']) . ']';
@@ -50,7 +50,7 @@ require_once '../CRUD/READ/produto.php';
                             }
                             ?>
                         </td>
-                        <td data-label="Status">
+                        <td>
                             <?php if ($produto['possui_nota'] == 1): ?>
                                 <span class="status-badge status-nota">Nota</span>
                             <?php endif; ?>
@@ -61,7 +61,7 @@ require_once '../CRUD/READ/produto.php';
                                 <span>-</span>
                             <?php endif; ?>
                         </td>
-                        <td data-label="Ações">
+                        <td>
                             <div class="acoes-links">
                                 <a href="../UPDATE/editar-produto.php?id=<?php echo $produto['id']; ?>&id_planilha=<?php echo $id_planilha; ?>" class="btn-acao btn-editar">Editar</a>
                                 <a href="../DELETE/excluir-produto.php?id=<?php echo $produto['id']; ?>&id_planilha=<?php echo $id_planilha; ?>" class="btn-acao btn-excluir" onclick="return confirm('Tem certeza que deseja excluir este produto?')">Excluir</a>
