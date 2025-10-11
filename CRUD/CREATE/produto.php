@@ -1,0 +1,109 @@
+<?php
+require_once '../conexao.php';
+
+$id_planilha = $_GET['id_planilha'] ?? null;
+
+if (!$id_planilha) {
+    header('Location: ../../VIEW/menu-create.php');
+    exit;
+}
+
+// Buscar tipos de bens disponíveis
+$sql_tipos_bens = "SELECT id, codigo, descricao FROM tipos_bens ORDER BY codigo";
+$stmt_tipos = $conexao->prepare($sql_tipos_bens);
+$stmt_tipos->execute();
+$tipos_bens = $stmt_tipos->fetchAll();
+
+// Buscar dependências disponíveis
+$sql_dependencias = "SELECT id, descricao FROM dependencias ORDER BY descricao";
+$stmt_deps = $conexao->prepare($sql_dependencias);
+$stmt_deps->execute();
+$dependencias = $stmt_deps->fetchAll();
+
+// Processar o formulário quando enviado
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $id_tipo_ben = $_POST['id_tipo_ben'] ?? '';
+    $tipo_ben = $_POST['tipo_ben'] ?? '';
+    $complemento = $_POST['complemento'] ?? '';
+    $id_dependencia = $_POST['id_dependencia'] ?? '';
+    $possui_nota = isset($_POST['possui_nota']) ? 1 : 0;
+    $imprimir_doacao = isset($_POST['imprimir_doacao']) ? 1 : 0;
+    
+    // Validações básicas
+    $erros = [];
+    
+    if (empty($id_tipo_ben)) {
+        $erros[] = "O tipo de bem é obrigatório";
+    }
+    
+    if (empty($tipo_ben)) {
+        $erros[] = "O código do bem é obrigatório";
+    }
+    
+    if (empty($complemento)) {
+        $erros[] = "O complemento é obrigatório";
+    }
+    
+    // Se não há erros, inserir no banco
+    if (empty($erros)) {
+        try {
+            $sql_inserir = "INSERT INTO produtos_cadastro 
+                           (id_planilha, id_tipo_ben, tipo_ben, complemento, id_dependencia, possui_nota, imprimir_doacao) 
+                           VALUES 
+                           (:id_planilha, :id_tipo_ben, :tipo_ben, :complemento, :id_dependencia, :possui_nota, :imprimir_doacao)";
+            
+            $stmt_inserir = $conexao->prepare($sql_inserir);
+            $stmt_inserir->bindValue(':id_planilha', $id_planilha);
+            $stmt_inserir->bindValue(':id_tipo_ben', $id_tipo_ben);
+            $stmt_inserir->bindValue(':tipo_ben', $tipo_ben);
+            $stmt_inserir->bindValue(':complemento', $complemento);
+            $stmt_inserir->bindValue(':id_dependencia', $id_dependencia ?: null);
+            $stmt_inserir->bindValue(':possui_nota', $possui_nota);
+            $stmt_inserir->bindValue(':imprimir_doacao', $imprimir_doacao);
+            
+            $stmt_inserir->execute();
+            
+            // Gerar parâmetros de retorno para manter os filtros
+            $parametros_retorno = gerarParametrosFiltro();
+            
+            // Redirecionar de volta para a lista
+            header('Location: ../READ/read-produto.php?id_planilha=' . $id_planilha . $parametros_retorno);
+            exit;
+            
+        } catch (Exception $e) {
+            $erros[] = "Erro ao cadastrar produto: " . $e->getMessage();
+        }
+    }
+}
+
+// Função para gerar parâmetros de filtro (similar à do read)
+function gerarParametrosFiltro() {
+    $params = '';
+    
+    if (!empty($_GET['pesquisa_id'])) {
+        $params .= '&pesquisa_id=' . urlencode($_GET['pesquisa_id']);
+    }
+    if (!empty($_GET['filtro_tipo_ben'])) {
+        $params .= '&filtro_tipo_ben=' . urlencode($_GET['filtro_tipo_ben']);
+    }
+    if (!empty($_GET['filtro_bem'])) {
+        $params .= '&filtro_bem=' . urlencode($_GET['filtro_bem']);
+    }
+    if (!empty($_GET['filtro_complemento'])) {
+        $params .= '&filtro_complemento=' . urlencode($_GET['filtro_complemento']);
+    }
+    if (!empty($_GET['filtro_dependencia'])) {
+        $params .= '&filtro_dependencia=' . urlencode($_GET['filtro_dependencia']);
+    }
+    if (!empty($_GET['filtro_status'])) {
+        $params .= '&filtro_status=' . urlencode($_GET['filtro_status']);
+    }
+    if (!empty($_GET['pagina'])) {
+        $params .= '&pagina=' . urlencode($_GET['pagina']);
+    }
+    
+    return $params;
+}
+
+// As variáveis estarão disponíveis para o HTML
+?>
