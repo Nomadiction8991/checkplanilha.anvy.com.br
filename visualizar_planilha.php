@@ -400,7 +400,8 @@ $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
         <a href="index.php" class="header-btn" title="Fechar">❌</a>
         <h1 class="header-title"><?php echo htmlspecialchars($planilha['descricao']); ?></h1>
         <div class="header-actions">
-            <a href="cadastro/menu.php">
+            <a href="copiaretiquetas_planilha.php?id=<?php echo $id_planilha; ?>" class="header-btn" title="Copiar Etiquetas">🏷️</a>
+            <a href="VIEW/menu-create.php">
                 <svg xmlns="http://www.w3.org/2000/svg" height="48px" viewBox="0 -960 960 960" width="48px" fill="#FFFFFF"><path d="M450-280h60v-170h170v-60H510v-170h-60v170H280v60h170v170ZM180-120q-24 0-42-18t-18-42v-600q0-24 18-42t42-18h600q24 0 42 18t18 42v600q0 24-18 42t-42 18H180Zm0-60h600v-600H180v600Zm0-600v600-600Z"/></svg>
             </a>
             <a href="imprecoes.php?id=<?php echo $id_planilha; ?>" class="header-btn">
