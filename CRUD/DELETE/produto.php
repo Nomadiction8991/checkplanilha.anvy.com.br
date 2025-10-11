@@ -1,11 +1,11 @@
 <?php
 require_once '../CRUD/conexao.php';
 
-$id_produto = $_GET['id'] ?? null;
-$id_planilha = $_GET['id_planilha'] ?? null;
+$id_produto = $_GET['id_produto'] ?? null;
+$id_planilha = $_GET['id'] ?? null;
 
 if (!$id_produto || !$id_planilha) {
-    header('Location: ../VIEW/menu-create.php');
+    header('Location: ../index.php');
     exit;
 }
 
