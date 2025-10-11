@@ -546,6 +546,9 @@ td:nth-child(2) {
         max-width: 90%;
         box-sizing: border-box;
     }
+    .campo-pesquisa input{
+        width: 100%;
+    }
     
     /* Previne zoom em iOS */
     @media (max-width: 480px) {
@@ -579,15 +582,6 @@ td:nth-child(2) {
     }
 }
 
-/* Focus visível para acessibilidade */
-.btn-filtrar:focus,
-.btn-acao:focus,
-.pagina-item:focus,
-.campo-pesquisa input:focus,
-.campo-pesquisa select:focus {
-    outline: 2px solid #007bff;
-    outline-offset: 2px;
-}
 
 /* Estados de loading (para futuras implementações) */
 .loading {
