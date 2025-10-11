@@ -10,7 +10,9 @@ if (!$id_planilha) {
 
 // Parâmetros de pesquisa
 $pesquisa_id = $_GET['pesquisa_id'] ?? '';
-$pesquisa_descricao = $_GET['pesquisa_descricao'] ?? '';
+$filtro_tipo_ben = $_GET['filtro_tipo_ben'] ?? '';
+$filtro_complemento = $_GET['filtro_complemento'] ?? '';
+$filtro_dependencia = $_GET['filtro_dependencia'] ?? '';
 $filtro_status = $_GET['filtro_status'] ?? '';
 
 // Paginação
@@ -39,6 +41,37 @@ $sql_count = "SELECT COUNT(*) as total
               LEFT JOIN dependencias d ON pc.id_dependencia = d.id
               WHERE pc.id_planilha = :id_planilha";
 
+// Buscar tipos de bens disponíveis para o select
+$sql_tipos_bens = "SELECT DISTINCT tb.id, tb.codigo, tb.descricao 
+                   FROM produtos_cadastro pc
+                   JOIN tipos_bens tb ON pc.id_tipo_ben = tb.id
+                   WHERE pc.id_planilha = :id_planilha
+                   ORDER BY tb.codigo";
+
+// Buscar dependências disponíveis para o select
+$sql_dependencias = "SELECT DISTINCT d.id, d.descricao 
+                    FROM produtos_cadastro pc
+                    LEFT JOIN dependencias d ON pc.id_dependencia = d.id
+                    WHERE pc.id_planilha = :id_planilha AND d.id IS NOT NULL
+                    ORDER BY d.descricao";
+
+try {
+    // Buscar tipos de bens
+    $stmt_tipos = $conexao->prepare($sql_tipos_bens);
+    $stmt_tipos->bindValue(':id_planilha', $id_planilha);
+    $stmt_tipos->execute();
+    $tipos_bens = $stmt_tipos->fetchAll();
+
+    // Buscar dependências
+    $stmt_deps = $conexao->prepare($sql_dependencias);
+    $stmt_deps->bindValue(':id_planilha', $id_planilha);
+    $stmt_deps->execute();
+    $dependencias = $stmt_deps->fetchAll();
+} catch (Exception $e) {
+    $tipos_bens = [];
+    $dependencias = [];
+}
+
 // Adicionar condições de pesquisa
 $condicoes = [];
 $params = [':id_planilha' => $id_planilha];
@@ -48,9 +81,19 @@ if (!empty($pesquisa_id)) {
     $params[':pesquisa_id'] = $pesquisa_id;
 }
 
-if (!empty($pesquisa_descricao)) {
-    $condicoes[] = "(tb.codigo LIKE :pesquisa_descricao OR tb.descricao LIKE :pesquisa_descricao OR pc.tipo_ben LIKE :pesquisa_descricao OR pc.complemento LIKE :pesquisa_descricao OR d.descricao LIKE :pesquisa_descricao)";
-    $params[':pesquisa_descricao'] = "%$pesquisa_descricao%";
+if (!empty($filtro_tipo_ben)) {
+    $condicoes[] = "pc.id_tipo_ben = :filtro_tipo_ben";
+    $params[':filtro_tipo_ben'] = $filtro_tipo_ben;
+}
+
+if (!empty($filtro_complemento)) {
+    $condicoes[] = "pc.complemento LIKE :filtro_complemento";
+    $params[':filtro_complemento'] = "%$filtro_complemento%";
+}
+
+if (!empty($filtro_dependencia)) {
+    $condicoes[] = "pc.id_dependencia = :filtro_dependencia";
+    $params[':filtro_dependencia'] = $filtro_dependencia;
 }
 
 if (!empty($filtro_status)) {
@@ -69,8 +112,8 @@ if (!empty($condicoes)) {
     $sql_count .= " AND " . implode(" AND ", $condicoes);
 }
 
-// Ordenação e paginação
-$sql .= " ORDER BY pc.id DESC LIMIT :limit OFFSET :offset";
+// Ordenação por ID do menor para o maior
+$sql .= " ORDER BY pc.id ASC LIMIT :limit OFFSET :offset";
 
 try {
     // Contar total de registros
@@ -94,7 +137,7 @@ try {
     $stmt->execute();
     $produtos = $stmt->fetchAll();
     
-    // Calcular total de páginas - CORREÇÃO AQUI: usar $produtos_por_pagina (sem 's')
+    // Calcular total de páginas
     $total_paginas = ceil($total_registros / $produtos_por_pagina);
     
 } catch (Exception $e) {
@@ -108,8 +151,14 @@ function gerarParametrosFiltro($incluirPagina = false) {
     if (!empty($_GET['pesquisa_id'])) {
         $params['pesquisa_id'] = $_GET['pesquisa_id'];
     }
-    if (!empty($_GET['pesquisa_descricao'])) {
-        $params['pesquisa_descricao'] = $_GET['pesquisa_descricao'];
+    if (!empty($_GET['filtro_tipo_ben'])) {
+        $params['filtro_tipo_ben'] = $_GET['filtro_tipo_ben'];
+    }
+    if (!empty($_GET['filtro_complemento'])) {
+        $params['filtro_complemento'] = $_GET['filtro_complemento'];
+    }
+    if (!empty($_GET['filtro_dependencia'])) {
+        $params['filtro_dependencia'] = $_GET['filtro_dependencia'];
     }
     if (!empty($_GET['filtro_status'])) {
         $params['filtro_status'] = $_GET['filtro_status'];

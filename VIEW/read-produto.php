@@ -26,41 +26,65 @@ require_once '../CRUD/READ/produto.php';
         </section>
     </header>
 
-    <!-- Seção de Pesquisa -->
-    <section class="pesquisa-container">
-        <form method="GET" class="form-pesquisa">
-            <input type="hidden" name="id_planilha" value="<?php echo $id_planilha; ?>">
-            
-            <div class="campo-pesquisa">
-                <label for="pesquisa_id">ID</label>
-                <input type="number" id="pesquisa_id" name="pesquisa_id" value="<?php echo htmlspecialchars($pesquisa_id); ?>" placeholder="Digite o ID">
-            </div>
-            
-            <div class="campo-pesquisa">
-                <label for="pesquisa_descricao">Descrição</label>
-                <input type="text" id="pesquisa_descricao" name="pesquisa_descricao" value="<?php echo htmlspecialchars($pesquisa_descricao); ?>" placeholder="Pesquisar na descrição">
-            </div>
-            
-            <div class="campo-pesquisa">
-                <label for="filtro_status">Status</label>
-                <select id="filtro_status" name="filtro_status">
-                    <option value="">Todos</option>
-                    <option value="com_nota" <?php echo $filtro_status === 'com_nota' ? 'selected' : ''; ?>>Com Nota</option>
-                    <option value="com_doacao" <?php echo $filtro_status === 'com_doacao' ? 'selected' : ''; ?>>Com Doação</option>
-                    <option value="sem_status" <?php echo $filtro_status === 'sem_status' ? 'selected' : ''; ?>>Sem Status</option>
-                </select>
-            </div>
-            
-            <div class="botao-pesquisa">
-                <button type="submit" class="btn-filtrar">
-                    <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#FFFFFF">
-                        <path d="M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z"/>
-                    </svg>
-                    Filtrar
-                </button>
-            </div>
-        </form>
-    </section>
+<!-- Seção de Pesquisa -->
+<section class="pesquisa-container">
+    <form method="GET" class="form-pesquisa">
+        <input type="hidden" name="id_planilha" value="<?php echo $id_planilha; ?>">
+        
+        <div class="campo-pesquisa">
+            <label for="pesquisa_id">ID</label>
+            <input type="number" id="pesquisa_id" name="pesquisa_id" value="<?php echo htmlspecialchars($pesquisa_id); ?>" placeholder="Digite o ID">
+        </div>
+        
+        <div class="campo-pesquisa">
+            <label for="filtro_tipo_ben">Tipo de Bem</label>
+            <select id="filtro_tipo_ben" name="filtro_tipo_ben">
+                <option value="">Todos</option>
+                <?php foreach ($tipos_bens as $tipo): ?>
+                    <option value="<?php echo $tipo['id']; ?>" <?php echo $filtro_tipo_ben == $tipo['id'] ? 'selected' : ''; ?>>
+                        <?php echo htmlspecialchars($tipo['codigo'] . ' - ' . $tipo['descricao']); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        
+        <div class="campo-pesquisa">
+            <label for="filtro_complemento">Complemento</label>
+            <input type="text" id="filtro_complemento" name="filtro_complemento" value="<?php echo htmlspecialchars($filtro_complemento); ?>" placeholder="Pesquisar no complemento">
+        </div>
+        
+        <div class="campo-pesquisa">
+            <label for="filtro_dependencia">Dependência</label>
+            <select id="filtro_dependencia" name="filtro_dependencia">
+                <option value="">Todas</option>
+                <?php foreach ($dependencias as $dep): ?>
+                    <option value="<?php echo $dep['id']; ?>" <?php echo $filtro_dependencia == $dep['id'] ? 'selected' : ''; ?>>
+                        <?php echo htmlspecialchars($dep['descricao']); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        
+        <div class="campo-pesquisa">
+            <label for="filtro_status">Status</label>
+            <select id="filtro_status" name="filtro_status">
+                <option value="">Todos</option>
+                <option value="com_nota" <?php echo $filtro_status === 'com_nota' ? 'selected' : ''; ?>>Com Nota</option>
+                <option value="com_doacao" <?php echo $filtro_status === 'com_doacao' ? 'selected' : ''; ?>>Com Doação</option>
+                <option value="sem_status" <?php echo $filtro_status === 'sem_status' ? 'selected' : ''; ?>>Sem Status</option>
+            </select>
+        </div>
+        
+        <div class="botao-pesquisa">
+            <button type="submit" class="btn-filtrar">
+                <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#FFFFFF">
+                    <path d="M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z"/>
+                </svg>
+                Filtrar
+            </button>
+        </div>
+    </form>
+</section>
 
     <section class="conteudo">
         <table>
