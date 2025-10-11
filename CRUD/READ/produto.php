@@ -11,7 +11,7 @@ if (!$id_planilha) {
 // Parâmetros de pesquisa
 $pesquisa_id = $_GET['pesquisa_id'] ?? '';
 $filtro_tipo_ben = $_GET['filtro_tipo_ben'] ?? '';
-$filtro_tipo_ben_codigo = $_GET['filtro_tipo_ben_codigo'] ?? ''; // NOVO FILTRO
+$filtro_bem = $_GET['filtro_bem'] ?? ''; // NOME ALTERADO
 $filtro_complemento = $_GET['filtro_complemento'] ?? '';
 $filtro_dependencia = $_GET['filtro_dependencia'] ?? '';
 $filtro_status = $_GET['filtro_status'] ?? '';
@@ -42,22 +42,22 @@ $sql_count = "SELECT COUNT(*) as total
               LEFT JOIN dependencias d ON pc.id_dependencia = d.id
               WHERE pc.id_planilha = :id_planilha";
 
-// Buscar tipos de bens disponíveis para o select
+// Buscar tipos de bens disponíveis para o select (SEM REPETIÇÕES)
 $sql_tipos_bens = "SELECT DISTINCT tb.id, tb.codigo, tb.descricao 
                    FROM produtos_cadastro pc
                    JOIN tipos_bens tb ON pc.id_tipo_ben = tb.id
                    WHERE pc.id_planilha = :id_planilha
                    ORDER BY tb.codigo";
 
-// Buscar códigos tipo_ben disponíveis para o select (NOVO)
-$sql_tipos_ben_codigo = "SELECT DISTINCT pc.tipo_ben 
-                         FROM produtos_cadastro pc
-                         WHERE pc.id_planilha = :id_planilha 
-                         AND pc.tipo_ben IS NOT NULL 
-                         AND pc.tipo_ben != ''
-                         ORDER BY pc.tipo_ben";
+// Buscar códigos bem disponíveis para o select (SEM REPETIÇÕES)
+$sql_bem_codigos = "SELECT DISTINCT pc.tipo_ben 
+                    FROM produtos_cadastro pc
+                    WHERE pc.id_planilha = :id_planilha 
+                    AND pc.tipo_ben IS NOT NULL 
+                    AND pc.tipo_ben != ''
+                    ORDER BY pc.tipo_ben";
 
-// Buscar dependências disponíveis para o select
+// Buscar dependências disponíveis para o select (SEM REPETIÇÕES)
 $sql_dependencias = "SELECT DISTINCT d.id, d.descricao 
                     FROM produtos_cadastro pc
                     LEFT JOIN dependencias d ON pc.id_dependencia = d.id
@@ -65,26 +65,26 @@ $sql_dependencias = "SELECT DISTINCT d.id, d.descricao
                     ORDER BY d.descricao";
 
 try {
-    // Buscar tipos de bens
+    // Buscar tipos de bens (SEM REPETIÇÕES)
     $stmt_tipos = $conexao->prepare($sql_tipos_bens);
     $stmt_tipos->bindValue(':id_planilha', $id_planilha);
     $stmt_tipos->execute();
     $tipos_bens = $stmt_tipos->fetchAll();
 
-    // Buscar códigos tipo_ben (NOVO)
-    $stmt_tipos_ben = $conexao->prepare($sql_tipos_ben_codigo);
-    $stmt_tipos_ben->bindValue(':id_planilha', $id_planilha);
-    $stmt_tipos_ben->execute();
-    $tipos_ben_codigos = $stmt_tipos_ben->fetchAll();
+    // Buscar códigos bem (SEM REPETIÇÕES)
+    $stmt_bem = $conexao->prepare($sql_bem_codigos);
+    $stmt_bem->bindValue(':id_planilha', $id_planilha);
+    $stmt_bem->execute();
+    $bem_codigos = $stmt_bem->fetchAll();
 
-    // Buscar dependências
+    // Buscar dependências (SEM REPETIÇÕES)
     $stmt_deps = $conexao->prepare($sql_dependencias);
     $stmt_deps->bindValue(':id_planilha', $id_planilha);
     $stmt_deps->execute();
     $dependencias = $stmt_deps->fetchAll();
 } catch (Exception $e) {
     $tipos_bens = [];
-    $tipos_ben_codigos = [];
+    $bem_codigos = [];
     $dependencias = [];
 }
 
@@ -102,10 +102,10 @@ if (!empty($filtro_tipo_ben)) {
     $params[':filtro_tipo_ben'] = $filtro_tipo_ben;
 }
 
-// NOVO FILTRO - tipo_ben (código entre colchetes)
-if (!empty($filtro_tipo_ben_codigo)) {
-    $condicoes[] = "pc.tipo_ben = :filtro_tipo_ben_codigo";
-    $params[':filtro_tipo_ben_codigo'] = $filtro_tipo_ben_codigo;
+// FILTRO BEM (nome alterado)
+if (!empty($filtro_bem)) {
+    $condicoes[] = "pc.tipo_ben = :filtro_bem";
+    $params[':filtro_bem'] = $filtro_bem;
 }
 
 if (!empty($filtro_complemento)) {
@@ -176,8 +176,8 @@ function gerarParametrosFiltro($incluirPagina = false) {
     if (!empty($_GET['filtro_tipo_ben'])) {
         $params['filtro_tipo_ben'] = $_GET['filtro_tipo_ben'];
     }
-    if (!empty($_GET['filtro_tipo_ben_codigo'])) {
-        $params['filtro_tipo_ben_codigo'] = $_GET['filtro_tipo_ben_codigo'];
+    if (!empty($_GET['filtro_bem'])) {
+        $params['filtro_bem'] = $_GET['filtro_bem'];
     }
     if (!empty($_GET['filtro_complemento'])) {
         $params['filtro_complemento'] = $_GET['filtro_complemento'];

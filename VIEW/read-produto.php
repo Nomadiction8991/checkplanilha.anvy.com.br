@@ -37,7 +37,7 @@ require_once '../CRUD/READ/produto.php';
         </div>
         
         <div class="campo-pesquisa">
-            <label for="filtro_tipo_ben">Tipo de Bem</label>
+            <label for="filtro_tipo_ben">Tipos de Bens</label> <!-- NOME ALTERADO PARA PLURAL -->
             <select id="filtro_tipo_ben" name="filtro_tipo_ben">
                 <option value="">Todos</option>
                 <?php foreach ($tipos_bens as $tipo): ?>
@@ -48,14 +48,14 @@ require_once '../CRUD/READ/produto.php';
             </select>
         </div>
         
-        <!-- NOVO FILTRO - Tipo Ben Código -->
+        <!-- FILTRO BEM (nome alterado) -->
         <div class="campo-pesquisa">
-            <label for="filtro_tipo_ben_codigo">Código Tipo Ben</label>
-            <select id="filtro_tipo_ben_codigo" name="filtro_tipo_ben_codigo">
+            <label for="filtro_bem">Bem</label>
+            <select id="filtro_bem" name="filtro_bem">
                 <option value="">Todos</option>
-                <?php foreach ($tipos_ben_codigos as $tipo_codigo): ?>
-                    <option value="<?php echo htmlspecialchars($tipo_codigo['tipo_ben']); ?>" <?php echo $filtro_tipo_ben_codigo == $tipo_codigo['tipo_ben'] ? 'selected' : ''; ?>>
-                        <?php echo htmlspecialchars($tipo_codigo['tipo_ben']); ?>
+                <?php foreach ($bem_codigos as $bem): ?>
+                    <option value="<?php echo htmlspecialchars($bem['tipo_ben']); ?>" <?php echo $filtro_bem == $bem['tipo_ben'] ? 'selected' : ''; ?>>
+                        <?php echo htmlspecialchars($bem['tipo_ben']); ?>
                     </option>
                 <?php endforeach; ?>
             </select>

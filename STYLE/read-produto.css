@@ -10,6 +10,7 @@ body {
     background: #f5f5f5;
     color: #333;
     font-size: 14px;
+    line-height: 1.4;
 }
 
 .cabecalho {
@@ -42,6 +43,7 @@ body {
     height: 36px;
     border-radius: 50%;
     transition: background-color 0.3s;
+    flex-shrink: 0;
 }
 
 .voltar:hover {
@@ -55,6 +57,7 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 200px;
+    flex-shrink: 1;
 }
 
 .acoes a {
@@ -65,6 +68,7 @@ body {
     height: 36px;
     border-radius: 50%;
     transition: background-color 0.3s;
+    flex-shrink: 0;
 }
 
 .acoes a:hover {
@@ -78,6 +82,8 @@ body {
     margin-top: 60px;
     border-bottom: 1px solid #eee;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    width: 100%;
+    overflow: hidden;
 }
 
 .form-pesquisa {
@@ -85,11 +91,13 @@ body {
     grid-template-columns: 1fr 1fr 1fr 1fr;
     gap: 10px;
     align-items: end;
+    width: 100%;
 }
 
 .campo-pesquisa {
     display: flex;
     flex-direction: column;
+    min-width: 0; /* Permite que o conteúdo shrink corretamente */
 }
 
 .campo-pesquisa label {
@@ -97,15 +105,21 @@ body {
     font-weight: 600;
     margin-bottom: 4px;
     color: #555;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .campo-pesquisa input,
 .campo-pesquisa select {
-    padding: 8px 12px;
+    padding: 8px 10px;
     border: 1px solid #ddd;
     border-radius: 4px;
     font-size: 14px;
     background: #fff;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0; /* Permite shrink em containers flex */
 }
 
 .campo-pesquisa input:focus,
@@ -119,6 +133,7 @@ body {
     display: flex;
     justify-content: center;
     margin-top: 5px;
+    width: 100%;
 }
 
 .btn-filtrar {
@@ -126,7 +141,7 @@ body {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 8px 16px;
+    padding: 10px 20px;
     background: #007bff;
     color: #fff;
     border: none;
@@ -135,6 +150,8 @@ body {
     font-weight: 600;
     cursor: pointer;
     transition: background-color 0.3s;
+    width: auto;
+    min-width: 120px;
 }
 
 .btn-filtrar:hover {
@@ -145,6 +162,7 @@ body {
     padding: 15px;
     width: 100%;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 table {
@@ -257,6 +275,7 @@ tbody tr:hover {
     cursor: pointer;
     width: 36px;
     height: 36px;
+    flex-shrink: 0;
 }
 
 .btn-editar {
@@ -285,6 +304,7 @@ tbody tr:hover {
     gap: 8px;
     margin-top: 20px;
     padding: 15px;
+    flex-wrap: wrap;
 }
 
 .pagina-item {
@@ -302,6 +322,7 @@ tbody tr:hover {
     font-size: 14px;
     font-weight: 500;
     transition: all 0.2s;
+    flex-shrink: 0;
 }
 
 .pagina-item:hover {
@@ -351,17 +372,42 @@ td:nth-child(2) {
     text-align: center;
 }
 
-/* Ajustes para telas grandes */
-@media (max-width: 1024px) {
+/* ========== RESPONSIVIDADE CORRIGIDA ========== */
+
+/* Telas grandes - 4 colunas */
+@media (min-width: 1025px) {
     .form-pesquisa {
-        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-columns: 1fr 1fr 1fr 1fr;
     }
 }
 
-/* Ajustes para telas médias */
-@media (max-width: 768px) {
+/* Tablets - 3 colunas */
+@media (max-width: 1024px) and (min-width: 769px) {
+    .form-pesquisa {
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 8px;
+    }
+    
+    .pesquisa-container {
+        padding: 12px;
+    }
+    
+    .campo-pesquisa input,
+    .campo-pesquisa select {
+        padding: 7px 9px;
+        font-size: 13px;
+    }
+}
+
+/* Tablets pequenos - 2 colunas */
+@media (max-width: 768px) and (min-width: 481px) {
     .form-pesquisa {
         grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+    
+    .pesquisa-container {
+        padding: 10px;
     }
     
     .conteudo {
@@ -408,7 +454,7 @@ td:nth-child(2) {
     }
 }
 
-/* Ajustes para telas muito pequenas */
+/* Celulares - 1 coluna */
 @media (max-width: 480px) {
     .form-pesquisa {
         grid-template-columns: 1fr;
@@ -417,6 +463,7 @@ td:nth-child(2) {
     
     .pesquisa-container {
         padding: 10px;
+        margin-top: 60px;
     }
     
     .conteudo {
@@ -490,6 +537,23 @@ td:nth-child(2) {
         width: 36px;
         height: 36px;
     }
+    
+    /* Correção específica para inputs em mobile */
+    .campo-pesquisa input,
+    .campo-pesquisa select {
+        padding: 8px 10px;
+        font-size: 16px; /* Melhora a experiência de touch */
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    
+    /* Previne zoom em iOS */
+    @media (max-width: 480px) {
+        .campo-pesquisa input[type="text"],
+        .campo-pesquisa input[type="number"] {
+            font-size: 16px;
+        }
+    }
 }
 
 /* Ajustes para telas muito grandes */
@@ -540,52 +604,12 @@ td:nth-child(2) {
     transition: all 0.2s ease-in-out;
 }
 
-/* Botão limpar filtros */
-.btn-limpar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 8px 16px;
-    background: #6c757d;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    text-decoration: none;
-}
-
-.btn-limpar:hover {
-    background: #545b62;
-}
-
-.botoes-pesquisa {
-    grid-column: 1 / -1;
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 5px;
-}
-
 /* Melhorias para selects longos */
 .campo-pesquisa select {
     max-width: 100%;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-}
-
-/* Indicador de filtros ativos */
-.filtros-ativos {
-    background: #e7f3ff;
-    border-left: 4px solid #007bff;
-    padding: 10px 15px;
-    margin: 10px 0;
-    font-size: 12px;
-    color: #0066cc;
 }
 
 /* Placeholder personalizado */
@@ -604,7 +628,7 @@ td:nth-child(2) {
 
 /* Scrollbar personalizado para tabela */
 .conteudo::-webkit-scrollbar {
-    height: 8px;
+    height: 6px;
 }
 
 .conteudo::-webkit-scrollbar-track {
@@ -644,4 +668,20 @@ td:nth-child(2) {
         background: white;
         font-size: 12px;
     }
+}
+
+/* Garante que imagens/SVGs sejam responsivos */
+img, svg {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Previne quebra de layout em todos os dispositivos */
+.campo-pesquisa {
+    overflow: hidden;
+}
+
+.campo-pesquisa input,
+.campo-pesquisa select {
+    box-sizing: border-box;
 }
