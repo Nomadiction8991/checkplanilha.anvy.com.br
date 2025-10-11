@@ -1,13 +1,6 @@
 <?php
-$id_planilha = $_GET['id_planilha'] ?? null;
-
-if (!$id_planilha) {
-    header('Location: menu-create.php');
-    exit;
-}
-
-// Inclui o arquivo PHP que contém a lógica do create
-require_once '../CRUD/CREATE/produto.php';
+// Inclui o arquivo PHP que contém a lógica do update
+require_once '../CRUD/UPDATE/produto.php';
 ?>
 
 <!DOCTYPE html>
@@ -15,7 +8,7 @@ require_once '../CRUD/CREATE/produto.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Produto</title>
+    <title>Editar Produto</title>
     <link rel="stylesheet" href="../STYLE/create-produto.css">
 </head>
 <body>
@@ -24,7 +17,7 @@ require_once '../CRUD/CREATE/produto.php';
             <a href="read-produto.php?id_planilha=<?php echo $id_planilha; ?>&<?php echo gerarParametrosFiltro(); ?>" class="voltar">
                 <svg xmlns="http://www.w3.org/2000/svg" height="48px" viewBox="0 -960 960 960" width="48px"fill="#FFFFFF"><path d="m274-450 248 248-42 42-320-320 320-320 42 42-248 248h526v60H274Z" /></svg>
             </a>
-            <h1>Create Produto</h1>
+            <h1>Editar Produto</h1>
         </section>
     </header>
     
@@ -49,7 +42,7 @@ require_once '../CRUD/CREATE/produto.php';
                         <?php foreach ($tipos_bens as $tipo): ?>
                             <option value="<?php echo $tipo['id']; ?>" 
                                     data-descricao="<?php echo htmlspecialchars($tipo['descricao']); ?>"
-                                    <?php echo (isset($_POST['id_tipo_ben']) && $_POST['id_tipo_ben'] == $tipo['id']) ? 'selected' : ''; ?>>
+                                    <?php echo ($produto['id_tipo_ben'] == $tipo['id']) ? 'selected' : ''; ?>>
                                 <?php echo htmlspecialchars($tipo['codigo'] . ' - ' . $tipo['descricao']); ?>
                             </option>
                         <?php endforeach; ?>
@@ -66,7 +59,7 @@ require_once '../CRUD/CREATE/produto.php';
                 <div class="form-group">
                     <label for="complemento" class="required">Complemento</label>
                     <textarea id="complemento" name="complemento" class="form-control" 
-                              rows="3" placeholder="Digite o complemento do produto" required><?php echo htmlspecialchars($_POST['complemento'] ?? ''); ?></textarea>
+                              rows="3" placeholder="Digite o complemento do produto" required><?php echo htmlspecialchars($produto['complemento']); ?></textarea>
                 </div>
                 
                 <div class="form-group">
@@ -74,7 +67,7 @@ require_once '../CRUD/CREATE/produto.php';
                     <select id="id_dependencia" name="id_dependencia" class="form-control select">
                         <option value="">Selecione uma dependência</option>
                         <?php foreach ($dependencias as $dep): ?>
-                            <option value="<?php echo $dep['id']; ?>" <?php echo (isset($_POST['id_dependencia']) && $_POST['id_dependencia'] == $dep['id']) ? 'selected' : ''; ?>>
+                            <option value="<?php echo $dep['id']; ?>" <?php echo ($produto['id_dependencia'] == $dep['id']) ? 'selected' : ''; ?>>
                                 <?php echo htmlspecialchars($dep['descricao']); ?>
                             </option>
                         <?php endforeach; ?>
@@ -85,17 +78,17 @@ require_once '../CRUD/CREATE/produto.php';
                     <label>Status</label>
                     <div class="checkbox-group">
                         <div class="checkbox-item">
-                            <input type="checkbox" id="possui_nota" name="possui_nota" value="1" <?php echo (isset($_POST['possui_nota']) && $_POST['possui_nota'] == 1) ? 'checked' : ''; ?>>
+                            <input type="checkbox" id="possui_nota" name="possui_nota" value="1" <?php echo ($produto['possui_nota'] == 1) ? 'checked' : ''; ?>>
                             <label for="possui_nota">Possui Nota</label>
                         </div>
                         <div class="checkbox-item">
-                            <input type="checkbox" id="imprimir_doacao" name="imprimir_doacao" value="1" <?php echo (isset($_POST['imprimir_doacao']) && $_POST['imprimir_doacao'] == 1) ? 'checked' : ''; ?>>
+                            <input type="checkbox" id="imprimir_doacao" name="imprimir_doacao" value="1" <?php echo ($produto['imprimir_doacao'] == 1) ? 'checked' : ''; ?>>
                             <label for="imprimir_doacao">Imprimir Doação</label>
                         </div>
                     </div>
                 </div>
                 
-                <button type="submit" class="btn-submit">Cadastrar Produto</button>
+                <button type="submit" class="btn-submit">Atualizar Produto</button>
             </form>
         </div>
     </section>
@@ -104,10 +97,10 @@ require_once '../CRUD/CREATE/produto.php';
         // Elementos do DOM
         const selectTipoBen = document.getElementById('id_tipo_ben');
         const selectBem = document.getElementById('tipo_ben');
+        const produtoBem = '<?php echo $produto['tipo_ben']; ?>';
 
         // Função para separar a descrição pela barra "/"
         function separarOpcoesPorBarra(descricao) {
-            // Remove espaços extras e divide pela barra
             return descricao.split('/').map(item => item.trim()).filter(item => item !== '');
         }
 
@@ -135,19 +128,16 @@ require_once '../CRUD/CREATE/produto.php';
                     option.value = opcao;
                     option.textContent = opcao;
                     
-                    // Manter o valor selecionado se existir no POST
-                    <?php if (isset($_POST['tipo_ben']) && isset($_POST['id_tipo_ben'])): ?>
-                        if (opcao === '<?php echo $_POST['tipo_ben']; ?>' && selectTipoBen.value === '<?php echo $_POST['id_tipo_ben']; ?>') {
-                            option.selected = true;
-                        }
-                    <?php endif; ?>
+                    // Selecionar o valor do produto
+                    if (opcao === produtoBem) {
+                        option.selected = true;
+                    }
                     
                     selectBem.appendChild(option);
                 });
                 
                 selectBem.disabled = false;
             } else {
-                // Se nenhum tipo de bem selecionado
                 const option = document.createElement('option');
                 option.value = '';
                 option.textContent = 'Primeiro selecione um tipo de bem';
@@ -161,16 +151,10 @@ require_once '../CRUD/CREATE/produto.php';
 
         // Inicializar o select de bens ao carregar a página
         document.addEventListener('DOMContentLoaded', function() {
-            <?php if (isset($_POST['id_tipo_ben'])): ?>
-                // Se veio do POST, inicializar com o tipo selecionado
-                atualizarOpcoesBem();
-            <?php else: ?>
-                // Inicializar estado vazio
-                atualizarOpcoesBem();
-            <?php endif; ?>
+            atualizarOpcoesBem();
         });
 
-        // Validação básica do formulário
+        // Validação do formulário
         document.getElementById('form-produto').addEventListener('submit', function(e) {
             let isValid = true;
             const requiredFields = this.querySelectorAll('[required]');
