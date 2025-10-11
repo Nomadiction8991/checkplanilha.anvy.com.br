@@ -1,4 +1,3 @@
-/* menu-create.css */
 * {
     margin: 0;
     padding: 0;
@@ -12,7 +11,6 @@ body {
     line-height: 1.6;
 }
 
-/* Cabeçalho - mantendo o mesmo estilo do visualizar_planilha */
 .cabecalho {
     background: #007bff;
     padding: 15px 20px;
@@ -58,7 +56,6 @@ body {
     margin: 0 auto;
 }
 
-/* Menu de Opções */
 .menu {
     display: flex;
     flex-direction: column;
@@ -99,8 +96,8 @@ body {
 
 .op3 {
     background: linear-gradient(135deg, #f8d7daff, #f5c2c7);
-    border-color: #007bff;
-    color: #004085;
+    border-color: #dc3545;
+    color: #721c24;
 }
 
 .op4 {
@@ -115,7 +112,6 @@ body {
     color: #721c24;
 }
 
-/* Efeitos hover */
 .opcao:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 15px rgba(0,0,0,0.2);
@@ -123,15 +119,15 @@ body {
 }
 
 .op1:hover {
-    background: linear-gradient(135deg, #8df5a8, #7ae895);
+    background: linear-gradient(135deg, #8bc5ff, #79b8ff);
 }
 
 .op2:hover {
-    background: linear-gradient(135deg, #ffdf8e, #ffd870);
+    background: linear-gradient(135deg, #f5c2c7, #f1a8af);
 }
 
 .op3:hover {
-    background: linear-gradient(135deg, #8bc5ff, #79b8ff);
+    background: linear-gradient(135deg, #f5c2c7, #f1a8af);
 }
 
 .op4:hover {
@@ -139,52 +135,9 @@ body {
 }
 
 .op5:hover {
-    background: linear-gradient(135deg, #d6d8db, #c8cbcf);
+    background: linear-gradient(135deg, #f5c2c7, #f1a8af);
 }
 
-/* Indicador de "Em Desenvolvimento" */
-.opcao[href="#"]::after {
-    content: "🛠️";
-    position: absolute;
-    top: 8px;
-    right: 12px;
-    font-size: 16px;
-    opacity: 0.8;
-}
-
-/* Efeito de clique */
-.opcao:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
-
-/* Responsividade adicional para telas muito pequenas */
-@media (max-width: 380px) {
-    .conteudo {
-        padding: 15px;
-    }
-    
-    .opcao {
-        padding: 18px 15px;
-        font-size: 16px;
-    }
-    
-    .cabecalho {
-        padding: 12px 15px;
-    }
-    
-    .cabecalho h1 {
-        font-size: 18px;
-    }
-}
-
-/* Loading state para links que funcionam */
 .opcao:not([href="#"]) {
     cursor: pointer;
-}
-
-/* Melhorar acessibilidade para foco */
-.opcao:focus {
-    outline: 3px solid #007bff;
-    outline-offset: 2px;
 }
