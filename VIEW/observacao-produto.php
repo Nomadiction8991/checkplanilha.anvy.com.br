@@ -1,3 +1,7 @@
+<?php
+// Incluir o arquivo PHP com a lógica
+include '../CRUD/observacao-produto.php';
+?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
