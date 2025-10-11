@@ -1,6 +1,6 @@
 <?php
 // Inclui o arquivo PHP que contém a lógica
-require_once '../../CRUD/READ/produto.php';
+require_once '../CRUD/READ/produto.php';
 ?>
 
 <!DOCTYPE html>
