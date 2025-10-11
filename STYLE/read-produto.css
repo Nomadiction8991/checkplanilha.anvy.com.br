@@ -73,7 +73,7 @@ body {
 
 .conteudo {
     padding: 15px;
-    margin-top: 60px; /* Compensa o header fixo */
+    margin-top: 60px;
     width: 100%;
 }
 
@@ -88,9 +88,7 @@ table {
 }
 
 thead {
-    background: #007bff;
-    color: #fff;
-    display: none; /* Esconde cabeçalho em mobile */
+    display: none;
 }
 
 th, td {
@@ -101,7 +99,6 @@ th, td {
     text-align: left;
 }
 
-/* Estilo para linhas em mobile */
 tbody tr {
     display: block;
     margin-bottom: 10px;
@@ -116,7 +113,6 @@ tbody tr:hover {
     background-color: #f8f9fa;
 }
 
-/* Labels para as colunas em mobile */
 td:before {
     content: attr(data-label);
     font-weight: bold;
@@ -127,7 +123,6 @@ td:before {
     text-transform: uppercase;
 }
 
-/* Status badges */
 .status-badge {
     display: inline-block;
     padding: 3px 6px;
@@ -147,7 +142,6 @@ td:before {
     color: #004085;
 }
 
-/* Ações */
 .acoes-links {
     display: flex;
     gap: 8px;
@@ -186,7 +180,6 @@ td:before {
     background: #c82333;
 }
 
-/* Mensagem de lista vazia */
 td[colspan] {
     text-align: center;
     padding: 30px 15px;
@@ -194,24 +187,20 @@ td[colspan] {
     color: #666;
 }
 
-/* Melhorias para texto longo */
 td {
     word-wrap: break-word;
     overflow-wrap: break-word;
     line-height: 1.4;
 }
 
-/* Remove borda da última linha */
 tbody tr:last-child {
     margin-bottom: 0;
 }
 
-/* Scroll suave */
 html {
     scroll-behavior: smooth;
 }
 
-/* Ajuste para telas muito pequenas */
 @media (max-width: 360px) {
     .conteudo {
         padding: 10px;
