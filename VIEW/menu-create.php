@@ -25,7 +25,7 @@ if (!$id_planilha) {
     </header>
     <section class="conteudo">
         <nav class="menu">
-            <a class="opcao op1" href="READ/read-produto.php?id_planilha=<?php echo $id_planilha; ?>">Cadastrar Produto</a>
+            <a class="opcao op1" href="read-produto.php?id_planilha=<?php echo $id_planilha; ?>">Cadastrar Produto</a>
             <a class="opcao op2" href="#">Em Desenvolvimento</a>
             <a class="opcao op3" href="#">Em Desenvolvimento</a>
             <a class="opcao op4" href="#">Em Desenvolvimento</a>
