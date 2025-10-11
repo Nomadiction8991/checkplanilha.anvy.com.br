@@ -43,11 +43,13 @@ require_once '../CRUD/CREATE/produto.php';
             
             <form method="POST" id="form-produto">
                 <div class="form-group">
-                    <label for="id_tipo_ben" class="required">Tipo de Bem</label>
+                    <label for="id_tipo_ben" class="required">Tipos de Bens</label>
                     <select id="id_tipo_ben" name="id_tipo_ben" class="form-control select" required>
                         <option value="">Selecione um tipo de bem</option>
                         <?php foreach ($tipos_bens as $tipo): ?>
-                            <option value="<?php echo $tipo['id']; ?>" <?php echo (isset($_POST['id_tipo_ben']) && $_POST['id_tipo_ben'] == $tipo['id']) ? 'selected' : ''; ?>>
+                            <option value="<?php echo $tipo['id']; ?>" 
+                                    data-codigo="<?php echo htmlspecialchars($tipo['codigo']); ?>"
+                                    <?php echo (isset($_POST['id_tipo_ben']) && $_POST['id_tipo_ben'] == $tipo['id']) ? 'selected' : ''; ?>>
                                 <?php echo htmlspecialchars($tipo['codigo'] . ' - ' . $tipo['descricao']); ?>
                             </option>
                         <?php endforeach; ?>
@@ -55,10 +57,10 @@ require_once '../CRUD/CREATE/produto.php';
                 </div>
                 
                 <div class="form-group">
-                    <label for="tipo_ben" class="required">Código do Bem</label>
-                    <input type="text" id="tipo_ben" name="tipo_ben" class="form-control" 
-                           value="<?php echo htmlspecialchars($_POST['tipo_ben'] ?? ''); ?>" 
-                           placeholder="Digite o código do bem" required>
+                    <label for="tipo_ben" class="required">Bem</label>
+                    <select id="tipo_ben" name="tipo_ben" class="form-control select" required>
+                        <option value="">Primeiro selecione um tipo de bem</option>
+                    </select>
                 </div>
                 
                 <div class="form-group">
@@ -99,6 +101,69 @@ require_once '../CRUD/CREATE/produto.php';
     </section>
 
     <script>
+        // Mapeamento de tipos de bens para suas opções específicas
+        const opcoesBens = <?php echo json_encode($opcoes_bens); ?>;
+
+        // Elementos do DOM
+        const selectTipoBen = document.getElementById('id_tipo_ben');
+        const selectBem = document.getElementById('tipo_ben');
+
+        // Função para atualizar as opções do select "Bem"
+        function atualizarOpcoesBem() {
+            const tipoBenId = selectTipoBen.value;
+            const opcoes = opcoesBens[tipoBenId] || [];
+            
+            // Limpar opções atuais
+            selectBem.innerHTML = '';
+            
+            if (tipoBenId) {
+                // Adicionar opção padrão
+                const optionPadrao = document.createElement('option');
+                optionPadrao.value = '';
+                optionPadrao.textContent = 'Selecione um bem';
+                selectBem.appendChild(optionPadrao);
+                
+                // Adicionar opções específicas
+                opcoes.forEach(opcao => {
+                    const option = document.createElement('option');
+                    option.value = opcao;
+                    option.textContent = opcao;
+                    
+                    // Manter o valor selecionado se existir no POST
+                    <?php if (isset($_POST['tipo_ben']) && isset($_POST['id_tipo_ben'])): ?>
+                        if (opcao === '<?php echo $_POST['tipo_ben']; ?>' && tipoBenId === '<?php echo $_POST['id_tipo_ben']; ?>') {
+                            option.selected = true;
+                        }
+                    <?php endif; ?>
+                    
+                    selectBem.appendChild(option);
+                });
+                
+                selectBem.disabled = false;
+            } else {
+                // Se nenhum tipo de bem selecionado
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'Primeiro selecione um tipo de bem';
+                selectBem.appendChild(option);
+                selectBem.disabled = true;
+            }
+        }
+
+        // Event listener para mudança no select de tipos de bens
+        selectTipoBen.addEventListener('change', atualizarOpcoesBem);
+
+        // Inicializar o select de bens ao carregar a página
+        document.addEventListener('DOMContentLoaded', function() {
+            <?php if (isset($_POST['id_tipo_ben'])): ?>
+                // Se veio do POST, inicializar com o tipo selecionado
+                atualizarOpcoesBem();
+            <?php else: ?>
+                // Inicializar estado vazio
+                atualizarOpcoesBem();
+            <?php endif; ?>
+        });
+
         // Validação básica do formulário
         document.getElementById('form-produto').addEventListener('submit', function(e) {
             let isValid = true;
@@ -119,9 +184,12 @@ require_once '../CRUD/CREATE/produto.php';
             }
         });
 
-        // Remover classe de erro quando o usuário começar a digitar
+        // Remover classe de erro quando o usuário começar a digitar/selecionar
         document.querySelectorAll('.form-control').forEach(input => {
             input.addEventListener('input', function() {
+                this.classList.remove('error');
+            });
+            input.addEventListener('change', function() {
                 this.classList.remove('error');
             });
         });
