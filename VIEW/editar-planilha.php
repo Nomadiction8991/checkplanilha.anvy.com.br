@@ -35,6 +35,13 @@ require_once '../CRUD/UPDATE/editar-planilha.php';
                 <div class="card">
                     <h2>Informações da Planilha</h2>
                     
+                    <!-- Valor Atual Comum -->
+                    <div class="form-group">
+                        <label>Valor Comum Atual:</label>
+                        <input type="text" value="<?php echo htmlspecialchars($planilha['comum'] ?? ''); ?>" readonly style="background: #f8f9fa;">
+                        <small>Valor obtido da célula comum do arquivo CSV</small>
+                    </div>
+                    
                     <!-- Campo Ativo -->
                     <div class="form-group">
                         <div class="checkbox-group">
@@ -58,13 +65,13 @@ require_once '../CRUD/UPDATE/editar-planilha.php';
                         <small>Número de linhas do cabeçalho que devem ser ignoradas</small>
                     </div>
 
-                    <!-- Campo Comum -->
+                    <!-- Campo Localização Comum -->
                     <div class="form-group">
-                        <label for="comum">Localização Comum:</label>
-                        <input type="text" id="comum" name="comum" 
-                               value="<?php echo htmlspecialchars($planilha['comum'] ?? 'D16'); ?>" 
+                        <label for="localizacao_comum">Localização da Célula Comum:</label>
+                        <input type="text" id="localizacao_comum" name="localizacao_comum" 
+                               value="<?php echo htmlspecialchars($config['localizacao_comum'] ?? 'D16'); ?>" 
                                required placeholder="Ex: D16">
-                        <small>Localização padrão que será salva na planilha</small>
+                        <small>Localização da célula no arquivo CSV que contém o valor comum (ex: D16)</small>
                     </div>
 
                     <!-- Mapeamento de Colunas -->

@@ -50,13 +50,13 @@ require_once '../CRUD/CREATE/importar-planilha.php';
                         <small>Número de linhas do cabeçalho que devem ser ignoradas</small>
                     </div>
 
-                    <!-- Campo Comum -->
+                    <!-- Campo Localização Comum -->
                     <div class="form-group">
-                        <label for="comum">Localização Comum:</label>
-                        <input type="text" id="comum" name="comum" 
-                               value="<?php echo htmlspecialchars($_POST['comum'] ?? 'D16'); ?>" 
+                        <label for="localizacao_comum">Localização da Célula Comum:</label>
+                        <input type="text" id="localizacao_comum" name="localizacao_comum" 
+                               value="<?php echo htmlspecialchars($_POST['localizacao_comum'] ?? 'D16'); ?>" 
                                required placeholder="Ex: D16">
-                        <small>Localização padrão que será salva na planilha</small>
+                        <small>Localização da célula no arquivo CSV que contém o valor comum (ex: D16)</small>
                     </div>
 
                     <!-- Mapeamento de Colunas -->

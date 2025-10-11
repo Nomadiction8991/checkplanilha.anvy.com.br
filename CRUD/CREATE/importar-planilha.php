@@ -8,7 +8,7 @@ use PhpOffice\PhpSpreadsheet\Shared\Date;
 // Processar o formulário quando enviado
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $linhas_pular = (int)($_POST['linhas_pular'] ?? 25);
-    $comum = trim($_POST['comum'] ?? 'D16');
+    $localizacao_comum = trim($_POST['localizacao_comum'] ?? 'D16'); // Nome corrigido
     
     // Mapeamento simplificado
     $mapeamento = [
@@ -21,8 +21,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $tipo_mensagem = '';
 
     try {
-        if (empty($comum)) {
-            throw new Exception('O campo comum é obrigatório.');
+        if (empty($localizacao_comum)) {
+            throw new Exception('A localização da célula comum é obrigatória.');
         }
 
         if (!isset($_FILES['arquivo']) || $_FILES['arquivo']['error'] !== UPLOAD_ERR_OK) {
@@ -36,13 +36,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception('Apenas arquivos CSV são permitidos.');
         }
 
+        // Processar o arquivo CSV para obter o valor da célula comum
+        $planilha = IOFactory::load($arquivo_tmp);
+        $aba_ativa = $planilha->getActiveSheet();
+        
+        // Função para converter referência de célula (ex: D16) para coordenadas
+        function referenciaParaCoordenadas($referencia) {
+            preg_match('/([A-Z]+)(\d+)/', $referencia, $matches);
+            if (count($matches) !== 3) {
+                throw new Exception('Formato de referência de célula inválido: ' . $referencia);
+            }
+            
+            $coluna = $matches[1];
+            $linha = (int)$matches[2];
+            
+            // Converter coluna para índice (A=0, B=1, etc.)
+            $indice_coluna = 0;
+            $tamanho = strlen($coluna);
+            for ($i = 0; $i < $tamanho; $i++) {
+                $indice_coluna = $indice_coluna * 26 + (ord($coluna[$i]) - ord('A') + 1);
+            }
+            $indice_coluna--; // Ajustar para base 0
+            
+            return ['coluna' => $indice_coluna, 'linha' => $linha - 1]; // Ajustar linha para base 0
+        }
+
+        // Obter o valor da célula comum
+        $coordenadas_comum = referenciaParaCoordenadas($localizacao_comum);
+        $valor_comum = $aba_ativa->getCellByColumnAndRow($coordenadas_comum['coluna'] + 1, $coordenadas_comum['linha'] + 1)->getValue();
+        
+        if (empty($valor_comum)) {
+            throw new Exception('A célula ' . $localizacao_comum . ' está vazia no arquivo CSV.');
+        }
+
         // Iniciar transação
         $conexao->beginTransaction();
 
-        // Inserir a planilha na tabela planilhas
+        // Inserir a planilha na tabela planilhas com o valor obtido do CSV
         $sql_planilha = "INSERT INTO planilhas (comum) VALUES (:comum)";
         $stmt_planilha = $conexao->prepare($sql_planilha);
-        $stmt_planilha->bindValue(':comum', $comum);
+        $stmt_planilha->bindValue(':comum', $valor_comum);
         $stmt_planilha->execute();
         $id_planilha = $conexao->lastInsertId();
 
@@ -53,18 +86,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $mapeamento_string = rtrim($mapeamento_string, ';');
 
-        $sql_config = "INSERT INTO config_planilha (id_planilha, pulo_linhas, mapeamento_colunas, comum) 
-                      VALUES (:id_planilha, :pulo_linhas, :mapeamento_colunas, :comum)";
+        $sql_config = "INSERT INTO config_planilha (id_planilha, pulo_linhas, mapeamento_colunas, localizacao_comum) 
+                      VALUES (:id_planilha, :pulo_linhas, :mapeamento_colunas, :localizacao_comum)";
         $stmt_config = $conexao->prepare($sql_config);
         $stmt_config->bindValue(':id_planilha', $id_planilha);
         $stmt_config->bindValue(':pulo_linhas', $linhas_pular);
         $stmt_config->bindValue(':mapeamento_colunas', $mapeamento_string);
-        $stmt_config->bindValue(':comum', $comum);
+        $stmt_config->bindValue(':localizacao_comum', $localizacao_comum);
         $stmt_config->execute();
 
-        // Processar o arquivo CSV
-        $planilha = IOFactory::load($arquivo_tmp);
-        $aba_ativa = $planilha->getActiveSheet();
+        // Processar as linhas de dados do CSV
         $linhas = $aba_ativa->toArray();
 
         $registros_importados = 0;
@@ -161,7 +192,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $conexao->commit();
 
         $mensagem = "Importação concluída com sucesso!<br>
-                    Comum: {$comum}<br>
+                    Valor obtido da célula " . htmlspecialchars($localizacao_comum) . ": " . htmlspecialchars($valor_comum) . "<br>
                     Registros importados: {$registros_importados}<br>
                     Erros: {$registros_erros}";
         
