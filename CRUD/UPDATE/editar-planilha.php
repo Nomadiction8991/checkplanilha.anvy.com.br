@@ -55,6 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $ativo = isset($_POST['ativo']) ? 1 : 0;
     $linhas_pular = (int)($_POST['linhas_pular'] ?? 25);
     $localizacao_comum = trim($_POST['localizacao_comum'] ?? 'D16');
+    $localizacao_data_posicao = trim($_POST['localizacao_data_posicao'] ?? 'D13');
     
     // Mapeamento simplificado
     $mapeamento = [
@@ -68,11 +69,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception('A localização da célula comum é obrigatória.');
         }
 
+        if (empty($localizacao_data_posicao)) {
+            throw new Exception('A localização da célula data_posicao é obrigatória.');
+        }
+
         // Iniciar transação
         $conexao->beginTransaction();
 
-        // Se um novo arquivo foi enviado, processar para obter o novo valor comum
+        // Se um novo arquivo foi enviado, processar para obter os novos valores
         $novo_valor_comum = $planilha['comum']; // Manter o valor atual por padrão
+        $novo_valor_data_posicao = $planilha['data_posicao']; // Manter o valor atual por padrão
         
         if (isset($_FILES['arquivo']) && $_FILES['arquivo']['error'] === UPLOAD_ERR_OK) {
             $arquivo_tmp = $_FILES['arquivo']['tmp_name'];
@@ -82,16 +88,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception('Apenas arquivos CSV são permitidos.');
             }
 
-            // Processar o arquivo CSV para obter o valor da célula comum
+            // Processar o arquivo CSV para obter os valores das células
             $planilha_obj = IOFactory::load($arquivo_tmp);
             $aba_ativa = $planilha_obj->getActiveSheet();
             
-            // Obter o valor da célula comum usando o método correto
+            // Obter o valor da célula comum
             $novo_valor_comum = $aba_ativa->getCell($localizacao_comum)->getCalculatedValue();
             
             if (empty($novo_valor_comum)) {
                 throw new Exception('A célula ' . $localizacao_comum . ' está vazia no arquivo CSV.');
             }
+
+            // Obter o valor da célula data_posicao
+            $valor_data_posicao = $aba_ativa->getCell($localizacao_data_posicao)->getCalculatedValue();
+            
+            if (empty($valor_data_posicao)) {
+                throw new Exception('A célula ' . $localizacao_data_posicao . ' está vazia no arquivo CSV.');
+            }
+
+            // Converter a data para formato MySQL (YYYY-MM-DD)
+            $data_mysql = null;
+            if (!empty($valor_data_posicao)) {
+                if (is_numeric($valor_data_posicao)) {
+                    // Se for um número serial do Excel, converter para data
+                    $data_mysql = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($valor_data_posicao)->format('Y-m-d');
+                } else {
+                    // Tentar converter string para data
+                    $timestamp = strtotime($valor_data_posicao);
+                    if ($timestamp !== false) {
+                        $data_mysql = date('Y-m-d', $timestamp);
+                    } else {
+                        throw new Exception('Formato de data inválido na célula ' . $localizacao_data_posicao . ': ' . $valor_data_posicao);
+                    }
+                }
+            }
+            $novo_valor_data_posicao = $data_mysql;
 
             // Apagar todos os produtos existentes desta planilha
             $sql_delete_produtos = "DELETE FROM produtos WHERE id_planilha = :id_planilha";
@@ -193,11 +224,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        // Atualizar dados da planilha com o novo valor comum (se aplicável)
-        $sql_update_planilha = "UPDATE planilhas SET ativo = :ativo, comum = :comum WHERE id = :id";
+        // Atualizar dados da planilha com os novos valores (se aplicável)
+        $sql_update_planilha = "UPDATE planilhas SET ativo = :ativo, comum = :comum, data_posicao = :data_posicao WHERE id = :id";
         $stmt_update_planilha = $conexao->prepare($sql_update_planilha);
         $stmt_update_planilha->bindValue(':ativo', $ativo);
         $stmt_update_planilha->bindValue(':comum', $novo_valor_comum);
+        $stmt_update_planilha->bindValue(':data_posicao', $novo_valor_data_posicao);
         $stmt_update_planilha->bindValue(':id', $id_planilha);
         $stmt_update_planilha->execute();
 
@@ -208,12 +240,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $mapeamento_string = rtrim($mapeamento_string, ';');
 
-        // CORREÇÃO: Usar 'comum' em vez de 'localizacao_comum'
-        $sql_update_config = "UPDATE config_planilha SET pulo_linhas = :pulo_linhas, mapeamento_colunas = :mapeamento_colunas, comum = :comum WHERE id_planilha = :id_planilha";
+        $sql_update_config = "UPDATE config_planilha SET pulo_linhas = :pulo_linhas, mapeamento_colunas = :mapeamento_colunas, comum = :comum, data_posicao = :data_posicao WHERE id_planilha = :id_planilha";
         $stmt_update_config = $conexao->prepare($sql_update_config);
         $stmt_update_config->bindValue(':pulo_linhas', $linhas_pular);
         $stmt_update_config->bindValue(':mapeamento_colunas', $mapeamento_string);
-        $stmt_update_config->bindValue(':comum', $localizacao_comum); // Aqui salva a localização (ex: D16)
+        $stmt_update_config->bindValue(':comum', $localizacao_comum);
+        $stmt_update_config->bindValue(':data_posicao', $localizacao_data_posicao);
         $stmt_update_config->bindValue(':id_planilha', $id_planilha);
         $stmt_update_config->execute();
 
@@ -224,6 +256,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if (isset($registros_importados)) {
             $mensagem .= "<br>Valor obtido da célula " . htmlspecialchars($localizacao_comum) . ": " . htmlspecialchars($novo_valor_comum);
+            $mensagem .= "<br>Valor obtido da célula " . htmlspecialchars($localizacao_data_posicao) . ": " . htmlspecialchars($novo_valor_data_posicao);
             $mensagem .= "<br>Registros importados: {$registros_importados}<br>Erros: {$registros_erros}";
         }
         

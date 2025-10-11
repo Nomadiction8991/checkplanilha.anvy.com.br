@@ -59,6 +59,15 @@ require_once '../CRUD/CREATE/importar-planilha.php';
                         <small>Localização da célula no arquivo CSV que contém o valor comum (ex: D16)</small>
                     </div>
 
+                    <!-- Campo Localização Data Posição -->
+                    <div class="form-group">
+                        <label for="localizacao_data_posicao">Localização da Célula Data Posição:</label>
+                        <input type="text" id="localizacao_data_posicao" name="localizacao_data_posicao" 
+                               value="<?php echo htmlspecialchars($_POST['localizacao_data_posicao'] ?? 'D13'); ?>" 
+                               required placeholder="Ex: D13">
+                        <small>Localização da célula no arquivo CSV que contém a data de posição (ex: D13)</small>
+                    </div>
+
                     <!-- Mapeamento de Colunas -->
                     <h3 style="margin: 20px 0 10px 0; font-size: 14px; color: #495057;">Mapeamento de Colunas</h3>
                     <p style="margin-bottom: 15px; font-size: 13px; color: #666;">Defina a letra da coluna para cada campo:</p>

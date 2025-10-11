@@ -41,6 +41,13 @@ require_once '../CRUD/UPDATE/editar-planilha.php';
                         <input type="text" value="<?php echo htmlspecialchars($planilha['comum'] ?? ''); ?>" readonly style="background: #f8f9fa;">
                         <small>Valor obtido da célula comum do arquivo CSV</small>
                     </div>
+
+                    <!-- Valor Atual Data Posição -->
+                    <div class="form-group">
+                        <label>Data Posição Atual:</label>
+                        <input type="text" value="<?php echo htmlspecialchars($planilha['data_posicao'] ?? ''); ?>" readonly style="background: #f8f9fa;">
+                        <small>Data obtida da célula data_posicao do arquivo CSV</small>
+                    </div>
                     
                     <!-- Campo Ativo -->
                     <div class="form-group">
@@ -72,6 +79,15 @@ require_once '../CRUD/UPDATE/editar-planilha.php';
                                value="<?php echo htmlspecialchars($config['comum'] ?? 'D16'); ?>" 
                                required placeholder="Ex: D16">
                         <small>Localização da célula no arquivo CSV que contém o valor comum (ex: D16)</small>
+                    </div>
+
+                    <!-- Campo Localização Data Posição -->
+                    <div class="form-group">
+                        <label for="localizacao_data_posicao">Localização da Célula Data Posição:</label>
+                        <input type="text" id="localizacao_data_posicao" name="localizacao_data_posicao" 
+                               value="<?php echo htmlspecialchars($config['data_posicao'] ?? 'D13'); ?>" 
+                               required placeholder="Ex: D13">
+                        <small>Localização da célula no arquivo CSV que contém a data de posição (ex: D13)</small>
                     </div>
 
                     <!-- Mapeamento de Colunas -->

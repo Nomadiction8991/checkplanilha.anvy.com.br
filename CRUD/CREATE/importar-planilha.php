@@ -9,6 +9,7 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $linhas_pular = (int)($_POST['linhas_pular'] ?? 25);
     $localizacao_comum = trim($_POST['localizacao_comum'] ?? 'D16');
+    $localizacao_data_posicao = trim($_POST['localizacao_data_posicao'] ?? 'D13');
     
     // Mapeamento simplificado
     $mapeamento = [
@@ -25,6 +26,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception('A localização da célula comum é obrigatória.');
         }
 
+        if (empty($localizacao_data_posicao)) {
+            throw new Exception('A localização da célula data_posicao é obrigatória.');
+        }
+
         if (!isset($_FILES['arquivo']) || $_FILES['arquivo']['error'] !== UPLOAD_ERR_OK) {
             throw new Exception('Selecione um arquivo CSV válido.');
         }
@@ -36,24 +41,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception('Apenas arquivos CSV são permitidos.');
         }
 
-        // Processar o arquivo CSV para obter o valor da célula comum
+        // Processar o arquivo CSV para obter os valores das células
         $planilha = IOFactory::load($arquivo_tmp);
         $aba_ativa = $planilha->getActiveSheet();
         
-        // Obter o valor da célula comum usando o método correto
+        // Obter o valor da célula comum
         $valor_comum = $aba_ativa->getCell($localizacao_comum)->getCalculatedValue();
         
         if (empty($valor_comum)) {
             throw new Exception('A célula ' . $localizacao_comum . ' está vazia no arquivo CSV.');
         }
 
+        // Obter o valor da célula data_posicao
+        $valor_data_posicao = $aba_ativa->getCell($localizacao_data_posicao)->getCalculatedValue();
+        
+        if (empty($valor_data_posicao)) {
+            throw new Exception('A célula ' . $localizacao_data_posicao . ' está vazia no arquivo CSV.');
+        }
+
+        // Converter a data para formato MySQL (YYYY-MM-DD)
+        $data_mysql = null;
+        if (!empty($valor_data_posicao)) {
+            if (is_numeric($valor_data_posicao)) {
+                // Se for um número serial do Excel, converter para data
+                $data_mysql = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($valor_data_posicao)->format('Y-m-d');
+            } else {
+                // Tentar converter string para data
+                $timestamp = strtotime($valor_data_posicao);
+                if ($timestamp !== false) {
+                    $data_mysql = date('Y-m-d', $timestamp);
+                } else {
+                    throw new Exception('Formato de data inválido na célula ' . $localizacao_data_posicao . ': ' . $valor_data_posicao);
+                }
+            }
+        }
+
         // Iniciar transação
         $conexao->beginTransaction();
 
-        // Inserir a planilha na tabela planilhas com o valor obtido do CSV
-        $sql_planilha = "INSERT INTO planilhas (comum) VALUES (:comum)";
+        // Inserir a planilha na tabela planilhas com os valores obtidos do CSV
+        $sql_planilha = "INSERT INTO planilhas (comum, data_posicao) VALUES (:comum, :data_posicao)";
         $stmt_planilha = $conexao->prepare($sql_planilha);
         $stmt_planilha->bindValue(':comum', $valor_comum);
+        $stmt_planilha->bindValue(':data_posicao', $data_mysql);
         $stmt_planilha->execute();
         $id_planilha = $conexao->lastInsertId();
 
@@ -64,14 +94,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $mapeamento_string = rtrim($mapeamento_string, ';');
 
-        // CORREÇÃO: Usar 'comum' em vez de 'localizacao_comum'
-        $sql_config = "INSERT INTO config_planilha (id_planilha, pulo_linhas, mapeamento_colunas, comum) 
-                      VALUES (:id_planilha, :pulo_linhas, :mapeamento_colunas, :comum)";
+        $sql_config = "INSERT INTO config_planilha (id_planilha, pulo_linhas, mapeamento_colunas, comum, data_posicao) 
+                      VALUES (:id_planilha, :pulo_linhas, :mapeamento_colunas, :comum, :data_posicao)";
         $stmt_config = $conexao->prepare($sql_config);
         $stmt_config->bindValue(':id_planilha', $id_planilha);
         $stmt_config->bindValue(':pulo_linhas', $linhas_pular);
         $stmt_config->bindValue(':mapeamento_colunas', $mapeamento_string);
-        $stmt_config->bindValue(':comum', $localizacao_comum); // Aqui salva a localização (ex: D16)
+        $stmt_config->bindValue(':comum', $localizacao_comum);
+        $stmt_config->bindValue(':data_posicao', $localizacao_data_posicao);
         $stmt_config->execute();
 
         // Processar as linhas de dados do CSV
@@ -172,6 +202,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $mensagem = "Importação concluída com sucesso!<br>
                     Valor obtido da célula " . htmlspecialchars($localizacao_comum) . ": " . htmlspecialchars($valor_comum) . "<br>
+                    Valor obtido da célula " . htmlspecialchars($localizacao_data_posicao) . ": " . htmlspecialchars($valor_data_posicao) . " (" . htmlspecialchars($data_mysql) . ")<br>
                     Registros importados: {$registros_importados}<br>
                     Erros: {$registros_erros}";
         
