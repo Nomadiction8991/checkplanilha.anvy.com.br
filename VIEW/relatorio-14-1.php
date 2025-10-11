@@ -321,17 +321,46 @@ require_once '../CRUD/READ/relatorio-14-1.php';
         <p>Nenhum produto encontrado para impressão do relatório 14.1.</p>
     <?php endif; ?>
 
-    <script>
-        function atualizarTodos(tipo) {
-            const valor = document.getElementById(tipo + '_geral').value;
-            const inputs = document.querySelectorAll('[id^="' + tipo + '_"]');
-            
-            inputs.forEach(input => {
-                if (!input.id.includes('geral')) {
-                    input.value = valor;
-                }
-            });
+<script>
+    function atualizarTodos(tipo) {
+        const valor = document.getElementById(tipo + '_geral').value;
+        let selector;
+        
+        // Mapear os tipos gerais para os IDs específicos nos formulários
+        switch(tipo) {
+            case 'admin':
+                selector = '[id^="administracao_"]';
+                break;
+            case 'cidade':
+                selector = '[id^="cidade_"]';
+                break;
+            case 'setor':
+                selector = '[id^="setor_"]';
+                break;
+            case 'cnpj':
+                selector = '[id^="cnpj_"]';
+                break;
+            case 'relatorio':
+                selector = '[id^="numero_relatorio_"]';
+                break;
+            case 'casa_oracao':
+                selector = '[id^="casa_oracao_"]';
+                break;
+            case 'admin_acessor':
+                selector = '[id^="admin_acessor_"]';
+                break;
+            default:
+                selector = '[id^="' + tipo + '_"]';
         }
-    </script>
+        
+        const inputs = document.querySelectorAll(selector);
+        
+        inputs.forEach(input => {
+            if (!input.id.includes('geral')) {
+                input.value = valor;
+            }
+        });
+    }
+</script>
 </body>
 </html>
