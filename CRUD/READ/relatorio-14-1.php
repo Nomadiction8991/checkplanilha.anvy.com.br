@@ -15,27 +15,27 @@ $planilha = $stmt_planilha->fetch();
 $comum_planilha = $planilha ? $planilha['comum'] : '';
 
 // Consultar produtos que devem imprimir o relatório 14.1
-$sql = "SELECT * FROM produtos_cadastro WHERE imprimir_14_1 = 1";
-$result = $conn->query($sql);
-
-// Verificar se há resultados
-if ($result->num_rows > 0) {
-    $count = 0;
-    // Loop através de cada produto
-    while($row = $result->fetch_assoc()) {
-        $count++;
-        // Incluir o HTML do formulário para cada produto
-        include 'relatorio-14-1-template.php';
-        
-        // Adicionar quebra de página entre os formulários (exceto no último)
-        if ($count < $result->num_rows) {
-            echo '<div style="page-break-after: always;"></div>';
-        }
-    }
-} else {
-    echo "Nenhum produto encontrado para impressão do relatório 14.1.";
-}
+$sql = "SELECT 
+            pc.id,
+            pc.tipo_ben,
+            pc.complemento,
+            pc.possui_nota,
+            pc.imprimir_14_1,
+            tb.codigo as tipo_codigo,
+            tb.descricao as tipo_descricao,
+            d.descricao as dependencia_descricao
+        FROM produtos_cadastro pc
+        LEFT JOIN tipos_bens tb ON pc.id_tipo_ben = tb.id
+        LEFT JOIN dependencias d ON pc.id_dependencia = d.id
+        WHERE pc.imprimir_14_1 = 1 AND pc.id_planilha = :id_planilha
+        ORDER BY pc.id ASC";
+$stmt = $conn->prepare($sql);
+$stmt->bindValue(':id_planilha', $id_planilha);
+$stmt->execute();
+$produtos = $stmt->fetchAll();
 
 // Fechar conexão
 $conn->close();
+
+// As variáveis $produtos e $comum_planilha estarão disponíveis para o HTML
 ?>
