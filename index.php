@@ -1,3 +1,7 @@
+<?php
+require_once 'CRUD/READ/index.php';
+?>
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -25,7 +29,7 @@
         <form method="GET" class="form-pesquisa">
             <div class="campo-pesquisa">
                 <label for="comum">Comum</label>
-                <input type="text" id="comum" name="comum" value="<?php echo htmlspecialchars($filtro_comum); ?>" placeholder="Pesquisar comum...">
+                <input type="text" id="comum" name="comum" value="<?php echo htmlspecialchars($filtro_comum ?? ''); ?>" placeholder="Pesquisar comum...">
             </div>
             
             <div class="campo-pesquisa">
@@ -34,7 +38,7 @@
                     <option value="">Todos os status</option>
                     <?php foreach ($status_options as $status): ?>
                         <option value="<?php echo $status; ?>"
-                            <?php echo $filtro_status === $status ? 'selected' : ''; ?>>
+                            <?php echo ($filtro_status ?? '') === $status ? 'selected' : ''; ?>>
                             <?php echo ucfirst($status); ?>
                         </option>
                     <?php endforeach; ?>
@@ -44,21 +48,21 @@
             <div class="campo-pesquisa">
                 <label for="ativo">Exibir</label>
                 <select id="ativo" name="ativo">
-                    <option value="1" <?php echo $filtro_ativo === '1' ? 'selected' : ''; ?>>Apenas Ativos</option>
-                    <option value="0" <?php echo $filtro_ativo === '0' ? 'selected' : ''; ?>>Apenas Inativos</option>
-                    <option value="todos" <?php echo $filtro_ativo === 'todos' ? 'selected' : ''; ?>>Todos</option>
+                    <option value="1" <?php echo ($filtro_ativo ?? '1') === '1' ? 'selected' : ''; ?>>Apenas Ativos</option>
+                    <option value="0" <?php echo ($filtro_ativo ?? '1') === '0' ? 'selected' : ''; ?>>Apenas Inativos</option>
+                    <option value="todos" <?php echo ($filtro_ativo ?? '1') === 'todos' ? 'selected' : ''; ?>>Todos</option>
                 </select>
             </div>
             
             <!-- Novos campos de data -->
             <div class="campo-pesquisa">
                 <label for="data_inicio">Data Início</label>
-                <input type="date" id="data_inicio" name="data_inicio" value="<?php echo htmlspecialchars($filtro_data_inicio); ?>">
+                <input type="date" id="data_inicio" name="data_inicio" value="<?php echo htmlspecialchars($filtro_data_inicio ?? ''); ?>">
             </div>
             
             <div class="campo-pesquisa">
                 <label for="data_fim">Data Fim</label>
-                <input type="date" id="data_fim" name="data_fim" value="<?php echo htmlspecialchars($filtro_data_fim); ?>">
+                <input type="date" id="data_fim" name="data_fim" value="<?php echo htmlspecialchars($filtro_data_fim ?? ''); ?>">
             </div>
             
             <div class="botao-pesquisa">
@@ -103,7 +107,7 @@
                 </tr>
             </thead>
             <tbody>
-                <?php if (count($planilhas) > 0): ?>
+                <?php if (isset($planilhas) && count($planilhas) > 0): ?>
                     <?php foreach ($planilhas as $planilha): ?>
                     <?php
                     // Determinar as classes CSS baseadas no status e ativo
@@ -166,10 +170,10 @@
         </table>
 
         <!-- Paginação -->
-        <?php if ($total_paginas > 1): ?>
+        <?php if (isset($total_paginas) && $total_paginas > 1): ?>
         <div class="paginacao">
             <?php if ($pagina > 1): ?>
-                <a href="?pagina=<?php echo $pagina - 1; ?>&comum=<?php echo urlencode($filtro_comum); ?>&status=<?php echo urlencode($filtro_status); ?>&ativo=<?php echo $filtro_ativo; ?>&data_inicio=<?php echo urlencode($filtro_data_inicio); ?>&data_fim=<?php echo urlencode($filtro_data_fim); ?>" class="pagina-item">
+                <a href="?pagina=<?php echo $pagina - 1; ?>&comum=<?php echo urlencode($filtro_comum ?? ''); ?>&status=<?php echo urlencode($filtro_status ?? ''); ?>&ativo=<?php echo $filtro_ativo ?? '1'; ?>&data_inicio=<?php echo urlencode($filtro_data_inicio ?? ''); ?>&data_fim=<?php echo urlencode($filtro_data_fim ?? ''); ?>" class="pagina-item">
                     &laquo; Anterior
                 </a>
             <?php endif; ?>
@@ -178,14 +182,14 @@
                 <?php if ($i == $pagina): ?>
                     <strong class="pagina-item ativa"><?php echo $i; ?></strong>
                 <?php else: ?>
-                    <a href="?pagina=<?php echo $i; ?>&comum=<?php echo urlencode($filtro_comum); ?>&status=<?php echo urlencode($filtro_status); ?>&ativo=<?php echo $filtro_ativo; ?>&data_inicio=<?php echo urlencode($filtro_data_inicio); ?>&data_fim=<?php echo urlencode($filtro_data_fim); ?>" class="pagina-item">
+                    <a href="?pagina=<?php echo $i; ?>&comum=<?php echo urlencode($filtro_comum ?? ''); ?>&status=<?php echo urlencode($filtro_status ?? ''); ?>&ativo=<?php echo $filtro_ativo ?? '1'; ?>&data_inicio=<?php echo urlencode($filtro_data_inicio ?? ''); ?>&data_fim=<?php echo urlencode($filtro_data_fim ?? ''); ?>" class="pagina-item">
                         <?php echo $i; ?>
                     </a>
                 <?php endif; ?>
             <?php endfor; ?>
 
             <?php if ($pagina < $total_paginas): ?>
-                <a href="?pagina=<?php echo $pagina + 1; ?>&comum=<?php echo urlencode($filtro_comum); ?>&status=<?php echo urlencode($filtro_status); ?>&ativo=<?php echo $filtro_ativo; ?>&data_inicio=<?php echo urlencode($filtro_data_inicio); ?>&data_fim=<?php echo urlencode($filtro_data_fim); ?>" class="pagina-item">
+                <a href="?pagina=<?php echo $pagina + 1; ?>&comum=<?php echo urlencode($filtro_comum ?? ''); ?>&status=<?php echo urlencode($filtro_status ?? ''); ?>&ativo=<?php echo $filtro_ativo ?? '1'; ?>&data_inicio=<?php echo urlencode($filtro_data_inicio ?? ''); ?>&data_fim=<?php echo urlencode($filtro_data_fim ?? ''); ?>" class="pagina-item">
                     Próxima &raquo;
                 </a>
             <?php endif; ?>
