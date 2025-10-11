@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     if (!$produto_id || !$id_planilha) {
         $query_string = http_build_query(array_merge(['id' => $id_planilha], $filtros));
-        header('Location: ../VIEW/visualizar_planilha.php?' . $query_string);
+        header('Location: ../../VIEW/visualizar_planilha.php?' . $query_string);
         exit;
     }
     
@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // Redirecionar de volta mantendo os filtros
         $query_string = http_build_query(array_merge(['id' => $id_planilha], $filtros));
-        header('Location: ../VIEW/visualizar_planilha.php?' . $query_string);
+        header('Location: ../../VIEW/visualizar_planilha.php?' . $query_string);
         exit;
         
     } catch (Exception $e) {
@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $filtros,
             ['erro' => 'Erro ao processar DR: ' . $e->getMessage()]
         ));
-        header('Location: ../VIEW/visualizar_planilha.php?' . $query_string);
+        header('Location: ../../VIEW/visualizar_planilha.php?' . $query_string);
         exit;
     }
 } else {

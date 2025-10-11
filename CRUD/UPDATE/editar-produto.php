@@ -21,7 +21,7 @@ if (!$codigo || !$id_planilha) {
         'status' => $filtro_status,
         'erro' => 'Produto não encontrado'
     ]);
-    header('Location: ../VIEW/visualizar_planilha.php?' . $query_string);
+    header('Location: ../../VIEW/visualizar_planilha.php?' . $query_string);
     exit;
 }
 
@@ -135,6 +135,6 @@ function getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, 
         'codigo' => $filtro_codigo,
         'status' => $filtro_status
     ];
-    return '../VIEW/visualizar_planilha.php?' . http_build_query($params);
+    return '../../VIEW/visualizar_planilha.php?' . http_build_query($params);
 }
 ?>
