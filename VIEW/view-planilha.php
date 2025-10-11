@@ -117,34 +117,36 @@ require_once '../CRUD/READ/view-planilha.php';
                     </tr>
                 </thead>
                 <tbody>
-                    <?php if ($produtos): ?>
-                        <?php foreach ($produtos as $p): 
-                            // Determinar a classe com base nos status
-                            $classe = '';
-                            $tem_edicao = !empty($p['nome_editado']) || !empty($p['dependencia_editada']);
-                            
-                            if ($p['dr'] == 1) {
-                                $classe = 'linha-dr';
-                            } elseif ($p['imprimir'] == 1 && $p['checado'] == 1) {
-                                $classe = 'linha-imprimir';
-                            } elseif ($p['checado'] == 1) {
-                                $classe = 'linha-checado';
-                            } elseif (!empty($p['observacoes'])) {
-                                $classe = 'linha-observacao';
-                            } elseif ($tem_edicao) {
-                                $classe = 'linha-editado';
-                            } elseif ($p['checado'] == 0 && empty($p['observacoes']) && $p['dr'] == 0 && $p['imprimir'] == 0) {
-                                $classe = 'linha-pendente';
-                            }
-                            
-                            // Determinar quais botões mostrar
-                            $show_check = ($p['dr'] == 0 && $p['imprimir'] == 0 && empty($p['nome_editado']) && empty($p['dependencia_editada']));
-                            $show_imprimir = ($p['checado'] == 1 && $p['dr'] == 0 && empty($p['nome_editado']) && empty($p['dependencia_editada']));
-                            $show_dr = !($p['checado'] == 1 || $p['imprimir'] == 1 || !empty($p['nome_editado']) || !empty($p['dependencia_editada']));
-                            $show_obs = ($p['dr'] == 0);
-                            $show_edit = ($p['checado'] == 0 && $p['dr'] == 0);
-                        ?>
-                        <tr class="<?php echo $classe; ?>">
+                   <?php if ($produtos): ?>
+    <?php foreach ($produtos as $p): 
+        // Determinar a classe com base nos status - CÓDIGO CORRIGIDO
+        $classe = '';
+        $tem_edicao = !empty($p['nome_editado']) || !empty($p['dependencia_editada']);
+        
+        // ORDEM DE PRIORIDADE CORRETA
+        if ($p['dr'] == 1) {
+            $classe = 'linha-dr';
+        } elseif ($p['imprimir'] == 1 && $p['checado'] == 1) {
+            $classe = 'linha-imprimir';
+        } elseif ($p['checado'] == 1) {
+            $classe = 'linha-checado';
+        } elseif (!empty($p['observacoes'])) {
+            $classe = 'linha-observacao';
+        } elseif ($tem_edicao) {
+            $classe = 'linha-editado'; // AGORA USA A CLASSE CORRETA
+        } else {
+            $classe = 'linha-pendente'; // PENDENTE É O PADRÃO
+        }
+        
+        // Determinar quais botões mostrar
+        $show_check = ($p['dr'] == 0 && $p['imprimir'] == 0 && empty($p['nome_editado']) && empty($p['dependencia_editada']));
+        $show_imprimir = ($p['checado'] == 1 && $p['dr'] == 0 && empty($p['nome_editado']) && empty($p['dependencia_editada']));
+        $show_dr = !($p['checado'] == 1 || $p['imprimir'] == 1 || !empty($p['nome_editado']) || !empty($p['dependencia_editada']));
+        $show_obs = ($p['dr'] == 0);
+        $show_edit = ($p['checado'] == 0 && $p['dr'] == 0);
+    ?>
+    <tr class="<?php echo $classe; ?>">
+                      
                             <td>
                                 <!-- Código do produto -->
                                 <div class="codigo-produto">
@@ -255,26 +257,38 @@ require_once '../CRUD/READ/view-planilha.php';
             </table>
         </div>
 
-        <!-- Paginação -->
-        <?php if ($total_paginas > 1): ?>
-        <div class="paginacao">
-            <?php if ($pagina > 1): ?>
-                <a href="?<?php echo http_build_query(array_merge($_GET, ['pagina' => $pagina - 1])); ?>" class="pagina-anterior">Anterior</a>
-            <?php endif; ?>
-            
-            <?php for ($i = 1; $i <= $total_paginas; $i++): ?>
-                <?php if ($i == $pagina): ?>
-                    <span class="pagina-atual"><?php echo $i; ?></span>
-                <?php else: ?>
-                    <a href="?<?php echo http_build_query(array_merge($_GET, ['pagina' => $i])); ?>" class="pagina-link"><?php echo $i; ?></a>
-                <?php endif; ?>
-            <?php endfor; ?>
-            
-            <?php if ($pagina < $total_paginas): ?>
-                <a href="?<?php echo http_build_query(array_merge($_GET, ['pagina' => $pagina + 1])); ?>" class="pagina-proxima">Próxima</a>
-            <?php endif; ?>
-        </div>
+ <!-- Paginação Melhorada -->
+<?php if ($total_paginas > 1): ?>
+<div class="paginacao">
+    <?php if ($pagina > 1): ?>
+        <a href="?<?php echo http_build_query(array_merge($_GET, ['pagina' => $pagina - 1])); ?>" class="pagina-item pagina-anterior">
+            ‹ Anterior
+        </a>
+    <?php endif; ?>
+    
+    <?php 
+    // Mostrar apenas algumas páginas ao redor da atual
+    $inicio = max(1, $pagina - 2);
+    $fim = min($total_paginas, $pagina + 2);
+    
+    for ($i = $inicio; $i <= $fim; $i++): 
+    ?>
+        <?php if ($i == $pagina): ?>
+            <span class="pagina-atual"><?php echo $i; ?></span>
+        <?php else: ?>
+            <a href="?<?php echo http_build_query(array_merge($_GET, ['pagina' => $i])); ?>" class="pagina-item">
+                <?php echo $i; ?>
+            </a>
         <?php endif; ?>
+    <?php endfor; ?>
+    
+    <?php if ($pagina < $total_paginas): ?>
+        <a href="?<?php echo http_build_query(array_merge($_GET, ['pagina' => $pagina + 1])); ?>" class="pagina-item pagina-proxima">
+            Próxima ›
+        </a>
+    <?php endif; ?>
+</div>
+<?php endif; ?>
     </section>
 
     <script>
