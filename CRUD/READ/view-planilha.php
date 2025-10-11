@@ -4,7 +4,7 @@ require_once '../conexao.php';
 $id_planilha = $_GET['id'] ?? null;
 
 if (!$id_planilha) {
-    header('Location: ../index.php');
+    header('Location: ../../index.php');
     exit;
 }
 
