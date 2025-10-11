@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $parametros_retorno = gerarParametrosFiltro();
         
         // Redirecionar de volta para a lista
-        header('Location: ../../VIEW/read-produto.php?id_planilha=' . $id_planilha . $parametros_retorno);
+        header('Location: ../VIEW/read-produto.php?id_planilha=' . $id_planilha . $parametros_retorno);
         exit;
         
     } catch (Exception $e) {
