@@ -1,19 +1,19 @@
 <?php
 require_once '../conexao.php';
 
-// Receber parâmetros via GET - CORRIGIDO
-$codigo = $_GET['codigo_produto'] ?? null; // MUDADO PARA codigo_produto
+// Receber parâmetros via GET - AGORA USANDO ID
+$id_produto = $_GET['id_produto'] ?? null;
 $id_planilha = $_GET['id_planilha'] ?? null;
 
-// Receber filtros - CORRIGIDO
+// Receber filtros
 $pagina = $_GET['pagina'] ?? 1;
 $filtro_nome = $_GET['nome'] ?? '';
 $filtro_dependencia = $_GET['dependencia'] ?? '';
-$filtro_codigo = $_GET['filtro_codigo'] ?? ''; // MUDADO PARA filtro_codigo
+$filtro_codigo = $_GET['filtro_codigo'] ?? '';
 $filtro_status = $_GET['status'] ?? '';
 
 // Validação dos parâmetros obrigatórios
-if (!$codigo || !$id_planilha) {
+if (!$id_produto || !$id_planilha) {
     $query_string = http_build_query([
         'id' => $id_planilha,
         'pagina' => $pagina,
@@ -23,7 +23,7 @@ if (!$codigo || !$id_planilha) {
         'status' => $filtro_status,
         'erro' => 'Parâmetros inválidos para acessar a página'
     ]);
-    header('Location: ../VIEW/view-planilha.php?' . $query_string);
+    header('Location: ../../VIEW/view-planilha.php?' . $query_string);
     exit;
 }
 
@@ -38,11 +38,11 @@ $check = [
     'imprimir' => 0
 ];
 
-// Buscar dados do produto
+// Buscar dados do produto POR ID
 try {
-    $sql_produto = "SELECT * FROM produtos WHERE codigo = :codigo AND id_planilha = :id_planilha";
+    $sql_produto = "SELECT * FROM produtos WHERE id = :id_produto AND id_planilha = :id_planilha";
     $stmt_produto = $conexao->prepare($sql_produto);
-    $stmt_produto->bindValue(':codigo', $codigo);
+    $stmt_produto->bindValue(':id_produto', $id_produto);
     $stmt_produto->bindValue(':id_planilha', $id_planilha);
     $stmt_produto->execute();
     $produto = $stmt_produto->fetch();
@@ -54,7 +54,7 @@ try {
     // Buscar dados do check (se existir)
     $sql_check = "SELECT * FROM produtos_check WHERE produto_id = :produto_id";
     $stmt_check = $conexao->prepare($sql_check);
-    $stmt_check->bindValue(':produto_id', $produto['id']);
+    $stmt_check->bindValue(':produto_id', $id_produto);
     $stmt_check->execute();
     $check_result = $stmt_check->fetch();
 
@@ -83,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Verificar se já existe registro na tabela produtos_check
         $sql_verificar = "SELECT COUNT(*) as total FROM produtos_check WHERE produto_id = :produto_id";
         $stmt_verificar = $conexao->prepare($sql_verificar);
-        $stmt_verificar->bindValue(':produto_id', $produto['id']);
+        $stmt_verificar->bindValue(':produto_id', $id_produto);
         $stmt_verificar->execute();
         $existe_registro = $stmt_verificar->fetch()['total'] > 0;
 
@@ -92,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $sql_update = "UPDATE produtos_check SET observacoes = :observacoes WHERE produto_id = :produto_id";
             $stmt_update = $conexao->prepare($sql_update);
             $stmt_update->bindValue(':observacoes', $observacoes);
-            $stmt_update->bindValue(':produto_id', $produto['id']);
+            $stmt_update->bindValue(':produto_id', $id_produto);
             $stmt_update->execute();
             
             $mensagem = "Observações atualizadas com sucesso!";
@@ -101,7 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Inserir novo registro
             $sql_insert = "INSERT INTO produtos_check (produto_id, observacoes) VALUES (:produto_id, :observacoes)";
             $stmt_insert = $conexao->prepare($sql_insert);
-            $stmt_insert->bindValue(':produto_id', $produto['id']);
+            $stmt_insert->bindValue(':produto_id', $id_produto);
             $stmt_insert->bindValue(':observacoes', $observacoes);
             $stmt_insert->execute();
             
@@ -133,6 +133,9 @@ function getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, 
         'codigo' => $filtro_codigo,
         'status' => $filtro_status
     ];
-    return '../VIEW/view-planilha.php?' . http_build_query($params);
+    return '../../VIEW/view-planilha.php?' . http_build_query($params);
 }
+
+// Incluir o arquivo de visualização
+include '../../VIEW/observacao-produto.php';
 ?>

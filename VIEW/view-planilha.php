@@ -236,6 +236,7 @@ require_once '../CRUD/READ/view-planilha.php';
                                     <?php endif; ?>
                                     
                                     <!-- Observação -->
+<!-- Observação -->
 <?php if ($show_obs): ?>
 <a href="observacao-produto.php?id_produto=<?php echo $p['id']; ?>&id_planilha=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&filtro_codigo=<?php echo urlencode($filtro_codigo); ?>&status=<?php echo urlencode($filtro_status); ?>"
    class="btn-acao btn-observacao <?php echo !empty($p['observacoes']) ? 'active' : ''; ?>">
