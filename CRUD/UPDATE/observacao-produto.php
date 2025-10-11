@@ -67,57 +67,43 @@ try {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $observacoes = trim($_POST['observacoes'] ?? '');
     
+    // Receber filtros do POST também
+    $pagina = $_POST['pagina'] ?? 1;
+    $filtro_nome = $_POST['nome'] ?? '';
+    $filtro_dependencia = $_POST['dependencia'] ?? '';
+    $filtro_codigo = $_POST['filtro_codigo'] ?? '';
+    
     try {
-        // Se as observações estiverem vazias, vamos limpar o campo no banco
-        if (empty($observacoes)) {
-            // Verificar se existe registro
-            $sql_verificar = "SELECT COUNT(*) as total FROM produtos_check WHERE produto_id = :produto_id";
-            $stmt_verificar = $conexao->prepare($sql_verificar);
-            $stmt_verificar->bindValue(':produto_id', $produto['id']);
-            $stmt_verificar->execute();
-            $existe_registro = $stmt_verificar->fetch()['total'] > 0;
+        // Verificar se já existe registro na tabela produtos_check
+        $sql_verificar = "SELECT COUNT(*) as total FROM produtos_check WHERE produto_id = :produto_id";
+        $stmt_verificar = $conexao->prepare($sql_verificar);
+        $stmt_verificar->bindValue(':produto_id', $produto['id']);
+        $stmt_verificar->execute();
+        $existe_registro = $stmt_verificar->fetch()['total'] > 0;
 
-            if ($existe_registro) {
-                // Atualizar observações para string vazia
-                $sql_update = "UPDATE produtos_check SET observacoes = '' WHERE produto_id = :produto_id";
-                $stmt_update = $conexao->prepare($sql_update);
-                $stmt_update->bindValue(':produto_id', $produto['id']);
-                $stmt_update->execute();
-            }
-            // Se não existe registro e está vazio, não precisa fazer nada
+        if ($existe_registro) {
+            // Atualizar registro existente
+            $sql_update = "UPDATE produtos_check SET observacoes = :observacoes WHERE produto_id = :produto_id";
+            $stmt_update = $conexao->prepare($sql_update);
+            $stmt_update->bindValue(':observacoes', $observacoes);
+            $stmt_update->bindValue(':produto_id', $produto['id']);
+            $stmt_update->execute();
         } else {
-            // Se tem observações, inserir ou atualizar
-            $sql_verificar = "SELECT COUNT(*) as total FROM produtos_check WHERE produto_id = :produto_id";
-            $stmt_verificar = $conexao->prepare($sql_verificar);
-            $stmt_verificar->bindValue(':produto_id', $produto['id']);
-            $stmt_verificar->execute();
-            $existe_registro = $stmt_verificar->fetch()['total'] > 0;
-
-            if ($existe_registro) {
-                // Atualizar registro existente
-                $sql_update = "UPDATE produtos_check SET observacoes = :observacoes WHERE produto_id = :produto_id";
-                $stmt_update = $conexao->prepare($sql_update);
-                $stmt_update->bindValue(':observacoes', $observacoes);
-                $stmt_update->bindValue(':produto_id', $produto['id']);
-                $stmt_update->execute();
-            } else {
-                // Inserir novo registro apenas se tiver observações
-                $sql_insert = "INSERT INTO produtos_check (produto_id, observacoes) VALUES (:produto_id, :observacoes)";
-                $stmt_insert = $conexao->prepare($sql_insert);
-                $stmt_insert->bindValue(':produto_id', $produto['id']);
-                $stmt_insert->bindValue(':observacoes', $observacoes);
-                $stmt_insert->execute();
-            }
+            // Inserir novo registro
+            $sql_insert = "INSERT INTO produtos_check (produto_id, observacoes) VALUES (:produto_id, :observacoes)";
+            $stmt_insert = $conexao->prepare($sql_insert);
+            $stmt_insert->bindValue(':produto_id', $produto['id']);
+            $stmt_insert->bindValue(':observacoes', $observacoes);
+            $stmt_insert->execute();
         }
         
-        // Redirecionar de volta para view-planilha.php SEM mostrar mensagem
+        // Redirecionar de volta para view-planilha.php
         $query_string = http_build_query([
             'id' => $id_planilha,
             'pagina' => $pagina,
             'nome' => $filtro_nome,
             'dependencia' => $filtro_dependencia,
-            'codigo' => $filtro_codigo,
-            'status' => $filtro_status
+            'codigo' => $filtro_codigo
         ]);
         header('Location: ../VIEW/view-planilha.php?' . $query_string);
         exit;
