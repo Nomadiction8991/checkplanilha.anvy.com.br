@@ -1,5 +1,5 @@
 <?php
-$id_planilha = $_GET['id_planilha'] ?? null;
+$id_planilha = $_GET['id'] ?? null;
 
 if (!$id_planilha) {
     header('Location: ../index.php');
