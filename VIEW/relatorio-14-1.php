@@ -1,531 +1,70 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Parisienne&display=swap" rel="stylesheet">
-    <style>
-        *{
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Courier New', Courier, monospace;
-        }
-        div.a4{
-            width: 214mm;
-            height: 295mm;
-            display: flex;
-            flex-direction: column;
-        }
-        section.cabecalho{
-            display: flex;
-            width: 203mm;
-            height: 25mm;
-            margin-block: 3mm;
-            margin-inline: auto;
-            overflow: hidden;
-            margin-top:5mm;
-        }
-        section.cabecalho table {
-            border-collapse: collapse;
-            width: 100%;
-            height: 99%;
-            margin: auto;
-        }
-        
-        section.cabecalho table th, th {
-            border: 1px solid #000;
-            text-align: left;
-        }
-        
-        section.cabecalho table th {
-            background-color: #fff;
-            font-weight: normal;
-        }
-        section.cabecalho table th.col1{
-            text-align: center;
-            width: 27mm ;
-        }
-        section.cabecalho table th.col2{
-            text-align: center;
-            width: 122mm ;
-        }
-        section.cabecalho table th.col3{
-            text-align: right;
-            width: 28mm;
-            font-size:small;
-        }
-        section.cabecalho table th.col4{
-            text-align: center;
-            width: 21mm;
-            font-size:small;
-        }
-        section.cabecalho table tr.row1 th.col1{
-            font-weight: bold;
-            font-size: xx-large;
-        }
-        section.cabecalho table tr.row1 th.col2{
-           font-weight: bold;
-           font-size: x-large;
-        }
-        section.cabecalho table tr.row4 th.col1{
-            font-size:large;
-        }
-        section.cabecalho table tr.row4 th.col2{
-           font-size:large;
-        }
-        section.conteudo{
-            border:1px solid #000;
-            margin-inline:auto;
-            width: 203mm;
-            height: 252mm;
-            display: flex;
-            flex-direction: column;
-        }
-        section.conteudo h1{
-            font-size:medium;
-            width: 95%;
-            margin-inline: auto;
-            margin-block: 1.5mm;
-        }
-        section.conteudo div.conteudo{
-            margin-inline:auto;
-            width: 95%;
-            height: 97.5%;
-            display: flex;
-            margin-bottom: 2.5%;
-            flex-direction: column;
-            border: 2px solid #000;
-        }
-        section.conteudo div.conteudo table {
-            border-collapse: collapse;
-            width: 100%;
-            height: 99%;
-            margin: auto;
-            margin-top: -1px;
-        }
-        
-        section.conteudo div.conteudo table td, td {
-            border: 1px solid #000;
-            text-align: left;
-        }
-        
-        section.conteudo div.conteudo table td {
-            background-color: #fff;
-            font-weight: bold;
-            font-size: small;
-        }
-        section.conteudo div.conteudo table tr.row1{
-            height: 10mm;
-        }
-        section.conteudo div.conteudo table tr.row2{
-            height: 10mm;
-        }
-        section.conteudo div.conteudo table tr.row3{
-            height: 5mm;
-        }
-        section.conteudo div.conteudo table tr.row4{
-            height: 5mm;
-            flex: 1;
-        }
-        section.conteudo div.conteudo table tr.row5{
-            height: 10mm;
-        }
-        section.conteudo div.conteudo table tr.row6{
-            height: 5mm;
-        }
-        section.conteudo div.conteudo table tr.row7{
-            height: 10mm;
-        }
-        section.conteudo div.conteudo table tr.row8{
-            height: 5mm;
-        }
-        section.conteudo div.conteudo table tr.row9{
-            height: 15mm;
-        }
-        section.conteudo div.conteudo table tr.row10{
-            height: 5mm;
-        }
-        section.conteudo div.conteudo table tr.row11{
-            height: 10mm;
-        }
-        section.conteudo div.conteudo table tr.row12{
-            height: 50mm;
-        }
-        section.conteudo div.conteudo table tr.row13{
-            height: 5mm;
-        }
-        section.conteudo div.conteudo table tr.row14{
-            height: 5mm;
-        }
-        section.conteudo div.conteudo table tr.row15{
-            height: 10mm;
-        }
-        section.conteudo div.conteudo table tr.row16{
-            height: 10mm;
-        }
-        section.conteudo div.conteudo table tr.row17{
-            height: 10mm;
-        }
-        section.conteudo div.conteudo table tr.row18{
-            height: 10mm;
-        }
-        section.conteudo div.conteudo table tr.row19{
-            height: 10mm;
-        }
-        section.conteudo div.conteudo table tr.row20{
-            height: 5mm;
-        }
-        section.conteudo div.conteudo table tr.row21{
-            height: 10mm;
-        }
-        section.conteudo div.conteudo table tr.row22{
-            height: 5mm;
-        }
-        section.conteudo div.conteudo table tr.row23{
-            height: 10mm;
-        }
-        section.conteudo div.conteudo table tr.row24{
-            height: 10mm;
-        }
-        section.conteudo div.conteudo table tr.row1 td.col1{
-            width: 70%;
-            color: #999;
-            padding-left: 3mm;
-        }
-        section.conteudo div.conteudo table tr.row1 td.col2{
-            width: 30%;
-            padding-left: 3mm;
-        }
-        section.conteudo div.conteudo table tr.row2 td.col1{
-            width: 70%;
-            text-align: center;
-        }
-        section.conteudo div.conteudo table tr.row2 td.col2{
-            width: 30%;
-            font-size: x-small;
-            padding-left: 3mm;
-        }
-        section.conteudo div.conteudo table tr.row3 td.col1{
-            width: 5%;
-            text-align: center;
-        }
-        section.conteudo div.conteudo table tr.row3 td.col2{
-            width: 95%;
-            background-color: #999;
-            padding-left: 3mm;
-            color: #fff;
-        }
-        section.conteudo div.conteudo table tr.row4 td.col1{
-            width: 33%;
-            background-color: #ccc;
-            padding-left: 3mm;
-            font-size: x-small;
-        }
-        section.conteudo div.conteudo table tr.row4 td.col2{
-            width: 33%;
-            background-color: #ccc;
-            padding-left: 3mm;
-            font-size: x-small;
-        }
-        section.conteudo div.conteudo table tr.row4 td.col3{
-            width: 33%;
-            background-color: #ccc;
-            padding-left: 3mm;
-            font-size: x-small;
-        }
-        section.conteudo div.conteudo table tr.row5 td.col1{
-            width: 33%;
-        }
-        section.conteudo div.conteudo table tr.row5 td.col2{
-            width: 33%;
-        }
-        section.conteudo div.conteudo table tr.row5 td.col3{
-            width: 33%;
-        }
-        section.conteudo div.conteudo table tr.row6 td.col1{
-            width: 33%;
-            background-color: #ccc;
-            padding-left: 3mm;
-            font-size: x-small;
-        }
-        section.conteudo div.conteudo table tr.row6 td.col2{
-            width: 33%;
-            background-color: #ccc;
-            padding-left: 3mm;
-            font-size: x-small;
-        }
-        section.conteudo div.conteudo table tr.row6 td.col3{
-            width: 33%;
-            background-color: #ccc;
-            padding-left: 3mm;
-            font-size: x-small;
-        }
-        section.conteudo div.conteudo table tr.row7 td.col1{
-            width: 33%;
-        }
-        section.conteudo div.conteudo table tr.row7 td.col2{
-            width: 33%;
-        }
-        section.conteudo div.conteudo table tr.row7 td.col3{
-            width: 33%;
-        }
-        section.conteudo div.conteudo table tr.row8 td.col1{
-            width: 5%;
-            text-align: center;
-        }
-        section.conteudo div.conteudo table tr.row8 td.col2{
-            width: 95%;
-            background-color: #999;
-            padding-left: 3mm;
-            color: #fff;
-        }
-        section.conteudo div.conteudo table tr.row10 td.col1{
-            width: 25%;
-            background-color: #ccc;
-            padding-left: 3mm;
-            font-size: x-small;
-        }
-        section.conteudo div.conteudo table tr.row10 td.col2{
-            width: 25%;
-            background-color: #ccc;
-            padding-left: 3mm;
-            font-size: x-small;
-        }
-        section.conteudo div.conteudo table tr.row10 td.col3{
-            width: 25%;
-            background-color: #ccc;
-            padding-left: 3mm;
-            font-size: x-small;
-        }
-        section.conteudo div.conteudo table tr.row10 td.col4{
-            width: 25%;
-            background-color: #ccc;
-            padding-left: 3mm;
-            font-size: x-small;
-        }
-
-        section.conteudo div.conteudo table tr.row12 td.col1 p{ 
-            font-size: x-small;
-            font-weight: normal;
-            width: 95%;
-            margin-inline:2.5%;
-        }
-        section.conteudo div.conteudo table tr.row12 td.col1 label{ 
-            font-size: x-small;
-            font-weight: normal;
-            width: 95%;
-            margin-inline:2.5%;
-        }
-        section.conteudo div.conteudo table tr.row13 td.col1{
-            width: 5%;
-            text-align: center;
-        }
-        section.conteudo div.conteudo table tr.row13 td.col2{
-            width: 95%;
-            background-color: #999;
-            padding-left: 3mm;
-            color: #fff;
-        }
-        section.conteudo div.conteudo table tr.row14 td.col1{
-            width: 20%;
-            background-color: #ccc;
-            padding-left: 3mm;
-            font-size: x-small;
-        }
-        section.conteudo div.conteudo table tr.row14 td.col2{
-            width: 40%;
-            background-color: #ccc;
-            padding-left: 3mm;
-            font-size: x-small;
-        }
-        section.conteudo div.conteudo table tr.row14 td.col3{
-            width: 40%;
-            background-color: #ccc;
-            padding-left: 3mm;
-            font-size: x-small;
-        }
-        section.conteudo div.conteudo table tr.row15 td.col1{
-            padding-left: 3mm;
-            font-size: x-small;
-        }
-        section.conteudo div.conteudo table tr.row15 td.col2{
-            padding-left: 3mm;
-        }
-        section.conteudo div.conteudo table tr.row15 td.col3{
-            padding-left: 3mm;
-        }
-        section.conteudo div.conteudo table tr.row16 td.col1{
-            padding-left: 3mm;
-            font-size: x-small;
-        }
-        section.conteudo div.conteudo table tr.row16 td.col2{
-            padding-left: 3mm;
-        }
-        section.conteudo div.conteudo table tr.row16 td.col3{
-            padding-left: 3mm;
-        }
-        section.conteudo div.conteudo table tr.row17 td.col1{
-            padding-left: 3mm;
-            font-size: x-small;
-        }
-        section.conteudo div.conteudo table tr.row17 td.col2{
-            padding-left: 3mm;
-        }
-        section.conteudo div.conteudo table tr.row17 td.col3{
-            padding-left: 3mm;
-        }
-        section.conteudo div.conteudo table tr.row18 td.col1{
-            padding-left: 3mm;
-            font-size: x-small;
-        }
-        section.conteudo div.conteudo table tr.row18 td.col2{
-            padding-left: 3mm;
-        }
-        section.conteudo div.conteudo table tr.row18 td.col3{
-            padding-left: 3mm;
-        }
-        section.conteudo div.conteudo table tr.row19 td.col1{
-            padding-left: 3mm;
-            font-size: x-small;
-        }
-        section.conteudo div.conteudo table tr.row19 td.col2{
-            padding-left: 3mm;
-        }
-        section.conteudo div.conteudo table tr.row19 td.col3{
-            padding-left: 3mm;
-        }
-        section.conteudo div.conteudo table tr.row20 td.col1{
-            width: 5%;
-            text-align: center;
-        }
-        section.conteudo div.conteudo table tr.row20 td.col2{
-            width: 95%;
-            background-color: #999;
-            padding-left: 3mm;
-            color: #fff;
-        }
-        section.conteudo div.conteudo table tr.row21 td.col1{
-            padding-left: 3mm;
-            font-size: x-small;
-            font-weight: normal;
-        }
-        section.conteudo div.conteudo table tr.row22 td.col1{
-            width: 20%;
-            background-color: #ccc;
-        }
-        section.conteudo div.conteudo table tr.row22 td.col2{
-            width: 40%;
-            background-color: #ccc;
-            padding-left: 3mm;
-            font-size: x-small;
-        }
-        section.conteudo div.conteudo table tr.row22 td.col3{
-            width: 40%;
-            background-color: #ccc;
-            padding-left: 3mm;
-            font-size: x-small;
-        }
-        section.conteudo div.conteudo table tr.row23 td.col1{
-            padding-left: 3mm;
-            font-size: x-small;
-        }
-        section.conteudo div.conteudo table tr.row23 td.col2{
-            padding-left: 3mm;
-        }
-        section.conteudo div.conteudo table tr.row23 td.col3{
-            padding-left: 3mm;
-        }
-        section.conteudo div.conteudo table tr.row24 td.col1{
-            padding-left: 3mm;
-            font-size: x-small;
-        }
-        section.conteudo div.conteudo table tr.row24 td.col2{
-            padding-left: 3mm;
-        }
-        section.conteudo div.conteudo table tr.row24 td.col3{
-            padding-left: 3mm;
-        }
-
-        section.rodape{
-            margin-inline:auto;
-            width: 203mm;
-            height: 10mm;
-            display: flex;
-            flex-direction: column;
-            margin-top:3mm;
-        }
-
-        section.rodape table {
-            border-collapse: collapse;
-            width: 100%;
-            height: 99%;
-            margin: auto;
-        }
-        
-        section.rodape table td, td {
-            border: 1px solid #000;
-            text-align: left;
-        }
-        
-        section.rodape table td {
-            background-color: #fff;
-            font-weight: bold;
-            font-size: small;
-        }
-        section.rodape table tr.row1 td.col1 {
-            width: 20%;
-        }
-        section.rodape table tr.row1 td.col2 {
-            width: 60%;
-            text-align: center;
-        }
-        section.rodape table tr.row1 td.col3 {
-            width: 20%;
-        }
-        section.conteudo div.conteudo table tr td input[type="text"]{
-            color: #0066CC;
-            width: 100%;
-            text-align: center;
-            font-size: large;
-            border:none;
-            font-family: "Parisienne", cursive;
-            font-weight: 400;
-            font-style: normal;
-        }
-    </style>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Parisienne&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../STYLE/relatorio-14-1.css">
 </head>
 <body>
+    <!-- Inputs para valores que se repetem em todos os documentos -->
+    <div style="margin-bottom: 20px; padding: 10px; border: 1px solid #ccc; background: #f9f9f9;">
+        <h3>Valores Comuns para Todos os Documentos:</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div>
+                <label>Administração: <input type="text" id="admin_geral" onchange="atualizarTodos('admin')"></label>
+            </div>
+            <div>
+                <label>Cidade: <input type="text" id="cidade_geral" onchange="atualizarTodos('cidade')"></label>
+            </div>
+            <div>
+                <label>Setor: <input type="text" id="setor_geral" onchange="atualizarTodos('setor')"></label>
+            </div>
+            <div>
+                <label>CNPJ: <input type="text" id="cnpj_geral" onchange="atualizarTodos('cnpj')"></label>
+            </div>
+            <div>
+                <label>N° Relatório: <input type="text" id="relatorio_geral" onchange="atualizarTodos('relatorio')"></label>
+            </div>
+            <div>
+                <label>Casa de Oração: <input type="text" id="casa_oracao_geral" onchange="atualizarTodos('casa_oracao')"></label>
+            </div>
+            <div>
+                <label>Administrador/Acessor: <input type="text" id="admin_geral" onchange="atualizarTodos('admin_acessor')"></label>
+            </div>
+        </div>
+    </div>
+
     <div class="a4">
         <section class="cabecalho">
             <table>
-                    <tr class="row1">
-                        <th class="col1" rowspan="3">CCB</th>
-                        <th class="col2" rowspan="3">MANUAL ADMINISTRATIVO</th>
-                        <th class="col3">SEÇÃO: </th>
-                        <th class="col4">14</th>
-                    </tr>
-                    <tr class="row2">
-                        <th class="col3">FL./FLS. </th>
-                        <th class="col4">34/36</th>
-                    </tr>
-                    <tr class="row3">
-                        <th class="col3">DATA REVISÃO: </th>
-                        <th class="col4">24/09/2019</th>
-                    </tr>
-                    <tr class="row4">
-                        <th class="col1" rowspan="2">ASSUNTO</th>
-                        <th class="col2" rowspan="2">PATRIMÔNIO - BENS MÓVEIS</th>
-                        <th class="col3">EDIÇÃO: </th>
-                        <th class="col4">6</th>
-                    </tr>
-                    <tr class="row5">
-                        <th class="col3">REVISÃO: </th>
-                        <th class="col4">1</th>
-                    </tr>
+                <tr class="row1">
+                    <th class="col1" rowspan="3">CCB</th>
+                    <th class="col2" rowspan="3">MANUAL ADMINISTRATIVO</th>
+                    <th class="col3">SEÇÃO: </th>
+                    <th class="col4">14</th>
+                </tr>
+                <tr class="row2">
+                    <th class="col3">FL./FLS. </th>
+                    <th class="col4">34/36</th>
+                </tr>
+                <tr class="row3">
+                    <th class="col3">DATA REVISÃO: </th>
+                    <th class="col4">24/09/2019</th>
+                </tr>
+                <tr class="row4">
+                    <th class="col1" rowspan="2">ASSUNTO</th>
+                    <th class="col2" rowspan="2">PATRIMÔNIO - BENS MÓVEIS</th>
+                    <th class="col3">EDIÇÃO: </th>
+                    <th class="col4">6</th>
+                </tr>
+                <tr class="row5">
+                    <th class="col3">REVISÃO: </th>
+                    <th class="col4">1</th>
+                </tr>
             </table>
         </section>
         <section class="conteudo">
@@ -540,7 +79,7 @@
                         <td class="col1" colspan="2">DECLARAÇÃO DE DOAÇÃO DE BENS MÓVEIS</td>
                         <td class="col2" colspan="2">
                             <label for="">Data Emissão</label><br>
-                            <input type="text" name="" id="">
+                            <input type="text" name="data_emissao" id="data_emissao_<?php echo $row['id']; ?>" value="<?php echo date('d/m/Y'); ?>" readonly>
                         </td>
                     </tr>
                 </table>
@@ -558,13 +97,13 @@
                     </tr>
                     <tr class="row5">
                         <td class="col1">
-                            <input type="text" name="" id="">
+                            <input type="text" name="administracao" id="administracao_<?php echo $row['id']; ?>">
                         </td>
                         <td class="col2">
-                            <input type="text" name="" id="">
+                            <input type="text" name="cidade" id="cidade_<?php echo $row['id']; ?>">
                         </td>
                         <td class="col3">
-                            <input type="text" name="" id="">
+                            <input type="text" name="setor" id="setor_<?php echo $row['id']; ?>">
                         </td>
                     </tr>
                     <tr class="row6">
@@ -574,13 +113,13 @@
                     </tr>
                     <tr class="row7">
                         <td class="col1">
-                            <input type="text" name="" id="">
+                            <input type="text" name="cnpj" id="cnpj_<?php echo $row['id']; ?>">
                         </td>
                         <td class="col2">
-                            <input type="text" name="" id="">
+                            <input type="text" name="numero_relatorio" id="numero_relatorio_<?php echo $row['id']; ?>">
                         </td>
                         <td class="col3">
-                            <input type="text" name="" id="">
+                            <input type="text" name="casa_oracao" id="casa_oracao_<?php echo $row['id']; ?>">
                         </td>
                     </tr>
                 </table>
@@ -593,7 +132,12 @@
                 <table>
                     <tr class="row9">
                         <td class="col1" colspan="4">
-                            <input type="text" name="" id="">
+                            <input type="text" name="descricao_bem" id="descricao_bem_<?php echo $row['id']; ?>" value="<?php 
+                                echo htmlspecialchars($row['tipo_codigo'] . ' - ' . $row['tipo_descricao'] . ' [' . $row['tipo_ben'] . '] ' . $row['complemento']);
+                                if (!empty($row['dependencia_descricao'])) {
+                                    echo ' (' . htmlspecialchars($row['dependencia_descricao']) . ')';
+                                }
+                            ?>" readonly style="background-color: #f0f0f0;">
                         </td>
                     </tr>
                 </table>
@@ -606,16 +150,16 @@
                     </tr>
                     <tr class="row11">
                         <td class="col1">
-                            <input type="text" name="" id="">
+                            <input type="text" name="numero_nota" id="numero_nota_<?php echo $row['id']; ?>">
                         </td>
                         <td class="col2">
-                            <input type="text" name="" id="">
+                            <input type="text" name="data_emissao_nota" id="data_emissao_nota_<?php echo $row['id']; ?>">
                         </td>
                         <td class="col3">
-                            <input type="text" name="" id="">
+                            <input type="text" name="valor" id="valor_<?php echo $row['id']; ?>">
                         </td>
                         <td class="col4">
-                            <input type="text" name="" id="">
+                            <input type="text" name="fornecedor" id="fornecedor_<?php echo $row['id']; ?>">
                         </td>
                     </tr>
                     <tr class="row12">
@@ -626,17 +170,17 @@
                                 de dívidas e ônus, para uso na Casa de Oração acima identificada.
                             </p><br>
                             <label>
-                                <input type="checkbox" name="" id="">
+                                <input type="checkbox" name="opcao_1" id="opcao_1_<?php echo $row['id']; ?>">
                                 O bem tem mais de cinco anos de uso e o documento fiscal de
                                 aquisição está anexo.
                             </label><br>
                             <label>
-                                <input type="checkbox" name="" id="">
+                                <input type="checkbox" name="opcao_2" id="opcao_2_<?php echo $row['id']; ?>">
                                 O bem tem mais de cinco anos de uso, porém o documento fiscal
                                 de aquisição foi extraviado.
                             </label><br>
                             <label>
-                                <input type="checkbox" name="" id="">
+                                <input type="checkbox" name="opcao_3" id="opcao_3_<?php echo $row['id']; ?>">
                                 O bem tem até cinco anos de uso e o documento fiscal de
                                 aquisição está anexo.
                             </label><br><br>
@@ -645,7 +189,7 @@
                             </p><br>
                             <label>
                                 Local e data: 
-                                <input type="text" name="" id="">
+                                <input type="text" name="local_data" id="local_data_<?php echo $row['id']; ?>" value="<?php echo htmlspecialchars($comum_planilha); ?> ____/____/_______">
                             </label>
                         </td>
                     </tr>
@@ -665,36 +209,46 @@
                     <tr class="row15">
                         <td class="col1">Nome</td>
                         <td class="col2">
+                            <input type="text" name="nome_doador" id="nome_doador_<?php echo $row['id']; ?>">
                         </td>
                         <td class="col3">
+                            <input type="text" name="nome_conjuge" id="nome_conjuge_<?php echo $row['id']; ?>">
                         </td>
                     </tr>
                     <tr class="row16">
                         <td class="col1">Endereço</td>
                         <td class="col2">
+                            <input type="text" name="endereco_doador" id="endereco_doador_<?php echo $row['id']; ?>">
                         </td>
                         <td class="col3">
+                            <input type="text" name="endereco_conjuge" id="endereco_conjuge_<?php echo $row['id']; ?>">
                         </td>
                     </tr>
                     <tr class="row17">
                         <td class="col1">CPF</td>
                         <td class="col2">
+                            <input type="text" name="cpf_doador" id="cpf_doador_<?php echo $row['id']; ?>">
                         </td>
                         <td class="col3">
+                            <input type="text" name="cpf_conjuge" id="cpf_conjuge_<?php echo $row['id']; ?>">
                         </td>
                     </tr>
                     <tr class="row18">
                         <td class="col1">RG</td>
                         <td class="col2">
+                            <input type="text" name="rg_doador" id="rg_doador_<?php echo $row['id']; ?>">
                         </td>
                         <td class="col3">
+                            <input type="text" name="rg_conjuge" id="rg_conjuge_<?php echo $row['id']; ?>">
                         </td>
                     </tr>
                     <tr class="row19">
                         <td class="col1">Assinatura</td>
                         <td class="col2">
+                            <input type="text" name="assinatura_doador" id="assinatura_doador_<?php echo $row['id']; ?>">
                         </td>
                         <td class="col3">
+                            <input type="text" name="assinatura_conjuge" id="assinatura_conjuge_<?php echo $row['id']; ?>">
                         </td>
                     </tr>
                 </table>
@@ -721,9 +275,10 @@
                     <tr class="row23">
                         <td class="col1">Administrador/Acessor</td>
                         <td class="col2">
-                            <input type="text" name="" id="">
+                            <input type="text" name="admin_acessor" id="admin_acessor_<?php echo $row['id']; ?>">
                         </td>
                         <td class="col3">
+                            <input type="text" name="assinatura_admin" id="assinatura_admin_<?php echo $row['id']; ?>">
                         </td>
                     </tr>
                     <tr class="row24">
@@ -744,5 +299,18 @@
             </table>
         </section>
     </div>
+
+    <script>
+        function atualizarTodos(tipo) {
+            const valor = document.getElementById(tipo + '_geral').value;
+            const inputs = document.querySelectorAll('[id^="' + tipo + '_"]');
+            
+            inputs.forEach(input => {
+                if (!input.id.includes('geral')) {
+                    input.value = valor;
+                }
+            });
+        }
+    </script>
 </body>
 </html>
