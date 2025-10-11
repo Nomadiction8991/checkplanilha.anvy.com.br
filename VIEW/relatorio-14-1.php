@@ -138,20 +138,21 @@ require_once '../CRUD/READ/relatorio-14-1.php';
                                 <td class="col2" colspan="3">DESCRIÇÃO DO BEM</td>
                             </tr>
                         </table>
-                        <table>
-                            <tr class="row9">
-                                <td class="col1" colspan="4">
-                                    <input type="text" name="descricao_bem" id="descricao_bem_<?php echo $row['id']; ?>" value="<?php 
-                                        echo htmlspecialchars($row['tipo_codigo'] . ' - ' . $row['tipo_descricao']);
-                                        echo ' [' . htmlspecialchars($row['tipo_ben']) . ']';
-                                        echo ' ' . htmlspecialchars($row['complemento']);
-                                        if (!empty($row['dependencia_descricao'])) {
-                                            echo ' (' . htmlspecialchars($row['dependencia_descricao']) . ')';
-                                        }
-                                    ?>" readonly style="background-color: #f0f0f0;">
-                                </td>
-                            </tr>
-                        </table>
+<table>
+    <tr class="row9">
+        <td class="col1" colspan="4">
+            <textarea name="descricao_bem" id="descricao_bem_<?php echo $row['id']; ?>" readonly 
+                style="background-color: #f0f0f0; width: 100%; height: auto; min-height: 40px; border: 1px solid #ccc; padding: 5px; resize: none; font-family: inherit; font-size: inherit; white-space: pre-wrap; word-wrap: break-word;"><?php 
+                echo htmlspecialchars($row['tipo_codigo'] . ' - ' . $row['tipo_descricao']);
+                echo ' [' . htmlspecialchars($row['tipo_ben']) . ']';
+                echo ' ' . htmlspecialchars($row['complemento']);
+                if (!empty($row['dependencia_descricao'])) {
+                    echo ' (' . htmlspecialchars($row['dependencia_descricao']) . ')';
+                }
+            ?></textarea>
+        </td>
+    </tr>
+</table>
                         <table>
                             <tr class="row10">
                                 <td class="col1">N° Nota fiscal</td>
