@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 
 <head>
     <meta charset="UTF-8">
@@ -13,11 +13,11 @@
         <a href="../visualizar_planilha.php" class="voltar">
             <svg xmlns="http://www.w3.org/2000/svg" height="48px" viewBox="0 -960 960 960" width="48px"fill="#FFFFFF"><path d="m274-450 248 248-42 42-320-320 320-320 42 42-248 248h526v60H274Z" /></svg>
         </a>
-        <h1>Menu</h1>
+        <h1>Menu Create</h1>
     </header>
     <section class="conteudo">
         <nav class="menu">
-            <a class="opcao op1" href="cadastro-produto.php">Cadastrar Produto</a>
+            <a class="opcao op1" href="read-produto.php">Cadastrar Produto</a>
             <a class="opcao op2" href="#">Em Desenvolvimento</a>
             <a class="opcao op3" href="#">Em Desenvolvimento</a>
             <a class="opcao op4" href="#">Em Desenvolvimento</a>

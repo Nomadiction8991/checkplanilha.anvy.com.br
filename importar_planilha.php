@@ -9,30 +9,26 @@ use PhpOffice\PhpSpreadsheet\Shared\Date;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $descricao = trim($_POST['descricao'] ?? '');
     $linhas_pular = (int)($_POST['linhas_pular'] ?? 25);
+    $comum = trim($_POST['comum'] ?? 'D16'); // Novo campo
     
-    // Mapeamento das colunas
+    // Mapeamento simplificado - removendo campos desnecessários
     $mapeamento = [
         'codigo' => strtoupper($_POST['codigo'] ?? 'A'),
         'nome' => strtoupper($_POST['nome'] ?? 'D'),
-        'fornecedor' => strtoupper($_POST['fornecedor'] ?? 'G'),
-        'localidade' => strtoupper($_POST['localidade'] ?? 'K'),
-        'conta' => strtoupper($_POST['conta'] ?? 'L'),
-        'numero_documento' => strtoupper($_POST['numero_documento'] ?? 'N'),
         'dependencia' => strtoupper($_POST['dependencia'] ?? 'P'),
-        'data_aquisicao' => strtoupper($_POST['data_aquisicao'] ?? 'T'),
-        'valor_aquisicao' => strtoupper($_POST['valor_aquisicao'] ?? 'V'),
-        'valor_depreciacao' => strtoupper($_POST['valor_depreciacao'] ?? 'W'),
-        'valor_atual' => strtoupper($_POST['valor_atual'] ?? 'AB'),
-        'status' => strtoupper($_POST['status'] ?? 'AF')
     ];
 
     $mensagem = '';
-    $tipo_mensagem = ''; // success ou error
+    $tipo_mensagem = '';
 
     try {
         // Validar campos obrigatórios
         if (empty($descricao)) {
             throw new Exception('A descrição é obrigatória.');
+        }
+
+        if (empty($comum)) {
+            throw new Exception('O campo comum é obrigatório.');
         }
 
         if (!isset($_FILES['arquivo']) || $_FILES['arquivo']['error'] !== UPLOAD_ERR_OK) {
@@ -46,13 +42,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception('Apenas arquivos CSV são permitidos.');
         }
 
-        // Iniciar transação para garantir consistência dos dados
+        // Iniciar transação
         $conexao->beginTransaction();
 
-        // Inserir a planilha na tabela planilhas (apenas descrição, status e ativo são padrão)
-        $sql_planilha = "INSERT INTO planilhas (descricao) VALUES (:descricao)";
+        // Inserir a planilha na tabela planilhas
+        $sql_planilha = "INSERT INTO planilhas (descricao, comum) VALUES (:descricao, :comum)";
         $stmt_planilha = $conexao->prepare($sql_planilha);
         $stmt_planilha->bindValue(':descricao', $descricao);
+        $stmt_planilha->bindValue(':comum', $comum);
         $stmt_planilha->execute();
         $id_planilha = $conexao->lastInsertId();
 
@@ -61,17 +58,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         foreach ($mapeamento as $coluna_banco => $letra_planilha) {
             $mapeamento_string .= "{$coluna_banco}={$letra_planilha};";
         }
-        $mapeamento_string = rtrim($mapeamento_string, ';'); // Remove o último ;
+        $mapeamento_string = rtrim($mapeamento_string, ';');
 
-        $sql_config = "INSERT INTO config_planilha (id_planilha, pulo_linhas, mapeamento_colunas) 
-                      VALUES (:id_planilha, :pulo_linhas, :mapeamento_colunas)";
+        $sql_config = "INSERT INTO config_planilha (id_planilha, pulo_linhas, mapeamento_colunas, comum) 
+                      VALUES (:id_planilha, :pulo_linhas, :mapeamento_colunas, :comum)";
         $stmt_config = $conexao->prepare($sql_config);
         $stmt_config->bindValue(':id_planilha', $id_planilha);
         $stmt_config->bindValue(':pulo_linhas', $linhas_pular);
         $stmt_config->bindValue(':mapeamento_colunas', $mapeamento_string);
+        $stmt_config->bindValue(':comum', $comum);
         $stmt_config->execute();
 
-        // Processar o arquivo CSV com encoding UTF-8
+        // Processar o arquivo CSV
         $planilha = IOFactory::load($arquivo_tmp);
         $aba_ativa = $planilha->getActiveSheet();
         $linhas = $aba_ativa->toArray();
@@ -91,26 +89,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $indice = $indice * 26 + (ord($coluna[$i]) - ord('A') + 1);
             }
             
-            return $indice - 1; // Subtrai 1 porque arrays são base 0
-        }
-
-        // Função para converter valores monetários
-        function converterValor($valor) {
-            if (empty(trim($valor))) return null;
-            
-            // Remove R$, espaços e trata formato brasileiro
-            $valor = str_replace(['R$', ' ', '.'], '', trim($valor));
-            $valor = str_replace(',', '.', $valor);
-            $valor = preg_replace('/[^0-9.]/', '', $valor);
-            
-            return is_numeric($valor) ? (float)$valor : null;
+            return $indice - 1;
         }
 
         // Função para corrigir encoding dos textos
         function corrigirEncoding($texto) {
             if (empty($texto)) return $texto;
             
-            // Tenta detectar e converter para UTF-8
             $encoding = mb_detect_encoding($texto, ['UTF-8', 'ISO-8859-1', 'Windows-1252'], true);
             
             if ($encoding !== 'UTF-8') {
@@ -134,7 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             try {
-                // Obter valores baseado no mapeamento
+                // Obter valores baseado no mapeamento simplificado
                 $indice_codigo = colunaParaIndice($mapeamento['codigo']);
                 $codigo = isset($linha[$indice_codigo]) ? trim($linha[$indice_codigo]) : '';
                 
@@ -145,59 +130,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 // Obter outros valores com correção de encoding
                 $nome = isset($linha[colunaParaIndice($mapeamento['nome'])]) ? corrigirEncoding(trim($linha[colunaParaIndice($mapeamento['nome'])])) : '';
-                $fornecedor = isset($linha[colunaParaIndice($mapeamento['fornecedor'])]) ? corrigirEncoding(trim($linha[colunaParaIndice($mapeamento['fornecedor'])])) : '';
-                $localidade = isset($linha[colunaParaIndice($mapeamento['localidade'])]) ? corrigirEncoding(trim($linha[colunaParaIndice($mapeamento['localidade'])])) : '';
-                $conta = isset($linha[colunaParaIndice($mapeamento['conta'])]) ? corrigirEncoding(trim($linha[colunaParaIndice($mapeamento['conta'])])) : '';
-                $numero_documento = isset($linha[colunaParaIndice($mapeamento['numero_documento'])]) ? corrigirEncoding(trim($linha[colunaParaIndice($mapeamento['numero_documento'])])) : '';
                 $dependencia = isset($linha[colunaParaIndice($mapeamento['dependencia'])]) ? corrigirEncoding(trim($linha[colunaParaIndice($mapeamento['dependencia'])])) : '';
-                
-                // Processar data
-                $data_aquisicao = null;
-                $data_raw = isset($linha[colunaParaIndice($mapeamento['data_aquisicao'])]) ? trim($linha[colunaParaIndice($mapeamento['data_aquisicao'])]) : '';
-                if (!empty($data_raw)) {
-                    if (is_numeric($data_raw)) {
-                        // Se for número do Excel (formato date)
-                        $data_aquisicao = Date::excelToDateTimeObject($data_raw)->format('Y-m-d');
-                    } else {
-                        // Tentar converter de formato texto
-                        $data_timestamp = strtotime(str_replace('/', '-', $data_raw));
-                        if ($data_timestamp !== false) {
-                            $data_aquisicao = date('Y-m-d', $data_timestamp);
-                        }
-                    }
-                }
 
-                $valor_aquisicao = converterValor(isset($linha[colunaParaIndice($mapeamento['valor_aquisicao'])]) ? $linha[colunaParaIndice($mapeamento['valor_aquisicao'])] : '');
-                $valor_depreciacao = converterValor(isset($linha[colunaParaIndice($mapeamento['valor_depreciacao'])]) ? $linha[colunaParaIndice($mapeamento['valor_depreciacao'])] : '');
-                $valor_atual = converterValor(isset($linha[colunaParaIndice($mapeamento['valor_atual'])]) ? $linha[colunaParaIndice($mapeamento['valor_atual'])] : '');
-                $status = isset($linha[colunaParaIndice($mapeamento['status'])]) ? corrigirEncoding(trim($linha[colunaParaIndice($mapeamento['status'])])) : '';
-
-                // Debug: mostrar dados que serão inseridos
-                error_log("Linha {$linha_atual}: Código: {$codigo}, Nome: {$nome}");
-
-                // Inserir o produto
+                // Inserir o produto (apenas campos necessários)
                 $sql_produto = "INSERT INTO produtos 
-                    (codigo, nome, fornecedor, localidade, conta, numero_documento, 
-                     dependencia, data_aquisicao, valor_aquisicao, valor_depreciacao, 
-                     valor_atual, status, id_planilha) 
+                    (codigo, nome, dependencia, id_planilha) 
                 VALUES 
-                    (:codigo, :nome, :fornecedor, :localidade, :conta, :numero_documento,
-                     :dependencia, :data_aquisicao, :valor_aquisicao, :valor_depreciacao,
-                     :valor_atual, :status, :id_planilha)";
+                    (:codigo, :nome, :dependencia, :id_planilha)";
 
                 $stmt_produto = $conexao->prepare($sql_produto);
                 $stmt_produto->bindValue(':codigo', $codigo);
                 $stmt_produto->bindValue(':nome', $nome);
-                $stmt_produto->bindValue(':fornecedor', $fornecedor);
-                $stmt_produto->bindValue(':localidade', $localidade);
-                $stmt_produto->bindValue(':conta', $conta);
-                $stmt_produto->bindValue(':numero_documento', $numero_documento);
                 $stmt_produto->bindValue(':dependencia', $dependencia);
-                $stmt_produto->bindValue(':data_aquisicao', $data_aquisicao);
-                $stmt_produto->bindValue(':valor_aquisicao', $valor_aquisicao);
-                $stmt_produto->bindValue(':valor_depreciacao', $valor_depreciacao);
-                $stmt_produto->bindValue(':valor_atual', $valor_atual);
-                $stmt_produto->bindValue(':status', $status);
                 $stmt_produto->bindValue(':id_planilha', $id_planilha);
 
                 if ($stmt_produto->execute()) {
@@ -225,6 +169,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $mensagem = "Importação concluída com sucesso!<br>
                     Planilha: {$descricao}<br>
+                    Comum: {$comum}<br>
                     Registros importados: {$registros_importados}<br>
                     Erros: {$registros_erros}";
         
@@ -235,14 +180,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $tipo_mensagem = 'success';
 
     } catch (Exception $e) {
-        // Reverter transação em caso de erro
         if ($conexao->inTransaction()) {
             $conexao->rollBack();
         }
         $mensagem = "Erro na importação: " . $e->getMessage();
         $tipo_mensagem = 'error';
         
-        // Log detalhado do erro
         error_log("ERRO IMPORTACAO: " . $e->getMessage());
         error_log("Trace: " . $e->getTraceAsString());
     }
@@ -285,14 +228,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     <?php endif; ?>
 
-    <!-- Debug Info -->
-    <div class="debug-info">
-        <strong>Informações de Debug:</strong><br>
-        - Certifique-se de que a tabela 'produtos' existe com as colunas corretas<br>
-        - Verifique se as letras das colunas correspondem ao seu arquivo CSV<br>
-        - Ajuste o número de linhas a pular conforme necessário
-    </div>
-
     <form method="POST" enctype="multipart/form-data">
         <!-- Campo Descrição -->
         <div class="form-group">
@@ -300,6 +235,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <input type="text" id="descricao" name="descricao" 
                    value="<?php echo htmlspecialchars($_POST['descricao'] ?? ''); ?>" 
                    required placeholder="Digite um nome para identificar esta planilha">
+        </div>
+
+        <!-- Campo Comum -->
+        <div class="form-group">
+            <label for="comum">Localização Comum:</label>
+            <input type="text" id="comum" name="comum" 
+                   value="<?php echo htmlspecialchars($_POST['comum'] ?? 'D16'); ?>" 
+                   required placeholder="Ex: D16">
+            <small>Localização padrão que será salva na planilha</small>
         </div>
 
         <!-- Campo Arquivo -->
@@ -319,9 +263,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <small>Número de linhas do cabeçalho que devem ser ignoradas</small>
         </div>
 
-        <!-- Mapeamento de Colunas -->
+        <!-- Mapeamento de Colunas Simplificado -->
         <h3>Mapeamento de Colunas</h3>
-        <p>Defina a letra da coluna para cada campo (as configurações serão salvas):</p>
+        <p>Defina a letra da coluna para cada campo:</p>
 
         <div class="mapeamento-grid">
             <div class="mapeamento-item">
@@ -337,63 +281,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
 
             <div class="mapeamento-item">
-                <span class="mapeamento-label">Fornecedor:</span>
-                <input type="text" class="mapeamento-input" name="fornecedor" 
-                       value="<?php echo $_POST['fornecedor'] ?? 'G'; ?>" maxlength="2" required>
-            </div>
-
-            <div class="mapeamento-item">
-                <span class="mapeamento-label">Localidade:</span>
-                <input type="text" class="mapeamento-input" name="localidade" 
-                       value="<?php echo $_POST['localidade'] ?? 'K'; ?>" maxlength="2" required>
-            </div>
-
-            <div class="mapeamento-item">
-                <span class="mapeamento-label">Conta:</span>
-                <input type="text" class="mapeamento-input" name="conta" 
-                       value="<?php echo $_POST['conta'] ?? 'L'; ?>" maxlength="2" required>
-            </div>
-
-            <div class="mapeamento-item">
-                <span class="mapeamento-label">Número Documento:</span>
-                <input type="text" class="mapeamento-input" name="numero_documento" 
-                       value="<?php echo $_POST['numero_documento'] ?? 'N'; ?>" maxlength="2" required>
-            </div>
-
-            <div class="mapeamento-item">
                 <span class="mapeamento-label">Dependência:</span>
                 <input type="text" class="mapeamento-input" name="dependencia" 
                        value="<?php echo $_POST['dependencia'] ?? 'P'; ?>" maxlength="2" required>
-            </div>
-
-            <div class="mapeamento-item">
-                <span class="mapeamento-label">Data Aquisição:</span>
-                <input type="text" class="mapeamento-input" name="data_aquisicao" 
-                       value="<?php echo $_POST['data_aquisicao'] ?? 'T'; ?>" maxlength="2" required>
-            </div>
-
-            <div class="mapeamento-item">
-                <span class="mapeamento-label">Valor Aquisição:</span>
-                <input type="text" class="mapeamento-input" name="valor_aquisicao" 
-                       value="<?php echo $_POST['valor_aquisicao'] ?? 'V'; ?>" maxlength="2" required>
-            </div>
-
-            <div class="mapeamento-item">
-                <span class="mapeamento-label">Valor Depreciação:</span>
-                <input type="text" class="mapeamento-input" name="valor_depreciacao" 
-                       value="<?php echo $_POST['valor_depreciacao'] ?? 'W'; ?>" maxlength="2" required>
-            </div>
-
-            <div class="mapeamento-item">
-                <span class="mapeamento-label">Valor Atual:</span>
-                <input type="text" class="mapeamento-input" name="valor_atual" 
-                       value="<?php echo $_POST['valor_atual'] ?? 'AB'; ?>" maxlength="2" required>
-            </div>
-
-            <div class="mapeamento-item">
-                <span class="mapeamento-label">Status:</span>
-                <input type="text" class="mapeamento-input" name="status" 
-                       value="<?php echo $_POST['status'] ?? 'AF'; ?>" maxlength="2" required>
             </div>
         </div>
 
