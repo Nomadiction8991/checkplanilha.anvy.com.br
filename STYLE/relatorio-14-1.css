@@ -488,8 +488,11 @@
             font-style: normal;
         }
 textarea {
+    color: #0066CC;
+    width: 100%;
+    text-align: center;
     font-family: inherit;
-    font-size: inherit;
+    font-size: large;
     border: 1px solid #ccc;
     padding: 5px;
     resize: none;
@@ -498,6 +501,9 @@ textarea {
     overflow-wrap: break-word;
     border: none;
     background: transparent;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 400;
+    font-style: normal;
 }
 
         @media print {
