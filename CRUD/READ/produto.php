@@ -4,7 +4,7 @@ require_once '../CRUD/conexao.php';
 $id_planilha = $_GET['id'] ?? null;
 
 if (!$id_planilha) {
-    header('Location: ../../VIEW/menu-create.php');
+    header('Location: ../index.php');
     exit;
 }
 
@@ -167,6 +167,7 @@ try {
 }
 
 // Função para gerar parâmetros de filtro para URLs
+// Função para gerar parâmetros de filtro para URLs
 function gerarParametrosFiltro($incluirPagina = false) {
     $params = [];
     
@@ -194,6 +195,5 @@ function gerarParametrosFiltro($incluirPagina = false) {
     
     return http_build_query($params);
 }
-
 // As variáveis estarão disponíveis para o HTML
 ?>

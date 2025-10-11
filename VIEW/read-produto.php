@@ -14,13 +14,15 @@ require_once '../CRUD/READ/produto.php';
 <body>
     <header class="cabecalho">
         <section class="titulo">
+            <!-- CORREÇÃO: mudar para 'id' -->
             <a href="menu.php?id=<?php echo $id_planilha; ?>" class="voltar">
                 <svg xmlns="http://www.w3.org/2000/svg" height="48px" viewBox="0 -960 960 960" width="48px"fill="#FFFFFF"><path d="m274-450 248 248-42 42-320-320 320-320 42 42-248 248h526v60H274Z" /></svg>
             </a>
             <h1>Visualizar Produtos</h1>
         </section>
         <section class="acoes">
-            <a href="create-produto.php?id_planilha=<?php echo $id_planilha; ?>&<?php echo gerarParametrosFiltro(true); ?>">
+            <!-- CORREÇÃO: mudar para 'id' -->
+            <a href="create-produto.php?id=<?php echo $id_planilha; ?>&<?php echo gerarParametrosFiltro(true); ?>">
                 <svg xmlns="http://www.w3.org/2000/svg" height="48px" viewBox="0 -960 960 960" width="48px" fill="#FFFFFF"><path d="M450-450H200v-60h250v-250h60v250h250v60H510v250h-60v-250Z"/></svg>
             </a>
         </section>
@@ -29,7 +31,8 @@ require_once '../CRUD/READ/produto.php';
 <!-- Seção de Pesquisa -->
 <section class="pesquisa-container">
     <form method="GET" class="form-pesquisa">
-        <input type="hidden" name="id_planilha" value="<?php echo $id_planilha; ?>">
+        <!-- CORREÇÃO: mudar para 'id' -->
+        <input type="hidden" name="id" value="<?php echo $id_planilha; ?>">
         
         <div class="campo-pesquisa">
             <label for="pesquisa_id">ID</label>
@@ -37,7 +40,7 @@ require_once '../CRUD/READ/produto.php';
         </div>
         
         <div class="campo-pesquisa">
-            <label for="filtro_tipo_ben">Tipos de Bens</label> <!-- NOME ALTERADO PARA PLURAL -->
+            <label for="filtro_tipo_ben">Tipos de Bens</label>
             <select id="filtro_tipo_ben" name="filtro_tipo_ben">
                 <option value="">Todos</option>
                 <?php foreach ($tipos_bens as $tipo): ?>
@@ -48,7 +51,6 @@ require_once '../CRUD/READ/produto.php';
             </select>
         </div>
         
-        <!-- FILTRO BEM (nome alterado) -->
         <div class="campo-pesquisa">
             <label for="filtro_bem">Bem</label>
             <select id="filtro_bem" name="filtro_bem">
@@ -80,12 +82,12 @@ require_once '../CRUD/READ/produto.php';
         
         <div class="campo-pesquisa">
             <label for="filtro_status">Status</label>
-<select id="filtro_status" name="filtro_status">
-    <option value="">Todos</option>
-    <option value="com_nota" <?php echo $filtro_status === 'com_nota' ? 'selected' : ''; ?>>Com Nota</option>
-    <option value="com_14_1" <?php echo $filtro_status === 'com_14_1' ? 'selected' : ''; ?>>Com 14.1</option>  <!-- MUDADO AQUI -->
-    <option value="sem_status" <?php echo $filtro_status === 'sem_status' ? 'selected' : ''; ?>>Sem Status</option>
-</select>
+            <select id="filtro_status" name="filtro_status">
+                <option value="">Todos</option>
+                <option value="com_nota" <?php echo $filtro_status === 'com_nota' ? 'selected' : ''; ?>>Com Nota</option>
+                <option value="com_14_1" <?php echo $filtro_status === 'com_14_1' ? 'selected' : ''; ?>>Com 14.1</option>
+                <option value="sem_status" <?php echo $filtro_status === 'sem_status' ? 'selected' : ''; ?>>Sem Status</option>
+            </select>
         </div>
         
         <div class="botao-pesquisa">
@@ -143,10 +145,12 @@ require_once '../CRUD/READ/produto.php';
                         </td>
                         <td class="centered">
                             <div class="acoes-container">
-                                <a href="update-produto.php?id=<?php echo $produto['id']; ?>&id_planilha=<?php echo $id_planilha; ?>&<?php echo gerarParametrosFiltro(true); ?>" class="btn-acao btn-editar">
+                                <!-- CORREÇÃO: mudar para 'id' -->
+                                <a href="update-produto.php?id=<?php echo $produto['id']; ?>&id=<?php echo $id_planilha; ?>&<?php echo gerarParametrosFiltro(true); ?>" class="btn-acao btn-editar">
                                     <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#75FB4C"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h357l-80 80H200v560h560v-278l80-80v358q0 33-23.5 56.5T760-120H200Zm280-360ZM360-360v-170l367-367q12-12 27-18t30-6q16 0 30.5 6t26.5 18l56 57q11 12 17 26.5t6 29.5q0 15-5.5 29.5T897-728L530-360H360Zm481-424-56-56 56 56ZM440-440h56l232-232-28-28-29-28-231 231v57Zm260-260-29-28 29 28 28 28-28-28Z"/></svg>
                                 </a>
-                                <a href="delete-produto.php?id=<?php echo $produto['id']; ?>&id_planilha=<?php echo $id_planilha; ?>&<?php echo gerarParametrosFiltro(true); ?>" class="btn-acao btn-excluir">
+                                <!-- CORREÇÃO: mudar para 'id' -->
+                                <a href="delete-produto.php?id=<?php echo $produto['id']; ?>&id=<?php echo $id_planilha; ?>&<?php echo gerarParametrosFiltro(true); ?>" class="btn-acao btn-excluir">
                                     <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#EA3323"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
                                 </a>
                             </div>
@@ -156,7 +160,7 @@ require_once '../CRUD/READ/produto.php';
                 <?php else: ?>
                     <tr>
                         <td colspan="4" style="text-align: center; padding: 20px;">
-                            <?php echo ($pesquisa_id || $pesquisa_descricao || $filtro_status) ? 
+                            <?php echo ($pesquisa_id || $filtro_tipo_ben || $filtro_bem || $filtro_complemento || $filtro_dependencia || $filtro_status) ? 
                                 'Nenhum produto encontrado com os filtros aplicados.' : 
                                 'Nenhum produto cadastrado para esta planilha.'; ?>
                         </td>
@@ -185,7 +189,7 @@ require_once '../CRUD/READ/produto.php';
 
             <!-- Primeira página -->
             <?php if ($pagina > 2): ?>
-                <a href="?id_planilha=<?php echo $id_planilha; ?>&pagina=1&pesquisa_id=<?php echo $pesquisa_id; ?>&pesquisa_descricao=<?php echo urlencode($pesquisa_descricao); ?>&filtro_status=<?php echo $filtro_status; ?>" class="pagina-item icone">
+                <a href="?id=<?php echo $id_planilha; ?>&pagina=1&<?php echo gerarParametrosFiltro(); ?>" class="pagina-item icone">
                     <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="currentColor">
                         <path d="M440-240 200-480l240-240 56 56-183 184 183 184-56 56Zm264 0L464-480l240-240 56 56-183 184 183 184-56 56Z"/>
                     </svg>
@@ -194,14 +198,14 @@ require_once '../CRUD/READ/produto.php';
 
             <!-- Páginas numeradas -->
             <?php for ($i = $pagina_inicial; $i <= $pagina_final; $i++): ?>
-                <a href="?id_planilha=<?php echo $id_planilha; ?>&pagina=<?php echo $i; ?>&pesquisa_id=<?php echo $pesquisa_id; ?>&pesquisa_descricao=<?php echo urlencode($pesquisa_descricao); ?>&filtro_status=<?php echo $filtro_status; ?>" class="pagina-item <?php echo $i == $pagina ? 'ativa' : ''; ?>">
+                <a href="?id=<?php echo $id_planilha; ?>&pagina=<?php echo $i; ?>&<?php echo gerarParametrosFiltro(); ?>" class="pagina-item <?php echo $i == $pagina ? 'ativa' : ''; ?>">
                     <?php echo $i; ?>
                 </a>
             <?php endfor; ?>
 
             <!-- Última página -->
             <?php if ($pagina < $total_paginas - 1): ?>
-                <a href="?id_planilha=<?php echo $id_planilha; ?>&pagina=<?php echo $total_paginas; ?>&pesquisa_id=<?php echo $pesquisa_id; ?>&pesquisa_descricao=<?php echo urlencode($pesquisa_descricao); ?>&filtro_status=<?php echo $filtro_status; ?>" class="pagina-item icone">
+                <a href="?id=<?php echo $id_planilha; ?>&pagina=<?php echo $total_paginas; ?>&<?php echo gerarParametrosFiltro(); ?>" class="pagina-item icone">
                     <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="currentColor">
                         <path d="M383-480 200-664l56-56 240 240-240 240-56-56 183-184Zm264 0L464-664l56-56 240 240-240 240-56-56 183-184Z"/>
                     </svg>
