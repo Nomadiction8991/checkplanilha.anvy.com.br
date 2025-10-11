@@ -543,7 +543,7 @@ td:nth-child(2) {
     .campo-pesquisa select {
         padding: 8px 10px;
         font-size: 16px; /* Melhora a experiência de touch */
-        max-width: 100%;
+        max-width: 90%;
         box-sizing: border-box;
     }
     
