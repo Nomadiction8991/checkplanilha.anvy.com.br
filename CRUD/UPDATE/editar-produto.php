@@ -27,6 +27,8 @@ if (!$codigo || !$id_planilha) {
 
 $mensagem = '';
 $tipo_mensagem = '';
+$novo_nome = '';
+$nova_dependencia = '';
 
 // Buscar dados do produto
 try {
@@ -48,12 +50,10 @@ try {
     $stmt_check->execute();
     $check = $stmt_check->fetch();
 
-    // Se não existir registro, criar array vazio
-    if (!$check) {
-        $check = [
-            'nome' => '',
-            'dependencia' => ''
-        ];
+    // Se existir registro, usar os valores para preencher o formulário
+    if ($check) {
+        $novo_nome = $check['nome'];
+        $nova_dependencia = $check['dependencia'];
     }
     
 } catch (Exception $e) {
@@ -92,31 +92,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt_verificar->execute();
         $existe_registro = $stmt_verificar->fetch()['total'] > 0;
 
-        // Se não houver alterações, não faz nada
+        // Se não houver alterações (campos vazios), redireciona sem salvar
         if (empty($novo_nome) && empty($nova_dependencia)) {
-            $mensagem = "Nenhuma alteração foi feita.";
-            $tipo_mensagem = 'warning';
+            // Redireciona de volta para a view-planilha sem fazer alterações
+            header('Location: ' . getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, $filtro_codigo, $filtro_status));
+            exit;
         } else {
             if ($existe_registro) {
-                // Atualizar registro existente
-                $sql_update = "UPDATE produtos_check SET nome = :nome, dependencia = :dependencia, imprimir = 1 WHERE produto_id = :produto_id";
+                // Atualizar registro existente - apenas se os campos não estiverem vazios
+                $sql_update = "UPDATE produtos_check SET imprimir = 1";
+                $params = [':produto_id' => $produto['id']];
+                
+                if (!empty($novo_nome)) {
+                    $sql_update .= ", nome = :nome";
+                    $params[':nome'] = $novo_nome;
+                }
+                if (!empty($nova_dependencia)) {
+                    $sql_update .= ", dependencia = :dependencia";
+                    $params[':dependencia'] = $nova_dependencia;
+                }
+                
+                $sql_update .= " WHERE produto_id = :produto_id";
                 $stmt_update = $conexao->prepare($sql_update);
-                $stmt_update->bindValue(':nome', $novo_nome);
-                $stmt_update->bindValue(':dependencia', $nova_dependencia);
-                $stmt_update->bindValue(':produto_id', $produto['id']);
+                
+                foreach ($params as $key => $value) {
+                    $stmt_update->bindValue($key, $value);
+                }
                 $stmt_update->execute();
             } else {
-                // Inserir novo registro
-                $sql_insert = "INSERT INTO produtos_check (produto_id, nome, dependencia, imprimir) VALUES (:produto_id, :nome, :dependencia, 1)";
+                // Inserir novo registro - apenas com campos preenchidos
+                $campos = ['produto_id', 'imprimir'];
+                $valores = [':produto_id', '1'];
+                $params = [':produto_id' => $produto['id']];
+                
+                if (!empty($novo_nome)) {
+                    $campos[] = 'nome';
+                    $valores[] = ':nome';
+                    $params[':nome'] = $novo_nome;
+                }
+                if (!empty($nova_dependencia)) {
+                    $campos[] = 'dependencia';
+                    $valores[] = ':dependencia';
+                    $params[':dependencia'] = $nova_dependencia;
+                }
+                
+                $sql_insert = "INSERT INTO produtos_check (" . implode(', ', $campos) . ") VALUES (" . implode(', ', $valores) . ")";
                 $stmt_insert = $conexao->prepare($sql_insert);
-                $stmt_insert->bindValue(':produto_id', $produto['id']);
-                $stmt_insert->bindValue(':nome', $novo_nome);
-                $stmt_insert->bindValue(':dependencia', $nova_dependencia);
+                
+                foreach ($params as $key => $value) {
+                    $stmt_insert->bindValue($key, $value);
+                }
                 $stmt_insert->execute();
             }
 
-            $mensagem = "Alterações salvas com sucesso! O produto foi marcado para impressão de etiqueta.";
-            $tipo_mensagem = 'success';
+            // Redireciona de volta para a view-planilha após salvar
+            header('Location: ' . getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, $filtro_codigo, $filtro_status));
+            exit;
         }
         
     } catch (Exception $e) {

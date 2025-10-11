@@ -1,7 +1,3 @@
-<?php
-require_once '../CRUD/UPDATE/observacao-produto.php';
-?>
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -11,21 +7,14 @@ require_once '../CRUD/UPDATE/observacao-produto.php';
     <link rel="stylesheet" href="../STYLE/observacao-produto.css">
 </head>
 <body>
-    <header>
-        <a href="<?php echo getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, $filtro_codigo, $filtro_status); ?>" class="header-btn" title="Fechar">❌</a>
-        <h1 class="header-title">Editar Observações</h1>
+    <header class="cabecalho">
+        <div class="titulo">
+            <a href="<?php echo getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, $filtro_codigo, $filtro_status); ?>" class="voltar" title="Voltar">←</a>
+            <h1>Editar Observações</h1>
+        </div>
     </header>
 
-    <div class="container">
-        <!-- Informações dos filtros ativos -->
-        <div class="filter-info">
-            <strong>Filtros ativos:</strong>
-            <?php if ($filtro_codigo): ?>Código: <?php echo htmlspecialchars($filtro_codigo); ?> | <?php endif; ?>
-            <?php if ($filtro_nome): ?>Nome: <?php echo htmlspecialchars($filtro_nome); ?> | <?php endif; ?>
-            <?php if ($filtro_dependencia): ?>Dependência: <?php echo htmlspecialchars($filtro_dependencia); ?> | <?php endif; ?>
-            Página: <?php echo $pagina; ?> | Status: <?php echo htmlspecialchars($filtro_status); ?>
-        </div>
-
+    <div class="conteudo">
         <?php if (!empty($mensagem)): ?>
             <div class="message <?php echo $tipo_mensagem; ?>">
                 <?php echo $mensagem; ?>
@@ -34,7 +23,7 @@ require_once '../CRUD/UPDATE/observacao-produto.php';
 
         <!-- Informações do Produto -->
         <div class="product-card">
-            <h3 style="margin-top: 0; color: #007bff;">Informações do Produto</h3>
+            <h3>Informações do Produto</h3>
             
             <div class="product-field">
                 <div class="field-label">Código:</div>

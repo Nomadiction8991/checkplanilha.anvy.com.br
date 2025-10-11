@@ -1,4 +1,4 @@
-/* STYLE/editar-produto.css - PADRÃO VIEW PLANILHA */
+/* STYLE/editar-produto.css - ESTILO UNIFICADO COM VIEW-PLANILHA */
 * {
     margin: 0;
     padding: 0;
@@ -12,7 +12,7 @@ body {
     line-height: 1.6;
 }
 
-/* Cabeçalho Padrão */
+/* Cabeçalho Padrão - Igual aos outros */
 .cabecalho {
     background: #007bff;
     padding: 12px 15px;
@@ -46,6 +46,8 @@ body {
     flex-shrink: 0;
     text-decoration: none;
     color: #fff;
+    font-weight: bold;
+    font-size: 18px;
 }
 
 .voltar:hover {
@@ -70,49 +72,35 @@ body {
     margin-top: 60px;
 }
 
-/* Mensagens */
+/* Mensagens - Estilo similar */
 .message {
     padding: 15px;
     margin: 15px 0;
     border-radius: 8px;
     font-weight: 500;
     font-size: 14px;
+    border-left: 4px solid;
 }
 
 .success {
     background: #d4edda;
     color: #155724;
-    border: 1px solid #c3e6cb;
+    border-color: #c3e6cb;
 }
 
 .error {
     background: #f8d7da;
     color: #721c24;
-    border: 1px solid #f5c6cb;
+    border-color: #f5c6cb;
 }
 
 .warning {
     background: #fff3cd;
     color: #856404;
-    border: 1px solid #ffeaa7;
+    border-color: #ffeaa7;
 }
 
-/* Info Filtro */
-.filter-info {
-    background: #fff;
-    padding: 15px;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
-    font-size: 14px;
-    border-left: 4px solid #007bff;
-}
-
-.filter-info strong {
-    color: #007bff;
-}
-
-/* Card do Produto */
+/* Card do Produto - Estilo similar aos cards de view-planilha */
 .product-card {
     background: #fff;
     border-radius: 10px;
@@ -156,7 +144,7 @@ body {
     font-size: 14px;
 }
 
-/* Info Box */
+/* Info Box - Estilo de legenda */
 .info-box {
     background: #e3f2fd;
     padding: 15px;
@@ -171,7 +159,7 @@ body {
     color: #007bff;
 }
 
-/* Formulário */
+/* Formulário - Estilo unificado */
 .form-group {
     margin-bottom: 20px;
 }
@@ -206,7 +194,7 @@ select.form-control {
     cursor: pointer;
 }
 
-/* Botões */
+/* Botões - Estilo idêntico */
 .btn {
     padding: 12px 25px;
     text-decoration: none;
@@ -252,7 +240,7 @@ select.form-control {
     font-size: 13px;
 }
 
-/* Responsividade */
+/* Responsividade - Padrão similar */
 @media (max-width: 768px) {
     .conteudo {
         padding: 15px;

@@ -46,6 +46,8 @@ body {
     flex-shrink: 0;
     text-decoration: none;
     color: #fff;
+    font-weight: bold;
+    font-size: 18px;
 }
 
 .voltar:hover {
@@ -95,21 +97,6 @@ body {
     background: #fff3cd;
     color: #856404;
     border: 1px solid #ffeaa7;
-}
-
-/* Info Filtro */
-.filter-info {
-    background: #fff;
-    padding: 15px;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
-    font-size: 14px;
-    border-left: 4px solid #007bff;
-}
-
-.filter-info strong {
-    color: #007bff;
 }
 
 /* Card do Produto */

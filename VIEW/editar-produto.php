@@ -11,21 +11,14 @@ require_once '../CRUD/UPDATE/editar-produto.php';
     <link rel="stylesheet" href="../STYLE/editar-produto.css">
 </head>
 <body>
-    <header>
-        <a href="<?php echo getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, $filtro_codigo, $filtro_status); ?>" class="header-btn" title="Fechar">❌</a>
-        <h1 class="header-title">Editar Produto</h1>
+    <header class="cabecalho">
+        <div class="titulo">
+            <a href="<?php echo getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, $filtro_codigo, $filtro_status); ?>" class="voltar" title="Voltar">←</a>
+            <h1>Editar Produto</h1>
+        </div>
     </header>
 
-    <div class="container">
-        <!-- Informações dos filtros ativos -->
-        <div class="filter-info">
-            <strong>Filtros ativos:</strong>
-            <?php if ($filtro_codigo): ?>Código: <?php echo htmlspecialchars($filtro_codigo); ?> | <?php endif; ?>
-            <?php if ($filtro_nome): ?>Nome: <?php echo htmlspecialchars($filtro_nome); ?> | <?php endif; ?>
-            <?php if ($filtro_dependencia): ?>Dependência: <?php echo htmlspecialchars($filtro_dependencia); ?> | <?php endif; ?>
-            Página: <?php echo $pagina; ?> | Status: <?php echo htmlspecialchars($filtro_status); ?>
-        </div>
-
+    <div class="conteudo">
         <?php if (!empty($mensagem)): ?>
             <div class="message <?php echo $tipo_mensagem; ?>">
                 <?php echo $mensagem; ?>
@@ -34,7 +27,7 @@ require_once '../CRUD/UPDATE/editar-produto.php';
 
         <!-- Informações do Produto -->
         <div class="product-card">
-            <h3 style="margin-top: 0; color: #007bff;">Informações Atuais do Produto</h3>
+            <h3>Informações Atuais do Produto</h3>
             
             <div class="product-field">
                 <div class="field-label">Código:</div>
@@ -67,21 +60,21 @@ require_once '../CRUD/UPDATE/editar-produto.php';
             <input type="hidden" name="status" value="<?php echo htmlspecialchars($filtro_status); ?>">
 
             <!-- Campo Novo Nome -->
-            <div class="form-group">
+            <div class="form-group campo-edicao">
                 <label for="novo_nome" class="form-label">Novo Nome (deixe em branco para não alterar):</label>
                 <input type="text" id="novo_nome" name="novo_nome" class="form-control" 
-                       value="<?php echo htmlspecialchars($check['nome'] ?? ''); ?>" 
+                       value="<?php echo htmlspecialchars($novo_nome ?? ''); ?>" 
                        placeholder="Digite o novo nome...">
             </div>
 
             <!-- Campo Nova Dependência -->
-            <div class="form-group">
+            <div class="form-group campo-edicao">
                 <label for="nova_dependencia" class="form-label">Nova Dependência (deixe em branco para não alterar):</label>
                 <select id="nova_dependencia" name="nova_dependencia" class="form-control">
                     <option value="">-- Selecione uma nova dependência --</option>
                     <?php foreach ($dependencia_options as $dep): ?>
                         <option value="<?php echo htmlspecialchars($dep); ?>" 
-                            <?php echo (isset($check['dependencia']) && $check['dependencia'] === $dep) ? 'selected' : ''; ?>>
+                            <?php echo (isset($nova_dependencia) && $nova_dependencia === $dep) ? 'selected' : ''; ?>>
                             <?php echo htmlspecialchars($dep); ?>
                         </option>
                     <?php endforeach; ?>
