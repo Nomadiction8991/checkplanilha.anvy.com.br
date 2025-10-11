@@ -496,6 +496,8 @@ textarea {
     white-space: pre-wrap;
     word-wrap: break-word;
     overflow-wrap: break-word;
+    border: none;
+    background: transparent;
 }
 
         @media print {
