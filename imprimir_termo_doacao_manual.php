@@ -4,13 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Parisienne&display=swap" rel="stylesheet">
     <style>
-        @font-face {
-            font-family: 'BrunoDeAndradeNascimento';
-            src: url('fonts/BrunoDeAndradeNascimento-Regular.ttf') format('truetype');
-            font-weight: normal;
-            font-style: normal;
-        }
         *{
             margin: 0;
             padding: 0;
@@ -212,15 +209,6 @@
             font-size: x-small;
             padding-left: 3mm;
         }
-        section.conteudo div.conteudo table tr.row2 td.col2 input{
-            font-family: 'BrunoDeAndradeNascimento', Arial, sans-serif;
-            color: #0066CC;
-            width: 70%;
-            float: right;
-            text-align: center;
-            font-size: medium;
-            border:none;
-        }
         section.conteudo div.conteudo table tr.row3 td.col1{
             width: 5%;
             text-align: center;
@@ -232,19 +220,19 @@
             color: #fff;
         }
         section.conteudo div.conteudo table tr.row4 td.col1{
-            width: 20px;
+            width: 33%;
             background-color: #ccc;
             padding-left: 3mm;
             font-size: x-small;
         }
         section.conteudo div.conteudo table tr.row4 td.col2{
-            width: 45%;
+            width: 33%;
             background-color: #ccc;
             padding-left: 3mm;
             font-size: x-small;
         }
         section.conteudo div.conteudo table tr.row4 td.col3{
-            width: 45%;
+            width: 33%;
             background-color: #ccc;
             padding-left: 3mm;
             font-size: x-small;
@@ -343,19 +331,19 @@
             color: #fff;
         }
         section.conteudo div.conteudo table tr.row14 td.col1{
-            width: 25%;
+            width: 20%;
             background-color: #ccc;
             padding-left: 3mm;
             font-size: x-small;
         }
         section.conteudo div.conteudo table tr.row14 td.col2{
-            width: 25%;
+            width: 40%;
             background-color: #ccc;
             padding-left: 3mm;
             font-size: x-small;
         }
         section.conteudo div.conteudo table tr.row14 td.col3{
-            width: 25%;
+            width: 40%;
             background-color: #ccc;
             padding-left: 3mm;
             font-size: x-small;
@@ -426,17 +414,17 @@
             font-weight: normal;
         }
         section.conteudo div.conteudo table tr.row22 td.col1{
-            width: 33%;
+            width: 20%;
             background-color: #ccc;
         }
         section.conteudo div.conteudo table tr.row22 td.col2{
-            width: 33%;
+            width: 40%;
             background-color: #ccc;
             padding-left: 3mm;
             font-size: x-small;
         }
         section.conteudo div.conteudo table tr.row22 td.col3{
-            width: 33%;
+            width: 40%;
             background-color: #ccc;
             padding-left: 3mm;
             font-size: x-small;
@@ -498,6 +486,16 @@
         section.rodape table tr.row1 td.col3 {
             width: 20%;
         }
+        section.conteudo div.conteudo table tr td input[type="text"]{
+            color: #0066CC;
+            width: 100%;
+            text-align: center;
+            font-size: large;
+            border:none;
+            font-family: "Parisienne", cursive;
+            font-weight: 400;
+            font-style: normal;
+        }
     </style>
 </head>
 <body>
@@ -535,7 +533,7 @@
             <div class="conteudo">
                 <table>
                     <tr class="row1">
-                        <td class="col1" colspan="2">CONGREGAÇÃO CRITÃ NO BRASIL</td>
+                        <td class="col1" colspan="2">CONGREGAÇÃO CRISTÃ NO BRASIL</td>
                         <td class="col2" colspan="2">FORMULÁRIO 14.1</td>
                     </tr>
                     <tr class="row2">
@@ -559,9 +557,15 @@
                         <td class="col3">Setor</td>
                     </tr>
                     <tr class="row5">
-                        <td class="col1"></td>
-                        <td class="col2"></td>
-                        <td class="col3"></td>
+                        <td class="col1">
+                            <input type="text" name="" id="">
+                        </td>
+                        <td class="col2">
+                            <input type="text" name="" id="">
+                        </td>
+                        <td class="col3">
+                            <input type="text" name="" id="">
+                        </td>
                     </tr>
                     <tr class="row6">
                         <td class="col1">CNPJ da Administração</td>
@@ -569,9 +573,15 @@
                         <td class="col3">Casa de Oração</td>
                     </tr>
                     <tr class="row7">
-                        <td class="col1"></td>
-                        <td class="col2"></td>
-                        <td class="col3"></td>
+                        <td class="col1">
+                            <input type="text" name="" id="">
+                        </td>
+                        <td class="col2">
+                            <input type="text" name="" id="">
+                        </td>
+                        <td class="col3">
+                            <input type="text" name="" id="">
+                        </td>
                     </tr>
                 </table>
                 <table>
@@ -582,7 +592,9 @@
                 </table>
                 <table>
                     <tr class="row9">
-                        <td class="col1" colspan="4"></td>
+                        <td class="col1" colspan="4">
+                            <input type="text" name="" id="">
+                        </td>
                     </tr>
                 </table>
                 <table>
@@ -593,15 +605,23 @@
                         <td class="col4">Fornecedor</td>
                     </tr>
                     <tr class="row11">
-                        <td class="col1"></td>
-                        <td class="col2"></td>
-                        <td class="col3"></td>
-                        <td class="col4"></td>
+                        <td class="col1">
+                            <input type="text" name="" id="">
+                        </td>
+                        <td class="col2">
+                            <input type="text" name="" id="">
+                        </td>
+                        <td class="col3">
+                            <input type="text" name="" id="">
+                        </td>
+                        <td class="col4">
+                            <input type="text" name="" id="">
+                        </td>
                     </tr>
                     <tr class="row12">
                         <td class="col1" colspan="4">
                             <p>
-                                Declaramos que estamos doando à CONGREGAÇÃO CRITÃ NO BRASIL
+                                Declaramos que estamos doando à CONGREGAÇÃO CRISTÃ NO BRASIL
                                 o bem acima descrito, de nossa propriedade, livre e sesembaraçado
                                 de dívidas e ônus, para uso na Casa de Oração acima identificada.
                             </p><br>
@@ -644,28 +664,38 @@
                     </tr>
                     <tr class="row15">
                         <td class="col1">Nome</td>
-                        <td class="col2"></td>
-                        <td class="col3"></td>
+                        <td class="col2">
+                        </td>
+                        <td class="col3">
+                        </td>
                     </tr>
                     <tr class="row16">
                         <td class="col1">Endereço</td>
-                        <td class="col2"></td>
-                        <td class="col3"></td>
+                        <td class="col2">
+                        </td>
+                        <td class="col3">
+                        </td>
                     </tr>
                     <tr class="row17">
                         <td class="col1">CPF</td>
-                        <td class="col2"></td>
-                        <td class="col3"></td>
+                        <td class="col2">
+                        </td>
+                        <td class="col3">
+                        </td>
                     </tr>
                     <tr class="row18">
                         <td class="col1">RG</td>
-                        <td class="col2"></td>
-                        <td class="col3"></td>
+                        <td class="col2">
+                        </td>
+                        <td class="col3">
+                        </td>
                     </tr>
                     <tr class="row19">
                         <td class="col1">Assinatura</td>
-                        <td class="col2"></td>
-                        <td class="col3"></td>
+                        <td class="col2">
+                        </td>
+                        <td class="col3">
+                        </td>
                     </tr>
                 </table>
                 <table>
@@ -678,7 +708,7 @@
                     <tr class="row21">
                         <td class="col1" colspan="3">
                             <p>
-                                A Congregação Critã No Brasil aceita a presente doação por
+                                A Congregação Cristã No Brasil aceita a presente doação por
                                 atender necessidade do momento.
                             </p>
                         </td>
@@ -689,12 +719,15 @@
                         <td class="col3">Assinatura</td>
                     </tr>
                     <tr class="row23">
-                        <td class="col1">Nome</td>
-                        <td class="col2"></td>
-                        <td class="col3"></td>
+                        <td class="col1">Administrador/Acessor</td>
+                        <td class="col2">
+                            <input type="text" name="" id="">
+                        </td>
+                        <td class="col3">
+                        </td>
                     </tr>
                     <tr class="row24">
-                        <td class="col1">Assinatura</td>
+                        <td class="col1">Doador</td>
                         <td class="col2"></td>
                         <td class="col3"></td>
                     </tr>
