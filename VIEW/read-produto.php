@@ -40,7 +40,7 @@ require_once '../CRUD/READ/produto.php';
                     <?php foreach ($produtos as $produto): ?>
                     <tr>
                         <td class="centered"><?php echo htmlspecialchars($produto['id']); ?></td>
-                        <td>
+                        <td class="centered">
                             <?php 
                             echo htmlspecialchars($produto['tipo_codigo'] . ' - ' . $produto['tipo_descricao']);
                             echo ' [' . htmlspecialchars($produto['tipo_ben']) . ']';

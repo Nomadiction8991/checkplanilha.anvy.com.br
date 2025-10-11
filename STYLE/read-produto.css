@@ -133,7 +133,7 @@ td {
     vertical-align: top;
 }
 
-/* Centralização das colunas ID, Status e Ações */
+/* Centralização das colunas ID, Status, Descrição e Ações */
 .centered {
     text-align: center;
     vertical-align: middle;
@@ -175,7 +175,7 @@ tbody tr:hover {
     gap: 8px;
 }
 
-/* Ações - ícones sem cor de fundo */
+/* Ações - ícones com borda */
 .btn-acao {
     display: flex;
     align-items: center;
@@ -192,6 +192,7 @@ tbody tr:hover {
 
 .btn-editar {
     background: transparent;
+    border: 2px solid #75FB4C;
 }
 
 .btn-editar:hover {
@@ -200,6 +201,7 @@ tbody tr:hover {
 
 .btn-excluir {
     background: transparent;
+    border: 2px solid #EA3323;
 }
 
 .btn-excluir:hover {
@@ -219,6 +221,7 @@ td:nth-child(2) {
     word-wrap: break-word;
     overflow-wrap: break-word;
     line-height: 1.3;
+    text-align: center; /* Centraliza o texto da descrição */
 }
 
 /* Ajustes para telas muito pequenas */
