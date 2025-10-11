@@ -48,7 +48,7 @@ require_once '../CRUD/CREATE/produto.php';
                         <option value="">Selecione um tipo de bem</option>
                         <?php foreach ($tipos_bens as $tipo): ?>
                             <option value="<?php echo $tipo['id']; ?>" 
-                                    data-codigo="<?php echo htmlspecialchars($tipo['codigo']); ?>"
+                                    data-descricao="<?php echo htmlspecialchars($tipo['descricao']); ?>"
                                     <?php echo (isset($_POST['id_tipo_ben']) && $_POST['id_tipo_ben'] == $tipo['id']) ? 'selected' : ''; ?>>
                                 <?php echo htmlspecialchars($tipo['codigo'] . ' - ' . $tipo['descricao']); ?>
                             </option>
@@ -101,29 +101,35 @@ require_once '../CRUD/CREATE/produto.php';
     </section>
 
     <script>
-        // Mapeamento de tipos de bens para suas opções específicas
-        const opcoesBens = <?php echo json_encode($opcoes_bens); ?>;
-
         // Elementos do DOM
         const selectTipoBen = document.getElementById('id_tipo_ben');
         const selectBem = document.getElementById('tipo_ben');
 
+        // Função para separar a descrição pela barra "/"
+        function separarOpcoesPorBarra(descricao) {
+            // Remove espaços extras e divide pela barra
+            return descricao.split('/').map(item => item.trim()).filter(item => item !== '');
+        }
+
         // Função para atualizar as opções do select "Bem"
         function atualizarOpcoesBem() {
-            const tipoBenId = selectTipoBen.value;
-            const opcoes = opcoesBens[tipoBenId] || [];
+            const selectedOption = selectTipoBen.options[selectTipoBen.selectedIndex];
+            const descricao = selectedOption.getAttribute('data-descricao') || '';
             
             // Limpar opções atuais
             selectBem.innerHTML = '';
             
-            if (tipoBenId) {
+            if (selectTipoBen.value && descricao) {
+                // Separar a descrição pela barra
+                const opcoes = separarOpcoesPorBarra(descricao);
+                
                 // Adicionar opção padrão
                 const optionPadrao = document.createElement('option');
                 optionPadrao.value = '';
                 optionPadrao.textContent = 'Selecione um bem';
                 selectBem.appendChild(optionPadrao);
                 
-                // Adicionar opções específicas
+                // Adicionar opções separadas
                 opcoes.forEach(opcao => {
                     const option = document.createElement('option');
                     option.value = opcao;
@@ -131,7 +137,7 @@ require_once '../CRUD/CREATE/produto.php';
                     
                     // Manter o valor selecionado se existir no POST
                     <?php if (isset($_POST['tipo_ben']) && isset($_POST['id_tipo_ben'])): ?>
-                        if (opcao === '<?php echo $_POST['tipo_ben']; ?>' && tipoBenId === '<?php echo $_POST['id_tipo_ben']; ?>') {
+                        if (opcao === '<?php echo $_POST['tipo_ben']; ?>' && selectTipoBen.value === '<?php echo $_POST['id_tipo_ben']; ?>') {
                             option.selected = true;
                         }
                     <?php endif; ?>

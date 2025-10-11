@@ -20,22 +20,6 @@ $stmt_deps = $conexao->prepare($sql_dependencias);
 $stmt_deps->execute();
 $dependencias = $stmt_deps->fetchAll();
 
-// Mapeamento de tipos de bens para suas opções específicas
-$opcoes_bens = [
-    // Exemplo: se o tipo de bem for "Eletrodomésticos", mostra essas opções
-    '1' => ['Geladeira', 'Freezer', 'Congelador', 'Refrigerador'],
-    '2' => ['Fogão 4 Bocas', 'Fogão 6 Bocas', 'Cooktop'],
-    '3' => ['Máquina de Lavar 8kg', 'Máquina de Lavar 10kg', 'Máquina de Lavar 12kg'],
-    // Adicione mais mapeamentos conforme necessário
-];
-
-// Para tipos de bens que não estão mapeados, usar o código como opção padrão
-foreach ($tipos_bens as $tipo) {
-    if (!isset($opcoes_bens[$tipo['id']])) {
-        $opcoes_bens[$tipo['id']] = [$tipo['codigo']];
-    }
-}
-
 // Processar o formulário quando enviado
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id_tipo_ben = $_POST['id_tipo_ben'] ?? '';
