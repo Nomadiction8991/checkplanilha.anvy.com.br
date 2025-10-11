@@ -199,10 +199,12 @@ body {
     border: 1px solid #ffeaa7;
 }
 
-.cor-andamento {
+.cor-execucao {
     background-color: #cce7ff;
     border: 1px solid #99ceff;
 }
+
+
 
 .conteudo {
     padding: 15px;
@@ -306,11 +308,11 @@ tr.pendente:not(.inativo):hover {
     background-color: #ffeaa7 !important;
 }
 
-tr.andamento:not(.inativo) {
+tr.execucao:not(.inativo) {
     background-color: #cce7ff !important;
 }
 
-tr.andamento:not(.inativo):hover {
+tr.execucao:not(.inativo):hover {
     background-color: #99ceff !important;
 }
 

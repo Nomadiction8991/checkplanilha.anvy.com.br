@@ -80,8 +80,8 @@ require_once 'CRUD/READ/index.php';
             <span>Pendente</span>
         </div>
         <div class="item-legenda">
-            <span class="cor-legenda cor-andamento"></span>
-            <span>Em Andamento</span>
+            <span class="cor-legenda cor-execucao"></span>
+            <span>Em Execução</span>
         </div>
     </section>
 
@@ -112,9 +112,10 @@ require_once 'CRUD/READ/index.php';
                             case 'pendente':
                                 $classes[] = 'pendente';
                                 break;
-                            case 'andamento':
-                            case 'em andamento':
-                                $classes[] = 'andamento';
+                            case 'execucao':
+                            case 'em execução':
+                            case 'em execucao':
+                                $classes[] = 'execucao';
                                 break;
                         }
                     }
