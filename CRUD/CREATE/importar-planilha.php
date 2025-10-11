@@ -1,6 +1,6 @@
 <?php
 require_once '../CRUD/conexao.php';
-require_once 'vendor/autoload.php';
+require_once '../vendor/autoload.php';
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
@@ -9,9 +9,9 @@ use PhpOffice\PhpSpreadsheet\Shared\Date;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $descricao = trim($_POST['descricao'] ?? '');
     $linhas_pular = (int)($_POST['linhas_pular'] ?? 25);
-    $comum = trim($_POST['comum'] ?? 'D16'); // Novo campo
+    $comum = trim($_POST['comum'] ?? 'D16');
     
-    // Mapeamento simplificado - removendo campos desnecessários
+    // Mapeamento simplificado
     $mapeamento = [
         'codigo' => strtoupper($_POST['codigo'] ?? 'A'),
         'nome' => strtoupper($_POST['nome'] ?? 'D'),
@@ -191,103 +191,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Importar Planilha</title>
-    <style>
-        .message { padding: 10px; margin: 10px 0; border-radius: 4px; }
-        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input, select { padding: 8px; width: 100%; max-width: 400px; }
-        .mapeamento-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 15px 0; }
-        .mapeamento-item { display: flex; align-items: center; gap: 10px; }
-        .mapeamento-label { min-width: 150px; }
-        .mapeamento-input { width: 60px; text-align: center; }
-        button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        button:hover { background: #0056b3; }
-        small { color: #666; font-style: italic; }
-        .debug-info { background: #f8f9fa; padding: 10px; border: 1px solid #dee2e6; margin: 10px 0; }
-    </style>
-</head>
-<body>
-    <h1>Importar Planilha</h1>
-
-    <a href="index.php" style="display: inline-block; margin-bottom: 20px; padding: 8px 15px; background: #6c757d; color: white; text-decoration: none; border-radius: 4px;">
-        ← Voltar para Listagem
-    </a>
-
-    <?php if (!empty($mensagem)): ?>
-        <div class="message <?php echo $tipo_mensagem; ?>">
-            <?php echo $mensagem; ?>
-        </div>
-    <?php endif; ?>
-
-    <form method="POST" enctype="multipart/form-data">
-        <!-- Campo Descrição -->
-        <div class="form-group">
-            <label for="descricao">Descrição da Planilha:</label>
-            <input type="text" id="descricao" name="descricao" 
-                   value="<?php echo htmlspecialchars($_POST['descricao'] ?? ''); ?>" 
-                   required placeholder="Digite um nome para identificar esta planilha">
-        </div>
-
-        <!-- Campo Comum -->
-        <div class="form-group">
-            <label for="comum">Localização Comum:</label>
-            <input type="text" id="comum" name="comum" 
-                   value="<?php echo htmlspecialchars($_POST['comum'] ?? 'D16'); ?>" 
-                   required placeholder="Ex: D16">
-            <small>Localização padrão que será salva na planilha</small>
-        </div>
-
-        <!-- Campo Arquivo -->
-        <div class="form-group">
-            <label for="arquivo">Arquivo CSV:</label>
-            <input type="file" id="arquivo" name="arquivo" accept=".csv" required>
-        </div>
-
-        <!-- Configurações de Mapeamento -->
-        <h3>Configurações de Importação</h3>
-
-        <!-- Linhas a pular -->
-        <div class="form-group">
-            <label for="linhas_pular">Linhas iniciais a pular:</label>
-            <input type="number" id="linhas_pular" name="linhas_pular" 
-                   value="<?php echo $_POST['linhas_pular'] ?? 25; ?>" min="0" required>
-            <small>Número de linhas do cabeçalho que devem ser ignoradas</small>
-        </div>
-
-        <!-- Mapeamento de Colunas Simplificado -->
-        <h3>Mapeamento de Colunas</h3>
-        <p>Defina a letra da coluna para cada campo:</p>
-
-        <div class="mapeamento-grid">
-            <div class="mapeamento-item">
-                <span class="mapeamento-label">Código:</span>
-                <input type="text" class="mapeamento-input" name="codigo" 
-                       value="<?php echo $_POST['codigo'] ?? 'A'; ?>" maxlength="2" required>
-            </div>
-
-            <div class="mapeamento-item">
-                <span class="mapeamento-label">Nome:</span>
-                <input type="text" class="mapeamento-input" name="nome" 
-                       value="<?php echo $_POST['nome'] ?? 'D'; ?>" maxlength="2" required>
-            </div>
-
-            <div class="mapeamento-item">
-                <span class="mapeamento-label">Dependência:</span>
-                <input type="text" class="mapeamento-input" name="dependencia" 
-                       value="<?php echo $_POST['dependencia'] ?? 'P'; ?>" maxlength="2" required>
-            </div>
-        </div>
-
-        <button type="submit">Importar Planilha</button>
-    </form>
-</body>
-</html>
