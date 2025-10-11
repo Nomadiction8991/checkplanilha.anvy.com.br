@@ -195,13 +195,13 @@ body {
 }
 
 .cor-pendente {
-    background-color: #fff3cd;
-    border: 1px solid #ffeaa7;
+    background-color: #ffffff;
+    border: 1px solid #ddd;
 }
 
 .cor-execucao {
-    background-color: #cce7ff;
-    border: 1px solid #99ceff;
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
 }
 
 .conteudo {
@@ -303,20 +303,22 @@ tr.concluido:not(.inativo):hover {
     background-color: #c3e6cb !important;
 }
 
+/* PENDENTE - BRANCO */
 tr.pendente:not(.inativo) {
-    background-color: #fff3cd !important;
+    background-color: #ffffff !important;
 }
 
 tr.pendente:not(.inativo):hover {
-    background-color: #ffeaa7 !important;
+    background-color: #f8f9fa !important;
 }
 
+/* EM EXECUÇÃO - AMARELO */
 tr.execucao:not(.inativo) {
-    background-color: #cce7ff !important;
+    background-color: #fff3cd !important;
 }
 
 tr.execucao:not(.inativo):hover {
-    background-color: #99ceff !important;
+    background-color: #ffeaa7 !important;
 }
 
 /* Container para ações */
