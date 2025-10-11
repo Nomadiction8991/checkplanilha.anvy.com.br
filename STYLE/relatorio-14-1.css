@@ -487,3 +487,20 @@
             font-weight: 400;
             font-style: normal;
         }
+
+        @media print {
+    /* Esconder o formulário de preenchimento geral */
+    div[style*="margin-bottom: 20px"] {
+        display: none !important;
+    }
+}
+
+/* Opcional: para visualizar melhor durante o desenvolvimento */
+@media screen {
+    div[style*="margin-bottom: 20px"] {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: #f9f9f9;
+    }
+}
