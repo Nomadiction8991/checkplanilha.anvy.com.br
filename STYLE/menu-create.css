@@ -25,7 +25,7 @@ body {
     height: 55px;
 }
 
-.cabecalho h1 {
+.titulo{
     display: flex;
     align-items: center;
     gap: 12px;
