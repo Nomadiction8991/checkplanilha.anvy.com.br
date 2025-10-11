@@ -19,7 +19,7 @@ try {
     $produto = $stmt_produto->fetch();
     
     if (!$produto) {
-        header('Location: ../VIEW/read-produto.php?id_planilha=' . $id_planilha);
+        header('Location: ../VIEW/read-produto.php?id=' . $id_planilha);
         exit;
     }
 } catch (Exception $e) {
@@ -94,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $parametros_retorno = gerarParametrosFiltro();
             
             // Redirecionar de volta para a lista
-            header('Location: ../VIEW/read-produto.php?id_planilha=' . $id_planilha . $parametros_retorno);
+            header('Location: ../VIEW/read-produto.php?id=' . $id_planilha . $parametros_retorno);
             exit;
             
         } catch (Exception $e) {
