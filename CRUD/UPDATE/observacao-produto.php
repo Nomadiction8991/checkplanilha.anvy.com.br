@@ -1,15 +1,15 @@
 <?php
 require_once '../conexao.php';
 
-// Receber parâmetros via GET
-$codigo = $_GET['codigo'] ?? null;
+// Receber parâmetros via GET - CORRIGIDO
+$codigo = $_GET['codigo_produto'] ?? null; // MUDADO PARA codigo_produto
 $id_planilha = $_GET['id_planilha'] ?? null;
 
-// Receber filtros
+// Receber filtros - CORRIGIDO
 $pagina = $_GET['pagina'] ?? 1;
 $filtro_nome = $_GET['nome'] ?? '';
 $filtro_dependencia = $_GET['dependencia'] ?? '';
-$filtro_codigo = $_GET['filtro_codigo'] ?? '';
+$filtro_codigo = $_GET['filtro_codigo'] ?? ''; // MUDADO PARA filtro_codigo
 $filtro_status = $_GET['status'] ?? '';
 
 // Validação dos parâmetros obrigatórios
