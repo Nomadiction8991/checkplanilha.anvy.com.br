@@ -1,5 +1,5 @@
 <?php
-$id_planilha = $_GET['id_planilha'] ?? null;
+$id_planilha = $_GET['id'] ?? null; // MUDAR PARA 'id'
 /*
 if (!$id_planilha) {
     header('Location: ../index.php');
@@ -26,7 +26,7 @@ require_once '../CRUD/READ/view-planilha.php';
             <h1><?php echo htmlspecialchars($planilha['comum']); ?></h1>
         </section>
         <section class="acoes">
-            <a href="menu.php?id_planilha=<?php echo $id_planilha; ?>">
+            <a href="menu.php?id=<?php echo $id_planilha; ?>"> <!-- MUDAR PARA id -->
                 <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF"><path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/></svg>
             </a>
         </section>
@@ -36,7 +36,7 @@ require_once '../CRUD/READ/view-planilha.php';
         <!-- Filtros -->
         <div class="filtros-container">
             <form method="GET" class="form-filtros">
-                <input type="hidden" name="id" value="<?php echo $id_planilha; ?>">
+                 <input type="hidden" name="id" value="<?php echo $id_planilha; ?>">
                 
                 <div class="campo-filtro">
                     <label for="codigo">Código</label>
@@ -237,16 +237,16 @@ require_once '../CRUD/READ/view-planilha.php';
                                     
                                     <!-- Observação -->
                                     <?php if ($show_obs): ?>
-                                    <a href="observacao-produto.php?codigo=<?php echo urlencode($p['codigo']); ?>&id_planilha=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&filtro_codigo=<?php echo urlencode($filtro_codigo); ?>&status=<?php echo urlencode($filtro_status); ?>"
-                                       class="btn-acao btn-observacao <?php echo !empty($p['observacoes']) ? 'active' : ''; ?>">
+                                    <a href="observacao-produto.php?codigo=<?php echo urlencode($p['codigo']); ?>&id_planilha=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&codigo=<?php echo urlencode($filtro_codigo); ?>&status=<?php echo urlencode($filtro_status); ?>"
+   class="btn-acao btn-observacao <?php echo !empty($p['observacoes']) ? 'active' : ''; ?>">
                                         <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#F19E39"><path d="M320-440h320v-80H320v80Zm0 120h320v-80H320v80Zm0 120h200v-80H320v80ZM240-80q-33 0-56.5-23.5T160-160v-640q0-33 23.5-56.5T240-880h320l240 240v480q0 33-23.5 56.5T720-80H240Zm280-520v-200H240v640h480v-440H520ZM240-800v200-200 640-640Z"/></svg>
                                     </a>
                                     <?php endif; ?>
                                     
                                     <!-- Editar -->
                                     <?php if ($show_edit): ?>
-                                    <a href="editar-produto.php?codigo=<?php echo urlencode($p['codigo']); ?>&id_planilha=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&filtro_codigo=<?php echo urlencode($filtro_codigo); ?>&status=<?php echo urlencode($filtro_status); ?>"
-                                       class="btn-acao btn-editar <?php echo $tem_edicao ? 'active' : ''; ?>">
+                                   <a href="editar-produto.php?codigo=<?php echo urlencode($p['codigo']); ?>&id_planilha=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&codigo=<?php echo urlencode($filtro_codigo); ?>&status=<?php echo urlencode($filtro_status); ?>"
+   class="btn-acao btn-editar <?php echo $tem_edicao ? 'active' : ''; ?>">
                                         <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#A76CFF"><path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/></svg>
                                     </a>
                                     <?php endif; ?>
@@ -267,7 +267,7 @@ require_once '../CRUD/READ/view-planilha.php';
 <?php if ($total_paginas > 1): ?>
 <div class="paginacao">
     <?php if ($pagina > 1): ?>
-        <a href="?<?php echo http_build_query(array_merge($_GET, ['pagina' => $pagina - 1])); ?>" class="pagina-item pagina-anterior">
+        <a href="?<?php echo http_build_query(array_merge(['id' => $id_planilha], $_GET, ['pagina' => $pagina - 1])); ?>" class="pagina-item pagina-anterior">
             ‹ Anterior
         </a>
     <?php endif; ?>

@@ -29,6 +29,7 @@ try {
     die("Erro ao carregar planilha: " . $e->getMessage());
 }
 
+
 // Parâmetros da paginação
 $pagina = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
 $limite = 20; // 20 produtos por página
