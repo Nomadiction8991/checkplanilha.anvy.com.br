@@ -36,8 +36,8 @@ try {
     $existe_registro = $stmt_verificar->fetch()['total'] > 0;
 
     if ($existe_registro) {
-        // Atualizar o registro, limpando apenas os campos nome e dependencia
-        $sql_update = "UPDATE produtos_check SET nome = NULL, dependencia = NULL WHERE produto_id = :produto_id";
+        // Atualizar o registro, limpando os campos e definindo editado = 0
+        $sql_update = "UPDATE produtos_check SET nome = NULL, dependencia = NULL, imprimir = 0, editado = 0 WHERE produto_id = :produto_id";
         $stmt_update = $conexao->prepare($sql_update);
         $stmt_update->bindValue(':produto_id', $id_produto);
         $stmt_update->execute();

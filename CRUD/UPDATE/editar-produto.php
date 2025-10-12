@@ -1,18 +1,18 @@
 <?php
 require_once '../CRUD/conexao.php';
 
-// CORREÇÃO: Receber id_produto em vez de codigo
+// Receber parâmetros
 $id_produto = $_GET['id_produto'] ?? null;
 $id_planilha = $_GET['id'] ?? null;
 
-// Receber filtros
+// Receber filtros para redirecionamento
 $pagina = $_GET['pagina'] ?? 1;
 $filtro_nome = $_GET['nome'] ?? '';
 $filtro_dependencia = $_GET['dependencia'] ?? '';
 $filtro_codigo = $_GET['filtro_codigo'] ?? '';
 $filtro_status = $_GET['status'] ?? '';
 
-// CORREÇÃO: Validar id_produto em vez de codigo
+// Validação
 if (!$id_produto || !$id_planilha) {
     $query_string = http_build_query([
         'id' => $id_planilha,
@@ -21,7 +21,7 @@ if (!$id_produto || !$id_planilha) {
         'dependencia' => $filtro_dependencia,
         'codigo' => $filtro_codigo,
         'status' => $filtro_status,
-        'erro' => 'Produto não encontrado'
+        'erro' => 'Parâmetros inválidos'
     ]);
     header('Location: view-planilha.php?' . $query_string);
     exit;
@@ -32,7 +32,7 @@ $tipo_mensagem = '';
 $novo_nome = '';
 $nova_dependencia = '';
 
-// Buscar dados do produto - CORREÇÃO: Buscar por id em vez de codigo
+// Buscar dados do produto
 try {
     $sql_produto = "SELECT * FROM produtos WHERE id = :id_produto AND id_planilha = :id_planilha";
     $stmt_produto = $conexao->prepare($sql_produto);
@@ -102,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             if ($existe_registro) {
                 // Atualizar registro existente - apenas se os campos não estiverem vazios
-                $sql_update = "UPDATE produtos_check SET imprimir = 1";
+                $sql_update = "UPDATE produtos_check SET imprimir = 1, editado = 1";
                 $params = [':produto_id' => $produto['id']];
                 
                 if (!empty($novo_nome)) {
@@ -123,8 +123,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt_update->execute();
             } else {
                 // Inserir novo registro - apenas com campos preenchidos
-                $campos = ['produto_id', 'imprimir'];
-                $valores = [':produto_id', '1'];
+                $campos = ['produto_id', 'imprimir', 'editado'];
+                $valores = [':produto_id', '1', '1'];
                 $params = [':produto_id' => $produto['id']];
                 
                 if (!empty($novo_nome)) {
