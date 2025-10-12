@@ -1,8 +1,9 @@
 <?php
-require_once '../conexao.php';
+require_once '../CRUD/conexao.php';
 
-$codigo = $_GET['codigo'] ?? null;
-$id_planilha = $_GET['id_planilha'] ?? null;
+// CORREÇÃO: Receber id_produto em vez de codigo
+$id_produto = $_GET['id_produto'] ?? null;
+$id_planilha = $_GET['id'] ?? null;
 
 // Receber filtros
 $pagina = $_GET['pagina'] ?? 1;
@@ -11,7 +12,8 @@ $filtro_dependencia = $_GET['dependencia'] ?? '';
 $filtro_codigo = $_GET['filtro_codigo'] ?? '';
 $filtro_status = $_GET['status'] ?? '';
 
-if (!$codigo || !$id_planilha) {
+// CORREÇÃO: Validar id_produto em vez de codigo
+if (!$id_produto || !$id_planilha) {
     $query_string = http_build_query([
         'id' => $id_planilha,
         'pagina' => $pagina,
@@ -30,11 +32,11 @@ $tipo_mensagem = '';
 $novo_nome = '';
 $nova_dependencia = '';
 
-// Buscar dados do produto
+// Buscar dados do produto - CORREÇÃO: Buscar por id em vez de codigo
 try {
-    $sql_produto = "SELECT * FROM produtos WHERE codigo = :codigo AND id_planilha = :id_planilha";
+    $sql_produto = "SELECT * FROM produtos WHERE id = :id_produto AND id_planilha = :id_planilha";
     $stmt_produto = $conexao->prepare($sql_produto);
-    $stmt_produto->bindValue(':codigo', $codigo);
+    $stmt_produto->bindValue(':id_produto', $id_produto);
     $stmt_produto->bindValue(':id_planilha', $id_planilha);
     $stmt_produto->execute();
     $produto = $stmt_produto->fetch();
