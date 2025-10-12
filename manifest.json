@@ -1,11 +1,11 @@
 {
-  "name": "Nome do Seu Site",
-  "short_name": "MeuSite",
+  "name": "Check Planilha - Produção",
+  "short_name": "CheckPlanilha",
   "description": "Descrição do meu site",
-  "start_url": "/",
+  "start_url": "/prod/index.php",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "theme_color": "#ffffff",
   "icons": [
     {
       "src": "logo.png",
