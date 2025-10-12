@@ -34,6 +34,9 @@ if (!$id_planilha) {
             <a class="opcao op3" href="copiar-etiquetas.php?id=<?php echo $id_planilha; ?>">Copiar Etiquetas</a>
             <a class="opcao op4" href="imprimir-alteracao.php?id=<?php echo $id_planilha; ?>">Imprimir Alterações</a>
             <a class="opcao op5" href="#">Em Desenvolvimento</a>
+            <a class="opcao op5" href="#">Em Desenvolvimento</a>
+            <a class="opcao op5" href="#">Em Desenvolvimento</a>
+            <a class="opcao op5" href="#">Em Desenvolvimento</a>
         </nav>
     </section>
 </body>
