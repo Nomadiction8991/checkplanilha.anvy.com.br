@@ -60,17 +60,18 @@ require_once '../CRUD/READ/view-planilha.php';
                     </select>
                 </div>
                 
-                <div class="campo-filtro">
-                    <label for="status">Status</label>
-                    <select id="status" name="status">
-                        <option value="">Todos</option>
-                        <option value="checado" <?php echo $filtro_status==='checado'?'selected':''; ?>>Checados</option>
-                        <option value="observacao" <?php echo $filtro_status==='observacao'?'selected':''; ?>>Com Observação</option>
-                        <option value="etiqueta" <?php echo $filtro_status==='etiqueta'?'selected':''; ?>>Etiqueta para Imprimir</option>
-                        <option value="pendente" <?php echo $filtro_status==='pendente'?'selected':''; ?>>Pendentes</option>
-                        <option value="dr" <?php echo $filtro_status==='dr'?'selected':''; ?>>No DR</option>
-                    </select>
-                </div>
+<div class="campo-filtro">
+    <label for="status">Status</label>
+    <select id="status" name="status">
+        <option value="">Todos</option>
+        <option value="checado" <?php echo $filtro_status==='checado'?'selected':''; ?>>Checados</option>
+        <option value="observacao" <?php echo $filtro_status==='observacao'?'selected':''; ?>>Com Observação</option>
+        <option value="etiqueta" <?php echo $filtro_status==='etiqueta'?'selected':''; ?>>Etiqueta para Imprimir</option>
+        <option value="pendente" <?php echo $filtro_status==='pendente'?'selected':''; ?>>Pendentes</option>
+        <option value="dr" <?php echo $filtro_status==='dr'?'selected':''; ?>>No DR</option>
+        <option value="editado" <?php echo $filtro_status==='editado'?'selected':''; ?>>Editados</option>
+    </select>
+</div>
                 
                 <div class="botao-filtros">
                     <button type="submit" class="btn-filtrar">
@@ -123,11 +124,11 @@ require_once '../CRUD/READ/view-planilha.php';
                     </tr>
                 </thead>
                 <tbody>
-                   <?php if ($produtos): ?>
+<?php if ($produtos): ?>
     <?php foreach ($produtos as $p): 
-        // Determinar a classe com base nos status - CÓDIGO CORRIGIDO
+        // Determinar a classe com base nos status - USANDO A NOVA COLUNA editado
         $classe = '';
-        $tem_edicao = !empty($p['nome_editado']) || !empty($p['dependencia_editada']);
+        $tem_edicao = $p['editado'] == 1;
         
         // ORDEM DE PRIORIDADE CORRETA
         if ($p['dr'] == 1) {
@@ -139,15 +140,15 @@ require_once '../CRUD/READ/view-planilha.php';
         } elseif (!empty($p['observacoes'])) {
             $classe = 'linha-observacao';
         } elseif ($tem_edicao) {
-            $classe = 'linha-editado'; // AGORA USA A CLASSE CORRETA
+            $classe = 'linha-editado';
         } else {
-            $classe = 'linha-pendente'; // PENDENTE É O PADRÃO
+            $classe = 'linha-pendente';
         }
         
-        // Determinar quais botões mostrar
-        $show_check = ($p['dr'] == 0 && $p['imprimir'] == 0 && empty($p['nome_editado']) && empty($p['dependencia_editada']));
-        $show_imprimir = ($p['checado'] == 1 && $p['dr'] == 0 && empty($p['nome_editado']) && empty($p['dependencia_editada']));
-        $show_dr = !($p['checado'] == 1 || $p['imprimir'] == 1 || !empty($p['nome_editado']) || !empty($p['dependencia_editada']));
+        // Determinar quais botões mostrar - USANDO A NOVA COLUNA editado
+        $show_check = ($p['dr'] == 0 && $p['imprimir'] == 0 && $p['editado'] == 0);
+        $show_imprimir = ($p['checado'] == 1 && $p['dr'] == 0 && $p['editado'] == 0);
+        $show_dr = !($p['checado'] == 1 || $p['imprimir'] == 1 || $p['editado'] == 1);
         $show_obs = ($p['dr'] == 0);
         $show_edit = ($p['checado'] == 0 && $p['dr'] == 0);
     ?>

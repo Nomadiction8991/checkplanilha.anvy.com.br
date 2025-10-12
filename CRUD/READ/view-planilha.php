@@ -4,7 +4,7 @@ require_once '../CRUD/conexao.php';
 $id_planilha = $_GET['id'] ?? null;
 
 if (!$id_planilha) {
-    header('Location: ../../index.php');
+    header('Location: ../index.php');
     exit;
 }
 
@@ -29,7 +29,6 @@ try {
     die("Erro ao carregar planilha: " . $e->getMessage());
 }
 
-
 // Parâmetros da paginação
 $pagina = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
 $limite = 20; // 20 produtos por página
@@ -46,6 +45,7 @@ $sql = "SELECT p.*,
                COALESCE(pc.checado, 0) as checado,
                COALESCE(pc.dr, 0) as dr,
                COALESCE(pc.imprimir, 0) as imprimir,
+               COALESCE(pc.editado, 0) as editado,
                pc.observacoes,
                pc.nome as nome_editado,
                pc.dependencia as dependencia_editada
@@ -80,10 +80,13 @@ if (!empty($filtro_status)) {
             $sql .= " AND COALESCE(pc.imprimir, 0) = 1";
             break;
         case 'pendente':
-            $sql .= " AND (COALESCE(pc.checado, 0) = 0 AND (pc.observacoes IS NULL OR pc.observacoes = '') AND COALESCE(pc.dr, 0) = 0 AND COALESCE(pc.imprimir, 0) = 0)";
+            $sql .= " AND (COALESCE(pc.checado, 0) = 0 AND (pc.observacoes IS NULL OR pc.observacoes = '') AND COALESCE(pc.dr, 0) = 0 AND COALESCE(pc.imprimir, 0) = 0 AND COALESCE(pc.editado, 0) = 0)";
             break;
         case 'dr':
             $sql .= " AND COALESCE(pc.dr, 0) = 1";
+            break;
+        case 'editado':
+            $sql .= " AND COALESCE(pc.editado, 0) = 1";
             break;
     }
 }
@@ -116,6 +119,4 @@ $stmt_filtros = $conexao->prepare($sql_filtros);
 $stmt_filtros->bindValue(':id_planilha', $id_planilha);
 $stmt_filtros->execute();
 $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
-
-// As variáveis estarão disponíveis para o HTML
 ?>
