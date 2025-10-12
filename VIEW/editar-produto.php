@@ -13,7 +13,9 @@ require_once '../CRUD/UPDATE/editar-produto.php';
 <body>
     <header class="cabecalho">
         <div class="titulo">
-            <a href="<?php echo getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, $filtro_codigo, $filtro_status); ?>" class="voltar" title="Voltar">←</a>
+            <a href="<?php echo getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, $filtro_codigo, $filtro_status); ?>" class="voltar" title="Voltar">
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF"><path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z"/></svg>
+            </a>
             <h1>Editar Produto</h1>
         </div>
     </header>
@@ -84,6 +86,15 @@ require_once '../CRUD/UPDATE/editar-produto.php';
             <!-- Botão Salvar -->
             <button type="submit" class="btn btn-primary">Salvar Alterações</button>
         </form>
+
+        <!-- Botão para Limpar Edições -->
+        <div class="limpar-edicoes">
+            <a href="../CRUD/DELETE/editar-produto.php?id=<?php echo $id_planilha; ?>&id_produto=<?php echo $id_produto; ?>&pagina=<?php echo $pagina; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&filtro_codigo=<?php echo urlencode($filtro_codigo); ?>&status=<?php echo urlencode($filtro_status); ?>" 
+               class="btn btn-danger" 
+               onclick="return confirm('Tem certeza que deseja limpar as edições deste produto?')">
+                🗑️ Limpar Edições
+            </a>
+        </div>
     </div>
 </body>
 </html>
