@@ -1,0 +1,679 @@
+/* STYLE/read-produto.css - MOBILE OPTIMIZED */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f5f5f5;
+    color: #333;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.cabecalho {
+    background: #007bff;
+    padding: 12px 15px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    height: 60px;
+}
+
+.titulo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.voltar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    transition: background-color 0.3s;
+    flex-shrink: 0;
+}
+
+.voltar:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.cabecalho h1 {
+    font-size: 18px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+    flex-shrink: 1;
+}
+
+.acoes a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    transition: background-color 0.3s;
+    flex-shrink: 0;
+}
+
+.acoes a:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* SEÇÃO DE PESQUISA */
+.pesquisa-container {
+    background: #fff;
+    padding: 15px;
+    margin-top: 60px;
+    border-bottom: 1px solid #eee;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    width: 100%;
+    overflow: hidden;
+}
+
+.form-pesquisa {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 10px;
+    align-items: end;
+    width: 100%;
+}
+
+.campo-pesquisa {
+    display: flex;
+    flex-direction: column;
+    min-width: 0; /* Permite que o conteúdo shrink corretamente */
+}
+
+.campo-pesquisa label {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: #555;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.campo-pesquisa input,
+.campo-pesquisa select {
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    background: #fff;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0; /* Permite shrink em containers flex */
+}
+
+.campo-pesquisa input:focus,
+.campo-pesquisa select:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
+.botao-pesquisa {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: center;
+    margin-top: 5px;
+    width: 100%;
+}
+
+.btn-filtrar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    width: auto;
+    min-width: 120px;
+}
+
+.btn-filtrar:hover {
+    background: #0056b3;
+}
+
+.conteudo {
+    padding: 15px;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    font-size: 12px;
+    min-width: 500px;
+}
+
+/* Cabeçalho visível em mobile */
+thead {
+    background: #007bff;
+    color: #fff;
+    display: table-header-group;
+}
+
+th {
+    padding: 12px 8px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Ajuste das colunas para mobile */
+th:nth-child(1), td:nth-child(1) { /* ID */
+    width: 15%;
+    max-width: 60px;
+}
+
+th:nth-child(2), td:nth-child(2) { /* Descrição */
+    width: 45%;
+    min-width: 150px;
+}
+
+th:nth-child(3), td:nth-child(3) { /* Status */
+    width: 20%;
+    max-width: 80px;
+}
+
+th:nth-child(4), td:nth-child(4) { /* Ações */
+    width: 20%;
+    max-width: 100px;
+}
+
+td {
+    padding: 12px 8px;
+    border-bottom: 1px solid #eee;
+    font-size: 12px;
+    vertical-align: top;
+}
+
+/* Centralização das colunas ID, Status, Descrição e Ações */
+.centered {
+    text-align: center;
+    vertical-align: middle;
+}
+
+/* Remove a borda da última linha */
+tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Efeito hover nas linhas */
+tbody tr {
+    transition: background-color 0.2s;
+}
+
+tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* Container para status (um item por linha) */
+.status-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.status-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Container para ações (um item por linha) */
+.acoes-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Ações - ícones com borda */
+.btn-acao {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    border: none;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: all 0.2s;
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+}
+
+.btn-editar {
+    background: transparent;
+    border: 2px solid #75FB4C;
+}
+
+.btn-editar:hover {
+    background: rgba(116, 251, 76, 0.1);
+}
+
+.btn-excluir {
+    background: transparent;
+    border: 2px solid #EA3323;
+}
+
+.btn-excluir:hover {
+    background: rgba(234, 51, 35, 0.1);
+}
+
+/* PAGINAÇÃO */
+.paginacao {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 20px;
+    padding: 15px;
+    flex-wrap: wrap;
+}
+
+.pagina-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: #fff;
+    color: #333;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.pagina-item:hover {
+    background: #f8f9fa;
+    border-color: #007bff;
+}
+
+.pagina-item.ativa {
+    background: #007bff;
+    color: #fff;
+    border-color: #007bff;
+}
+
+.pagina-item.icone {
+    background: transparent;
+    border: none;
+    color: #5985E1;
+}
+
+.pagina-item.icone:hover {
+    background: rgba(89, 133, 225, 0.1);
+}
+
+.pagina-item.desabilitada {
+    color: #ccc;
+    cursor: not-allowed;
+}
+
+.pagina-item.desabilitada:hover {
+    background: #fff;
+    border-color: #ddd;
+}
+
+/* Mensagem de lista vazia */
+td[colspan] {
+    text-align: center;
+    padding: 30px 15px;
+    font-size: 14px;
+    color: #666;
+}
+
+/* Melhorias para texto longo na descrição */
+td:nth-child(2) {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.3;
+    text-align: center;
+}
+
+/* ========== RESPONSIVIDADE CORRIGIDA ========== */
+
+/* Telas grandes - 4 colunas */
+@media (min-width: 1025px) {
+    .form-pesquisa {
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+    }
+}
+
+/* Tablets - 3 colunas */
+@media (max-width: 1024px) and (min-width: 769px) {
+    .form-pesquisa {
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 8px;
+    }
+    
+    .pesquisa-container {
+        padding: 12px;
+    }
+    
+    .campo-pesquisa input,
+    .campo-pesquisa select {
+        padding: 7px 9px;
+        font-size: 13px;
+    }
+}
+
+/* Tablets pequenos - 2 colunas */
+@media (max-width: 768px) and (min-width: 481px) {
+    .form-pesquisa {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+    
+    .pesquisa-container {
+        padding: 10px;
+    }
+    
+    .conteudo {
+        padding: 12px 10px;
+    }
+    
+    table {
+        font-size: 11px;
+        min-width: 450px;
+    }
+    
+    th, td {
+        padding: 10px 6px;
+    }
+    
+    th:nth-child(1), td:nth-child(1) {
+        width: 12%;
+    }
+    
+    th:nth-child(2), td:nth-child(2) {
+        width: 48%;
+    }
+    
+    .btn-acao {
+        width: 32px;
+        height: 32px;
+        padding: 4px;
+    }
+    
+    .status-container,
+    .acoes-container {
+        gap: 6px;
+    }
+    
+    .paginacao {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    
+    .pagina-item {
+        min-width: 32px;
+        height: 32px;
+        font-size: 12px;
+    }
+}
+
+/* Celulares - 1 coluna */
+@media (max-width: 480px) {
+    .form-pesquisa {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    
+    .pesquisa-container {
+        padding: 10px;
+        margin-top: 55px;
+    }
+    
+    .conteudo {
+        padding: 10px 8px;
+    }
+    
+    table {
+        font-size: 10px;
+        min-width: 400px;
+    }
+    
+    th, td {
+        padding: 8px 4px;
+    }
+    
+    th:nth-child(1), td:nth-child(1) {
+        width: 10%;
+    }
+    
+    th:nth-child(2), td:nth-child(2) {
+        width: 50%;
+    }
+    
+    .btn-acao {
+        width: 28px;
+        height: 28px;
+        padding: 3px;
+    }
+    
+    .btn-acao svg {
+        width: 18px;
+        height: 18px;
+    }
+    
+    .status-container svg,
+    .acoes-container svg {
+        width: 20px;
+        height: 20px;
+    }
+    
+    .paginacao {
+        gap: 4px;
+        padding: 10px;
+    }
+    
+    .pagina-item {
+        min-width: 28px;
+        height: 28px;
+        font-size: 11px;
+        padding: 0 6px;
+    }
+    
+    .cabecalho {
+        padding: 10px 12px;
+        height: 55px;
+    }
+    
+    .cabecalho h1 {
+        font-size: 16px;
+        max-width: 150px;
+    }
+    
+    .voltar,
+    .acoes a {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .voltar svg,
+    .acoes a svg {
+        width: 36px;
+        height: 36px;
+    }
+    
+    /* Correção específica para inputs em mobile */
+    .campo-pesquisa input,
+    .campo-pesquisa select {
+        padding: 8px 10px;
+        font-size: 16px; /* Melhora a experiência de touch */
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    
+    /* Previne zoom em iOS */
+    @media (max-width: 480px) {
+        .campo-pesquisa input[type="text"],
+        .campo-pesquisa input[type="number"] {
+            font-size: 16px;
+        }
+    }
+}
+
+/* Ajustes para telas muito grandes */
+@media (min-width: 1200px) {
+    .conteudo {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .pesquisa-container {
+        max-width: 1200px;
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: 60px;
+    }
+}
+
+/* Melhorias de acessibilidade */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition: none !important;
+        animation: none !important;
+    }
+}
+
+
+/* Estados de loading (para futuras implementações) */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Animações suaves para transições */
+.btn-filtrar,
+.btn-acao,
+.pagina-item,
+.voltar,
+.acoes a {
+    transition: all 0.2s ease-in-out;
+}
+
+/* Melhorias para selects longos */
+.campo-pesquisa select {
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Placeholder personalizado */
+.campo-pesquisa input::placeholder {
+    color: #999;
+    font-size: 13px;
+}
+
+/* Estados desabilitados */
+.campo-pesquisa input:disabled,
+.campo-pesquisa select:disabled {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    cursor: not-allowed;
+}
+
+/* Scrollbar personalizado para tabela */
+.conteudo::-webkit-scrollbar {
+    height: 6px;
+}
+
+.conteudo::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.conteudo::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.conteudo::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Melhorias de impressão */
+@media print {
+    .cabecalho,
+    .pesquisa-container,
+    .paginacao,
+    .btn-acao {
+        display: none !important;
+    }
+    
+    .conteudo {
+        margin-top: 0;
+        padding: 0;
+    }
+    
+    table {
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
+    
+    body {
+        background: white;
+        font-size: 12px;
+    }
+}
+
+/* Garante que imagens/SVGs sejam responsivos */
+img, svg {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Previne quebra de layout em todos os dispositivos */
+.campo-pesquisa {
+    overflow: hidden;
+}
+
+.campo-pesquisa input,
+.campo-pesquisa select {
+    box-sizing: border-box;
+}

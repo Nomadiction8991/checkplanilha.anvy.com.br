@@ -1,0 +1,512 @@
+/* STYLE/view-planilha.css */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f5f5f5;
+    color: #333;
+    line-height: 1.6;
+}
+
+.cabecalho {
+    background: #007bff;
+    padding: 12px 15px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    height: 60px;
+}
+
+.titulo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width:95%;
+}
+
+.voltar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    transition: background-color 0.3s;
+    flex-shrink: 0;
+}
+
+.voltar:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.cabecalho h1 {
+    font-size: 18px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 1;
+}
+
+.acoes a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    transition: background-color 0.3s;
+    flex-shrink: 0;
+}
+
+.acoes a:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Conteúdo Principal */
+.conteudo {
+    padding: 20px;
+    max-width: 100%;
+    margin: 0 auto;
+    margin-top: 60px;
+}
+
+/* Filtros */
+.filtros-container {
+    background: #fff;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.form-filtros {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    align-items: end;
+}
+
+.campo-filtro {
+    display: flex;
+    flex-direction: column;
+}
+
+.campo-filtro label {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: #555;
+}
+
+.campo-filtro input,
+.campo-filtro select {
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    width: 100%;
+}
+
+.botao-filtros {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: center;
+    margin-top: 5px;
+}
+
+.btn-filtrar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.btn-filtrar:hover {
+    background: #0056b3;
+}
+
+/* Legenda */
+.legenda {
+    background: #fff;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.legenda h3 {
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #007bff;
+}
+
+.legenda-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 8px;
+}
+
+.legenda-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+}
+
+.legenda-cor {
+    width: 15px;
+    height: 15px;
+    border-radius: 3px;
+    border: 1px solid #ccc;
+}
+
+/* Tabela */
+.tabela-container {
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    background: #007bff;
+    color: #fff;
+    padding: 12px 8px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+td {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+}
+
+/* Linhas coloridas - CORREÇÕES */
+.linha-checado {
+    background: rgba(163, 250, 183, 0.3) !important;
+}
+
+.linha-observacao {
+    background: rgba(255, 232, 167, 0.3) !important;
+}
+
+.linha-imprimir {
+    background: rgba(163, 211, 250, 0.3) !important;
+}
+
+.linha-dr {
+    background: rgba(250, 163, 163, 0.3) !important;
+}
+
+/* ADICIONAR ESTA CLASSE PARA EDIÇÃO */
+.linha-editado {
+    background: rgba(200, 167, 255, 0.3) !important;
+}
+
+/* CORRIGIR ESTA CLASSE */
+.linha-pendente {
+    background: #fff !important;
+}
+
+/* Paginação - ESTILIZAÇÃO MELHORADA */
+.paginacao {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+    padding: 15px;
+}
+
+.pagina-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    padding: 0 12px;
+    border: 2px solid #007bff;
+    border-radius: 8px;
+    background: #fff;
+    color: #007bff;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.pagina-item:hover {
+    background: #007bff;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+}
+
+.pagina-item.ativa {
+    background: #007bff;
+    color: #fff;
+    border-color: #007bff;
+    transform: none;
+    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
+}
+
+.pagina-anterior,
+.pagina-proxima {
+    background: #f8f9fa;
+    border-color: #6c757d;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.pagina-anterior:hover,
+.pagina-proxima:hover {
+    background: #6c757d;
+    color: #fff;
+    border-color: #6c757d;
+}
+
+/* Indicador de página atual */
+.pagina-atual {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    padding: 0 12px;
+    border: 2px solid #007bff;
+    border-radius: 8px;
+    background: #007bff;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+
+/* Container de ações */
+.acao-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-acao {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    border: none;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.2s;
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    background: transparent;
+}
+
+.btn-acao.active {
+    background: rgba(0, 123, 255, 0.1);
+}
+
+.btn-check {
+    border: 2px solid #75FB4C;
+}
+
+.btn-check.active {
+    background: rgba(117, 251, 76, 0.1);
+}
+
+.btn-dr {
+    border: 2px solid #EA3323;
+}
+
+.btn-dr.active {
+    background: rgba(234, 51, 35, 0.1);
+}
+
+.btn-etiqueta {
+    border: 2px solid #5985E1;
+}
+
+.btn-etiqueta.active {
+    background: rgba(89, 133, 225, 0.1);
+}
+
+.btn-observacao {
+    border: 2px solid #F19E39;
+}
+
+.btn-observacao.active {
+    background: rgba(241, 158, 57, 0.1);
+}
+
+.btn-editar {
+    border: 2px solid #8C1AF6;
+}
+
+.btn-editar.active {
+    background: rgba(140, 26, 246, 0.1);
+}
+
+/* Informações do produto */
+.info-produto {
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.edicao-pendente {
+    background: #fff3cd;
+    padding: 5px;
+    margin-bottom: 5px;
+    border-radius: 4px;
+    border: 1px solid #ffeaa7;
+}
+
+.status-icons {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    margin-top: 5px;
+}
+
+.status-icon {
+    font-size: 14px;
+}
+
+/* Paginação */
+.paginacao {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.pagina-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 8px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: #fff;
+    color: #333;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.pagina-item:hover {
+    background: #f8f9fa;
+    border-color: #007bff;
+}
+
+.pagina-item.ativa {
+    background: #007bff;
+    color: #fff;
+    border-color: #007bff;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .form-filtros {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .conteudo {
+        padding: 15px;
+    }
+    
+    .legenda-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .cabecalho {
+        padding: 10px 12px;
+        height: 55px;
+    }
+    
+    .cabecalho h1 {
+        font-size: 16px;
+        max-width: 150px;
+    }
+    
+    .voltar,
+    .acoes a {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .conteudo {
+        margin-top: 55px;
+        padding: 10px;
+    }
+    
+    .form-filtros {
+        grid-template-columns: 1fr;
+    }
+    
+    .acao-container {
+        gap: 4px;
+    }
+    
+    .btn-acao {
+        width: 32px;
+        height: 32px;
+        padding: 4px;
+    }
+    
+    .btn-acao svg {
+        width: 20px;
+        height: 20px;
+    }
+    .paginacao {
+        gap: 6px;
+        padding: 10px;
+    }
+    
+    .pagina-item,
+    .pagina-atual {
+        min-width: 36px;
+        height: 36px;
+        padding: 0 8px;
+        font-size: 13px;
+    }
+}
