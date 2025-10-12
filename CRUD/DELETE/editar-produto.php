@@ -1,5 +1,5 @@
 <?php
-require_once '../onexao.php';
+require_once '../conexao.php';
 
 // Receber parâmetros
 $id_produto = $_GET['id_produto'] ?? null;
