@@ -94,9 +94,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt_update->bindValue(':observacoes', $observacoes);
             $stmt_update->bindValue(':produto_id', $id_produto);
             $stmt_update->execute();
-            
-            $mensagem = "Observações atualizadas com sucesso!";
-            $tipo_mensagem = 'success';
         } else {
             // Inserir novo registro
             $sql_insert = "INSERT INTO produtos_check (produto_id, observacoes) VALUES (:produto_id, :observacoes)";
@@ -104,17 +101,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt_insert->bindValue(':produto_id', $id_produto);
             $stmt_insert->bindValue(':observacoes', $observacoes);
             $stmt_insert->execute();
-            
-            $mensagem = "Observações salvas com sucesso!";
-            $tipo_mensagem = 'success';
         }
         
-        // Atualizar dados do check após salvar
-        $stmt_check->execute();
-        $check_result = $stmt_check->fetch();
-        if ($check_result) {
-            $check = $check_result;
-        }
+        // REDIRECIONAR PARA view-planilha.php APÓS SALVAR
+        $query_string = http_build_query([
+            'id' => $id_planilha,
+            'pagina' => $pagina,
+            'nome' => $filtro_nome,
+            'dependencia' => $filtro_dependencia,
+            'codigo' => $filtro_codigo,
+            'status' => $filtro_status,
+            'sucesso' => 'Observações salvas com sucesso!'
+        ]);
+        header('Location: view-planilha.php?' . $query_string);
+        exit;
         
     } catch (Exception $e) {
         $mensagem = "Erro ao salvar observações: " . $e->getMessage();
