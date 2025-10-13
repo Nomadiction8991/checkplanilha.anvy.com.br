@@ -10,6 +10,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $linhas_pular = (int)($_POST['linhas_pular'] ?? 25);
     $localizacao_comum = trim($_POST['localizacao_comum'] ?? 'D16');
     $localizacao_data_posicao = trim($_POST['localizacao_data_posicao'] ?? 'D13');
+    $localizacao_endereco = trim($_POST['localizacao_endereco'] ?? 'A4');
+    $localizacao_cnpj = trim($_POST['localizacao_cnpj'] ?? 'U8');
     
     // Mapeamento simplificado
     $mapeamento = [
@@ -28,6 +30,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (empty($localizacao_data_posicao)) {
             throw new Exception('A localização da célula data_posicao é obrigatória.');
+        }
+
+        if (empty($localizacao_endereco)) {
+            throw new Exception('A localização da célula endereço é obrigatória.');
+        }
+
+        if (empty($localizacao_cnpj)) {
+            throw new Exception('A localização da célula CNPJ é obrigatória.');
         }
 
         if (!isset($_FILES['arquivo']) || $_FILES['arquivo']['error'] !== UPLOAD_ERR_OK) {
@@ -59,6 +69,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception('A célula ' . $localizacao_data_posicao . ' está vazia no arquivo CSV.');
         }
 
+        // Obter o valor da célula endereco
+        $valor_endereco = $aba_ativa->getCell($localizacao_endereco)->getCalculatedValue();
+        
+        if (empty($valor_endereco)) {
+            throw new Exception('A célula ' . $localizacao_endereco . ' está vazia no arquivo CSV.');
+        }
+
+        // Obter o valor da célula CNPJ e extrair apenas números
+        $valor_cnpj = $aba_ativa->getCell($localizacao_cnpj)->getCalculatedValue();
+        $cnpj_somente_numeros = preg_replace('/[^0-9]/', '', $valor_cnpj);
+        
+        if (empty($cnpj_somente_numeros)) {
+            throw new Exception('A célula ' . $localizacao_cnpj . ' não contém um CNPJ válido.');
+        }
+
         // Converter a data para formato MySQL (YYYY-MM-DD)
         $data_mysql = null;
         if (!empty($valor_data_posicao)) {
@@ -80,10 +105,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $conexao->beginTransaction();
 
         // Inserir a planilha na tabela planilhas com os valores obtidos do CSV
-        $sql_planilha = "INSERT INTO planilhas (comum, data_posicao) VALUES (:comum, :data_posicao)";
+        $sql_planilha = "INSERT INTO planilhas (comum, data_posicao, endereco, cnpj) VALUES (:comum, :data_posicao, :endereco, :cnpj)";
         $stmt_planilha = $conexao->prepare($sql_planilha);
         $stmt_planilha->bindValue(':comum', $valor_comum);
         $stmt_planilha->bindValue(':data_posicao', $data_mysql);
+        $stmt_planilha->bindValue(':endereco', $valor_endereco);
+        $stmt_planilha->bindValue(':cnpj', $cnpj_somente_numeros);
         $stmt_planilha->execute();
         $id_planilha = $conexao->lastInsertId();
 
@@ -94,17 +121,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $mapeamento_string = rtrim($mapeamento_string, ';');
 
-        $sql_config = "INSERT INTO config_planilha (id_planilha, pulo_linhas, mapeamento_colunas, comum, data_posicao) 
-                      VALUES (:id_planilha, :pulo_linhas, :mapeamento_colunas, :comum, :data_posicao)";
+        $sql_config = "INSERT INTO config_planilha (id_planilha, pulo_linhas, mapeamento_colunas, comum, data_posicao, endereco, cnpj) 
+                      VALUES (:id_planilha, :pulo_linhas, :mapeamento_colunas, :comum, :data_posicao, :endereco, :cnpj)";
         $stmt_config = $conexao->prepare($sql_config);
         $stmt_config->bindValue(':id_planilha', $id_planilha);
         $stmt_config->bindValue(':pulo_linhas', $linhas_pular);
         $stmt_config->bindValue(':mapeamento_colunas', $mapeamento_string);
         $stmt_config->bindValue(':comum', $localizacao_comum);
         $stmt_config->bindValue(':data_posicao', $localizacao_data_posicao);
+        $stmt_config->bindValue(':endereco', $localizacao_endereco);
+        $stmt_config->bindValue(':cnpj', $localizacao_cnpj);
         $stmt_config->execute();
 
-        // Processar as linhas de dados do CSV
+        // ... (o restante do código para processar as linhas permanece igual)
         $linhas = $aba_ativa->toArray();
 
         $registros_importados = 0;
@@ -203,6 +232,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $mensagem = "Importação concluída com sucesso!<br>
                     Valor obtido da célula " . htmlspecialchars($localizacao_comum) . ": " . htmlspecialchars($valor_comum) . "<br>
                     Valor obtido da célula " . htmlspecialchars($localizacao_data_posicao) . ": " . htmlspecialchars($valor_data_posicao) . " (" . htmlspecialchars($data_mysql) . ")<br>
+                    Valor obtido da célula " . htmlspecialchars($localizacao_endereco) . ": " . htmlspecialchars($valor_endereco) . "<br>
+                    Valor obtido da célula " . htmlspecialchars($localizacao_cnpj) . ": " . htmlspecialchars($valor_cnpj) . " (" . htmlspecialchars($cnpj_somente_numeros) . ")<br>
                     Registros importados: {$registros_importados}<br>
                     Erros: {$registros_erros}";
         

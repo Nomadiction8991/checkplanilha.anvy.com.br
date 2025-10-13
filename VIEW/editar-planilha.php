@@ -72,6 +72,14 @@ require_once '../CRUD/UPDATE/editar-planilha.php';
                         <small>Número de linhas do cabeçalho que devem ser ignoradas</small>
                     </div>
 
+                    <!-- Valor Atual Endereço -->
+
+<!-- Valor Atual CNPJ -->
+<div class="form-group">
+    <label>CNPJ Atual:</label>
+    <input type="text" value="<?php echo htmlspecialchars($planilha['cnpj'] ?? ''); ?>" readonly style="background: #f8f9fa;">
+    <small>CNPJ obtido da célula cnpj do arquivo CSV (apenas números)</small>
+</div>
                     <!-- Campo Localização Comum -->
                     <div class="form-group">
                         <label for="localizacao_comum">Localização da Célula Comum:</label>
@@ -89,6 +97,11 @@ require_once '../CRUD/UPDATE/editar-planilha.php';
                                required placeholder="Ex: D13">
                         <small>Localização da célula no arquivo CSV que contém a data de posição (ex: D13)</small>
                     </div>
+<div class="form-group">
+    <label>Endereço Atual:</label>
+    <input type="text" value="<?php echo htmlspecialchars($planilha['endereco'] ?? ''); ?>" readonly style="background: #f8f9fa;">
+    <small>Endereço obtido da célula endereco do arquivo CSV</small>
+</div>
 
                     <!-- Mapeamento de Colunas -->
                     <h3 style="margin: 20px 0 10px 0; font-size: 14px; color: #495057;">Mapeamento de Colunas</h3>
