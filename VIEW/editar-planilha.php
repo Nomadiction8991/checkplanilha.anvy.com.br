@@ -36,23 +36,19 @@ require_once '../CRUD/UPDATE/editar-planilha.php';
                     <h2>Informações da Planilha</h2>
                     <div class="form-group">
                         <label>CNPJ Atual:</label>
-                        <input type="text" value="<?php echo htmlspecialchars($planilha['cnpj'] ?? ''); ?>" readonly style="background: #f8f9fa;">
-                        <small>CNPJ obtido da célula cnpj do arquivo CSV (apenas números)</small>
+                        <input type="text" value="<?php echo htmlspecialchars($planilha['cnpj'] ?? ''); ?>" disabled style="background: #f8f9fa;">
                     </div>
                     <div class="form-group">
                         <label>Valor Comum Atual:</label>
-                        <input type="text" value="<?php echo htmlspecialchars($planilha['comum'] ?? ''); ?>" readonly style="background: #f8f9fa;">
-                        <small>Valor obtido da célula comum do arquivo CSV</small>
+                        <input type="text" value="<?php echo htmlspecialchars($planilha['comum'] ?? ''); ?>" disabled style="background: #f8f9fa;">
                     </div>
                     <div class="form-group">
                         <label>Endereço Atual:</label>
-                        <input type="text" value="<?php echo htmlspecialchars($planilha['endereco'] ?? ''); ?>" readonly style="background: #f8f9fa;">
-                        <small>Endereço obtido da célula endereco do arquivo CSV</small>
+                        <input type="text" value="<?php echo htmlspecialchars($planilha['endereco'] ?? ''); ?>" disabled style="background: #f8f9fa;">
                     </div>
                     <div class="form-group">
                         <label>Data Posição Atual:</label>
-                        <input type="text" value="<?php echo htmlspecialchars($planilha['data_posicao'] ?? ''); ?>" readonly style="background: #f8f9fa;">
-                        <small>Data obtida da célula data_posicao do arquivo CSV</small>
+                        <input type="text" value="<?php echo htmlspecialchars($planilha['data_posicao'] ?? ''); ?>" disabled style="background: #f8f9fa;">
                     </div>
                     <div class="form-group">
                         <div class="checkbox-group">
