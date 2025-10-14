@@ -90,33 +90,33 @@ require_once '../CRUD/UPDATE/editar-planilha.php';
                                required placeholder="Ex: D13">
                         <small>Localização da célula no arquivo CSV que contém a data de posição (ex: D13)</small>
                     </div>
-
-                    <h3 style="margin: 20px 0 10px 0; font-size: 14px; color: #495057;">Mapeamento de Colunas</h3>
-                    <p style="margin-bottom: 15px; font-size: 13px; color: #666;">Defina a letra da coluna para cada campo:</p>
-
                     <div class="form-group">
                         <label for="linhas_pular">Linhas Iniciais a Pular:</label>
                         <input type="number" id="linhas_pular" name="linhas_pular" 
                                value="<?php echo $config['pulo_linhas'] ?? 25; ?>" min="0" required>
                         <small>Número de linhas do cabeçalho que devem ser ignoradas</small>
                     </div>
+
+                    <h3 style="margin: 20px 0 10px 0; font-size: 14px; color: #495057;">Mapeamento de Colunas</h3>
+                    <p style="margin-bottom: 15px; font-size: 13px; color: #666;">Defina a letra da coluna para cada campo:</p>
+
                     <div class="mapeamento-grid">
                         <div class="mapeamento-item">
                             <span class="mapeamento-label">Código:</span>
                             <input type="text" class="mapeamento-input" name="codigo" 
-                                   value="<?php echo $mapeamento_array['codigo'] ?? 'A'; ?>" maxlength="2" required>
+                                   value="<?php echo $mapeamento_array['codigo'] ?? 'A'; ?>" maxlength="3" required>
                         </div>
 
                         <div class="mapeamento-item">
                             <span class="mapeamento-label">Nome:</span>
                             <input type="text" class="mapeamento-input" name="nome" 
-                                   value="<?php echo $mapeamento_array['nome'] ?? 'D'; ?>" maxlength="2" required>
+                                   value="<?php echo $mapeamento_array['nome'] ?? 'D'; ?>" maxlength="3" required>
                         </div>
 
                         <div class="mapeamento-item">
                             <span class="mapeamento-label">Dependência:</span>
                             <input type="text" class="mapeamento-input" name="dependencia" 
-                                   value="<?php echo $mapeamento_array['dependencia'] ?? 'P'; ?>" maxlength="2" required>
+                                   value="<?php echo $mapeamento_array['dependencia'] ?? 'P'; ?>" maxlength="3" required>
                         </div>
                     </div>
                 </div>
