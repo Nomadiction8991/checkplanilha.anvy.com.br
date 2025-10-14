@@ -50,7 +50,6 @@ require_once '../CRUD/CREATE/importar-planilha.php';
                         <small>Número de linhas do cabeçalho que devem ser ignoradas</small>
                     </div>
 
-<!-- Campo Localização CNPJ -->
 <div class="form-group">
     <label for="localizacao_cnpj">Localização da Célula CNPJ:</label>
     <input type="text" id="localizacao_cnpj" name="localizacao_cnpj" 
@@ -67,8 +66,7 @@ require_once '../CRUD/CREATE/importar-planilha.php';
                         <small>Localização da célula no arquivo CSV que contém o valor comum (ex: D16)</small>
                     </div>
 
-                                <!-- Campo Localização Endereço -->
-<div class="form-group">
+ <div class="form-group">
     <label for="localizacao_endereco">Localização da Célula Endereço:</label>
     <input type="text" id="localizacao_endereco" name="localizacao_endereco" 
            value="<?php echo htmlspecialchars($_POST['localizacao_endereco'] ?? 'A4'); ?>" 
