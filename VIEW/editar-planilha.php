@@ -125,9 +125,9 @@ require_once '../CRUD/UPDATE/editar-planilha.php';
                     <div class="form-group">
                         <label for="localizacao_cnpj">Localização da Célula CNPJ:</label>
                         <input type="text" id="localizacao_cnpj" name="localizacao_cnpj" 
-                               value="<?php echo htmlspecialchars($config['cnpj'] ?? 'U8'); ?>" 
+                               value="<?php echo htmlspecialchars($config['cnpj'] ?? 'U5'); ?>" 
                                required placeholder="Ex: U8">
-                        <small>Localização da célula no arquivo CSV que contém o CNPJ (ex: U8)</small>
+                        <small>Localização da célula no arquivo CSV que contém o CNPJ (ex: U5)</small>
                     </div>
 
                     <!-- Mapeamento de Colunas -->
