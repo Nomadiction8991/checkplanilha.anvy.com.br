@@ -10,11 +10,10 @@ $mensagem = '';
 $tipo_mensagem = '';
 
 if (!$id_planilha) {
-    header('Location: index.php');
+    header('Location: ../index.php');
     exit;
 }
 
-// Buscar dados da planilha
 try {
     $sql_planilha = "SELECT * FROM planilhas WHERE id = :id";
     $stmt_planilha = $conexao->prepare($sql_planilha);
@@ -26,7 +25,6 @@ try {
         throw new Exception('Planilha não encontrada.');
     }
     
-    // Buscar configurações de mapeamento
     $sql_config = "SELECT * FROM config_planilha WHERE id_planilha = :id_planilha";
     $stmt_config = $conexao->prepare($sql_config);
     $stmt_config->bindValue(':id_planilha', $id_planilha);
