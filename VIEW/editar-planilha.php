@@ -9,6 +9,7 @@ require_once '../CRUD/UPDATE/editar-planilha.php';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editar Planilha - Anvy</title>
     <link rel="stylesheet" href="../STYLE/editar-planilha.css">
+    <link rel="shortcut icon" href="../logo.png" type="image/x-icon">
 </head>
 <body>
     <header class="cabecalho">
@@ -31,25 +32,28 @@ require_once '../CRUD/UPDATE/editar-planilha.php';
 
         <div class="card">
             <form method="POST" enctype="multipart/form-data">
-                <!-- Informações Básicas -->
                 <div class="card">
                     <h2>Informações da Planilha</h2>
-                    
-                    <!-- Valor Atual Comum -->
+                    <div class="form-group">
+                        <label>CNPJ Atual:</label>
+                        <input type="text" value="<?php echo htmlspecialchars($planilha['cnpj'] ?? ''); ?>" readonly style="background: #f8f9fa;">
+                        <small>CNPJ obtido da célula cnpj do arquivo CSV (apenas números)</small>
+                    </div>
                     <div class="form-group">
                         <label>Valor Comum Atual:</label>
                         <input type="text" value="<?php echo htmlspecialchars($planilha['comum'] ?? ''); ?>" readonly style="background: #f8f9fa;">
                         <small>Valor obtido da célula comum do arquivo CSV</small>
                     </div>
-
-                    <!-- Valor Atual Data Posição -->
+                    <div class="form-group">
+                        <label>Endereço Atual:</label>
+                        <input type="text" value="<?php echo htmlspecialchars($planilha['endereco'] ?? ''); ?>" readonly style="background: #f8f9fa;">
+                        <small>Endereço obtido da célula endereco do arquivo CSV</small>
+                    </div>
                     <div class="form-group">
                         <label>Data Posição Atual:</label>
                         <input type="text" value="<?php echo htmlspecialchars($planilha['data_posicao'] ?? ''); ?>" readonly style="background: #f8f9fa;">
                         <small>Data obtida da célula data_posicao do arquivo CSV</small>
                     </div>
-                    
-                    <!-- Campo Ativo -->
                     <div class="form-group">
                         <div class="checkbox-group">
                             <input type="checkbox" id="ativo" name="ativo" value="1" 
@@ -60,26 +64,6 @@ require_once '../CRUD/UPDATE/editar-planilha.php';
                     </div>
                 </div>
 
-                <!-- Informações de Endereço e CNPJ -->
-                <div class="card">
-                    <h2>Informações de Endereço e CNPJ</h2>
-                    
-                    <!-- Valor Atual Endereço -->
-                    <div class="form-group">
-                        <label>Endereço Atual:</label>
-                        <input type="text" value="<?php echo htmlspecialchars($planilha['endereco'] ?? ''); ?>" readonly style="background: #f8f9fa;">
-                        <small>Endereço obtido da célula endereco do arquivo CSV</small>
-                    </div>
-
-                    <!-- Valor Atual CNPJ -->
-                    <div class="form-group">
-                        <label>CNPJ Atual:</label>
-                        <input type="text" value="<?php echo htmlspecialchars($planilha['cnpj'] ?? ''); ?>" readonly style="background: #f8f9fa;">
-                        <small>CNPJ obtido da célula cnpj do arquivo CSV (apenas números)</small>
-                    </div>
-                </div>
-
-                <!-- Configurações de Importação -->
                 <div class="card">
                     <h2>Configurações de Importação</h2>
                     
