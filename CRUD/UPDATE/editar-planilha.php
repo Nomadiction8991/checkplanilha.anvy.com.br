@@ -128,10 +128,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Obter o valor da célula CNPJ e extrair apenas números
             $valor_cnpj = $aba_ativa->getCell($localizacao_cnpj)->getCalculatedValue();
             $cnpj_somente_numeros = preg_replace('/[^0-9]/', '', $valor_cnpj);
-            
-            if (empty($cnpj_somente_numeros)) {
-                throw new Exception('A célula ' . $localizacao_cnpj . ' não contém um CNPJ válido.');
-            }
             $novo_valor_cnpj = $cnpj_somente_numeros;
 
             // Converter a data para formato MySQL (YYYY-MM-DD)
