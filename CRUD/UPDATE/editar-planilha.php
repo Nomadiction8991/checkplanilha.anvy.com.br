@@ -10,11 +10,10 @@ $mensagem = '';
 $tipo_mensagem = '';
 
 if (!$id_planilha) {
-    header('Location: index.php');
+    header('Location: ../index.php');
     exit;
 }
 
-// Buscar dados da planilha
 try {
     $sql_planilha = "SELECT * FROM planilhas WHERE id = :id";
     $stmt_planilha = $conexao->prepare($sql_planilha);
@@ -26,7 +25,6 @@ try {
         throw new Exception('Planilha não encontrada.');
     }
     
-    // Buscar configurações de mapeamento
     $sql_config = "SELECT * FROM config_planilha WHERE id_planilha = :id_planilha";
     $stmt_config = $conexao->prepare($sql_config);
     $stmt_config->bindValue(':id_planilha', $id_planilha);
@@ -56,6 +54,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $linhas_pular = (int)($_POST['linhas_pular'] ?? 25);
     $localizacao_comum = trim($_POST['localizacao_comum'] ?? 'D16');
     $localizacao_data_posicao = trim($_POST['localizacao_data_posicao'] ?? 'D13');
+    $localizacao_endereco = trim($_POST['localizacao_endereco'] ?? 'A4');
+    $localizacao_cnpj = trim($_POST['localizacao_cnpj'] ?? 'U8');
     
     // Mapeamento simplificado
     $mapeamento = [
@@ -73,12 +73,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception('A localização da célula data_posicao é obrigatória.');
         }
 
+        if (empty($localizacao_endereco)) {
+            throw new Exception('A localização da célula endereço é obrigatória.');
+        }
+
+        if (empty($localizacao_cnpj)) {
+            throw new Exception('A localização da célula CNPJ é obrigatória.');
+        }
+
         // Iniciar transação
         $conexao->beginTransaction();
 
         // Se um novo arquivo foi enviado, processar para obter os novos valores
         $novo_valor_comum = $planilha['comum']; // Manter o valor atual por padrão
         $novo_valor_data_posicao = $planilha['data_posicao']; // Manter o valor atual por padrão
+        $novo_valor_endereco = $planilha['endereco']; // Manter o valor atual por padrão
+        $novo_valor_cnpj = $planilha['cnpj']; // Manter o valor atual por padrão
         
         if (isset($_FILES['arquivo']) && $_FILES['arquivo']['error'] === UPLOAD_ERR_OK) {
             $arquivo_tmp = $_FILES['arquivo']['tmp_name'];
@@ -105,6 +115,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (empty($valor_data_posicao)) {
                 throw new Exception('A célula ' . $localizacao_data_posicao . ' está vazia no arquivo CSV.');
             }
+
+            // Obter o valor da célula endereco
+            $novo_valor_endereco = $aba_ativa->getCell($localizacao_endereco)->getCalculatedValue();
+            
+            if (empty($novo_valor_endereco)) {
+                throw new Exception('A célula ' . $localizacao_endereco . ' está vazia no arquivo CSV.');
+            }
+
+            // Obter o valor da célula CNPJ e extrair apenas números
+            $valor_cnpj = $aba_ativa->getCell($localizacao_cnpj)->getCalculatedValue();
+            $cnpj_somente_numeros = preg_replace('/[^0-9]/', '', $valor_cnpj);
+            $novo_valor_cnpj = $cnpj_somente_numeros;
 
             // Converter a data para formato MySQL (YYYY-MM-DD)
             $data_mysql = null;
@@ -225,11 +247,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Atualizar dados da planilha com os novos valores (se aplicável)
-        $sql_update_planilha = "UPDATE planilhas SET ativo = :ativo, comum = :comum, data_posicao = :data_posicao WHERE id = :id";
+        $sql_update_planilha = "UPDATE planilhas SET ativo = :ativo, comum = :comum, data_posicao = :data_posicao, endereco = :endereco, cnpj = :cnpj WHERE id = :id";
         $stmt_update_planilha = $conexao->prepare($sql_update_planilha);
         $stmt_update_planilha->bindValue(':ativo', $ativo);
         $stmt_update_planilha->bindValue(':comum', $novo_valor_comum);
         $stmt_update_planilha->bindValue(':data_posicao', $novo_valor_data_posicao);
+        $stmt_update_planilha->bindValue(':endereco', $novo_valor_endereco);
+        $stmt_update_planilha->bindValue(':cnpj', $novo_valor_cnpj);
         $stmt_update_planilha->bindValue(':id', $id_planilha);
         $stmt_update_planilha->execute();
 
@@ -240,12 +264,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $mapeamento_string = rtrim($mapeamento_string, ';');
 
-        $sql_update_config = "UPDATE config_planilha SET pulo_linhas = :pulo_linhas, mapeamento_colunas = :mapeamento_colunas, comum = :comum, data_posicao = :data_posicao WHERE id_planilha = :id_planilha";
+        $sql_update_config = "UPDATE config_planilha SET pulo_linhas = :pulo_linhas, mapeamento_colunas = :mapeamento_colunas, comum = :comum, data_posicao = :data_posicao, endereco = :endereco, cnpj = :cnpj WHERE id_planilha = :id_planilha";
         $stmt_update_config = $conexao->prepare($sql_update_config);
         $stmt_update_config->bindValue(':pulo_linhas', $linhas_pular);
         $stmt_update_config->bindValue(':mapeamento_colunas', $mapeamento_string);
         $stmt_update_config->bindValue(':comum', $localizacao_comum);
         $stmt_update_config->bindValue(':data_posicao', $localizacao_data_posicao);
+        $stmt_update_config->bindValue(':endereco', $localizacao_endereco);
+        $stmt_update_config->bindValue(':cnpj', $localizacao_cnpj);
         $stmt_update_config->bindValue(':id_planilha', $id_planilha);
         $stmt_update_config->execute();
 
@@ -257,6 +283,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (isset($registros_importados)) {
             $mensagem .= "<br>Valor obtido da célula " . htmlspecialchars($localizacao_comum) . ": " . htmlspecialchars($novo_valor_comum);
             $mensagem .= "<br>Valor obtido da célula " . htmlspecialchars($localizacao_data_posicao) . ": " . htmlspecialchars($novo_valor_data_posicao);
+            $mensagem .= "<br>Valor obtido da célula " . htmlspecialchars($localizacao_endereco) . ": " . htmlspecialchars($novo_valor_endereco);
+            $mensagem .= "<br>Valor obtido da célula " . htmlspecialchars($localizacao_cnpj) . ": " . htmlspecialchars($novo_valor_cnpj);
             $mensagem .= "<br>Registros importados: {$registros_importados}<br>Erros: {$registros_erros}";
         }
         

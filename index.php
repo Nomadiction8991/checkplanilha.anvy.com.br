@@ -9,6 +9,11 @@ require_once 'CRUD/READ/index.php';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Anvy - Listagem de Planilhas</title>
     <link rel="stylesheet" href="STYLE/index.css">
+    <!-- Meta tags PWA -->
+    <meta name="theme-color" content="#fff"/>
+    <link rel="manifest" href="manifest.json">
+
+
 </head>
 <body>
     <header class="cabecalho">

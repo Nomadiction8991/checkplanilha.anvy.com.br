@@ -385,7 +385,7 @@ if ($mostrar_alteracoes) $total_mostrar += $total_alteracoes; // Novo filtro
 <body>
     <!-- Header -->
     <header class="no-print">
-        <a href="visualizar_planilha.php?id=<?php echo $id_planilha; ?>" class="header-btn" title="Fechar">❌</a>
+        <a href="view-planilha.php?id=<?php echo $id_planilha; ?>" class="header-btn" title="Fechar">❌</a>
         <h1 class="header-title">Impressão de Alterações</h1>
         <div class="header-actions">
             <button class="header-print" onclick="window.print()" title="Imprimir">🖨️</button>
