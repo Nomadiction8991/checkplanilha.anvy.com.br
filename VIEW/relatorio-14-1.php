@@ -106,7 +106,7 @@ require_once '../CRUD/READ/relatorio-14-1.php';
                             </tr>
                             <tr class="row5">
                                 <td class="col1">
-                                    <input type="text" name="administracao" id="administracao_<?php echo $row['id']; ?>">
+                                    <input type="text" id="admin_geral" onchange="atualizarTodos('admin')">
                                 </td>
                                 <td class="col2">
                                     <input type="text" name="cidade" id="cidade_<?php echo $row['id']; ?>">
