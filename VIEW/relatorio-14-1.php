@@ -142,14 +142,7 @@ require_once '../CRUD/READ/relatorio-14-1.php';
     <tr class="row9">
         <td class="col1" colspan="4">
             <textarea name="descricao_bem" id="descricao_bem_<?php echo $row['id']; ?>" readonly 
-            ><?php 
-                echo htmlspecialchars($row['tipo_codigo'] . ' - ' . $row['tipo_descricao']);
-                echo ' [' . htmlspecialchars($row['tipo_ben']) . ']';
-                echo ' ' . htmlspecialchars($row['complemento']);
-                if (!empty($row['dependencia_descricao'])) {
-                    echo ' (' . htmlspecialchars($row['dependencia_descricao']) . ')';
-                }
-            ?></textarea>
+            ><?php echo htmlspecialchars($row['descricao_completa']); ?></textarea>
         </td>
     </tr>
 </table>
