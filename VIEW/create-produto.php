@@ -14,7 +14,7 @@ require_once '../CRUD/CREATE/produto.php';
 <body>
     <header class="cabecalho">
         <section class="titulo">
-            <a href="read-produto.php?id_planilha=<?php echo $id_planilha; ?>&<?php echo gerarParametrosFiltro(); ?>" class="voltar">
+            <a href="read-produto.php?id=<?php echo $id_planilha; ?>&<?php echo gerarParametrosFiltro(); ?>" class="voltar">
                 <svg xmlns="http://www.w3.org/2000/svg" height="48px" viewBox="0 -960 960 960" width="48px"fill="#FFFFFF"><path d="m274-450 248 248-42 42-320-320 320-320 42 42-248 248h526v60H274Z" /></svg>
             </a>
             <h1>Create Produto</h1>

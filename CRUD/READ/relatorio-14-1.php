@@ -19,6 +19,8 @@ $sql = "SELECT
             pc.id,
             pc.tipo_ben,
             pc.complemento,
+            pc.quantidade,
+            pc.descricao_completa,
             pc.possui_nota,
             pc.imprimir_14_1,
             tb.codigo as tipo_codigo,
