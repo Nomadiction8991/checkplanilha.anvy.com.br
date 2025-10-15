@@ -44,6 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $tipo_ben = $_POST['tipo_ben'] ?? '';
     $complemento = $_POST['complemento'] ?? '';
     $id_dependencia = $_POST['id_dependencia'] ?? '';
+    $quantidade = $_POST['quantidade'] ?? 1;
     $possui_nota = isset($_POST['possui_nota']) ? 1 : 0;
     $imprimir_14_1 = isset($_POST['imprimir_14_1']) ? 1 : 0;
     
@@ -66,14 +67,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $erros[] = "A dependência é obrigatória";
     }
     
+    if (empty($quantidade) || $quantidade < 1) {
+        $erros[] = "A quantidade deve ser pelo menos 1";
+    }
+    
     // Se não há erros, atualizar no banco
     if (empty($erros)) {
         try {
+            // Buscar dados para montar a descrição completa
+            $sql_tipo = "SELECT codigo, descricao FROM tipos_bens WHERE id = :id_tipo_ben";
+            $stmt_tipo = $conexao->prepare($sql_tipo);
+            $stmt_tipo->bindValue(':id_tipo_ben', $id_tipo_ben);
+            $stmt_tipo->execute();
+            $tipo_bem = $stmt_tipo->fetch();
+            
+            $sql_dep = "SELECT descricao FROM dependencias WHERE id = :id_dependencia";
+            $stmt_dep = $conexao->prepare($sql_dep);
+            $stmt_dep->bindValue(':id_dependencia', $id_dependencia);
+            $stmt_dep->execute();
+            $dependencia = $stmt_dep->fetch();
+            
+            // Montar descrição completa
+            $descricao_completa = $quantidade . "x [" . $tipo_bem['codigo'] . " - " . $tipo_bem['descricao'] . "] " . $tipo_ben . " - " . $complemento . " - (" . $dependencia['descricao'] . ")";
+            
             $sql_atualizar = "UPDATE produtos_cadastro 
                              SET id_tipo_ben = :id_tipo_ben,
                                  tipo_ben = :tipo_ben,
                                  complemento = :complemento,
                                  id_dependencia = :id_dependencia,
+                                 quantidade = :quantidade,
+                                 descricao_completa = :descricao_completa,
                                  possui_nota = :possui_nota,
                                  imprimir_14_1 = :imprimir_14_1
                              WHERE id = :id AND id_planilha = :id_planilha";
@@ -83,6 +106,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt_atualizar->bindValue(':tipo_ben', $tipo_ben);
             $stmt_atualizar->bindValue(':complemento', $complemento);
             $stmt_atualizar->bindValue(':id_dependencia', $id_dependencia);
+            $stmt_atualizar->bindValue(':quantidade', $quantidade);
+            $stmt_atualizar->bindValue(':descricao_completa', $descricao_completa);
             $stmt_atualizar->bindValue(':possui_nota', $possui_nota);
             $stmt_atualizar->bindValue(':imprimir_14_1', $imprimir_14_1);
             $stmt_atualizar->bindValue(':id', $id_produto);

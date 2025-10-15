@@ -36,6 +36,11 @@ require_once '../CRUD/UPDATE/produto.php';
             
             <form method="POST" id="form-produto">
                 <div class="form-group">
+                    <label for="quantidade" class="required">Quantidade</label>
+                    <input type="number" id="quantidade" name="quantidade" class="form-control" 
+                           min="1" value="<?php echo htmlspecialchars($produto['quantidade'] ?? '1'); ?>" required>
+                </div>
+                <div class="form-group">
                     <label for="id_tipo_ben" class="required">Tipos de Bens</label>
                     <select id="id_tipo_ben" name="id_tipo_ben" class="form-control select" required>
                         <option value="">Selecione um tipo de bem</option>
