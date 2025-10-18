@@ -8,6 +8,7 @@ include '../CRUD/UPDATE/observacao-produto.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editar Observações</title>
+    <link rel="stylesheet" href="../STYLE/base.css">
     <link rel="stylesheet" href="../STYLE/observacao-produto.css">
 </head>
 <body>

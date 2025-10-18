@@ -8,6 +8,7 @@ require_once '../CRUD/UPDATE/editar-planilha.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editar Planilha - Anvy</title>
+    <link rel="stylesheet" href="../STYLE/base.css">
     <link rel="stylesheet" href="../STYLE/editar-planilha.css">
     <link rel="shortcut icon" href="../logo.png" type="image/x-icon">
 </head>

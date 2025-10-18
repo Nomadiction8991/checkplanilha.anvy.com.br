@@ -9,7 +9,8 @@ require_once '../CRUD/DELETE/produto.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Excluir Produto</title>
-    <link rel="stylesheet" href="../STYLE/create-produto.css">
+    <link rel="stylesheet" href="../STYLE/base.css">
+    <link rel="stylesheet" href="../STYLE/delete-produto.css">
     <style>
         .form-control:disabled {
             background-color: #f8f9fa;

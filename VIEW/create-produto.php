@@ -9,6 +9,7 @@ require_once '../CRUD/CREATE/produto.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Produto</title>
+    <link rel="stylesheet" href="../STYLE/base.css">
     <link rel="stylesheet" href="../STYLE/create-produto.css">
 </head>
 <body>
