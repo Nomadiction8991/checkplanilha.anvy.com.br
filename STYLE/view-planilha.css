@@ -100,10 +100,11 @@ body {
 
 /* Campo código e botão de filtrar igual index */
 /* Campo de pesquisa igual index */
+/* Campo de pesquisa igual index */
 .campo-codigo {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     width: 100%;
 }
 .campo-codigo input {
@@ -125,15 +126,15 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0 8px;
+    padding: 8px;
     background: #007bff;
     color: #fff;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.3s;
-    min-width: 36px;
-    height: 36px;
+    min-width: 40px;
+    height: 40px;
     font-size: 16px;
 }
 .btn-filtrar svg {
@@ -147,13 +148,13 @@ body {
 /* Filtros avançados */
 /* Filtros avançados igual index */
 /* Filtros avançados igual index */
+/* Filtros avançados igual index */
 .filtros-avancados {
     width: 100%;
     margin-top: 5px;
     border: 1px solid #eee;
     border-radius: 4px;
     background: #fff;
-    transition: box-shadow 0.2s;
 }
 .filtros-avancados summary {
     padding: 10px;
@@ -166,7 +167,6 @@ body {
     outline: none;
     border-radius: 4px;
     background: transparent;
-    transition: background 0.2s;
 }
 .filtros-avancados summary:hover {
     background: #f5f5f5;
