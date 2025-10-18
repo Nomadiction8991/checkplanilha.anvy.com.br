@@ -80,28 +80,6 @@ require_once 'CRUD/READ/index.php';
         </form>
     </section>
 
-    <!-- Legenda -->
-    <details class="legenda-container">
-        <summary>Legenda de Status</summary>
-        <div class="legenda">
-            <div class="item-legenda">
-                <span class="cor-legenda cor-inativo"></span>
-                <span>Inativo</span>
-            </div>
-            <div class="item-legenda">
-                <span class="cor-legenda cor-concluido"></span>
-                <span>Concluído</span>
-            </div>
-            <div class="item-legenda">
-                <span class="cor-legenda cor-pendente"></span>
-                <span>Pendente</span>
-            </div>
-            <div class="item-legenda">
-                <span class="cor-legenda cor-execucao"></span>
-                <span>Em Execução</span>
-            </div>
-        </div>
-    </details>
 
     <section class="conteudo">
         <table>
