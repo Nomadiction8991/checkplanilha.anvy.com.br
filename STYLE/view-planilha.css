@@ -99,6 +99,7 @@ body {
 }
 
 /* Campo código e botão de filtrar igual index */
+/* Campo de pesquisa igual index */
 .campo-codigo {
     display: flex;
     align-items: center;
@@ -112,6 +113,9 @@ body {
     border-radius: 4px;
     font-size: 14px;
     min-width: 0;
+    background: #fff;
+    color: #333;
+    transition: border-color 0.2s;
 }
 .campo-codigo input:focus {
     outline: none;
@@ -142,11 +146,14 @@ body {
 
 /* Filtros avançados */
 /* Filtros avançados igual index */
+/* Filtros avançados igual index */
 .filtros-avancados {
     width: 100%;
     margin-top: 5px;
     border: 1px solid #eee;
     border-radius: 4px;
+    background: #fff;
+    transition: box-shadow 0.2s;
 }
 .filtros-avancados summary {
     padding: 10px;
@@ -157,6 +164,12 @@ body {
     font-weight: 600;
     color: #007bff;
     outline: none;
+    border-radius: 4px;
+    background: transparent;
+    transition: background 0.2s;
+}
+.filtros-avancados summary:hover {
+    background: #f5f5f5;
 }
 .filtros-avancados summary::after {
     content: '▼';
@@ -173,6 +186,7 @@ body {
     padding: 15px;
     background: #f8f9fa;
     border-top: 1px solid #eee;
+    border-radius: 0 0 4px 4px;
 }
 .campo-filtro {
     display: flex;
