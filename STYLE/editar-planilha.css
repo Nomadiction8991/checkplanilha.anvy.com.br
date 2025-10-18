@@ -1,4 +1,6 @@
 /* STYLE/editar-planilha.css - MOBILE OPTIMIZED */
+@import url('base.css');
+
 * {
     margin: 0;
     padding: 0;

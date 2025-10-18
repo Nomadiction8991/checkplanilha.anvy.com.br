@@ -1,4 +1,6 @@
 /* STYLE/view-planilha.css */
+@import url('base.css');
+
 * {
     margin: 0;
     padding: 0;

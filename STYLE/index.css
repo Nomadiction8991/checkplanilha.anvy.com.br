@@ -1,4 +1,6 @@
 
+@import url('base.css');
+
 * {
     margin: 0;
     padding: 0;
@@ -98,11 +100,7 @@ body {
 .btn-filtrar:hover {
     background: #0056b3;
 }
-    height: 36px;
-    border-radius: 50%;
-    transition: background-color 0.3s;
-    flex-shrink: 0;
-}
+
 
 .voltar:hover {
     background-color: rgba(255, 255, 255, 0.2);

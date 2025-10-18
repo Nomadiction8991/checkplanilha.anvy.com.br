@@ -1,4 +1,6 @@
 /* STYLE/observacao-produto.css - PADRÃO READ-PRODUTO */
+@import url('base.css');
+
 * {
     margin: 0;
     padding: 0;
