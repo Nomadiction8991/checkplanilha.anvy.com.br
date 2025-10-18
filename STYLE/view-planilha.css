@@ -98,6 +98,7 @@ body {
     width: 100%;
 }
 
+/* Campo código e botão de filtrar igual index */
 .campo-codigo {
     display: flex;
     align-items: center;
@@ -108,7 +109,7 @@ body {
     flex: 1;
     padding: 8px 10px;
     border: 1px solid #ddd;
-    border-radius: 6px;
+    border-radius: 4px;
     font-size: 14px;
     min-width: 0;
 }
@@ -124,7 +125,7 @@ body {
     background: #007bff;
     color: #fff;
     border: none;
-    border-radius: 6px;
+    border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.3s;
     min-width: 36px;
@@ -140,11 +141,12 @@ body {
 }
 
 /* Filtros avançados */
+/* Filtros avançados igual index */
 .filtros-avancados {
     width: 100%;
     margin-top: 5px;
     border: 1px solid #eee;
-    border-radius: 6px;
+    border-radius: 4px;
 }
 .filtros-avancados summary {
     padding: 10px;
@@ -186,7 +188,7 @@ body {
 .campo-filtro select {
     padding: 8px 10px;
     border: 1px solid #ddd;
-    border-radius: 6px;
+    border-radius: 4px;
     font-size: 14px;
     width: 100%;
 }
