@@ -101,10 +101,11 @@ body {
 /* Campo código e botão de filtrar igual index */
 /* Campo de pesquisa igual index */
 /* Campo de pesquisa igual index */
+/* Campo de pesquisa igual index.css */
 .campo-codigo {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     width: 100%;
 }
 .campo-codigo input {
@@ -149,6 +150,7 @@ body {
 /* Filtros avançados igual index */
 /* Filtros avançados igual index */
 /* Filtros avançados igual index */
+/* Filtros avançados igual index.css */
 .filtros-avancados {
     width: 100%;
     margin-top: 5px;
