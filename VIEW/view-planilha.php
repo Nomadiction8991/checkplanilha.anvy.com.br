@@ -36,83 +36,48 @@ require_once '../CRUD/READ/view-planilha.php';
         <!-- Filtros -->
         <div class="filtros-container">
             <form method="GET" class="form-filtros">
-                 <input type="hidden" name="id" value="<?php echo $id_planilha; ?>">
-                
-                <div class="campo-filtro">
-                    <label for="codigo">Código</label>
+                <input type="hidden" name="id" value="<?php echo $id_planilha; ?>">
+                <div class="campo-codigo">
                     <input type="text" id="codigo" name="codigo" value="<?php echo htmlspecialchars($filtro_codigo); ?>" placeholder="Pesquisar código">
-                </div>
-                
-                <div class="campo-filtro">
-                    <label for="nome">Nome</label>
-                    <input type="text" id="nome" name="nome" value="<?php echo htmlspecialchars($filtro_nome); ?>" placeholder="Pesquisar nome">
-                </div>
-                
-                <div class="campo-filtro">
-                    <label for="dependencia">Dependência</label>
-                    <select id="dependencia" name="dependencia">
-                        <option value="">Todas</option>
-                        <?php foreach ($dependencia_options as $dep): ?>
-                        <option value="<?php echo htmlspecialchars($dep); ?>" <?php echo $filtro_dependencia===$dep?'selected':''; ?>>
-                            <?php echo htmlspecialchars($dep); ?>
-                        </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                
-<div class="campo-filtro">
-    <label for="status">Status</label>
-    <select id="status" name="status">
-        <option value="">Todos</option>
-        <option value="checado" <?php echo $filtro_status==='checado'?'selected':''; ?>>Checados</option>
-        <option value="observacao" <?php echo $filtro_status==='observacao'?'selected':''; ?>>Com Observação</option>
-        <option value="etiqueta" <?php echo $filtro_status==='etiqueta'?'selected':''; ?>>Etiqueta para Imprimir</option>
-        <option value="pendente" <?php echo $filtro_status==='pendente'?'selected':''; ?>>Pendentes</option>
-        <option value="dr" <?php echo $filtro_status==='dr'?'selected':''; ?>>No DR</option>
-        <option value="editado" <?php echo $filtro_status==='editado'?'selected':''; ?>>Editados</option>
-    </select>
-</div>
-                
-                <div class="botao-filtros">
-                    <button type="submit" class="btn-filtrar">
+                    <button type="submit" class="btn-filtrar" title="Filtrar">
                         <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#FFFFFF">
                             <path d="M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z"/>
                         </svg>
-                        Filtrar
                     </button>
                 </div>
+                <details class="filtros-avancados">
+                    <summary>Filtros Avançados</summary>
+                    <div class="filtros-content">
+                        <div class="campo-filtro">
+                            <label for="nome">Nome</label>
+                            <input type="text" id="nome" name="nome" value="<?php echo htmlspecialchars($filtro_nome); ?>" placeholder="Pesquisar nome">
+                        </div>
+                        <div class="campo-filtro">
+                            <label for="dependencia">Dependência</label>
+                            <select id="dependencia" name="dependencia">
+                                <option value="">Todas</option>
+                                <?php foreach ($dependencia_options as $dep): ?>
+                                <option value="<?php echo htmlspecialchars($dep); ?>" <?php echo $filtro_dependencia===$dep?'selected':''; ?>>
+                                    <?php echo htmlspecialchars($dep); ?>
+                                </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="campo-filtro">
+                            <label for="status">Status</label>
+                            <select id="status" name="status">
+                                <option value="">Todos</option>
+                                <option value="checado" <?php echo $filtro_status==='checado'?'selected':''; ?>>Checados</option>
+                                <option value="observacao" <?php echo $filtro_status==='observacao'?'selected':''; ?>>Com Observação</option>
+                                <option value="etiqueta" <?php echo $filtro_status==='etiqueta'?'selected':''; ?>>Etiqueta para Imprimir</option>
+                                <option value="pendente" <?php echo $filtro_status==='pendente'?'selected':''; ?>>Pendentes</option>
+                                <option value="dr" <?php echo $filtro_status==='dr'?'selected':''; ?>>No DR</option>
+                                <option value="editado" <?php echo $filtro_status==='editado'?'selected':''; ?>>Editados</option>
+                            </select>
+                        </div>
+                    </div>
+                </details>
             </form>
-        </div>
-
-        <!-- Legenda -->
-        <div class="legenda">
-            <h3>Legenda de Status</h3>
-            <div class="legenda-container">
-                <div class="legenda-item">
-                    <div class="legenda-cor" style="background-color: rgba(163, 250, 183, 0.3);"></div>
-                    <span>Checado</span>
-                </div>
-                <div class="legenda-item">
-                    <div class="legenda-cor" style="background-color: rgba(255, 232, 167, 0.3);"></div>
-                    <span>Com Observações</span>
-                </div>
-                <div class="legenda-item">
-                    <div class="legenda-cor" style="background-color: rgba(163, 211, 250, 0.3);"></div>
-                    <span>Para Imprimir</span>
-                </div>
-                <div class="legenda-item">
-                    <div class="legenda-cor" style="background-color: rgba(250, 163, 163, 0.3);"></div>
-                    <span>No DR</span>
-                </div>
-                <div class="legenda-item">
-                    <div class="legenda-cor" style="background-color: rgba(200, 167, 255, 0.3);"></div>
-                    <span>Editado</span>
-                </div>
-                <div class="legenda-item">
-                    <div class="legenda-cor" style="background-color: rgba(255, 255, 255, 0.3); border: 1px solid #ccc;"></div>
-                    <span>Pendente</span>
-                </div>
-            </div>
         </div>
 
         <!-- Tabela de Produtos -->
