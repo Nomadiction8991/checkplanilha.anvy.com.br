@@ -7,6 +7,8 @@ if (!$id_planilha) {
 }*/
 
 require_once '../CRUD/READ/view-planilha.php';
+
+
 ?>
 
 <!DOCTYPE html>
@@ -17,6 +19,7 @@ require_once '../CRUD/READ/view-planilha.php';
     <title>Visualizar Planilha - <?php echo htmlspecialchars($planilha['descricao']); ?></title>
     <link rel="stylesheet" href="../STYLE/base.css">
     <link rel="stylesheet" href="../STYLE/view-planilha.css">
+    <button id="btnMic" class="icon-btn" type="button" aria-label="Falar código" title="Falar código (Ctrl+M)">🎤</button>
 </head>
 <body>
     <header class="cabecalho">
@@ -282,5 +285,184 @@ require_once '../CRUD/READ/view-planilha.php';
         }
     }
     </script>
+    <script>
+(() => {
+  // ======== CONFIG RÁPIDA (ajuste se seus IDs forem diferentes) ========
+  const POSSIVEIS_IDS_INPUT = ["cod", "codigo", "code", "productCode", "busca", "search", "q"];
+  const POSSIVEIS_BOTOES    = ["btnBuscar", "btnPesquisa", "btnSearch"];
+  const MENU_BUTTON_ID      = "btnMenu"; // se quiser injetar o mic ao lado de um botão específico
+
+  // ======== LOCALIZA ELEMENTOS ========
+  function encontraInputCodigo(){
+    // por id
+    for(const id of POSSIVEIS_IDS_INPUT){
+      const el = document.getElementById(id);
+      if(el) return el;
+    }
+    // por name
+    for(const name of ["cod","codigo","code","productCode","q","busca","search"]){
+      const el = document.querySelector(`input[name="${name}"]`);
+      if(el) return el;
+    }
+    // por placeholder
+    const el = document.querySelector('input[placeholder*="código" i],input[placeholder*="codigo" i]');
+    return el || null;
+  }
+  function encontraBotaoPesquisar(input){
+    // preferir botões conhecidos
+    for(const id of POSSIVEIS_BOTOES){
+      const b = document.getElementById(id);
+      if(b) return b;
+    }
+    // botão submit do mesmo form
+    if(input && input.form){
+      const b = input.form.querySelector('button[type="submit"],input[type="submit"]');
+      if(b) return b;
+    }
+    // qualquer botão de submit na página
+    return document.querySelector('button[type="submit"],input[type="submit"]');
+  }
+  function injetaMicAoLadoDoMenu(micBtn){
+    const menuBtn = document.getElementById(MENU_BUTTON_ID);
+    if(menuBtn && menuBtn.parentElement){
+      menuBtn.parentElement.insertBefore(micBtn, menuBtn.nextSibling);
+      return;
+    }
+    // fallback: coloca no primeiro header encontrado
+    const header = document.querySelector('.header, header');
+    if(header) header.appendChild(micBtn);
+  }
+
+  // ======== CRIA / POSICIONA O BOTÃO ========
+  let micBtn = document.getElementById('btnMic');
+  if(!micBtn){
+    micBtn = document.createElement('button');
+    micBtn.id = 'btnMic';
+    micBtn.className = 'icon-btn';
+    micBtn.type = 'button';
+    micBtn.title = 'Falar código (Ctrl+M)';
+    micBtn.setAttribute('aria-label','Falar código');
+    micBtn.textContent = '🎤';
+    injetaMicAoLadoDoMenu(micBtn);
+  }
+
+  // ======== SUPORTE À API DE VOZ ========
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){
+    // sem suporte: esconde o botão
+    micBtn.style.display = 'none';
+    return;
+  }
+
+  // ======== NORMALIZA TRANSCRIÇÃO PARA CÓDIGO ========
+  // Suporta "um dois três", "zero zero cinco", "tracinho", "hífen", "barra", "ponto".
+  const DIGITOS = {
+    "zero":"0","um":"1","uma":"1","dois":"2","duas":"2","três":"3","tres":"3",
+    "quatro":"4","cinco":"5","seis":"6","meia":"6","sete":"7","oito":"8","nove":"9"
+  };
+  const SINAIS = {
+    "tracinho":"-","hífen":"-","hifen":"-","menos":"-",
+    "barra":"/","barra invertida":"\\","contrabarra":"\\","invertida":"\\",
+    "ponto":".","vírgula":",","virgula":",","espaço":" "
+  };
+  function extraiCodigoFalado(trans){
+    // tenta primeiro pegar números "crus" da fala
+    let direto = trans.replace(/[^\d\-./,\\ ]+/g,'').trim();
+    direto = direto.replace(/\s+/g,''); // remove espaços se for sequência
+    if(/\d/.test(direto)) return direto;
+
+    // senão, mapeia palavras -> dígitos/sinais
+    const out = [];
+    for(const raw of trans.toLowerCase().split(/\s+/)){
+      const w = raw.normalize('NFD').replace(/\p{Diacritic}/gu,''); // remove acento
+      if(DIGITOS[w]) out.push(DIGITOS[w]);
+      else if(SINAIS[w]) out.push(SINAIS[w]);
+      else if(/^\d+$/.test(w)) out.push(w);
+    }
+    return out.join('');
+  }
+
+  // ======== DISPARO DA BUSCA ========
+  async function preencherEEnviar(codigo){
+    const input = encontraInputCodigo();
+    if(!input){
+      alert('Campo de código não encontrado. Ajuste os IDs em POSSIVEIS_IDS_INPUT.');
+      return;
+    }
+    // preencher
+    input.focus();
+    input.value = codigo;
+
+    // tentar acionar eventos que sua página já usa (keyup/change)
+    input.dispatchEvent(new Event('input', {bubbles:true}));
+    input.dispatchEvent(new Event('change', {bubbles:true}));
+
+    // preferir clicar no botão de busca; senão, submit no form; por fim, tecla Enter.
+    const btn = encontraBotaoPesquisar(input);
+    if(btn){
+      btn.click();
+      return;
+    }
+    if(input.form){
+      input.form.requestSubmit ? input.form.requestSubmit() : input.form.submit();
+      return;
+    }
+    // fallback: envia Enter no input (útil em buscas por keypress)
+    const ev = new KeyboardEvent('keydown', {key:'Enter', code:'Enter', bubbles:true});
+    input.dispatchEvent(ev);
+  }
+
+  // ======== CONTROLE DE RECONHECIMENTO ========
+  const rec = new SR();
+  rec.lang = 'pt-BR';
+  rec.continuous = false;
+  rec.interimResults = false;
+  rec.maxAlternatives = 3;
+
+  function startListening(){
+    try{
+      rec.start();
+      micBtn.classList.add('listening');
+    }catch(e){
+      // em alguns navegadores, start() lança se já estiver rodando
+    }
+  }
+  function stopListening(){
+    try{ rec.stop(); }catch(e){}
+    micBtn.classList.remove('listening');
+  }
+
+  rec.onresult = (e) => {
+    const best = e.results[0][0].transcript || '';
+    const codigo = extraiCodigoFalado(best);
+    stopListening();
+    if(!codigo){
+      alert('Não entendi o código. Tente soletrar: "um dois três"…');
+      return;
+    }
+    preencherEEnviar(codigo);
+  };
+  rec.onerror = (e) => {
+    stopListening();
+    // erros comuns: not-allowed (permissão), no-speech, aborted
+    if(e.error === 'not-allowed') alert('Permita o acesso ao microfone para usar a busca por voz.');
+  };
+  rec.onend = () => micBtn.classList.remove('listening');
+
+  // clique do botão e atalho de teclado
+  micBtn.addEventListener('click', () => {
+    // se já está ouvindo, parar; senão, começar
+    if(micBtn.classList.contains('listening')) stopListening();
+    else startListening();
+  });
+  document.addEventListener('keydown', (ev) => {
+    if((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === 'm'){
+      ev.preventDefault();
+      micBtn.click();
+    }
+  });
+})();
+</script>
+
 </body>
 </html>
