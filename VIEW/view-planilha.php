@@ -19,7 +19,7 @@ require_once '../CRUD/READ/view-planilha.php';
     <title>Visualizar Planilha - <?php echo htmlspecialchars($planilha['descricao']); ?></title>
     <link rel="stylesheet" href="../STYLE/base.css">
     <link rel="stylesheet" href="../STYLE/view-planilha.css">
-    <button id="btnMic" class="icon-btn" type="button" aria-label="Falar código" title="Falar código (Ctrl+M)">🎤</button>
+    
 </head>
 <body>
     <header class="cabecalho">
@@ -30,6 +30,7 @@ require_once '../CRUD/READ/view-planilha.php';
             <h1><?php echo htmlspecialchars($planilha['comum']); ?></h1>
         </section>
         <section class="acoes">
+            <button id="btnMic" class="icon-btn" type="button" aria-label="Falar código" title="Falar código (Ctrl+M)">🎤</button>
             <a href="menu.php?id=<?php echo $id_planilha; ?>"> <!-- MUDAR PARA id -->
                 <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF"><path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/></svg>
             </a>
