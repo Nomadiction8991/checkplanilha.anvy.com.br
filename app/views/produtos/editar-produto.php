@@ -76,6 +76,16 @@ ob_start();
     </button>
 </form>
 
+<div class="mt-3">
+    <a href="./limpar-edicoes.php?id=<?php echo $id_planilha; ?>&id_produto=<?php echo $id_produto; ?>&pagina=<?php echo $pagina; ?>&nome=<?php echo urlencode($filtro_nome); ?>&dependencia=<?php echo urlencode($filtro_dependencia); ?>&filtro_codigo=<?php echo urlencode($filtro_codigo); ?>&status=<?php echo urlencode($filtro_status); ?>"
+       class="btn btn-outline-danger w-100"
+       onclick="return confirm('Tem certeza que deseja limpar as edições deste produto?');">
+        <i class="bi bi-trash3 me-2"></i>
+        Limpar Edições
+    </a>
+    <div class="form-text mt-1">Remove nome/dependência editados e desmarca para impressão.</div>
+    </div>
+
 <?php
 $contentHtml = ob_get_clean();
 $tempFile = __DIR__ . '/../../../temp_editar_produto_' . uniqid() . '.php';

@@ -164,6 +164,13 @@ ob_start();
 <!-- Link para Material Icons -->
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
 
+<?php if (!empty($_GET['sucesso'])): ?>
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <?php echo htmlspecialchars($_GET['sucesso']); ?>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+<?php endif; ?>
+
 <!-- Filtros -->
 <div class="card mb-3">
     <div class="card-header">
