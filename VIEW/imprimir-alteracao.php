@@ -14,106 +14,11 @@ try {
     $stmt_planilha = $conexao->prepare($sql_planilha);
     $stmt_planilha->bindValue(':id', $id_planilha);
     $stmt_planilha->execute();
-    $planilha = $stmt_planilha->fetch();
-    
-    if (!$planilha) {
-        throw new Exception('Planilha não encontrada.');
-    }
-} catch (Exception $e) {
-    die("Erro ao carregar planilha: " . $e->getMessage());
-}
-
-// Filtros do relatório - CHECKBOXES PARA SEÇÕES (sempre desmarcados por padrão)
-$mostrar_pendentes = isset($_GET['mostrar_pendentes']) ? true : false;
-$mostrar_checados = isset($_GET['mostrar_checados']) ? true : false;
-$mostrar_observacao = isset($_GET['mostrar_observacao']) ? true : false;
-$mostrar_checados_observacao = isset($_GET['mostrar_checados_observacao']) ? true : false;
-$mostrar_dr = isset($_GET['mostrar_dr']) ? true : false;
-$mostrar_etiqueta = isset($_GET['mostrar_etiqueta']) ? true : false;
-$mostrar_alteracoes = isset($_GET['mostrar_alteracoes']) ? true : false; // Novo filtro
-$filtro_dependencia = $_GET['dependencia'] ?? ''; // Filtro de dependência
-
-// Buscar TODOS os produtos (sem filtros de tipo)
-try {
-    $sql_produtos = "SELECT p.*, pc.checado, pc.dr, pc.imprimir, pc.observacoes, pc.nome, pc.dependencia 
-                     FROM produtos p 
-                     LEFT JOIN produtos_check pc ON p.id = pc.produto_id 
-                     WHERE p.id_planilha = :id_planilha";
-    
-    $params = [':id_planilha' => $id_planilha];
-    
-    // Aplicar apenas filtro de dependência
-    if (!empty($filtro_dependencia)) {
-        $sql_produtos .= " AND p.dependencia LIKE :dependencia";
-        $params[':dependencia'] = '%' . $filtro_dependencia . '%';
-    }
-    
-    $sql_produtos .= " ORDER BY p.codigo";
-    
-    $stmt_produtos = $conexao->prepare($sql_produtos);
-    foreach ($params as $key => $value) {
-        $stmt_produtos->bindValue($key, $value);
-    }
-    $stmt_produtos->execute();
-    $todos_produtos = $stmt_produtos->fetchAll();
-    
-} catch (Exception $e) {
-    die("Erro ao carregar produtos: " . $e->getMessage());
-}
-
-// Buscar opções de dependência para o filtro
-try {
-    $sql_dependencias = "SELECT DISTINCT dependencia FROM produtos WHERE id_planilha = :id_planilha ORDER BY dependencia";
-    $stmt_dependencias = $conexao->prepare($sql_dependencias);
-    $stmt_dependencias->bindValue(':id_planilha', $id_planilha);
-    $stmt_dependencias->execute();
-    $dependencia_options = $stmt_dependencias->fetchAll(PDO::FETCH_COLUMN);
-} catch (Exception $e) {
-    $dependencia_options = [];
-}
-
-// Agrupar produtos por tipo (independente dos filtros)
-$produtos_pendentes = [];
-$produtos_checados = [];
-$produtos_observacao = [];
-$produtos_checados_observacao = [];
-$produtos_dr = [];
-$produtos_etiqueta = [];
-$produtos_alteracoes = []; // Novo array para alterações
-
-foreach ($todos_produtos as $produto) {
-    $tem_observacao = !empty($produto['observacoes']);
-    $esta_checado = $produto['checado'] == 1;
-    $esta_no_dr = $produto['dr'] == 1;
-    $esta_etiqueta = $produto['imprimir'] == 1;
-    
-    // Verificar se tem alterações (nome ou dependencia preenchidos e diferentes do original)
-    $tem_alteracoes = false;
-    if (!empty($produto['nome']) && $produto['nome'] != $produto['nome']) {
-        $tem_alteracoes = true;
-    }
-    if (!empty($produto['nova_dependencia']) && $produto['nova_dependencia'] != $produto['dependencia']) {
-        $tem_alteracoes = true;
-    }
-    
-    if ($tem_alteracoes) {
-        $produtos_alteracoes[] = $produto;
-    } elseif ($esta_no_dr) {
-        $produtos_dr[] = $produto;
-    } elseif ($esta_etiqueta) {
-        $produtos_etiqueta[] = $produto;
-    } elseif ($tem_observacao && $esta_checado) {
-        $produtos_checados_observacao[] = $produto;
-    } elseif ($tem_observacao) {
-        $produtos_observacao[] = $produto;
-    } elseif ($esta_checado) {
-        $produtos_checados[] = $produto;
-    } else {
-        $produtos_pendentes[] = $produto;
-    }
-}
-
-// Contar totais
+    <?php
+    // Redirect para nova view de impressão
+    header('Location: ../app/views/planilhas/imprimir-alteracao.php?' . http_build_query($_GET));
+    exit;
+    ?>
 $total_pendentes = count($produtos_pendentes);
 $total_checados = count($produtos_checados);
 $total_observacao = count($produtos_observacao);
