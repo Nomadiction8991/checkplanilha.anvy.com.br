@@ -52,7 +52,7 @@ try {
 }
 
 $pageTitle = 'Copiar Etiquetas';
-$backUrl = './view-planilha.php?id=' . urlencode($id_planilha);
+$backUrl = '../shared/menu.php?id=' . urlencode($id_planilha);
 
 ob_start();
 ?>

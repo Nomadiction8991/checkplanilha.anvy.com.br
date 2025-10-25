@@ -1,8 +1,9 @@
 {
-  "name": "Check Planilha",
-  "short_name": "CheckPlanilha",
-  "description": "Sistema de Gestão de Planilhas e Produtos",
-  "start_url": "/index.php",
+  "name": "Check Planilha - Produção",
+  "short_name": "CheckPlanilha Prod",
+  "description": "Sistema de Gestão de Planilhas - Ambiente de Produção",
+  "start_url": "/prod/index.php",
+  "scope": "/prod/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#ffffff",

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check Planilha - Produção</title>
+    
+    <!-- PWA Manifest para Produção -->
+    <link rel="manifest" href="/manifest-prod.json">
+    
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#0d6efd">
+    
+    <!-- Apple Touch Icon -->
+    <link rel="apple-touch-icon" href="/logo.png">
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        
+        .logo {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+            background: #0d6efd;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            color: white;
+        }
+        
+        h1 {
+            color: #333;
+            margin: 0 0 10px;
+            font-size: 24px;
+        }
+        
+        .badge {
+            display: inline-block;
+            background: #0d6efd;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        
+        p {
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .btn {
+            display: inline-block;
+            background: #0d6efd;
+            color: white;
+            padding: 15px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        .btn:hover {
+            background: #0b5ed7;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(13, 110, 253, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background: #5c636a;
+            box-shadow: 0 5px 20px rgba(108, 117, 125, 0.4);
+        }
+        
+        .install-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">📊</div>
+        <h1>Check Planilha</h1>
+        <span class="badge">PRODUÇÃO</span>
+        <p>Sistema de gestão de planilhas e produtos. Instale o aplicativo para acesso rápido e trabalhe offline!</p>
+        
+        <button id="installBtn" class="btn hidden">
+            📲 Instalar Aplicativo
+        </button>
+        
+        <a href="/prod/index.php" class="btn">
+            🚀 Acessar Sistema
+        </a>
+        
+        <a href="/install-dev.html" class="btn btn-secondary">
+            🔧 Versão Desenvolvimento
+        </a>
+        
+        <div class="install-info">
+            <strong>💡 Dica:</strong> Use o botão "Instalar Aplicativo" para adicionar à tela inicial do seu dispositivo.
+        </div>
+    </div>
+    
+    <script>
+        let deferredPrompt;
+        const installBtn = document.getElementById('installBtn');
+        
+        // Detecta se PWA pode ser instalado
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBtn.classList.remove('hidden');
+        });
+        
+        // Instalação
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`Resultado da instalação: ${outcome}`);
+                deferredPrompt = null;
+                installBtn.classList.add('hidden');
+            }
+        });
+        
+        // Registra Service Worker (se existir)
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw-prod.js').catch(() => {
+                console.log('Service Worker não encontrado (opcional)');
+            });
+        }
+    </script>
+</body>
+</html>

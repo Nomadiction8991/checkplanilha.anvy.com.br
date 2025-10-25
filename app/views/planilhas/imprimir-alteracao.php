@@ -119,7 +119,7 @@ if ($mostrar_alteracoes) $total_mostrar += $total_alteracoes;
 </head>
 <body>
   <header class="no-print">
-    <a href="../planilhas/view-planilha.php?id=<?php echo $id_planilha; ?>" class="header-btn" title="Fechar">❌</a>
+    <a href="../shared/menu.php?id=<?php echo $id_planilha; ?>" class="header-btn" title="Fechar">❌</a>
     <h1 class="header-title">Impressão de Alterações</h1>
     <div class="header-actions">
       <button class="header-print" onclick="window.print()" title="Imprimir">🖨️</button>
