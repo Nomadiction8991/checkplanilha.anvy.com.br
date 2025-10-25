@@ -9,7 +9,6 @@ ob_start();
 
 <div class="alert alert-warning">
   <strong>Atenção:</strong> Tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita.
-  <div class="small mt-1 text-muted">Código: <?php echo htmlspecialchars($produto['codigo'] ?? ''); ?> | Dependência: <?php echo htmlspecialchars($produto['dependencia'] ?? ''); ?></div>
   <?php if (!empty($erros)): ?>
     <ul class="mb-0 mt-2">
       <?php foreach ($erros as $erro): ?>
@@ -23,6 +22,13 @@ ob_start();
 <form method="POST" id="form-produto">
   <div class="card mb-3">
     <div class="card-body">
+      <?php if (!empty($produto['codigo'])): ?>
+      <div class="mb-3">
+        <label class="form-label">Código</label>
+        <input type="text" class="form-control" value="<?php echo htmlspecialchars($produto['codigo']); ?>" disabled>
+      </div>
+      <?php endif; ?>
+
       <div class="mb-3">
         <label class="form-label">Tipos de Bens</label>
         <input type="text" class="form-control" value="<?php echo htmlspecialchars(($produto['tipo_codigo'] ?? '') . ' - ' . ($produto['tipo_descricao'] ?? '')); ?>" disabled>
