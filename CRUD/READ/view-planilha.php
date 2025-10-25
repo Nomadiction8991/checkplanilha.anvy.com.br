@@ -1,5 +1,5 @@
 <?php
-require_once '../CRUD/conexao.php';
+require_once __DIR__ . '/../conexao.php';
 
 $id_planilha = $_GET['id'] ?? null;
 

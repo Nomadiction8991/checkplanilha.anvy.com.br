@@ -1,5 +1,5 @@
 <?php
-require_once '../conexao.php';
+require_once __DIR__ . '/../conexao.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $produto_id = $_POST['produto_id'] ?? null;

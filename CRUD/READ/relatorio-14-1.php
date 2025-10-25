@@ -1,6 +1,6 @@
 <?php
 // Incluir arquivo de conexão
-require_once '../CRUD/conexao.php';
+require_once __DIR__ . '/../conexao.php';
 
 // Pegar o ID da planilha via GET
 $id_planilha = isset($_GET['id']) ? intval($_GET['id']) : 0;

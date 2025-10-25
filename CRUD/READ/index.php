@@ -1,5 +1,5 @@
 <?php
-require_once 'CRUD/conexao.php';
+require_once __DIR__ . '/../conexao.php';
 
 // Parâmetros da paginação
 $pagina = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
