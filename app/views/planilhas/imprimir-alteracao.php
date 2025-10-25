@@ -25,7 +25,7 @@ $mostrar_alteracoes = isset($_GET['mostrar_alteracoes']);
 $filtro_dependencia = $_GET['dependencia'] ?? '';
 
 try {
-    $sql_produtos = "SELECT p.*, pc.checado, pc.dr, pc.imprimir, pc.observacoes, pc.nome as nome_editado, pc.dependencia as dependencia_editada 
+  $sql_produtos = "SELECT p.*, pc.checado, pc.dr, pc.imprimir, pc.observacoes, pc.editado, pc.nome as nome_editado, pc.dependencia as dependencia_editada 
                      FROM produtos p 
                      LEFT JOIN produtos_check pc ON p.id = pc.produto_id 
                      WHERE p.id_planilha = :id_planilha";
@@ -52,7 +52,8 @@ foreach ($todos_produtos as $produto) {
     $esta_checado = $produto['checado'] == 1;
     $esta_no_dr = $produto['dr'] == 1;
     $esta_etiqueta = $produto['imprimir'] == 1;
-    $tem_alteracoes = false;
+  // Considera como "alterações" se a flag editado estiver ativa ou se houver diferença de campos
+  $tem_alteracoes = ($produto['editado'] ?? 0) == 1;
     if (!empty($produto['nome_editado']) && $produto['nome_editado'] != $produto['nome']) { $tem_alteracoes = true; }
     if (!empty($produto['dependencia_editada']) && $produto['dependencia_editada'] != $produto['dependencia']) { $tem_alteracoes = true; }
     if ($tem_alteracoes) $produtos_alteracoes[] = $produto;
@@ -299,8 +300,16 @@ ob_start();
       <div class="card-body p-0">
         <div class="table-responsive">
           <table class="table table-sm table-striped align-middle mb-0">
-            <thead><tr><th>Código</th><th>Nome</th><th>Dependência</th><th>Observações</th></tr></thead>
-            <tbody><?php foreach ($produtos_dr as $produto): ?><tr><td><strong><?php echo htmlspecialchars($produto['codigo']); ?></strong></td><td class="table-danger"><?php echo htmlspecialchars($produto['nome']); ?></td><td><?php echo htmlspecialchars($produto['dependencia']); ?></td><td class="table-warning fst-italic"><?php echo htmlspecialchars($produto['observacoes'] ?? ''); ?></td></tr><?php endforeach; ?></tbody>
+            <thead><tr><th>Código</th><th>Nome</th><th>Dependência</th></tr></thead>
+            <tbody>
+            <?php foreach ($produtos_dr as $produto): ?>
+              <tr>
+                <td><strong><?php echo htmlspecialchars($produto['codigo']); ?></strong></td>
+                <td class="table-danger"><?php echo htmlspecialchars($produto['nome']); ?></td>
+                <td><?php echo htmlspecialchars(!empty($produto['dependencia_editada']) ? $produto['dependencia_editada'] : $produto['dependencia']); ?></td>
+              </tr>
+            <?php endforeach; ?>
+            </tbody>
           </table>
         </div>
       </div>
@@ -314,7 +323,15 @@ ob_start();
         <div class="table-responsive">
           <table class="table table-sm table-striped align-middle mb-0">
             <thead><tr><th>Código</th><th>Nome</th><th>Dependência</th></tr></thead>
-            <tbody><?php foreach ($produtos_etiqueta as $produto): ?><tr><td><strong><?php echo htmlspecialchars($produto['codigo']); ?></strong></td><td class="table-info"><?php echo htmlspecialchars($produto['nome']); ?></td><td><?php echo htmlspecialchars($produto['dependencia']); ?></td></tr><?php endforeach; ?></tbody>
+            <tbody>
+              <?php foreach ($produtos_etiqueta as $produto): ?>
+                <tr>
+                  <td><strong><?php echo htmlspecialchars($produto['codigo']); ?></strong></td>
+                  <td class="table-info"><?php echo htmlspecialchars($produto['nome']); ?></td>
+                  <td><?php echo htmlspecialchars(!empty($produto['dependencia_editada']) ? $produto['dependencia_editada'] : $produto['dependencia']); ?></td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
           </table>
         </div>
       </div>
