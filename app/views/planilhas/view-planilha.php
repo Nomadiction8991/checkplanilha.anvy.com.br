@@ -303,10 +303,13 @@ ob_start();
                         <input type="hidden" name="codigo" value="<?php echo htmlspecialchars($filtro_codigo ?? ''); ?>">
                         <input type="hidden" name="status" value="<?php echo htmlspecialchars($filtro_status ?? ''); ?>">
                         <button type="submit" class="btn-acao btn-check <?php echo $p['checado'] == 1 ? 'active' : ''; ?>" 
-                                title="<?php echo $p['checado'] ? 'Desmarcar checado' : 'Marcar como checado'; ?>" aria-label="<?php echo $p['checado'] ? 'Desmarcar checado' : 'Marcar como checado'; ?>">
+                                title="<?php echo $p['checado'] ? 'Desmarcar checado' : 'Marcar como checado'; ?>" 
+                                aria-label="<?php echo $p['checado'] ? 'Desmarcar checado' : 'Marcar como checado'; ?>">
                             <i class="bi bi-check-square-fill" style="color: #198754; font-size: 24px;"></i>
                         </button>
                     </form>
+                    <?php else: ?>
+                    <!-- DEBUG: show_check é FALSE -->
                     <?php endif; ?>
                     
                     <!-- DR -->

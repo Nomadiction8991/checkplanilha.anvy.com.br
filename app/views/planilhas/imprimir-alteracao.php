@@ -32,7 +32,7 @@ $mostrar_alteracoes = isset($_GET['mostrar_alteracoes']);
 $filtro_dependencia = $_GET['dependencia'] ?? '';
 
 try {
-    $sql_produtos = "SELECT p.*, pc.checado, pc.dr, pc.imprimir, pc.observacoes, pc.nome, pc.dependencia, pc.nova_dependencia 
+    $sql_produtos = "SELECT p.*, pc.checado, pc.dr, pc.imprimir, pc.observacoes, pc.nome as nome_editado, pc.dependencia as dependencia_editada 
                      FROM produtos p 
                      LEFT JOIN produtos_check pc ON p.id = pc.produto_id 
                      WHERE p.id_planilha = :id_planilha";
@@ -60,8 +60,8 @@ foreach ($todos_produtos as $produto) {
     $esta_no_dr = $produto['dr'] == 1;
     $esta_etiqueta = $produto['imprimir'] == 1;
     $tem_alteracoes = false;
-    if (!empty($produto['nome']) && $produto['nome'] != $produto['nome']) { $tem_alteracoes = true; }
-    if (!empty($produto['nova_dependencia']) && $produto['nova_dependencia'] != $produto['dependencia']) { $tem_alteracoes = true; }
+    if (!empty($produto['nome_editado']) && $produto['nome_editado'] != $produto['nome']) { $tem_alteracoes = true; }
+    if (!empty($produto['dependencia_editada']) && $produto['dependencia_editada'] != $produto['dependencia']) { $tem_alteracoes = true; }
     if ($tem_alteracoes) $produtos_alteracoes[] = $produto;
     elseif ($esta_no_dr) $produtos_dr[] = $produto;
     elseif ($esta_etiqueta) $produtos_etiqueta[] = $produto;
@@ -186,9 +186,9 @@ if ($mostrar_alteracoes) $total_mostrar += $total_alteracoes;
             <tr>
               <td><strong><?php echo htmlspecialchars($produto['codigo']); ?></strong></td>
               <td><?php echo htmlspecialchars($produto['nome']); ?></td>
-              <td class="alteracao-cell"><?php echo htmlspecialchars($produto['nome'] ?? ''); ?></td>
+              <td class="alteracao-cell"><?php echo htmlspecialchars($produto['nome_editado'] ?? ''); ?></td>
               <td><?php echo htmlspecialchars($produto['dependencia']); ?></td>
-              <td class="alteracao-cell"><?php echo htmlspecialchars($produto['nova_dependencia'] ?? ''); ?></td>
+              <td class="alteracao-cell"><?php echo htmlspecialchars($produto['dependencia_editada'] ?? ''); ?></td>
               <td class="observacao-cell"><?php echo htmlspecialchars($produto['observacoes'] ?? ''); ?></td>
             </tr>
           <?php endforeach; ?>
