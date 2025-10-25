@@ -18,8 +18,7 @@ ob_start();
 <style>
 /* Estilos para o botão de microfone */
 .mic-btn {
-    border: none;
-    background: transparent;
+    /* herda totalmente o estilo do .btn (Bootstrap) */
     color: inherit;
     cursor: pointer;
     padding: 0.5rem;
@@ -232,8 +231,8 @@ ob_start();
                 }
                 
                 // Determinar quais botões mostrar
-                // Exibir o botão de check sempre que NÃO estiver no DR (independente de imprimir/editado)
-                $show_check = ($p['dr'] == 0);
+                // Exibir o botão de check sempre (permite marcar/desmarcar em qualquer estado)
+                $show_check = true;
                 $show_imprimir = ($p['checado'] == 1 && $p['dr'] == 0 && $p['editado'] == 0);
                 $show_dr = !($p['checado'] == 1 || $p['imprimir'] == 1 || $p['editado'] == 1);
                 $show_obs = ($p['dr'] == 0);
