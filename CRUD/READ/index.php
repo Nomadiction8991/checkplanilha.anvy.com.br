@@ -29,11 +29,7 @@ if (!empty($filtro_comum)) {
     $params[':comum'] = '%' . $filtro_comum . '%';
 }
 
-// Aplicar filtro de status
-if (!empty($filtro_status)) {
-    $sql .= " AND status = :status";
-    $params[':status'] = $filtro_status;
-}
+// Filtro de status será aplicado após calcular status_calc (não mais na query SQL)
 
 // Aplicar filtro de ativo/inativo
 if ($filtro_ativo !== 'todos') {
@@ -79,10 +75,8 @@ foreach ($params as $key => $value) {
 $stmt->execute();
 $planilhas = $stmt->fetchAll();
 
-// Buscar valores únicos de status para o select
-$sql_status = "SELECT DISTINCT status FROM planilhas ORDER BY status";
-$stmt_status = $conexao->query($sql_status);
-$status_options = $stmt_status->fetchAll(PDO::FETCH_COLUMN);
+// Status calculados (não mais do banco, mas opções fixas para filtro)
+$status_options = ['Pendente', 'Em Execução', 'Concluído'];
 
 // Calcular status dinâmico por planilha
 foreach ($planilhas as &$pl) {
@@ -98,4 +92,13 @@ foreach ($planilhas as &$pl) {
     }
 }
 unset($pl);
+
+// Aplicar filtro de status calculado (se fornecido)
+if (!empty($filtro_status)) {
+    $planilhas = array_filter($planilhas, function($pl) use ($filtro_status) {
+        return ($pl['status_calc'] ?? '') === $filtro_status;
+    });
+    // Reindexar array após filtro
+    $planilhas = array_values($planilhas);
+}
 ?>
