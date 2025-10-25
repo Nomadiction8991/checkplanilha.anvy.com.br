@@ -46,7 +46,7 @@ ob_start();
 }
 
 /* Cores das linhas baseadas no status */
-.linha-pendente { background-color: #fff3cd; border-left: 4px solid #ffc107; }
+.linha-pendente { background-color: #ffffff; border-left: 4px solid #6c757d; }
 .linha-checado { background-color: #d4edda; border-left: 4px solid #28a745; }
 .linha-observacao { background-color: #fff3e0; border-left: 4px solid #ff9800; }
 .linha-imprimir { background-color: #d1ecf1; border-left: 4px solid #17a2b8; }
@@ -59,7 +59,7 @@ ob_start();
     border: none;
     background: transparent;
     cursor: pointer;
-    opacity: 0.6;
+    opacity: 0.85;
     transition: opacity 0.2s;
 }
 
@@ -191,7 +191,7 @@ ob_start();
 <div class="card mb-3">
     <div class="card-body p-2">
         <div class="d-flex flex-wrap gap-2 justify-content-center small">
-            <span class="badge" style="background-color: #ffc107;">Pendente</span>
+            <span class="badge" style="background-color: #6c757d;">Pendente</span>
             <span class="badge" style="background-color: #28a745;">Checado</span>
             <span class="badge" style="background-color: #ff9800;">Observação</span>
             <span class="badge" style="background-color: #17a2b8;">Para Imprimir</span>
