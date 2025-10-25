@@ -5,6 +5,12 @@ $pageTitle = 'Visualizar Produtos';
 $backUrl = '../shared/menu.php?id=' . urlencode($id_planilha);
 $headerActions = '<a href="./create-produto.php?id=' . urlencode($id_planilha) . '&' . gerarParametrosFiltro(true) . '" class="btn-header-action" title="Novo Produto"><i class="bi bi-plus-lg"></i></a>';
 
+// CSS customizado para garantir exibição dos botões
+$customCss = '
+.btn-group { display: inline-flex !important; }
+.btn-group .btn { display: inline-block !important; visibility: visible !important; }
+';
+
 ob_start();
 ?>
 
@@ -138,11 +144,6 @@ ob_start();
                 <div class="fw-semibold">
                   <?php echo htmlspecialchars($produto['descricao_completa']); ?>
                 </div>
-                <?php if (!empty($produto['dependencia_descricao'])): ?>
-                  <div class="text-muted small">
-                    • <?php echo htmlspecialchars($produto['dependencia_descricao']); ?>
-                  </div>
-                <?php endif; ?>
               </td>
               <td class="text-center">
                 <strong><?php echo htmlspecialchars($produto['quantidade']); ?></strong>
