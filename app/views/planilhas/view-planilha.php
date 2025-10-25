@@ -19,24 +19,25 @@ ob_start();
 /* Estilos para o botão de microfone */
 .mic-btn {
     /* herda totalmente o estilo do .btn (Bootstrap) */
-    color: inherit;
     cursor: pointer;
     padding: 0.5rem;
-    border-radius: 50%;
     transition: all 0.3s ease;
     position: relative;
 }
 
-/* hover padrão virá do Bootstrap quando usado com .btn */
+.mic-btn .material-icons-round {
+    color: white !important;
+    transition: color 0.3s ease;
+}
 
-.mic-btn.listening {
+.mic-btn.listening .material-icons-round {
+    color: #dc3545 !important; /* vermelho quando gravando */
     animation: pulse 1.5s infinite;
-    background: rgba(255, 255, 255, 0.2);
 }
 
 @keyframes pulse {
-    0%, 100% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.1); opacity: 0.8; }
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
 }
 
 .mic-btn .material-icons-round {
