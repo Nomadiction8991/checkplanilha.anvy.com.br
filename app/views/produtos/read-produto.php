@@ -122,7 +122,6 @@ ob_start();
       <thead>
         <tr>
           <th>Produtos</th>
-          <th class="text-center" style="width:110px;">Ações</th>
         </tr>
       </thead>
       <tbody>
@@ -130,40 +129,38 @@ ob_start();
           <?php foreach ($produtos as $produto): ?>
             <tr>
               <td>
-                <div class="d-flex align-items-start gap-2">
-                  <div class="flex-shrink-0">
+                <!-- Linha 1: Descrição -->
+                <div class="fw-semibold mb-2">
+                  <?php echo htmlspecialchars($produto['descricao_completa']); ?>
+                </div>
+                <!-- Linha 2: Status e Ações -->
+                <div class="d-flex justify-content-between align-items-center">
+                  <div class="d-flex gap-1 flex-wrap">
                     <?php if (!empty($produto['codigo'])): ?>
-                      <div class="badge bg-info text-dark mb-1"><?php echo htmlspecialchars($produto['codigo']); ?></div>
+                      <span class="badge bg-info text-dark"><?php echo htmlspecialchars($produto['codigo']); ?></span>
                     <?php endif; ?>
                     <?php if ($produto['possui_nota'] == 1): ?>
-                      <span class="badge bg-warning text-dark mt-1">Nota</span>
+                      <span class="badge bg-warning text-dark">Nota</span>
                     <?php endif; ?>
                     <?php if ($produto['imprimir_14_1'] == 1): ?>
-                      <span class="badge bg-primary mt-1">14.1</span>
+                      <span class="badge bg-primary">14.1</span>
                     <?php endif; ?>
                   </div>
-                  <div class="flex-grow-1">
-                    <div class="fw-semibold">
-                      <?php echo htmlspecialchars($produto['descricao_completa']); ?>
-                    </div>
+                  <div class="btn-group btn-group-sm">
+                    <a class="btn btn-outline-primary" title="Editar" href="./update-produto.php?id_produto=<?php echo $produto['id']; ?>&id=<?php echo $id_planilha; ?>&<?php echo gerarParametrosFiltro(true); ?>">
+                      <i class="bi bi-pencil"></i>
+                    </a>
+                    <a class="btn btn-outline-danger" title="Excluir" href="./delete-produto.php?id_produto=<?php echo $produto['id']; ?>&id=<?php echo $id_planilha; ?>&<?php echo gerarParametrosFiltro(true); ?>">
+                      <i class="bi bi-trash"></i>
+                    </a>
                   </div>
-                </div>
-              </td>
-              <td class="text-center">
-                <div class="btn-group btn-group-sm">
-                  <a class="btn btn-outline-primary" title="Editar" href="./update-produto.php?id_produto=<?php echo $produto['id']; ?>&id=<?php echo $id_planilha; ?>&<?php echo gerarParametrosFiltro(true); ?>">
-                    <i class="bi bi-pencil"></i>
-                  </a>
-                  <a class="btn btn-outline-danger" title="Excluir" href="./delete-produto.php?id_produto=<?php echo $produto['id']; ?>&id=<?php echo $id_planilha; ?>&<?php echo gerarParametrosFiltro(true); ?>">
-                    <i class="bi bi-trash"></i>
-                  </a>
                 </div>
               </td>
             </tr>
           <?php endforeach; ?>
         <?php else: ?>
           <tr>
-            <td colspan="2" class="text-center text-muted py-4">
+            <td class="text-center text-muted py-4">
               <i class="bi bi-inbox fs-1 d-block mb-2"></i>
               <?php echo ($pesquisa_id || $filtro_tipo_ben || $filtro_bem || $filtro_complemento || $filtro_dependencia || $filtro_status)
                 ? 'Nenhum produto encontrado com os filtros aplicados.'
