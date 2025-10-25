@@ -2,7 +2,8 @@
 
 /* Reset e tipografia básica */
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; }
+html, body { height: 100%; overflow-x: hidden; }
+:root { --app-max-width: 400px; }
 body {
     font-family: Arial, Helvetica, sans-serif;
     background: #f5f5f5;
@@ -14,15 +15,11 @@ body {
     justify-content: center;
 }
 
-/* Limita a largura de todos os filhos diretos do body para 400px no desktop
-   e mantém 100% em telas pequenas. Isso evita ter versões separadas desktop/mobile. */
-body > header,
-body > main,
-body > section,
-body > div,
-body > footer {
+/* Limita a largura de TODOS os filhos diretos do body para 400px no desktop
+   e mantém 100% em telas pequenas. */
+body > * {
     width: 100%;
-    max-width: 400px;
+    max-width: var(--app-max-width);
     margin-left: auto;
     margin-right: auto;
 }
@@ -41,12 +38,11 @@ body > footer {
     left: 50%;
     transform: translateX(-50%);
     width: 100%;
-    max-width: 400px;
+    max-width: var(--app-max-width);
     z-index: 1000;
     height: 60px;
 }
-.titulo { display:flex; align-items:center; gap:12px; }
-.titulo { flex: 1 1 auto; }
+.titulo { display:flex; align-items:center; gap:12px; flex: 1 1 auto; }
 .cabecalho h1 { font-size:18px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:220px; }
 .acoes { display:flex; align-items:center; gap:8px; }
 .voltar, .acoes a { display:flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:50%; transition:background-color .3s; }
@@ -77,9 +73,13 @@ input:focus, select:focus, textarea:focus { outline:none; border-color:#007bff; 
 .filtros-content { padding:12px; background:#f8f9fa; border-top:1px solid #eee; border-radius:0 0 6px 6px; display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; }
 
 /* Tabelas padrão */
-table { width:100%; border-collapse:collapse; background:#fff; font-size:13px; }
+table { width:100%; border-collapse:collapse; background:#fff; font-size:13px; table-layout: fixed; }
 thead { background:#007bff; color:#fff; }
-th, td { padding:10px 8px; border-bottom:1px solid #eee; text-align:left; }
+th, td { padding:10px 8px; border-bottom:1px solid #eee; text-align:left; word-break: break-word; overflow-wrap: anywhere; }
+.tabela-container { overflow-x: hidden; }
+
+/* Mídia nunca deve estourar 400px */
+img, video, canvas, svg { max-width: 100%; height: auto; }
 .centered { text-align:center; }
 
 /* Ações e ícones */

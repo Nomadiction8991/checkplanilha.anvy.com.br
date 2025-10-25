@@ -15,21 +15,7 @@ body {
     line-height: 1.4;
 }
 
-.cabecalho {
-    background: #007bff;
-    padding: 12px 15px;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-    height: 60px;
-}
+/* Cabeçalho herda centralização e limite de 400px do base.css */
 
 .titulo {
     display: flex;
@@ -175,7 +161,7 @@ table {
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     font-size: 12px;
-    min-width: 500px;
+    min-width: 0; /* não ultrapassa 400px globais */
 }
 
 /* Cabeçalho visível em mobile */
@@ -559,20 +545,7 @@ td:nth-child(2) {
     }
 }
 
-/* Ajustes para telas muito grandes */
-@media (min-width: 1200px) {
-    .conteudo {
-        max-width: 1200px;
-        margin: 0 auto;
-    }
-    
-    .pesquisa-container {
-        max-width: 1200px;
-        margin-left: auto;
-        margin-right: auto;
-        margin-top: 60px;
-    }
-}
+/* Removido layout amplo; sempre mobile-only */
 
 /* Melhorias de acessibilidade */
 @media (prefers-reduced-motion: reduce) {

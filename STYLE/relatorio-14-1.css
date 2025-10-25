@@ -1,5 +1,4 @@
-
-        @import url('base.css');
+    /* Removido import do base.css para evitar conflito com layout A4/print */
 
         *{
             margin: 0;

@@ -15,52 +15,7 @@ body {
     line-height: 1.4;
 }
 
-.cabecalho {
-    background: #007bff;
-    padding: 12px 15px;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-    height: 60px;
-}
-
-.titulo {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.voltar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    transition: background-color 0.3s;
-    flex-shrink: 0;
-}
-
-.voltar:hover {
-    background-color: rgba(255, 255, 255, 0.2);
-}
-
-.cabecalho h1 {
-    font-size: 18px;
-    font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 200px;
-    flex-shrink: 1;
-}
+/* Cabeçalho herdado do base.css */
 
 /* CONTEÚDO PRINCIPAL */
 .conteudo {
@@ -262,20 +217,7 @@ body {
 
 /* Celulares */
 @media (max-width: 480px) {
-    .cabecalho {
-        padding: 10px 12px;
-        height: 55px;
-    }
-    
-    .cabecalho h1 {
-        font-size: 16px;
-        max-width: 150px;
-    }
-    
-    .voltar {
-        width: 32px;
-        height: 32px;
-    }
+    /* Cabeçalho já responsivo via base.css */
     
     .conteudo {
         padding: 65px 10px 10px 10px;
