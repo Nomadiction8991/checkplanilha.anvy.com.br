@@ -19,6 +19,8 @@ require_once '../CRUD/READ/view-planilha.php';
     <title>Visualizar Planilha - <?php echo htmlspecialchars($planilha['descricao']); ?></title>
     <link rel="stylesheet" href="../STYLE/base.css">
     <link rel="stylesheet" href="../STYLE/view-planilha.css">
+    <!-- Google Material Icons (para ícone de microfone) -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     
 </head>
 <body>
@@ -30,7 +32,9 @@ require_once '../CRUD/READ/view-planilha.php';
             <h1><?php echo htmlspecialchars($planilha['comum']); ?></h1>
         </section>
         <section class="acoes">
-            <button id="btnMic" class="icon-btn" type="button" aria-label="Falar código" title="Falar código (Ctrl+M)">🎤 audio</button>
+            <button id="btnMic" class="mic-btn" type="button" aria-label="Falar código" title="Falar código (Ctrl+M)" aria-pressed="false">
+                <span class="material-icons-round" aria-hidden="true">mic</span>
+            </button>
             <a href="menu.php?id=<?php echo $id_planilha; ?>"> <!-- MUDAR PARA id -->
                 <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF"><path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/></svg>
             </a>
@@ -335,15 +339,16 @@ require_once '../CRUD/READ/view-planilha.php';
   }
 
   // ======== CRIA / POSICIONA O BOTÃO ========
-  let micBtn = document.getElementById('btnMic');
+    let micBtn = document.getElementById('btnMic');
   if(!micBtn){
     micBtn = document.createElement('button');
     micBtn.id = 'btnMic';
-    micBtn.className = 'icon-btn';
+        micBtn.className = 'mic-btn';
     micBtn.type = 'button';
     micBtn.title = 'Falar código (Ctrl+M)';
     micBtn.setAttribute('aria-label','Falar código');
-    micBtn.textContent = '🎤';
+        micBtn.setAttribute('aria-pressed','false');
+        micBtn.innerHTML = '<span class="material-icons-round" aria-hidden="true">mic</span>';
     injetaMicAoLadoDoMenu(micBtn);
   }
 
@@ -420,10 +425,19 @@ require_once '../CRUD/READ/view-planilha.php';
   rec.interimResults = false;
   rec.maxAlternatives = 3;
 
-  function startListening(){
+    function setMicIcon(listening){
+        const icon = micBtn.querySelector('.material-icons-round');
+        if(icon){
+            icon.textContent = listening ? 'graphic_eq' : 'mic';
+        }
+    }
+
+    function startListening(){
     try{
       rec.start();
       micBtn.classList.add('listening');
+            micBtn.setAttribute('aria-pressed','true');
+            setMicIcon(true);
     }catch(e){
       // em alguns navegadores, start() lança se já estiver rodando
     }
@@ -431,6 +445,8 @@ require_once '../CRUD/READ/view-planilha.php';
   function stopListening(){
     try{ rec.stop(); }catch(e){}
     micBtn.classList.remove('listening');
+        micBtn.setAttribute('aria-pressed','false');
+        setMicIcon(false);
   }
 
   rec.onresult = (e) => {

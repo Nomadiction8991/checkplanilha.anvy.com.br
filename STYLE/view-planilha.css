@@ -76,6 +76,50 @@ body {
     background-color: rgba(255, 255, 255, 0.2);
 }
 
+/* Botão de microfone no cabeçalho */
+.acoes .mic-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: transparent;
+    color: #fff;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    transition: background-color 0.25s ease, transform 0.15s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.acoes .mic-btn .material-icons-round {
+    font-size: 22px;
+    line-height: 1;
+}
+.acoes .mic-btn:hover {
+    background: rgba(255, 255, 255, 0.18);
+}
+.acoes .mic-btn:active {
+    transform: scale(0.96);
+}
+.acoes .mic-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.35);
+}
+/* Estado ouvindo: brilho e pulso suave */
+.acoes .mic-btn.listening {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: #cfe3ff;
+    animation: mic-pulse 1.2s infinite;
+}
+.acoes .mic-btn.listening .material-icons-round {
+    /* opcionalmente mudar a cor do ícone enquanto ouve */
+    color: #eaffff;
+}
+@keyframes mic-pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(255,255,255,0.35); }
+    70%  { box-shadow: 0 0 0 10px rgba(255,255,255,0); }
+    100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); }
+}
+
 /* Conteúdo Principal */
 .conteudo {
     padding: 20px;
@@ -477,6 +521,55 @@ td {
     background: #007bff;
     color: #fff;
     border-color: #007bff;
+}
+
+
+/* Estilo para o botão de falar */
+.falar-codigo {
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    text-align: center;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: auto; /* Centraliza na célula */
+}
+
+.falar-codigo svg {
+    color: #007bff;
+    transition: color 0.3s;
+}
+
+.falar-codigo:hover {
+    background-color: #e9ecef;
+    transform: scale(1.1);
+}
+
+.falar-codigo:active {
+    transform: scale(1.05);
+}
+
+.falar-codigo.falando {
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(0, 123, 255, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 123, 255, 0);
+    }
+}
+
+.falar-codigo.falando svg {
+    color: #0056b3;
 }
 
 /* Responsividade */
