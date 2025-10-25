@@ -63,8 +63,10 @@ if (!empty($filtro_dependencia)) {
     $params[':dependencia'] = '%' . $filtro_dependencia . '%';
 }
 if (!empty($filtro_codigo)) {
-    $sql .= " AND p.codigo LIKE :codigo";
-    $params[':codigo'] = '%' . $filtro_codigo . '%';
+    // Normalizar código (remover espaços, traços, barras) para comparação
+    $codigo_normalizado = preg_replace('/[\s\-\/]/', '', $filtro_codigo);
+    $sql .= " AND REPLACE(REPLACE(REPLACE(p.codigo, ' ', ''), '-', ''), '/', '') LIKE :codigo";
+    $params[':codigo'] = '%' . $codigo_normalizado . '%';
 }
 
 // Filtro de status

@@ -106,7 +106,14 @@ ob_start();
 }
 
 .btn-check {
-    /* Mesmo estilo dos outros botões de ação */
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+.btn-check i {
+    display: inline-block !important;
+    font-size: 24px !important;
 }
 
 .edicao-pendente {
@@ -595,12 +602,29 @@ function confirmarImprimir(form, imprimirAtual) {
         <div class="modal-content bg-dark">
             <div class="modal-body p-0 position-relative">
                 <div id="scanner-container" style="width:100%; height:100vh; background:#000; position:relative; overflow:hidden;"></div>
+                
+                <!-- Botão X para fechar -->
                 <button type="button" class="btn-close-scanner" aria-label="Fechar scanner">
                     <i class="bi bi-x-lg"></i>
                 </button>
+                
+                <!-- Controles de câmera e zoom -->
+                <div class="scanner-controls">
+                    <select id="cameraSelect" class="form-select form-select-sm">
+                        <option value="">Carregando câmeras...</option>
+                    </select>
+                    <div class="zoom-control">
+                        <i class="bi bi-zoom-out"></i>
+                        <input type="range" id="zoomSlider" min="1" max="3" step="0.1" value="1" class="form-range">
+                        <i class="bi bi-zoom-in"></i>
+                    </div>
+                </div>
+                
+                <!-- Overlay com moldura e dica -->
                 <div class="scanner-overlay">
                     <div class="scanner-frame"></div>
                     <div class="scanner-hint">Posicione o código de barras dentro da moldura</div>
+                    <div class="scanner-info" id="scannerInfo">Inicializando câmera...</div>
                 </div>
             </div>
         </div>
@@ -716,6 +740,58 @@ function confirmarImprimir(form, imprimirAtual) {
     max-width: 80%;
 }
 
+.scanner-info {
+    color: white;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 8px 16px;
+    border-radius: 6px;
+    margin-top: 10px;
+    font-size: 12px;
+    text-align: center;
+}
+
+/* Controles de câmera e zoom */
+.scanner-controls {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1050;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 90%;
+    max-width: 400px;
+    pointer-events: auto;
+}
+
+.scanner-controls select {
+    background: rgba(255, 255, 255, 0.95);
+    border: none;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 14px;
+}
+
+.zoom-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 10px 15px;
+    border-radius: 8px;
+}
+
+.zoom-control i {
+    color: #333;
+    font-size: 18px;
+}
+
+.zoom-control .form-range {
+    flex: 1;
+    margin: 0;
+}
+
 /* Container de vídeo do Quagga */
 #scanner-container video,
 #scanner-container canvas {
@@ -771,6 +847,9 @@ function initBarcodeScanner() {
     const form = codigoInput ? (codigoInput.form || document.querySelector('form')) : document.querySelector('form');
     const scannerContainer = document.getElementById('scanner-container');
     const btnCloseScanner = document.querySelector('.btn-close-scanner');
+    const cameraSelect = document.getElementById('cameraSelect');
+    const zoomSlider = document.getElementById('zoomSlider');
+    const scannerInfo = document.querySelector('.scanner-info');
     const bsModal = new bootstrap.Modal(modalEl, {
         backdrop: 'static',
         keyboard: false
@@ -778,11 +857,94 @@ function initBarcodeScanner() {
     
     let scanning = false;
     let lastCode = '';
+    let currentStream = null;
+    let currentTrack = null;
+    let availableCameras = [];
+    let selectedDeviceId = null;
+
+    // Função para normalizar códigos (remover espaços, traços, barras)
+    function normalizeCode(code) {
+        return code.replace(/[\s\-\/]/g, '');
+    }
+
+    // Enumerar câmeras disponíveis
+    async function enumerateCameras() {
+        try {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            availableCameras = devices.filter(device => device.kind === 'videoinput');
+            
+            console.log(`📹 ${availableCameras.length} câmera(s) encontrada(s)`);
+            
+            // Limpar e popular dropdown
+            cameraSelect.innerHTML = '';
+            availableCameras.forEach((camera, index) => {
+                const option = document.createElement('option');
+                option.value = camera.deviceId;
+                option.textContent = camera.label || `Câmera ${index + 1}`;
+                cameraSelect.appendChild(option);
+            });
+            
+            // Tentar selecionar câmera traseira como padrão
+            const backCamera = availableCameras.find(cam => 
+                cam.label.toLowerCase().includes('back') || 
+                cam.label.toLowerCase().includes('traseira') ||
+                cam.label.toLowerCase().includes('rear')
+            );
+            
+            if (backCamera) {
+                selectedDeviceId = backCamera.deviceId;
+                cameraSelect.value = selectedDeviceId;
+            } else if (availableCameras.length > 0) {
+                selectedDeviceId = availableCameras[0].deviceId;
+            }
+            
+        } catch (error) {
+            console.error('❌ Erro ao enumerar câmeras:', error);
+        }
+    }
+
+    // Aplicar zoom
+    function applyZoom(zoomLevel) {
+        if (!currentTrack) return;
+        
+        const capabilities = currentTrack.getCapabilities();
+        if (capabilities.zoom) {
+            const settings = currentTrack.getSettings();
+            const maxZoom = capabilities.zoom.max;
+            const minZoom = capabilities.zoom.min;
+            
+            // Mapear slider (1-3) para range da câmera
+            const zoom = minZoom + ((zoomLevel - 1) / 2) * (maxZoom - minZoom);
+            
+            currentTrack.applyConstraints({
+                advanced: [{ zoom: zoom }]
+            }).then(() => {
+                if (scannerInfo) {
+                    scannerInfo.textContent = `Zoom: ${zoomLevel.toFixed(1)}x`;
+                }
+            }).catch(err => {
+                console.warn('⚠️ Zoom não suportado:', err);
+            });
+        } else {
+            console.warn('⚠️ Câmera não suporta zoom');
+            if (scannerInfo) {
+                scannerInfo.textContent = 'Zoom não disponível nesta câmera';
+            }
+        }
+    }
 
     function stopScanner(){
         console.log('🛑 Parando scanner...');
         try{ 
             Quagga.stop(); 
+            
+            // Parar stream de vídeo
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
+            }
+            currentTrack = null;
+            
             // Limpar canvas/video elements
             if(scannerContainer) {
                 while (scannerContainer.firstChild) {
@@ -804,49 +966,71 @@ function initBarcodeScanner() {
         console.log('▶️ Iniciando scanner...');
         scanning = true;
         
+        // Configurar constraints baseado na câmera selecionada
+        const constraints = {
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
+        };
+        
+        if (selectedDeviceId) {
+            constraints.deviceId = { exact: selectedDeviceId };
+        } else {
+            constraints.facingMode = 'environment';
+        }
+        
         Quagga.init({
             inputStream: {
                 type: 'LiveStream',
                 target: scannerContainer,
-                constraints: { 
-                    facingMode: 'environment', // SEMPRE câmera traseira
-                    width: { ideal: 1920 },
-                    height: { ideal: 1080 }
-                }
+                constraints: constraints
             },
             decoder: { 
                 readers: [
-                    'ean_reader',
-                    'code_128_reader',
-                    'code_39_reader',
-                    'upc_reader',
-                    'upc_e_reader',
-                    'ean_8_reader'
+                    'ean_reader',        // EAN-13 (mais comum)
+                    'code_128_reader',   // CODE-128
+                    'ean_8_reader',      // EAN-8
+                    'upc_reader',        // UPC-A
+                    'upc_e_reader'       // UPC-E
                 ],
                 multiple: false
             },
             locate: true,
             locator: {
-                patchSize: 'medium',
-                halfSample: true
-            }
+                patchSize: 'large',    // Maior = mais rápido, menos preciso
+                halfSample: true       // Processar imagem menor = mais rápido
+            },
+            frequency: 10,             // Reduzir frequência de localização = mais rápido
+            numOfWorkers: navigator.hardwareConcurrency || 4
         }, function(err){
             if(err){
                 console.error('❌ Erro ao iniciar scanner:', err);
-                alert('Não foi possível acessar a câmera traseira:\n\n' + err.message + '\n\nVerifique se:\n✓ Você deu permissão para usar a câmera\n✓ O site está em HTTPS (ou localhost)\n✓ A câmera não está sendo usada por outro app');
+                alert('Não foi possível acessar a câmera:\n\n' + err.message + '\n\nVerifique se:\n✓ Você deu permissão para usar a câmera\n✓ O site está em HTTPS (ou localhost)\n✓ A câmera não está sendo usada por outro app');
                 scanning = false;
                 bsModal.hide();
                 return;
             }
             console.log('✅ Scanner iniciado com sucesso!');
             Quagga.start();
+            
+            // Capturar stream para controle de zoom
+            const videoElement = scannerContainer.querySelector('video');
+            if (videoElement && videoElement.srcObject) {
+                currentStream = videoElement.srcObject;
+                const videoTracks = currentStream.getVideoTracks();
+                if (videoTracks.length > 0) {
+                    currentTrack = videoTracks[0];
+                    
+                    // Aplicar zoom inicial
+                    applyZoom(parseFloat(zoomSlider.value));
+                }
+            }
         });
 
         Quagga.offDetected();
         Quagga.onDetected(function(result){
             if(!result || !result.codeResult || !result.codeResult.code) return;
-            const code = result.codeResult.code.trim();
-            if(!code || code === lastCode) return;
+            const rawCode = result.codeResult.code.trim();
+            if(!rawCode || rawCode === lastCode) return;
             
             // Verificar qualidade da leitura (evitar falsos positivos)
             if(result.codeResult.decodedCodes && result.codeResult.decodedCodes.length > 0) {
@@ -855,11 +1039,14 @@ function initBarcodeScanner() {
                 }, 0) / result.codeResult.decodedCodes.length;
                 
                 // Se erro médio muito alto, ignorar
-                if(avgError > 0.15) return;
+                if(avgError > 0.12) return; // Limiar mais rigoroso para velocidade
             }
             
-            console.log('📷 Código detectado:', code);
-            lastCode = code;
+            // Normalizar código (remover espaços, traços, barras)
+            const code = normalizeCode(rawCode);
+            
+            console.log('📷 Código detectado:', rawCode, '→ normalizado:', code);
+            lastCode = rawCode;
             
             // Feedback visual (borda verde)
             const frame = document.querySelector('.scanner-frame');
@@ -881,16 +1068,19 @@ function initBarcodeScanner() {
                 if(form){ 
                     form.requestSubmit ? form.requestSubmit() : form.submit(); 
                 }
-            }, 300);
+            }, 200); // Reduzido de 300ms para 200ms = mais rápido
         });
     }
 
     // ===== EVENTO DO BOTÃO DE CÂMERA =====
-    camBtn.addEventListener('click', function(e){
+    camBtn.addEventListener('click', async function(e){
         console.log('📸 Botão de câmera CLICADO!');
         e.preventDefault();
         e.stopPropagation();
         lastCode = '';
+        
+        // Enumerar câmeras antes de abrir modal
+        await enumerateCameras();
         
         console.log('🎬 Abrindo modal...');
         bsModal.show();
@@ -903,6 +1093,30 @@ function initBarcodeScanner() {
     });
 
     console.log('✅ Event listener da câmera ADICIONADO ao botão');
+    
+    // ===== EVENTO DE MUDANÇA DE CÂMERA =====
+    if (cameraSelect) {
+        cameraSelect.addEventListener('change', function(e) {
+            selectedDeviceId = e.target.value;
+            console.log('📹 Mudando para câmera:', selectedDeviceId);
+            
+            // Reiniciar scanner com nova câmera
+            if (scanning) {
+                stopScanner();
+                setTimeout(() => startScanner(), 300);
+            }
+        });
+        console.log('✅ Event listener de seleção de câmera adicionado');
+    }
+    
+    // ===== EVENTO DE CONTROLE DE ZOOM =====
+    if (zoomSlider) {
+        zoomSlider.addEventListener('input', function(e) {
+            const zoomLevel = parseFloat(e.target.value);
+            applyZoom(zoomLevel);
+        });
+        console.log('✅ Event listener de zoom adicionado');
+    }
 
     // ===== EVENTO DO BOTÃO X =====
     if(btnCloseScanner) {
