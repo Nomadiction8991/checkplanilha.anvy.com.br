@@ -22,6 +22,7 @@ $mostrar_checados_observacao = isset($_GET['mostrar_checados_observacao']);
 $mostrar_dr = isset($_GET['mostrar_dr']);
 $mostrar_etiqueta = isset($_GET['mostrar_etiqueta']);
 $mostrar_alteracoes = isset($_GET['mostrar_alteracoes']);
+$mostrar_novos = isset($_GET['mostrar_novos']);
 $filtro_dependencia = $_GET['dependencia'] ?? '';
 
 try {
@@ -46,7 +47,7 @@ try {
     $dependencia_options = $stmt_dependencias->fetchAll(PDO::FETCH_COLUMN);
 } catch (Exception $e) { $dependencia_options = []; }
 
-$produtos_pendentes = $produtos_checados = $produtos_observacao = $produtos_checados_observacao = $produtos_dr = $produtos_etiqueta = $produtos_alteracoes = [];
+$produtos_pendentes = $produtos_checados = $produtos_observacao = $produtos_checados_observacao = $produtos_dr = $produtos_etiqueta = $produtos_alteracoes = $produtos_novos = [];
 foreach ($todos_produtos as $produto) {
     $tem_observacao = !empty($produto['observacoes']);
     $esta_checado = $produto['checado'] == 1;
@@ -54,6 +55,8 @@ foreach ($todos_produtos as $produto) {
     $esta_etiqueta = $produto['imprimir'] == 1;
     // Usa APENAS a flag editado da tabela produtos_check
     $tem_alteracoes = ($produto['editado'] ?? 0) == 1;
+    // Produto novo = não tem registro em produtos_check (todos os campos são null)
+    $eh_novo = is_null($produto['checado']) && is_null($produto['dr']) && is_null($produto['imprimir']) && is_null($produto['observacoes']) && is_null($produto['editado']);
     
     if ($tem_alteracoes) $produtos_alteracoes[] = $produto;
     elseif ($esta_no_dr) $produtos_dr[] = $produto;
@@ -61,6 +64,7 @@ foreach ($todos_produtos as $produto) {
     elseif ($tem_observacao && $esta_checado) $produtos_checados_observacao[] = $produto;
     elseif ($tem_observacao) $produtos_observacao[] = $produto;
     elseif ($esta_checado) $produtos_checados[] = $produto;
+    elseif ($eh_novo) $produtos_novos[] = $produto;
     else $produtos_pendentes[] = $produto;
 }
 
@@ -71,6 +75,7 @@ $total_checados_observacao = count($produtos_checados_observacao);
 $total_dr = count($produtos_dr);
 $total_etiqueta = count($produtos_etiqueta);
 $total_alteracoes = count($produtos_alteracoes);
+$total_novos = count($produtos_novos);
 $total_geral = count($todos_produtos);
 
 $total_mostrar = 0;
@@ -81,6 +86,7 @@ if ($mostrar_checados_observacao) $total_mostrar += $total_checados_observacao;
 if ($mostrar_dr) $total_mostrar += $total_dr;
 if ($mostrar_etiqueta) $total_mostrar += $total_etiqueta;
 if ($mostrar_alteracoes) $total_mostrar += $total_alteracoes;
+if ($mostrar_novos) $total_mostrar += $total_novos;
 
 // Cabeçalho do layout
 $pageTitle = 'Imprimir Alterações';
@@ -158,6 +164,12 @@ ob_start();
               <label class="form-check-label" for="secAlt">Produtos com alterações (<?php echo $total_alteracoes; ?>)</label>
             </div>
           </div>
+          <div class="col-12">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="secNovos" name="mostrar_novos" value="1" <?php echo $mostrar_novos ? 'checked' : ''; ?>>
+              <label class="form-check-label" for="secNovos">Produtos novos (<?php echo $total_novos; ?>)</label>
+            </div>
+          </div>
         </div>
       </div>
       <div class="col-12">
@@ -202,6 +214,7 @@ ob_start();
       <li><strong>Etiqueta:</strong> <?php echo $total_etiqueta; ?></li>
       <li><strong>Pendentes:</strong> <?php echo $total_pendentes; ?></li>
       <li><strong>Com alterações:</strong> <?php echo $total_alteracoes; ?></li>
+      <li><strong>Novos:</strong> <?php echo $total_novos; ?></li>
       <li class="mt-2"><strong>Total a ser impresso:</strong> <?php echo $total_mostrar; ?> produtos</li>
     </ul>
   </div>
@@ -341,6 +354,28 @@ ob_start();
                   <td><strong><?php echo htmlspecialchars($produto['codigo']); ?></strong></td>
                   <td class="table-info"><?php echo htmlspecialchars($produto['nome']); ?></td>
                   <td><?php echo htmlspecialchars(!empty($produto['dependencia_editada']) ? $produto['dependencia_editada'] : $produto['dependencia']); ?></td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  <?php endif; ?>
+
+  <?php if ($mostrar_novos && $total_novos > 0): ?>
+    <div class="card mb-3">
+      <div class="card-header">Produtos novos (<?php echo $total_novos; ?>)</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm table-striped align-middle mb-0">
+            <thead><tr><th>Código</th><th>Nome</th><th>Dependência</th></tr></thead>
+            <tbody>
+              <?php foreach ($produtos_novos as $produto): ?>
+                <tr>
+                  <td><strong><?php echo htmlspecialchars($produto['codigo']); ?></strong></td>
+                  <td class="table-primary"><?php echo htmlspecialchars($produto['nome']); ?></td>
+                  <td><?php echo htmlspecialchars($produto['dependencia']); ?></td>
                 </tr>
               <?php endforeach; ?>
             </tbody>
