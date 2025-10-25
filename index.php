@@ -28,9 +28,12 @@ ob_start();
 
 <!-- Filtros -->
 <div class="card mb-3">
-    <div class="card-header">
-        <i class="bi bi-funnel me-2"></i>
-        Filtros
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>
+            <i class="bi bi-funnel me-2"></i>
+            Filtros
+        </span>
+        <span class="badge bg-white text-dark"><?php echo count($planilhas ?? []); ?> itens</span>
     </div>
     <div class="card-body">
         <form method="GET" action="">
@@ -252,56 +255,62 @@ let deferredPrompt;
 const installBtn = document.getElementById('installPwaBtn');
 const ambiente = '" . $ambiente . "';
 
-// Detectar se já está instalado (modo standalone)
-if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
-    console.log('PWA já instalado - botão oculto');
+// Mostrar botão APENAS em produção
+if (ambiente !== 'produção') {
+    console.log('Instalação PWA disponível apenas em produção');
     if (installBtn) installBtn.style.display = 'none';
 } else {
-    // Detectar evento de instalação disponível
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
+    // Detectar se já está instalado (modo standalone)
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+        console.log('PWA já instalado - botão oculto');
+        if (installBtn) installBtn.style.display = 'none';
+    } else {
+        // Detectar evento de instalação disponível
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Mostrar botão
+            if (installBtn) {
+                installBtn.style.display = 'inline-block';
+                console.log('Botão de instalação exibido - Ambiente:', ambiente);
+            }
+        });
         
-        // Mostrar botão
+        // Evento de clique no botão
         if (installBtn) {
-            installBtn.style.display = 'inline-block';
-            console.log('Botão de instalação exibido - Ambiente:', ambiente);
+            installBtn.addEventListener('click', async () => {
+                if (!deferredPrompt) {
+                    alert('Instalação não disponível no momento.');
+                    return;
+                }
+                
+                // Mostrar prompt
+                deferredPrompt.prompt();
+                
+                // Aguardar resposta do usuário
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log('Resultado da instalação:', outcome);
+                
+                if (outcome === 'accepted') {
+                    console.log('Usuário aceitou instalar o app - Ambiente:', ambiente);
+                } else {
+                    console.log('Usuário recusou instalar o app');
+                }
+                
+                // Limpar o prompt
+                deferredPrompt = null;
+                installBtn.style.display = 'none';
+            });
         }
-    });
-    
-    // Evento de clique no botão
-    if (installBtn) {
-        installBtn.addEventListener('click', async () => {
-            if (!deferredPrompt) {
-                alert('Instalação não disponível no momento.');
-                return;
-            }
-            
-            // Mostrar prompt
-            deferredPrompt.prompt();
-            
-            // Aguardar resposta do usuário
-            const { outcome } = await deferredPrompt.userChoice;
-            console.log('Resultado da instalação:', outcome);
-            
-            if (outcome === 'accepted') {
-                console.log('Usuário aceitou instalar o app - Ambiente:', ambiente);
-            } else {
-                console.log('Usuário recusou instalar o app');
-            }
-            
-            // Limpar o prompt
+        
+        // Detectar quando foi instalado
+        window.addEventListener('appinstalled', () => {
+            console.log('PWA instalado com sucesso! - Ambiente:', ambiente);
+            if (installBtn) installBtn.style.display = 'none';
             deferredPrompt = null;
-            installBtn.style.display = 'none';
         });
     }
-    
-    // Detectar quando foi instalado
-    window.addEventListener('appinstalled', () => {
-        console.log('PWA instalado com sucesso! - Ambiente:', ambiente);
-        if (installBtn) installBtn.style.display = 'none';
-        deferredPrompt = null;
-    });
 }
 ";
 

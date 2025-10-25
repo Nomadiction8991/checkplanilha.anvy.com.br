@@ -173,9 +173,12 @@ ob_start();
 
 <!-- Filtros -->
 <div class="card mb-3">
-    <div class="card-header">
-        <i class="bi bi-funnel me-2"></i>
-        Filtros
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>
+            <i class="bi bi-funnel me-2"></i>
+            Filtros
+        </span>
+        <span class="badge bg-white text-dark"><?php echo count($produtos ?? []); ?> itens</span>
     </div>
     <div class="card-body">
         <form method="GET" action="">
