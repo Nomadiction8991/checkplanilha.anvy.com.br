@@ -81,6 +81,7 @@ ob_start();
     cursor: pointer;
     opacity: 1;
     transition: all 0.2s;
+    pointer-events: auto !important; /* garante clique mesmo em containers */
 }
 
 .btn-acao:hover {
@@ -322,7 +323,7 @@ ob_start();
                 <div class="acao-container">
                     <!-- Check -->
                     <?php if ($show_check): ?>
-                    <form method="POST" action="../../../CRUD/UPDATE/check-produto.php" style="display: inline;" class="check-form">
+                    <form method="POST" action="/CRUD/UPDATE/check-produto.php" style="display: inline;" class="check-form">
                         <input type="hidden" name="produto_id" value="<?php echo $p['id']; ?>">
                         <input type="hidden" name="id_planilha" value="<?php echo $id_planilha; ?>">
                         <input type="hidden" name="checado" value="<?php echo $p['checado'] ? '0' : '1'; ?>">
@@ -331,7 +332,7 @@ ob_start();
                         <input type="hidden" name="dependencia" value="<?php echo htmlspecialchars($filtro_dependencia ?? ''); ?>">
                         <input type="hidden" name="codigo" value="<?php echo htmlspecialchars($filtro_codigo ?? ''); ?>">
                         <input type="hidden" name="status" value="<?php echo htmlspecialchars($filtro_status ?? ''); ?>">
-                            <button type="submit" class="btn-acao btn-check <?php echo $p['checado'] == 1 ? 'active' : ''; ?>" 
+                <button type="submit" class="btn-acao btn-check <?php echo $p['checado'] == 1 ? 'active' : ''; ?>" 
                                     title="<?php echo $p['checado'] ? 'Desmarcar checado' : 'Marcar como checado'; ?>" 
                                     aria-label="<?php echo $p['checado'] ? 'Desmarcar checado' : 'Marcar como checado'; ?>"
                                     style="display: inline-flex !important; 
@@ -342,7 +343,8 @@ ob_start();
                                            min-height: 40px !important;
                                            background: #d4edda !important;
                                            border-radius: 6px !important;
-                                           border: 2px solid #28a745 !important;">
+                           border: 2px solid #28a745 !important;"
+                    onclick="this.closest('form').requestSubmit ? this.closest('form').requestSubmit() : this.closest('form').submit();">
                 <span style="font-size: 28px; color: #198754; font-weight: bold;">✓</span>
                             </button>
                     </form>
