@@ -28,9 +28,7 @@ ob_start();
     position: relative;
 }
 
-.mic-btn:hover {
-    background: rgba(0, 0, 0, 0.05);
-}
+/* hover padrão virá do Bootstrap quando usado com .btn */
 
 .mic-btn.listening {
     animation: pulse 1.5s infinite;
@@ -124,10 +122,10 @@ ob_start();
                     <input type="text" class="form-control" id="codigo" name="codigo" 
                            value="<?php echo htmlspecialchars($filtro_codigo ?? ''); ?>" 
                            placeholder="Digite, fale ou escaneie o código...">
-                    <button id="btnMic" class="btn btn-outline-secondary mic-btn" type="button" title="Falar código (Ctrl+M)" aria-label="Falar código" aria-pressed="false">
+                    <button id="btnMic" class="btn btn-primary mic-btn" type="button" title="Falar código (Ctrl+M)" aria-label="Falar código" aria-pressed="false">
                         <span class="material-icons-round" aria-hidden="true">mic</span>
                     </button>
-                    <button id="btnCam" class="btn btn-outline-secondary" type="button" title="Escanear código de barras" aria-label="Escanear código de barras">
+                    <button id="btnCam" class="btn btn-primary" type="button" title="Escanear código de barras" aria-label="Escanear código de barras">
                         <i class="bi bi-camera-video" aria-hidden="true"></i>
                     </button>
                 </div>

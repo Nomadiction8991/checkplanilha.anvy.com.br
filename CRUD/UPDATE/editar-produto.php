@@ -23,7 +23,7 @@ if (!$id_produto || !$id_planilha) {
         'status' => $filtro_status,
         'erro' => 'Parâmetros inválidos'
     ]);
-    header('Location: view-planilha.php?' . $query_string);
+    header('Location: ../planilhas/view-planilha.php?' . $query_string);
     exit;
 }
 
@@ -168,6 +168,6 @@ function getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, 
         'codigo' => $filtro_codigo,
         'status' => $filtro_status
     ];
-    return 'view-planilha.php?' . http_build_query($params);
+    return '../planilhas/view-planilha.php?' . http_build_query($params);
 }
 ?>
