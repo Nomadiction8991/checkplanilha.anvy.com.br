@@ -104,7 +104,7 @@ ob_start();
                 <i class="bi bi-circle-fill me-1"></i>
                 Pendente
             </span>
-            <span class="badge bg-warning text-dark">
+            <span class="badge bg-warning text-white">
                 <i class="bi bi-circle-fill me-1"></i>
                 Em Execução
             </span>
@@ -145,7 +145,7 @@ ob_start();
                     // Classe da linha baseada no status (em vez de coluna de status)
                     $row_class = '';
                     if (($planilha['ativo'] ?? 1) == 0) {
-                        $row_class = 'table-secondary'; // Inativa
+                        $row_class = 'table-danger'; // Inativa (vermelho, compatível com a legenda)
                     } else {
                         switch (strtolower($planilha['status'] ?? '')) {
                             case 'concluido':
