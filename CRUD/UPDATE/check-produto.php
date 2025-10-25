@@ -1,5 +1,5 @@
 <?php
-require_once '../conexao.php';
+require_once __DIR__ . '/../conexao.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $produto_id = $_POST['produto_id'] ?? null;
@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     if (!$produto_id || !$id_planilha) {
         $query_string = http_build_query(array_merge(['id' => $id_planilha], $filtros));
-        header('Location: ../../VIEW/view-planilha.php?' . $query_string);
+        header('Location: ../../app/views/planilhas/view-planilha.php?' . $query_string);
         exit;
     }
     
@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $filtros,
                     ['erro' => 'Não é possível desmarcar o check se o produto estiver no DR ou marcado para impressão.']
                 ));
-                header('Location: ../../VIEW/view-planilha.php?' . $query_string);
+                header('Location: ../../app/views/planilhas/view-planilha.php?' . $query_string);
                 exit;
             }
         }
@@ -65,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // Redirecionar de volta mantendo os filtros
         $query_string = http_build_query(array_merge(['id' => $id_planilha], $filtros));
-        header('Location: ../../VIEW/view-planilha.php?' . $query_string);
+        header('Location: ../../app/views/planilhas/view-planilha.php?' . $query_string);
         exit;
         
     } catch (Exception $e) {
@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $filtros,
             ['erro' => 'Erro ao processar check: ' . $e->getMessage()]
         ));
-        header('Location: ../../VIEW/view-planilha.php?' . $query_string);
+        header('Location: ../../app/views/planilhas/view-planilha.php?' . $query_string);
         exit;
     }
 } else {

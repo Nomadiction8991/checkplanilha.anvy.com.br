@@ -1,3 +1,5 @@
+@import url('base.css');
+
 * {
     margin: 0;
     padding: 0;
@@ -11,21 +13,7 @@ body {
     line-height: 1.6;
 }
 
-.cabecalho {
-    background: #007bff;
-    padding: 12px 15px;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-    height: 60px;
-}
+/* Cabeçalho herda comportamento do base.css (centralizado e max 400px) */
 
 .titulo{
     display: flex;
@@ -70,7 +58,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 15px;
-    max-width: 500px;
+    max-width: 100%;
     margin: 0 auto;
 }
 

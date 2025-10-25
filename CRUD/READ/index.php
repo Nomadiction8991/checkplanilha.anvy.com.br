@@ -1,5 +1,5 @@
 <?php
-require_once 'CRUD/conexao.php';
+require_once __DIR__ . '/../conexao.php';
 
 // Parâmetros da paginação
 $pagina = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
@@ -14,7 +14,13 @@ $filtro_data_inicio = isset($_GET['data_inicio']) ? $_GET['data_inicio'] : '';
 $filtro_data_fim = isset($_GET['data_fim']) ? $_GET['data_fim'] : '';
 
 // Construir a query base
-$sql = "SELECT * FROM planilhas WHERE 1=1";
+$sql = "SELECT p.*, 
+    (SELECT COUNT(*) FROM produtos pr WHERE pr.id_planilha = p.id) AS total_produtos,
+    (SELECT COUNT(*) FROM produtos pr 
+       LEFT JOIN produtos_check ck ON pr.id = ck.produto_id 
+       WHERE pr.id_planilha = p.id AND ck.produto_id IS NULL) AS total_pendentes,
+    (SELECT COUNT(*) FROM produtos_cadastro nc WHERE nc.id_planilha = p.id) AS total_novos
+    FROM planilhas p WHERE 1=1";
 $params = [];
 
 // Aplicar filtro de comum
@@ -23,11 +29,7 @@ if (!empty($filtro_comum)) {
     $params[':comum'] = '%' . $filtro_comum . '%';
 }
 
-// Aplicar filtro de status
-if (!empty($filtro_status)) {
-    $sql .= " AND status = :status";
-    $params[':status'] = $filtro_status;
-}
+// Filtro de status será aplicado após calcular status_calc (não mais na query SQL)
 
 // Aplicar filtro de ativo/inativo
 if ($filtro_ativo !== 'todos') {
@@ -73,8 +75,30 @@ foreach ($params as $key => $value) {
 $stmt->execute();
 $planilhas = $stmt->fetchAll();
 
-// Buscar valores únicos de status para o select
-$sql_status = "SELECT DISTINCT status FROM planilhas ORDER BY status";
-$stmt_status = $conexao->query($sql_status);
-$status_options = $stmt_status->fetchAll(PDO::FETCH_COLUMN);
+// Status calculados (não mais do banco, mas opções fixas para filtro)
+$status_options = ['Pendente', 'Em Execução', 'Concluído'];
+
+// Calcular status dinâmico por planilha
+foreach ($planilhas as &$pl) {
+    $total_produtos = (int)($pl['total_produtos'] ?? 0);
+    $total_pendentes = (int)($pl['total_pendentes'] ?? 0);
+    $total_novos = (int)($pl['total_novos'] ?? 0);
+    if ($total_produtos > 0 && $total_pendentes === $total_produtos && $total_novos === 0) {
+        $pl['status_calc'] = 'Pendente';
+    } elseif ($total_produtos > 0 && $total_pendentes === 0) {
+        $pl['status_calc'] = 'Concluído';
+    } else {
+        $pl['status_calc'] = 'Em Execução';
+    }
+}
+unset($pl);
+
+// Aplicar filtro de status calculado (se fornecido)
+if (!empty($filtro_status)) {
+    $planilhas = array_filter($planilhas, function($pl) use ($filtro_status) {
+        return ($pl['status_calc'] ?? '') === $filtro_status;
+    });
+    // Reindexar array após filtro
+    $planilhas = array_values($planilhas);
+}
 ?>

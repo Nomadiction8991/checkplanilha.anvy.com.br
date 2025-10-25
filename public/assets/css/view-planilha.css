@@ -1,4 +1,6 @@
 /* STYLE/view-planilha.css */
+@import url('base.css');
+
 * {
     margin: 0;
     padding: 0;
@@ -22,8 +24,10 @@ body {
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     position: fixed;
     top: 0;
-    left: 0;
-    right: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 400px;
     z-index: 1000;
     height: 60px;
 }
@@ -32,7 +36,8 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
-    width:95%;
+    /* Permite que o título ocupe o espaço restante sem empurrar os botões */
+    flex: 1 1 auto;
 }
 
 .voltar {
@@ -59,6 +64,12 @@ body {
     flex-shrink: 1;
 }
 
+.acoes {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .acoes a {
     display: flex;
     align-items: center;
@@ -72,6 +83,50 @@ body {
 
 .acoes a:hover {
     background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Botão de microfone no cabeçalho */
+.acoes .mic-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: transparent;
+    color: #fff;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    transition: background-color 0.25s ease, transform 0.15s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.acoes .mic-btn .material-icons-round {
+    font-size: 22px;
+    line-height: 1;
+}
+.acoes .mic-btn:hover {
+    background: rgba(255, 255, 255, 0.18);
+}
+.acoes .mic-btn:active {
+    transform: scale(0.96);
+}
+.acoes .mic-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.35);
+}
+/* Estado ouvindo: brilho e pulso suave */
+.acoes .mic-btn.listening {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: #cfe3ff;
+    animation: mic-pulse 1.2s infinite;
+}
+.acoes .mic-btn.listening .material-icons-round {
+    /* opcionalmente mudar a cor do ícone enquanto ouve */
+    color: #eaffff;
+}
+@keyframes mic-pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(255,255,255,0.35); }
+    70%  { box-shadow: 0 0 0 10px rgba(255,255,255,0); }
+    100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); }
 }
 
 /* Conteúdo Principal */
@@ -92,94 +147,129 @@ body {
 }
 
 .form-filtros {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 10px;
-    align-items: end;
-}
-
-.campo-filtro {
     display: flex;
     flex-direction: column;
-}
-
-.campo-filtro label {
-    font-size: 12px;
-    font-weight: 600;
-    margin-bottom: 4px;
-    color: #555;
-}
-
-.campo-filtro input,
-.campo-filtro select {
-    padding: 8px 10px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 14px;
+    gap: 10px;
     width: 100%;
 }
 
-.botao-filtros {
-    grid-column: 1 / -1;
+/* Campo código e botão de filtrar igual index */
+/* Campo de pesquisa igual index */
+/* Campo de pesquisa igual index */
+/* Campo de pesquisa igual index.css */
+.campo-codigo {
     display: flex;
-    justify-content: center;
-    margin-top: 5px;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
 }
-
+.campo-codigo input {
+    flex: 1;
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    min-width: 0;
+    background: #fff;
+    color: #333;
+    transition: border-color 0.2s;
+}
+.campo-codigo input:focus {
+    outline: none;
+    border-color: #007bff;
+}
 .btn-filtrar {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    padding: 10px 20px;
+    padding: 8px;
     background: #007bff;
     color: #fff;
     border: none;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 600;
+    border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.3s;
+    min-width: 40px;
+    height: 40px;
+    font-size: 16px;
 }
-
+.btn-filtrar svg {
+    width: 20px;
+    height: 20px;
+}
 .btn-filtrar:hover {
     background: #0056b3;
 }
 
-/* Legenda */
-.legenda {
+/* Filtros avançados */
+/* Filtros avançados igual index */
+/* Filtros avançados igual index */
+/* Filtros avançados igual index */
+/* Filtros avançados igual index.css */
+.filtros-avancados {
+    width: 100%;
+    margin-top: 5px;
+    border: 1px solid #eee;
+    border-radius: 4px;
     background: #fff;
-    padding: 15px;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
 }
-
-.legenda h3 {
-    margin-bottom: 10px;
-    font-size: 14px;
-    color: #007bff;
-}
-
-.legenda-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 8px;
-}
-
-.legenda-item {
+.filtros-avancados summary {
+    padding: 10px;
+    cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 5px;
+    font-weight: 600;
+    color: #007bff;
+    outline: none;
+    border-radius: 4px;
+    background: transparent;
+}
+.filtros-avancados summary:hover {
+    background: #f5f5f5;
+}
+.filtros-avancados summary::after {
+    content: '▼';
+    transition: transform 0.3s;
     font-size: 12px;
 }
-
-.legenda-cor {
-    width: 15px;
-    height: 15px;
-    border-radius: 3px;
-    border: 1px solid #ccc;
+.filtros-avancados[open] summary::after {
+    transform: rotate(180deg);
 }
+.filtros-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-top: 1px solid #eee;
+    border-radius: 0 0 4px 4px;
+}
+.campo-filtro {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.campo-filtro label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #555;
+}
+.campo-filtro input,
+.campo-filtro select {
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    width: 100%;
+}
+.campo-filtro input:focus,
+.campo-filtro select:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
+
 
 /* Tabela */
 .tabela-container {
@@ -442,17 +532,69 @@ td {
     border-color: #007bff;
 }
 
+
+/* Estilo para o botão de falar */
+.falar-codigo {
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    text-align: center;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: auto; /* Centraliza na célula */
+}
+
+.falar-codigo svg {
+    color: #007bff;
+    transition: color 0.3s;
+}
+
+.falar-codigo:hover {
+    background-color: #e9ecef;
+    transform: scale(1.1);
+}
+
+.falar-codigo:active {
+    transform: scale(1.05);
+}
+
+.falar-codigo.falando {
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(0, 123, 255, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 123, 255, 0);
+    }
+}
+
+.falar-codigo.falando svg {
+    color: #0056b3;
+}
+
 /* Responsividade */
 @media (max-width: 768px) {
     .form-filtros {
-        grid-template-columns: 1fr 1fr;
+        flex-direction: column;
+        gap: 10px;
     }
-    
+    .campo-codigo {
+        flex-direction: row;
+        gap: 8px;
+    }
     .conteudo {
         padding: 15px;
     }
-    
-    .legenda-container {
+    .filtros-content {
         grid-template-columns: 1fr;
     }
 }
@@ -462,37 +604,48 @@ td {
         padding: 10px 12px;
         height: 55px;
     }
-    
     .cabecalho h1 {
         font-size: 16px;
         max-width: 150px;
     }
-    
     .voltar,
     .acoes a {
         width: 32px;
         height: 32px;
     }
-    
     .conteudo {
         margin-top: 55px;
         padding: 10px;
     }
-    
     .form-filtros {
+        flex-direction: column;
+        gap: 10px;
+    }
+    .campo-codigo {
+        flex-direction: row;
+        gap: 8px;
+    }
+    .btn-filtrar {
+        min-width: 36px;
+        height: 36px;
+        padding: 0 8px;
+        font-size: 16px;
+    }
+    .btn-filtrar svg {
+        width: 20px;
+        height: 20px;
+    }
+    .filtros-content {
         grid-template-columns: 1fr;
     }
-    
     .acao-container {
         gap: 4px;
     }
-    
     .btn-acao {
         width: 32px;
         height: 32px;
         padding: 4px;
     }
-    
     .btn-acao svg {
         width: 20px;
         height: 20px;
@@ -501,7 +654,6 @@ td {
         gap: 6px;
         padding: 10px;
     }
-    
     .pagina-item,
     .pagina-atual {
         min-width: 36px;

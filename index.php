@@ -1,164 +1,196 @@
 <?php
 require_once 'CRUD/READ/index.php';
+
+// Detectar ambiente (produção ou desenvolvimento)
+$ambiente = 'produção'; // padrão
+if (strpos($_SERVER['REQUEST_URI'], '/dev/') !== false) {
+    $ambiente = 'desenvolvimento';
+} elseif (strpos($_SERVER['HTTP_HOST'], 'dev.') !== false || strpos($_SERVER['HTTP_HOST'], 'localhost') !== false) {
+    $ambiente = 'desenvolvimento';
+}
+
+// Configurações da página
+$pageTitle = "Anvy - Planilhas";
+$backUrl = null; // Sem botão voltar na home
+$headerActions = '
+    <!-- Botão Instalar PWA (oculto por padrão, JS controla) -->
+    <button id="installPwaBtn" class="btn-header-action" title="Instalar Aplicativo" style="display: none; background: none; border: none; padding: 0; cursor: pointer;">
+        <i class="bi bi-download fs-5"></i>
+    </button>
+    <a href="app/views/planilhas/importar-planilha.php" class="btn-header-action" title="Importar Planilha">
+        <i class="bi bi-plus-lg fs-5"></i>
+    </a>
+';
+
+// Iniciar buffer para capturar o conteúdo
+ob_start();
 ?>
 
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anvy - Listagem de Planilhas</title>
-    <link rel="stylesheet" href="STYLE/index.css">
-    <!-- Meta tags PWA -->
-    <meta name="theme-color" content="#fff"/>
-    <link rel="manifest" href="manifest.json">
+<!-- Filtros -->
+<div class="card mb-3">
+    <div class="card-header">
+        <i class="bi bi-funnel me-2"></i>
+        Filtros
+    </div>
+    <div class="card-body">
+        <form method="GET" action="">
+            <!-- Campo principal -->
+            <div class="mb-3">
+                <label class="form-label" for="comum">
+                    <i class="bi bi-search me-1"></i>
+                    Pesquisar por Comum
+                </label>
+                <input type="text" class="form-control" id="comum" name="comum" 
+                       value="<?php echo htmlspecialchars($filtro_comum ?? ''); ?>" 
+                       placeholder="Digite para buscar...">
+            </div>
 
+            <!-- Filtros Avançados recolhíveis -->
+            <div class="accordion" id="filtrosAvancados">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFiltros">
+                            <i class="bi bi-sliders me-2"></i>
+                            Filtros Avançados
+                        </button>
+                    </h2>
+                    <div id="collapseFiltros" class="accordion-collapse collapse" data-bs-parent="#filtrosAvancados">
+                        <div class="accordion-body">
+                            <div class="mb-3">
+                                <label class="form-label" for="status">
+                                    <i class="bi bi-check-circle me-1"></i>
+                                    Status
+                                </label>
+                                <select class="form-select" id="status" name="status">
+                                    <option value="">Todos</option>
+                                    <?php foreach ($status_options as $status): ?>
+                                        <option value="<?php echo $status; ?>"
+                                            <?php echo ($filtro_status ?? '') === $status ? 'selected' : ''; ?>>
+                                            <?php echo ucfirst($status); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
 
-</head>
-<body>
-    <header class="cabecalho">
-        <section class="titulo">
-            <h1>Anvy</h1>
-        </section>
-        <section class="acoes">
-            <a href="VIEW/importar-planilha.php">
-                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF">
-                    <path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/>
-                </svg>
-            </a>
-        </section>
-    </header>
+                            <div class="mb-3">
+                                <label class="form-label" for="ativo">
+                                    <i class="bi bi-eye me-1"></i>
+                                    Exibir
+                                </label>
+                                <select class="form-select" id="ativo" name="ativo">
+                                    <option value="1" <?php echo ($filtro_ativo ?? '1') === '1' ? 'selected' : ''; ?>>Ativos</option>
+                                    <option value="0" <?php echo ($filtro_ativo ?? '1') === '0' ? 'selected' : ''; ?>>Inativos</option>
+                                    <option value="todos" <?php echo ($filtro_ativo ?? '1') === 'todos' ? 'selected' : ''; ?>>Todos</option>
+                                </select>
+                            </div>
 
-    <!-- Seção de Pesquisa -->
-    <section class="pesquisa-container">
-        <form method="GET" class="form-pesquisa">
-            <div class="campo-pesquisa">
-                <label for="comum">Comum</label>
-                <input type="text" id="comum" name="comum" value="<?php echo htmlspecialchars($filtro_comum ?? ''); ?>" placeholder="Pesquisar comum...">
+                            <div class="mb-2">
+                                <label class="form-label" for="data_inicio">Data Início</label>
+                                <input type="date" class="form-control" id="data_inicio" name="data_inicio" 
+                                       value="<?php echo htmlspecialchars($filtro_data_inicio ?? ''); ?>">
+                            </div>
+                            <div>
+                                <label class="form-label" for="data_fim">Data Fim</label>
+                                <input type="date" class="form-control" id="data_fim" name="data_fim" 
+                                       value="<?php echo htmlspecialchars($filtro_data_fim ?? ''); ?>">
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            
-            <div class="campo-pesquisa">
-                <label for="status">Status</label>
-                <select id="status" name="status">
-                    <option value="">Todos os status</option>
-                    <?php foreach ($status_options as $status): ?>
-                        <option value="<?php echo $status; ?>"
-                            <?php echo ($filtro_status ?? '') === $status ? 'selected' : ''; ?>>
-                            <?php echo ucfirst($status); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            
-            <div class="campo-pesquisa">
-                <label for="ativo">Exibir</label>
-                <select id="ativo" name="ativo">
-                    <option value="1" <?php echo ($filtro_ativo ?? '1') === '1' ? 'selected' : ''; ?>>Apenas Ativos</option>
-                    <option value="0" <?php echo ($filtro_ativo ?? '1') === '0' ? 'selected' : ''; ?>>Apenas Inativos</option>
-                    <option value="todos" <?php echo ($filtro_ativo ?? '1') === 'todos' ? 'selected' : ''; ?>>Todos</option>
-                </select>
-            </div>
-            
-            <!-- Novos campos de data -->
-            <div class="campo-pesquisa">
-                <label for="data_inicio">Data Início</label>
-                <input type="date" id="data_inicio" name="data_inicio" value="<?php echo htmlspecialchars($filtro_data_inicio ?? ''); ?>">
-            </div>
-            
-            <div class="campo-pesquisa">
-                <label for="data_fim">Data Fim</label>
-                <input type="date" id="data_fim" name="data_fim" value="<?php echo htmlspecialchars($filtro_data_fim ?? ''); ?>">
-            </div>
-            
-            <div class="botao-pesquisa">
-                <button type="submit" class="btn-filtrar">
-                    <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#FFFFFF">
-                        <path d="M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z"/>
-                    </svg>
-                    Filtrar
-                </button>
-            </div>
+
+            <button type="submit" class="btn btn-primary w-100 mt-3">
+                <i class="bi bi-search me-2"></i>
+                Filtrar
+            </button>
         </form>
-    </section>
+    </div>
+    <div class="card-footer text-muted small">
+        <?php echo $total_registros ?? 0; ?> registros encontrados no total
+    </div>
+</div>
 
-    <!-- Legenda -->
-    <section class="legenda">
-        <div class="item-legenda">
-            <span class="cor-legenda cor-inativo"></span>
-            <span>Inativo</span>
+<!-- Legenda -->
+<div class="card mb-3">
+    <div class="card-body p-3">
+        <div class="d-flex flex-wrap gap-2 justify-content-center">
+            <span class="badge bg-secondary">Pendente</span>
+            <span class="badge bg-warning text-white">Em Execução</span>
+            <span class="badge bg-success">Concluído</span>
+            <span class="badge bg-danger">Inativo</span>
         </div>
-        <div class="item-legenda">
-            <span class="cor-legenda cor-concluido"></span>
-            <span>Concluído</span>
-        </div>
-        <div class="item-legenda">
-            <span class="cor-legenda cor-pendente"></span>
-            <span>Pendente</span>
-        </div>
-        <div class="item-legenda">
-            <span class="cor-legenda cor-execucao"></span>
-            <span>Em Execução</span>
-        </div>
-    </section>
+    </div>
+</div>
 
-    <section class="conteudo">
-        <table>
+<!-- Listagem -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>
+            <i class="bi bi-file-earmark-spreadsheet me-2"></i>
+            Planilhas
+        </span>
+        <span class="badge bg-white text-dark"><?php echo count($planilhas ?? []); ?> itens</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0">
             <thead>
                 <tr>
-                    <th>Comum</th>
-                    <th>Data Posição</th>
-                    <th>Status</th>
-                    <th>Ações</th>
+                    <th style="width: 55%;">Comum</th>
+                    <th style="width: 20%;" class="text-center">Data</th>
+                    <th style="width: 25%;" class="text-center">Ações</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if (isset($planilhas) && count($planilhas) > 0): ?>
                     <?php foreach ($planilhas as $planilha): ?>
                     <?php
-                    // Determinar as classes CSS baseadas no status e ativo
-                    $classes = [];
-                    if ($planilha['ativo'] == 0) {
-                        $classes[] = 'inativo';
+                    // Classe da linha baseada no status (em vez de coluna de status)
+                    $row_class = '';
+                    if (($planilha['ativo'] ?? 1) == 0) {
+                        $row_class = 'table-danger'; // Inativa (vermelho, compatível com a legenda)
                     } else {
-                        // Aplica cores apenas se estiver ativo
-                        switch (strtolower($planilha['status'])) {
+                        switch (strtolower($planilha['status_calc'] ?? ($planilha['status'] ?? ''))) {
                             case 'concluido':
+                            case 'concluída':
                             case 'concluído':
-                                $classes[] = 'concluido';
-                                break;
-                            case 'pendente':
-                                $classes[] = 'pendente';
+                                $row_class = 'table-success';
                                 break;
                             case 'execucao':
                             case 'em execução':
                             case 'em execucao':
-                                $classes[] = 'execucao';
+                                $row_class = 'table-warning';
+                                break;
+                            case 'pendente':
+                            default:
+                                $row_class = ''; // sem cor especial
                                 break;
                         }
                     }
-                    $class_string = implode(' ', $classes);
-                    
-                    // Formatar data para exibição
+
+                    // Formatar data
                     $data_posicao = '';
                     if (!empty($planilha['data_posicao']) && $planilha['data_posicao'] != '0000-00-00') {
                         $data_posicao = date('d/m/Y', strtotime($planilha['data_posicao']));
                     }
                     ?>
-                    <tr class="<?php echo $class_string; ?>">
-                        <td class="centered"><?php echo htmlspecialchars($planilha['comum']); ?></td>
-                        <td class="centered"><?php echo $data_posicao; ?></td>
-                        <td class="centered"><?php echo ucfirst($planilha['status']); ?></td>
-                        <td class="centered">
-                            <div class="acoes-container">
-                                <a href="VIEW/view-planilha.php?id=<?php echo $planilha['id']; ?>" class="btn-acao btn-visualizar">
-                                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5985E1">
-                                        <path d="M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z"/>
-                                    </svg>
+                    <tr class="<?php echo $row_class; ?>">
+                        <td>
+                            <div class="<?php echo $planilha['ativo'] == 0 ? 'text-muted' : 'fw-semibold'; ?>">
+                                <?php echo htmlspecialchars($planilha['comum']); ?>
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            <small><?php echo $data_posicao; ?></small>
+                        </td>
+                        <td class="text-center">
+                            <div class="btn-group btn-group-sm">
+                                <a href="app/views/planilhas/view-planilha.php?id=<?php echo $planilha['id']; ?>" 
+                                   class="btn btn-outline-primary" title="Visualizar">
+                                    <i class="bi bi-eye"></i>
                                 </a>
-                                <a href="VIEW/editar-planilha.php?id=<?php echo $planilha['id']; ?>" class="btn-acao btn-editar">
-                                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#8C1AF6">
-                                        <path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h357l-80 80H200v560h560v-278l80-80v358q0 33-23.5 56.5T760-120H200Zm280-360ZM360-360v-170l367-367q12-12 27-18t30-6q16 0 30.5 6t26.5 18l56 57q11 12 17 26.5t6 29.5q0 15-5.5 29.5T897-728L530-360H360Zm481-424-56-56 56 56ZM440-440h56l232-232-28-28-29-28-231 231v57Zm260-260-29-28 29 28 28 28-28-28Z"/>
-                                    </svg>
+                                <a href="app/views/planilhas/editar-planilha.php?id=<?php echo $planilha['id']; ?>" 
+                                   class="btn btn-outline-secondary" title="Editar">
+                                    <i class="bi bi-pencil"></i>
                                 </a>
                             </div>
                         </td>
@@ -166,40 +198,124 @@ require_once 'CRUD/READ/index.php';
                     <?php endforeach; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="4" style="text-align: center; padding: 20px;">
-                            Nenhuma planilha encontrada.
+                        <td colspan="4" class="text-center py-4">
+                            <i class="bi bi-inbox fs-1 text-muted d-block mb-2"></i>
+                            <span class="text-muted">Nenhuma planilha encontrada</span>
                         </td>
                     </tr>
                 <?php endif; ?>
             </tbody>
         </table>
+    </div>
+</div>
 
-        <!-- Paginação -->
-        <?php if (isset($total_paginas) && $total_paginas > 1): ?>
-        <div class="paginacao">
-            <?php if ($pagina > 1): ?>
-                <a href="?pagina=<?php echo $pagina - 1; ?>&comum=<?php echo urlencode($filtro_comum ?? ''); ?>&status=<?php echo urlencode($filtro_status ?? ''); ?>&ativo=<?php echo $filtro_ativo ?? '1'; ?>&data_inicio=<?php echo urlencode($filtro_data_inicio ?? ''); ?>&data_fim=<?php echo urlencode($filtro_data_fim ?? ''); ?>" class="pagina-item">
-                    &laquo; Anterior
-                </a>
-            <?php endif; ?>
-
-            <?php for ($i = 1; $i <= $total_paginas; $i++): ?>
-                <?php if ($i == $pagina): ?>
-                    <strong class="pagina-item ativa"><?php echo $i; ?></strong>
-                <?php else: ?>
-                    <a href="?pagina=<?php echo $i; ?>&comum=<?php echo urlencode($filtro_comum ?? ''); ?>&status=<?php echo urlencode($filtro_status ?? ''); ?>&ativo=<?php echo $filtro_ativo ?? '1'; ?>&data_inicio=<?php echo urlencode($filtro_data_inicio ?? ''); ?>&data_fim=<?php echo urlencode($filtro_data_fim ?? ''); ?>" class="pagina-item">
-                        <?php echo $i; ?>
-                    </a>
-                <?php endif; ?>
-            <?php endfor; ?>
-
-            <?php if ($pagina < $total_paginas): ?>
-                <a href="?pagina=<?php echo $pagina + 1; ?>&comum=<?php echo urlencode($filtro_comum ?? ''); ?>&status=<?php echo urlencode($filtro_status ?? ''); ?>&ativo=<?php echo $filtro_ativo ?? '1'; ?>&data_inicio=<?php echo urlencode($filtro_data_inicio ?? ''); ?>&data_fim=<?php echo urlencode($filtro_data_fim ?? ''); ?>" class="pagina-item">
-                    Próxima &raquo;
-                </a>
-            <?php endif; ?>
-        </div>
+<!-- Paginação -->
+<?php if (isset($total_paginas) && $total_paginas > 1): ?>
+<nav aria-label="Navegação de página" class="mt-3">
+    <ul class="pagination pagination-sm justify-content-center mb-0">
+        <?php if ($pagina > 1): ?>
+        <li class="page-item">
+            <a class="page-link" href="?pagina=<?php echo $pagina - 1; ?>&comum=<?php echo urlencode($filtro_comum ?? ''); ?>&status=<?php echo urlencode($filtro_status ?? ''); ?>&ativo=<?php echo $filtro_ativo ?? '1'; ?>&data_inicio=<?php echo urlencode($filtro_data_inicio ?? ''); ?>&data_fim=<?php echo urlencode($filtro_data_fim ?? ''); ?>">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+        </li>
         <?php endif; ?>
-    </section>
-</body>
-</html>
+        
+        <?php for ($i = 1; $i <= $total_paginas; $i++): ?>
+        <li class="page-item <?php echo $i == $pagina ? 'active' : ''; ?>">
+            <a class="page-link" href="?pagina=<?php echo $i; ?>&comum=<?php echo urlencode($filtro_comum ?? ''); ?>&status=<?php echo urlencode($filtro_status ?? ''); ?>&ativo=<?php echo $filtro_ativo ?? '1'; ?>&data_inicio=<?php echo urlencode($filtro_data_inicio ?? ''); ?>&data_fim=<?php echo urlencode($filtro_data_fim ?? ''); ?>">
+                <?php echo $i; ?>
+            </a>
+        </li>
+        <?php endfor; ?>
+        
+        <?php if ($pagina < $total_paginas): ?>
+        <li class="page-item">
+            <a class="page-link" href="?pagina=<?php echo $pagina + 1; ?>&comum=<?php echo urlencode($filtro_comum ?? ''); ?>&status=<?php echo urlencode($filtro_status ?? ''); ?>&ativo=<?php echo $filtro_ativo ?? '1'; ?>&data_inicio=<?php echo urlencode($filtro_data_inicio ?? ''); ?>&data_fim=<?php echo urlencode($filtro_data_fim ?? ''); ?>">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        </li>
+        <?php endif; ?>
+    </ul>
+</nav>
+<?php endif; ?>
+
+<?php
+// Capturar o conteúdo
+$contentHtml = ob_get_clean();
+
+// Criar arquivo temporário com o conteúdo
+file_put_contents(__DIR__ . '/temp_index_content.php', $contentHtml);
+$contentFile = __DIR__ . '/temp_index_content.php';
+
+// JavaScript customizado para controle do botão PWA
+$customJs = "
+let deferredPrompt;
+const installBtn = document.getElementById('installPwaBtn');
+const ambiente = '" . $ambiente . "';
+
+// Mostrar botão APENAS em produção
+if (ambiente !== 'produção') {
+    console.log('Instalação PWA disponível apenas em produção');
+    if (installBtn) installBtn.style.display = 'none';
+} else {
+    // Detectar se já está instalado (modo standalone)
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+        console.log('PWA já instalado - botão oculto');
+        if (installBtn) installBtn.style.display = 'none';
+    } else {
+        // Detectar evento de instalação disponível
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Mostrar botão
+            if (installBtn) {
+                installBtn.style.display = 'inline-block';
+                console.log('Botão de instalação exibido - Ambiente:', ambiente);
+            }
+        });
+        
+        // Evento de clique no botão
+        if (installBtn) {
+            installBtn.addEventListener('click', async () => {
+                if (!deferredPrompt) {
+                    alert('Instalação não disponível no momento.');
+                    return;
+                }
+                
+                // Mostrar prompt
+                deferredPrompt.prompt();
+                
+                // Aguardar resposta do usuário
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log('Resultado da instalação:', outcome);
+                
+                if (outcome === 'accepted') {
+                    console.log('Usuário aceitou instalar o app - Ambiente:', ambiente);
+                } else {
+                    console.log('Usuário recusou instalar o app');
+                }
+                
+                // Limpar o prompt
+                deferredPrompt = null;
+                installBtn.style.display = 'none';
+            });
+        }
+        
+        // Detectar quando foi instalado
+        window.addEventListener('appinstalled', () => {
+            console.log('PWA instalado com sucesso! - Ambiente:', ambiente);
+            if (installBtn) installBtn.style.display = 'none';
+            deferredPrompt = null;
+        });
+    }
+}
+";
+
+// Renderizar o layout
+include __DIR__ . '/app/views/layouts/app-wrapper.php';
+
+// Limpar arquivo temporário
+unlink(__DIR__ . '/temp_index_content.php');
+?>

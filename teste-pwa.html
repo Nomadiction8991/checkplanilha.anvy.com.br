@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste PWA - Check Planilha</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .info { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Diagnóstico PWA</h1>
+    
+    <div class="status info">
+        <strong>ℹ️ Sobre o Botão de Instalação no Header</strong><br>
+        O botão de download (📥) aparece automaticamente no canto superior direito do index.php quando:
+        <ul style="margin: 10px 0; padding-left: 20px;">
+            <li>O navegador detecta que o PWA pode ser instalado</li>
+            <li>O app ainda NÃO está instalado</li>
+            <li>Todos os critérios PWA são atendidos (HTTPS, manifest, service worker)</li>
+        </ul>
+        Se o app já estiver instalado, o botão fica oculto automaticamente.
+    </div>
+    
+    <div id="results"></div>
+    
+    <h3>Ações:</h3>
+    <button onclick="checkManifest()">📄 Verificar Manifest</button>
+    <button onclick="checkServiceWorker()">⚙️ Verificar Service Worker</button>
+    <button onclick="checkInstallPrompt()">📲 Verificar Instalação</button>
+    <button onclick="window.location.href='/index.php'">🏠 Ir para Index</button>
+    
+    <script>
+        const results = document.getElementById('results');
+        
+        function addResult(type, title, message) {
+            results.innerHTML += `
+                <div class="status ${type}">
+                    <strong>${title}</strong><br>
+                    ${message}
+                </div>
+            `;
+        }
+        
+        // Verificações automáticas ao carregar
+        window.addEventListener('load', () => {
+            // 1. HTTPS
+            if (location.protocol === 'https:' || location.hostname === 'localhost') {
+                addResult('success', '✅ HTTPS/Localhost', 'Protocolo seguro detectado');
+            } else {
+                addResult('error', '❌ HTTPS', 'PWA requer HTTPS em produção!');
+            }
+            
+            // 2. Service Worker Support
+            if ('serviceWorker' in navigator) {
+                addResult('success', '✅ Service Worker', 'Navegador suporta Service Workers');
+            } else {
+                addResult('error', '❌ Service Worker', 'Navegador NÃO suporta Service Workers');
+            }
+            
+            // 3. Manifest
+            const manifestLink = document.querySelector('link[rel="manifest"]');
+            if (manifestLink) {
+                addResult('success', '✅ Manifest Link', `Encontrado: ${manifestLink.href}`);
+            } else {
+                addResult('error', '❌ Manifest Link', 'Tag <link rel="manifest"> não encontrada no HTML');
+            }
+            
+            // 4. beforeinstallprompt
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                addResult('success', '✅ Instalável', 'Navegador detectou que o app pode ser instalado!');
+                window.deferredPrompt = e;
+            });
+        });
+        
+        async function checkManifest() {
+            try {
+                const response = await fetch('/manifest.json');
+                const manifest = await response.json();
+                addResult('success', '📄 Manifest Carregado', `<pre>${JSON.stringify(manifest, null, 2)}</pre>`);
+            } catch (error) {
+                addResult('error', '❌ Erro no Manifest', error.message);
+            }
+        }
+        
+        async function checkServiceWorker() {
+            if ('serviceWorker' in navigator) {
+                try {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    if (registrations.length > 0) {
+                        addResult('success', '⚙️ Service Worker Registrado', 
+                            `Encontrados: ${registrations.length}<br>` +
+                            `Scope: ${registrations[0].scope}`
+                        );
+                    } else {
+                        addResult('info', 'ℹ️ Service Worker', 'Nenhum SW registrado ainda. Recarregue a página.');
+                    }
+                } catch (error) {
+                    addResult('error', '❌ Erro SW', error.message);
+                }
+            }
+        }
+        
+        function checkInstallPrompt() {
+            if (window.deferredPrompt) {
+                addResult('success', '📲 Prompt Disponível', 'O app PODE ser instalado agora!');
+                window.deferredPrompt.prompt();
+            } else {
+                addResult('info', 'ℹ️ Prompt', 
+                    'Prompt de instalação não disponível.<br>' +
+                    'Possíveis motivos:<br>' +
+                    '• App já instalado<br>' +
+                    '• Navegador não suporta<br>' +
+                    '• Critérios de instalação não atendidos'
+                );
+            }
+        }
+    </script>
+</body>
+</html>

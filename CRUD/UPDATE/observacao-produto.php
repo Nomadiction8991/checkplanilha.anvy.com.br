@@ -1,5 +1,5 @@
 <?php
-require_once '../CRUD/conexao.php';
+require_once __DIR__ . '/../conexao.php';
 
 // Receber parâmetros via GET - AGORA USANDO ID
 $id_produto = $_GET['id_produto'] ?? null;
@@ -23,7 +23,7 @@ if (!$id_produto || !$id_planilha) {
         'status' => $filtro_status,
         'erro' => 'Parâmetros inválidos para acessar a página'
     ]);
-    header('Location: view-planilha.php?' . $query_string);
+    header('Location: ../planilhas/view-planilha.php?' . $query_string);
     exit;
 }
 
@@ -113,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'status' => $filtro_status,
             'sucesso' => 'Observações salvas com sucesso!'
         ]);
-        header('Location: view-planilha.php?' . $query_string);
+    header('Location: ../planilhas/view-planilha.php?' . $query_string);
         exit;
         
     } catch (Exception $e) {
@@ -133,6 +133,6 @@ function getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, 
         'codigo' => $filtro_codigo,
         'status' => $filtro_status
     ];
-    return 'view-planilha.php?' . http_build_query($params);
+    return '../planilhas/view-planilha.php?' . http_build_query($params);
 }
 ?>
