@@ -234,7 +234,8 @@ ob_start();
                 }
                 
                 // Determinar quais botões mostrar
-                $show_check = ($p['dr'] == 0 && $p['imprimir'] == 0 && $p['editado'] == 0);
+                // Exibir o botão de check sempre que NÃO estiver no DR (independente de imprimir/editado)
+                $show_check = ($p['dr'] == 0);
                 $show_imprimir = ($p['checado'] == 1 && $p['dr'] == 0 && $p['editado'] == 0);
                 $show_dr = !($p['checado'] == 1 || $p['imprimir'] == 1 || $p['editado'] == 1);
                 $show_obs = ($p['dr'] == 0);
@@ -283,8 +284,9 @@ ob_start();
                         <input type="hidden" name="dependencia" value="<?php echo htmlspecialchars($filtro_dependencia ?? ''); ?>">
                         <input type="hidden" name="codigo" value="<?php echo htmlspecialchars($filtro_codigo ?? ''); ?>">
                         <input type="hidden" name="status" value="<?php echo htmlspecialchars($filtro_status ?? ''); ?>">
-                        <button type="submit" class="btn-acao btn-check <?php echo $p['checado'] == 1 ? 'active' : ''; ?>" title="Check">
-                            <i class="bi bi-check-square-fill" style="color: #28a745; font-size: 24px;"></i>
+                        <button type="submit" class="btn-acao btn-check <?php echo $p['checado'] == 1 ? 'active' : ''; ?>" 
+                                title="<?php echo $p['checado'] ? 'Desmarcar checado' : 'Marcar como checado'; ?>" aria-label="<?php echo $p['checado'] ? 'Desmarcar checado' : 'Marcar como checado'; ?>">
+                            <i class="bi bi-check-square-fill" style="color: #198754; font-size: 24px;"></i>
                         </button>
                     </form>
                     <?php endif; ?>
