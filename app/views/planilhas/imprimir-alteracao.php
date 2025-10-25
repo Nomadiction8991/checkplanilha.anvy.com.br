@@ -26,7 +26,9 @@ $mostrar_novos = isset($_GET['mostrar_novos']);
 $filtro_dependencia = $_GET['dependencia'] ?? '';
 
 try {
-  $sql_produtos = "SELECT p.*, pc.checado, pc.dr, pc.imprimir, pc.observacoes, pc.editado, pc.nome as nome_editado, pc.dependencia as dependencia_editada 
+    // Buscar produtos da planilha importada (tabela produtos)
+    $sql_produtos = "SELECT p.*, pc.checado, pc.dr, pc.imprimir, pc.observacoes, pc.editado, pc.nome as nome_editado, pc.dependencia as dependencia_editada,
+                     'planilha' as origem
                      FROM produtos p 
                      LEFT JOIN produtos_check pc ON p.id = pc.produto_id 
                      WHERE p.id_planilha = :id_planilha";
@@ -37,6 +39,23 @@ try {
     foreach ($params as $k => $v) { $stmt_produtos->bindValue($k, $v); }
     $stmt_produtos->execute();
     $todos_produtos = $stmt_produtos->fetchAll();
+    
+    // Buscar produtos novos cadastrados manualmente (tabela produtos_cadastro)
+    $sql_novos = "SELECT pc.id, pc.id_planilha, pc.descricao_completa as nome, '' as codigo, pc.complemento as dependencia, 
+                  pc.quantidade, pc.tipo_ben, pc.imprimir_14_1 as imprimir_cadastro, 'cadastro' as origem,
+                  NULL as checado, NULL as dr, NULL as imprimir, NULL as observacoes, NULL as editado, NULL as nome_editado, NULL as dependencia_editada
+                  FROM produtos_cadastro pc 
+                  WHERE pc.id_planilha = :id_planilha";
+    $params_novos = [':id_planilha' => $id_planilha];
+    if (!empty($filtro_dependencia)) { $sql_novos .= " AND pc.complemento LIKE :dependencia"; $params_novos[':dependencia'] = '%' . $filtro_dependencia . '%'; }
+    $sql_novos .= " ORDER BY pc.id";
+    $stmt_novos = $conexao->prepare($sql_novos);
+    foreach ($params_novos as $k => $v) { $stmt_novos->bindValue($k, $v); }
+    $stmt_novos->execute();
+    $produtos_cadastrados = $stmt_novos->fetchAll();
+    
+    // Combinar ambos os arrays
+    $todos_produtos = array_merge($todos_produtos, $produtos_cadastrados);
 } catch (Exception $e) { die("Erro ao carregar produtos: " . $e->getMessage()); }
 
 try {
@@ -49,14 +68,21 @@ try {
 
 $produtos_pendentes = $produtos_checados = $produtos_observacao = $produtos_checados_observacao = $produtos_dr = $produtos_etiqueta = $produtos_alteracoes = $produtos_novos = [];
 foreach ($todos_produtos as $produto) {
+    // Produtos novos = vindos da tabela produtos_cadastro
+    if (($produto['origem'] ?? '') === 'cadastro') {
+        $produtos_novos[] = $produto;
+        continue;
+    }
+    
+    // Produtos da planilha importada (tabela produtos)
     $tem_observacao = !empty($produto['observacoes']);
     $esta_checado = $produto['checado'] == 1;
     $esta_no_dr = $produto['dr'] == 1;
     $esta_etiqueta = $produto['imprimir'] == 1;
     // Usa APENAS a flag editado da tabela produtos_check
     $tem_alteracoes = ($produto['editado'] ?? 0) == 1;
-    // Produto novo = não tem registro em produtos_check (todos os campos são null)
-    $eh_novo = is_null($produto['checado']) && is_null($produto['dr']) && is_null($produto['imprimir']) && is_null($produto['observacoes']) && is_null($produto['editado']);
+    // Pendente = não tem registro em produtos_check (todos os campos são null)
+    $eh_pendente = is_null($produto['checado']) && is_null($produto['dr']) && is_null($produto['imprimir']) && is_null($produto['observacoes']) && is_null($produto['editado']);
     
     if ($tem_alteracoes) $produtos_alteracoes[] = $produto;
     elseif ($esta_no_dr) $produtos_dr[] = $produto;
@@ -64,7 +90,7 @@ foreach ($todos_produtos as $produto) {
     elseif ($tem_observacao && $esta_checado) $produtos_checados_observacao[] = $produto;
     elseif ($tem_observacao) $produtos_observacao[] = $produto;
     elseif ($esta_checado) $produtos_checados[] = $produto;
-    elseif ($eh_novo) $produtos_novos[] = $produto;
+    elseif ($eh_pendente) $produtos_pendentes[] = $produto;
     else $produtos_pendentes[] = $produto;
 }
 
@@ -365,17 +391,17 @@ ob_start();
 
   <?php if ($mostrar_novos && $total_novos > 0): ?>
     <div class="card mb-3">
-      <div class="card-header">Produtos novos (<?php echo $total_novos; ?>)</div>
+      <div class="card-header">Produtos novos cadastrados (<?php echo $total_novos; ?>)</div>
       <div class="card-body p-0">
         <div class="table-responsive">
           <table class="table table-sm table-striped align-middle mb-0">
-            <thead><tr><th>Código</th><th>Nome</th><th>Dependência</th></tr></thead>
+            <thead><tr><th>Descrição</th><th>Quantidade</th><th>Complemento</th></tr></thead>
             <tbody>
               <?php foreach ($produtos_novos as $produto): ?>
                 <tr>
-                  <td><strong><?php echo htmlspecialchars($produto['codigo']); ?></strong></td>
-                  <td class="table-primary"><?php echo htmlspecialchars($produto['nome']); ?></td>
-                  <td><?php echo htmlspecialchars($produto['dependencia']); ?></td>
+                  <td class="table-success"><strong><?php echo htmlspecialchars($produto['nome']); ?></strong></td>
+                  <td><?php echo htmlspecialchars($produto['quantidade'] ?? '—'); ?></td>
+                  <td><?php echo htmlspecialchars($produto['dependencia'] ?? '—'); ?></td>
                 </tr>
               <?php endforeach; ?>
             </tbody>
