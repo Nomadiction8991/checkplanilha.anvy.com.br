@@ -171,54 +171,54 @@ ob_start();
     <form method="GET" class="row g-3">
       <input type="hidden" name="id" value="<?php echo $id_planilha; ?>">
       <div class="col-12">
-        <label class="form-label">Seções a incluir</label>
+  <label class="form-label">Seções a incluir</label>
         <div class="row g-2">
           <div class="col-12">
             <div class="form-check">
               <input class="form-check-input" type="checkbox" id="secPend" name="mostrar_pendentes" value="1" <?php echo $mostrar_pendentes ? 'checked' : ''; ?>>
-              <label class="form-check-label" for="secPend">Produtos pendentes (<?php echo $total_pendentes; ?>)</label>
+              <label class="form-check-label" for="secPend">Pendentes (<?php echo $total_pendentes; ?>)</label>
             </div>
           </div>
           <div class="col-12">
             <div class="form-check">
               <input class="form-check-input" type="checkbox" id="secChec" name="mostrar_checados" value="1" <?php echo $mostrar_checados ? 'checked' : ''; ?>>
-              <label class="form-check-label" for="secChec">Produtos checados (<?php echo $total_checados; ?>)</label>
+              <label class="form-check-label" for="secChec">Checados (<?php echo $total_checados; ?>)</label>
             </div>
           </div>
           <div class="col-12">
             <div class="form-check">
               <input class="form-check-input" type="checkbox" id="secObs" name="mostrar_observacao" value="1" <?php echo $mostrar_observacao ? 'checked' : ''; ?>>
-              <label class="form-check-label" for="secObs">Produtos com observação (<?php echo $total_observacao; ?>)</label>
+              <label class="form-check-label" for="secObs">Com Observação (<?php echo $total_observacao; ?>)</label>
             </div>
           </div>
           <div class="col-12">
             <div class="form-check">
               <input class="form-check-input" type="checkbox" id="secChecObs" name="mostrar_checados_observacao" value="1" <?php echo $mostrar_checados_observacao ? 'checked' : ''; ?>>
-              <label class="form-check-label" for="secChecObs">Checados + observação (<?php echo $total_checados_observacao; ?>)</label>
+              <label class="form-check-label" for="secChecObs">Checados com Observação (<?php echo $total_checados_observacao; ?>)</label>
             </div>
           </div>
           <div class="col-12">
             <div class="form-check">
               <input class="form-check-input" type="checkbox" id="secDR" name="mostrar_dr" value="1" <?php echo $mostrar_dr ? 'checked' : ''; ?>>
-              <label class="form-check-label" for="secDR">Produtos no DR (<?php echo $total_dr; ?>)</label>
+              <label class="form-check-label" for="secDR">Devolução (DR) (<?php echo $total_dr; ?>)</label>
             </div>
           </div>
           <div class="col-12">
             <div class="form-check">
               <input class="form-check-input" type="checkbox" id="secEtiq" name="mostrar_etiqueta" value="1" <?php echo $mostrar_etiqueta ? 'checked' : ''; ?>>
-              <label class="form-check-label" for="secEtiq">Produtos com etiqueta (<?php echo $total_etiqueta; ?>)</label>
+              <label class="form-check-label" for="secEtiq">Para Etiqueta (<?php echo $total_etiqueta; ?>)</label>
             </div>
           </div>
           <div class="col-12">
             <div class="form-check">
               <input class="form-check-input" type="checkbox" id="secAlt" name="mostrar_alteracoes" value="1" <?php echo $mostrar_alteracoes ? 'checked' : ''; ?>>
-              <label class="form-check-label" for="secAlt">Produtos com alterações (<?php echo $total_alteracoes; ?>)</label>
+              <label class="form-check-label" for="secAlt">Editados (<?php echo $total_alteracoes; ?>)</label>
             </div>
           </div>
           <div class="col-12">
             <div class="form-check">
               <input class="form-check-input" type="checkbox" id="secNovos" name="mostrar_novos" value="1" <?php echo $mostrar_novos ? 'checked' : ''; ?>>
-              <label class="form-check-label" for="secNovos">Produtos novos (<?php echo $total_novos; ?>)</label>
+              <label class="form-check-label" for="secNovos">Cadastrados Novos (<?php echo $total_novos; ?>)</label>
             </div>
           </div>
         </div>
@@ -243,11 +243,24 @@ ob_start();
 <div class="card mb-3">
   <div class="card-body text-center">
     <h5 class="mb-1 text-gradient">RELATÓRIO DE ALTERAÇÕES</h5>
-    <div class="text-muted">Planilha: <?php echo htmlspecialchars($planilha['descricao']); ?></div>
+    <div class="text-muted">Planilha: <?php echo htmlspecialchars($planilha['comum']); ?></div>
     <div class="small text-muted">Gerado em <?php echo date('d/m/Y H:i:s'); ?></div>
   </div>
   <div class="card-footer">
-    <div><strong>Status:</strong> <?php echo ucfirst($planilha['status']); ?></div>
+    <?php
+      // Status dinâmico da planilha com base nos totais
+      if ($total_pendentes === $total_geral && $total_novos === 0) {
+        $status_calc = 'Pendente';
+        $badge = 'secondary';
+      } elseif ($total_pendentes === 0) {
+        $status_calc = 'Concluída';
+        $badge = 'success';
+      } else {
+        $status_calc = 'Em Execução';
+        $badge = 'warning text-dark';
+      }
+    ?>
+    <div><strong>Status:</strong> <span class="badge bg-<?php echo $badge; ?>"><?php echo $status_calc; ?></span></div>
   </div>
   </div>
 
@@ -332,7 +345,7 @@ ob_start();
 
   <?php if ($mostrar_pendentes && $total_pendentes > 0): ?>
     <div class="card mb-3">
-      <div class="card-header">Produtos pendentes (<?php echo $total_pendentes; ?>)</div>
+      <div class="card-header">Pendentes (<?php echo $total_pendentes; ?>)</div>
       <div class="card-body p-0">
         <div class="table-responsive">
           <table class="table table-sm table-striped align-middle mb-0">
@@ -388,17 +401,16 @@ ob_start();
 
   <?php if ($mostrar_dr && $total_dr > 0): ?>
     <div class="card mb-3">
-      <div class="card-header">Produtos no DR (<?php echo $total_dr; ?>)</div>
+      <div class="card-header">Devolução (DR) (<?php echo $total_dr; ?>)</div>
       <div class="card-body p-0">
         <div class="table-responsive">
           <table class="table table-sm table-striped align-middle mb-0">
-            <thead><tr><th>Código</th><th>Nome</th><th>Dependência</th></tr></thead>
+            <thead><tr><th>Código</th><th>Nome</th></tr></thead>
             <tbody>
             <?php foreach ($produtos_dr as $produto): ?>
               <tr>
                 <td><strong><?php echo htmlspecialchars($produto['codigo']); ?></strong></td>
                 <td class="table-danger"><?php echo htmlspecialchars($produto['nome']); ?></td>
-                <td><?php echo htmlspecialchars(!empty($produto['dependencia_editada']) ? $produto['dependencia_editada'] : $produto['dependencia']); ?></td>
               </tr>
             <?php endforeach; ?>
             </tbody>
@@ -410,17 +422,16 @@ ob_start();
 
   <?php if ($mostrar_etiqueta && $total_etiqueta > 0): ?>
     <div class="card mb-3">
-      <div class="card-header">Produtos com etiqueta (<?php echo $total_etiqueta; ?>)</div>
+      <div class="card-header">Para Etiqueta (<?php echo $total_etiqueta; ?>)</div>
       <div class="card-body p-0">
         <div class="table-responsive">
           <table class="table table-sm table-striped align-middle mb-0">
-            <thead><tr><th>Código</th><th>Nome</th><th>Dependência</th></tr></thead>
+            <thead><tr><th>Código</th><th>Nome</th></tr></thead>
             <tbody>
               <?php foreach ($produtos_etiqueta as $produto): ?>
                 <tr>
                   <td><strong><?php echo htmlspecialchars($produto['codigo']); ?></strong></td>
-                  <td class="table-info"><?php echo htmlspecialchars($produto['nome']); ?></td>
-                  <td><?php echo htmlspecialchars(!empty($produto['dependencia_editada']) ? $produto['dependencia_editada'] : $produto['dependencia']); ?></td>
+                <td class="table-success"><?php echo htmlspecialchars($produto['nome']); ?></td>
                 </tr>
               <?php endforeach; ?>
             </tbody>
@@ -432,17 +443,16 @@ ob_start();
 
   <?php if ($mostrar_novos && $total_novos > 0): ?>
     <div class="card mb-3">
-      <div class="card-header">Produtos novos cadastrados (<?php echo $total_novos; ?>)</div>
+      <div class="card-header">Cadastrados Novos (<?php echo $total_novos; ?>)</div>
       <div class="card-body p-0">
         <div class="table-responsive">
           <table class="table table-sm table-striped align-middle mb-0">
-            <thead><tr><th>Descrição</th><th>Quantidade</th><th>Complemento</th></tr></thead>
+            <thead><tr><th>Descrição Completa</th><th class="text-center">Quantidade</th></tr></thead>
             <tbody>
               <?php foreach ($produtos_novos as $produto): ?>
                 <tr>
                   <td class="table-success"><strong><?php echo htmlspecialchars($produto['nome']); ?></strong></td>
-                  <td><?php echo htmlspecialchars($produto['quantidade'] ?? '—'); ?></td>
-                  <td><?php echo htmlspecialchars($produto['dependencia'] ?? '—'); ?></td>
+                  <td class="text-center"><?php echo htmlspecialchars($produto['quantidade'] ?? '—'); ?></td>
                 </tr>
               <?php endforeach; ?>
             </tbody>

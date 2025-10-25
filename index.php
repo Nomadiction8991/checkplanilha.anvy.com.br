@@ -147,8 +147,9 @@ ob_start();
                     if (($planilha['ativo'] ?? 1) == 0) {
                         $row_class = 'table-danger'; // Inativa (vermelho, compatível com a legenda)
                     } else {
-                        switch (strtolower($planilha['status'] ?? '')) {
+                        switch (strtolower($planilha['status_calc'] ?? ($planilha['status'] ?? ''))) {
                             case 'concluido':
+                            case 'concluída':
                             case 'concluído':
                                 $row_class = 'table-success';
                                 break;
