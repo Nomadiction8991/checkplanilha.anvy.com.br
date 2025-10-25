@@ -323,7 +323,7 @@ ob_start();
                 <div class="acao-container">
                     <!-- Check -->
                     <?php if ($show_check): ?>
-                    <form method="POST" action="/CRUD/UPDATE/check-produto.php" style="display: inline;" class="check-form">
+                    <form method="POST" action="./check-produto.php" style="display: inline;" class="check-form">
                         <input type="hidden" name="produto_id" value="<?php echo $p['id']; ?>">
                         <input type="hidden" name="id_planilha" value="<?php echo $id_planilha; ?>">
                         <input type="hidden" name="checado" value="<?php echo $p['checado'] ? '0' : '1'; ?>">
