@@ -22,6 +22,7 @@ ob_start();
     </div>
     <div class="card-body">
         <form method="GET" action="">
+            <!-- Campo principal -->
             <div class="mb-3">
                 <label class="form-label" for="comum">
                     <i class="bi bi-search me-1"></i>
@@ -31,47 +32,46 @@ ob_start();
                        value="<?php echo htmlspecialchars($filtro_comum ?? ''); ?>" 
                        placeholder="Digite para buscar...">
             </div>
-            
-            <div class="row g-2">
-                <div class="col-6">
-                    <label class="form-label" for="status">
-                        <i class="bi bi-check-circle me-1"></i>
-                        Status
-                    </label>
-                    <select class="form-select" id="status" name="status">
-                        <option value="">Todos</option>
-                        <?php foreach ($status_options as $status): ?>
-                            <option value="<?php echo $status; ?>"
-                                <?php echo ($filtro_status ?? '') === $status ? 'selected' : ''; ?>>
-                                <?php echo ucfirst($status); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                
-                <div class="col-6">
-                    <label class="form-label" for="ativo">
-                        <i class="bi bi-eye me-1"></i>
-                        Exibir
-                    </label>
-                    <select class="form-select" id="ativo" name="ativo">
-                        <option value="1" <?php echo ($filtro_ativo ?? '1') === '1' ? 'selected' : ''; ?>>Ativos</option>
-                        <option value="0" <?php echo ($filtro_ativo ?? '1') === '0' ? 'selected' : ''; ?>>Inativos</option>
-                        <option value="todos" <?php echo ($filtro_ativo ?? '1') === 'todos' ? 'selected' : ''; ?>>Todos</option>
-                    </select>
-                </div>
-            </div>
-            
-            <div class="accordion mt-3" id="filtrosAvancados">
+
+            <!-- Filtros Avançados recolhíveis -->
+            <div class="accordion" id="filtrosAvancados">
                 <div class="accordion-item">
                     <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseData">
-                            <i class="bi bi-calendar me-2"></i>
-                            Filtrar por Data
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFiltros">
+                            <i class="bi bi-sliders me-2"></i>
+                            Filtros Avançados
                         </button>
                     </h2>
-                    <div id="collapseData" class="accordion-collapse collapse" data-bs-parent="#filtrosAvancados">
+                    <div id="collapseFiltros" class="accordion-collapse collapse" data-bs-parent="#filtrosAvancados">
                         <div class="accordion-body">
+                            <div class="mb-3">
+                                <label class="form-label" for="status">
+                                    <i class="bi bi-check-circle me-1"></i>
+                                    Status
+                                </label>
+                                <select class="form-select" id="status" name="status">
+                                    <option value="">Todos</option>
+                                    <?php foreach ($status_options as $status): ?>
+                                        <option value="<?php echo $status; ?>"
+                                            <?php echo ($filtro_status ?? '') === $status ? 'selected' : ''; ?>>
+                                            <?php echo ucfirst($status); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label" for="ativo">
+                                    <i class="bi bi-eye me-1"></i>
+                                    Exibir
+                                </label>
+                                <select class="form-select" id="ativo" name="ativo">
+                                    <option value="1" <?php echo ($filtro_ativo ?? '1') === '1' ? 'selected' : ''; ?>>Ativos</option>
+                                    <option value="0" <?php echo ($filtro_ativo ?? '1') === '0' ? 'selected' : ''; ?>>Inativos</option>
+                                    <option value="todos" <?php echo ($filtro_ativo ?? '1') === 'todos' ? 'selected' : ''; ?>>Todos</option>
+                                </select>
+                            </div>
+
                             <div class="mb-2">
                                 <label class="form-label" for="data_inicio">Data Início</label>
                                 <input type="date" class="form-control" id="data_inicio" name="data_inicio" 
@@ -86,13 +86,14 @@ ob_start();
                     </div>
                 </div>
             </div>
-            
+
             <button type="submit" class="btn btn-primary w-100 mt-3">
                 <i class="bi bi-search me-2"></i>
                 Filtrar
             </button>
         </form>
     </div>
+    
 </div>
 
 <!-- Legenda -->
@@ -132,49 +133,42 @@ ob_start();
         <table class="table table-hover table-sm mb-0">
             <thead>
                 <tr>
-                    <th style="width: 35%;">Comum</th>
-                    <th style="width: 25%;" class="text-center">Data</th>
-                    <th style="width: 20%;" class="text-center">Status</th>
-                    <th style="width: 20%;" class="text-center">Ações</th>
+                    <th style="width: 55%;">Comum</th>
+                    <th style="width: 20%;" class="text-center">Data</th>
+                    <th style="width: 25%;" class="text-center">Ações</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if (isset($planilhas) && count($planilhas) > 0): ?>
                     <?php foreach ($planilhas as $planilha): ?>
                     <?php
-                    // Determinar badge de status
-                    $badge_class = 'secondary';
-                    $status_text = ucfirst($planilha['status']);
-                    
-                    if ($planilha['ativo'] == 0) {
-                        $badge_class = 'danger';
-                        $status_text = 'Inativo';
+                    // Classe da linha baseada no status (em vez de coluna de status)
+                    $row_class = '';
+                    if (($planilha['ativo'] ?? 1) == 0) {
+                        $row_class = 'table-secondary'; // Inativa
                     } else {
-                        switch (strtolower($planilha['status'])) {
+                        switch (strtolower($planilha['status'] ?? '')) {
                             case 'concluido':
                             case 'concluído':
-                                $badge_class = 'success';
-                                $status_text = 'Concluído';
-                                break;
-                            case 'pendente':
-                                $badge_class = 'secondary';
+                                $row_class = 'table-success';
                                 break;
                             case 'execucao':
                             case 'em execução':
                             case 'em execucao':
-                                $badge_class = 'warning text-dark';
-                                $status_text = 'Em Execução';
+                                $row_class = 'table-warning';
+                                break;
+                            case 'pendente':
+                            default:
+                                $row_class = ''; // sem cor especial
                                 break;
                         }
                     }
-                    
+
                     // Formatar data
                     $data_posicao = '';
                     if (!empty($planilha['data_posicao']) && $planilha['data_posicao'] != '0000-00-00') {
                         $data_posicao = date('d/m/Y', strtotime($planilha['data_posicao']));
                     }
-                    
-                    $row_class = $planilha['ativo'] == 0 ? 'table-secondary' : '';
                     ?>
                     <tr class="<?php echo $row_class; ?>">
                         <td>
@@ -184,9 +178,6 @@ ob_start();
                         </td>
                         <td class="text-center">
                             <small><?php echo $data_posicao; ?></small>
-                        </td>
-                        <td class="text-center">
-                            <span class="badge bg-<?php echo $badge_class; ?>"><?php echo $status_text; ?></span>
                         </td>
                         <td class="text-center">
                             <div class="btn-group btn-group-sm">
