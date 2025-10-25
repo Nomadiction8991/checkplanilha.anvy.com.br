@@ -27,7 +27,7 @@ try {
 
 $dependencia_selecionada = $_GET['dependencia'] ?? '';
 
-// Produtos marcados para imprimir
+// Produtos marcados para imprimir (produtos checados)
 try {
     $sql_produtos = "SELECT p.codigo, p.dependencia 
                      FROM produtos p 
@@ -42,6 +42,27 @@ try {
     if (!empty($dependencia_selecionada)) { $stmt_produtos->bindValue(':dependencia', $dependencia_selecionada); }
     $stmt_produtos->execute();
     $produtos = $stmt_produtos->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Buscar também produtos cadastrados (novos) com código preenchido
+    $sql_novos = "SELECT pc.codigo, d.descricao as dependencia
+                  FROM produtos_cadastro pc
+                  LEFT JOIN dependencias d ON pc.id_dependencia = d.id
+                  WHERE pc.id_planilha = :id_planilha 
+                  AND pc.codigo IS NOT NULL 
+                  AND pc.codigo != ''";
+    if (!empty($dependencia_selecionada)) {
+        $sql_novos .= " AND d.descricao = :dependencia";
+    }
+    $sql_novos .= " ORDER BY pc.codigo";
+    $stmt_novos = $conexao->prepare($sql_novos);
+    $stmt_novos->bindValue(':id_planilha', $id_planilha);
+    if (!empty($dependencia_selecionada)) { $stmt_novos->bindValue(':dependencia', $dependencia_selecionada); }
+    $stmt_novos->execute();
+    $produtos_novos = $stmt_novos->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Combinar produtos checados e novos
+    $produtos = array_merge($produtos, $produtos_novos);
+    
     $codigos = array_column($produtos, 'codigo');
     $produtos_sem_espacos = array_map(fn($c) => str_replace(' ', '', $c), $codigos);
     $codigos_concatenados = implode(',', $produtos_sem_espacos);
@@ -67,7 +88,9 @@ ob_start();
     Códigos para Impressão de Etiquetas
   </div>
   <div class="card-body">
-    <p class="text-muted small mb-3">Lista com os códigos dos produtos marcados como "Para Imprimir" nesta planilha.</p>
+    <p class="text-muted small mb-3">
+      Lista com os códigos dos produtos marcados como "Para Imprimir" e dos produtos novos cadastrados com código preenchido.
+    </p>
 
     <?php if (!empty($dependencias)): ?>
       <div class="mb-3">
@@ -112,11 +135,11 @@ ob_start();
       </div>
     <?php else: ?>
       <div class="alert alert-warning mt-3 text-center">
-        <strong>Nenhum produto marcado para impressão.</strong>
+        <strong>Nenhum produto disponível para etiquetas.</strong>
         <?php if (!empty($dependencia_selecionada)): ?>
-          <div class="small">Não há produtos marcados na dependência "<?php echo htmlspecialchars($dependencia_selecionada); ?>".</div>
+          <div class="small">Não há produtos marcados ou cadastrados com código na dependência "<?php echo htmlspecialchars($dependencia_selecionada); ?>".</div>
         <?php else: ?>
-          <div class="small">Volte e marque itens com o ícone de etiqueta 🏷️ para vê-los aqui.</div>
+          <div class="small">Marque produtos com o ícone de etiqueta 🏷️ ou cadastre produtos com código preenchido.</div>
         <?php endif; ?>
       </div>
     <?php endif; ?>

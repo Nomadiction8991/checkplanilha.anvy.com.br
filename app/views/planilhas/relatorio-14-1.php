@@ -11,7 +11,7 @@ require_once __DIR__ . '/../../../CRUD/READ/relatorio-14-1.php';
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Parisienne&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../../public/assets/css/relatorio-14-1.css">
+    <link rel="stylesheet" href="/dev/public/assets/css/relatorio-14-1.css">
 </head>
 <body>
     <!-- Inputs para valores que se repetem em todos os documentos -->
