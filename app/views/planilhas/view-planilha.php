@@ -432,8 +432,14 @@ function confirmarImprimir(form, imprimirAtual) {
 
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if(!SR){
-    micBtn.style.display = 'none';
-    return;
+        micBtn.setAttribute('aria-disabled', 'true');
+        micBtn.title = 'Reconhecimento de voz não suportado neste navegador';
+        const iconNF = micBtn.querySelector('.material-icons-round');
+        if(iconNF){ iconNF.textContent = 'mic_off'; }
+        micBtn.addEventListener('click', () => {
+            alert('Reconhecimento de voz não é suportado neste navegador. Use o botão de câmera ou digite o código.');
+        });
+        return;
   }
 
   const DIGITOS = {
