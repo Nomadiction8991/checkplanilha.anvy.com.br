@@ -79,18 +79,37 @@ ob_start();
     border: none;
     background: transparent;
     cursor: pointer;
-    opacity: 0.85;
-    transition: opacity 0.2s;
+    opacity: 1;
+    transition: all 0.2s;
 }
 
-.btn-acao:hover,
+.btn-acao:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
 .btn-acao.active {
     opacity: 1;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 0.25rem;
 }
 
 .btn-acao svg {
     width: 24px;
     height: 24px;
+}
+
+/* Garantir visibilidade do botão check */
+.btn-check,
+.check-form {
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+.btn-check i {
+    display: inline-block !important;
+    visibility: visible !important;
 }
 
 .edicao-pendente {
@@ -304,8 +323,9 @@ ob_start();
                         <input type="hidden" name="status" value="<?php echo htmlspecialchars($filtro_status ?? ''); ?>">
                         <button type="submit" class="btn-acao btn-check <?php echo $p['checado'] == 1 ? 'active' : ''; ?>" 
                                 title="<?php echo $p['checado'] ? 'Desmarcar checado' : 'Marcar como checado'; ?>" 
-                                aria-label="<?php echo $p['checado'] ? 'Desmarcar checado' : 'Marcar como checado'; ?>">
-                            <i class="bi bi-check-square-fill" style="color: #198754; font-size: 24px;"></i>
+                                aria-label="<?php echo $p['checado'] ? 'Desmarcar checado' : 'Marcar como checado'; ?>"
+                                style="display: inline-block !important; visibility: visible !important;">
+                            <i class="bi bi-check-square-fill" style="color: #198754 !important; font-size: 24px !important;"></i>
                         </button>
                     </form>
                     <?php else: ?>
