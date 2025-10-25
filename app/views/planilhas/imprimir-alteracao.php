@@ -52,10 +52,9 @@ foreach ($todos_produtos as $produto) {
     $esta_checado = $produto['checado'] == 1;
     $esta_no_dr = $produto['dr'] == 1;
     $esta_etiqueta = $produto['imprimir'] == 1;
-  // Considera como "alterações" se a flag editado estiver ativa ou se houver diferença de campos
-  $tem_alteracoes = ($produto['editado'] ?? 0) == 1;
-    if (!empty($produto['nome_editado']) && $produto['nome_editado'] != $produto['nome']) { $tem_alteracoes = true; }
-    if (!empty($produto['dependencia_editada']) && $produto['dependencia_editada'] != $produto['dependencia']) { $tem_alteracoes = true; }
+    // Usa APENAS a flag editado da tabela produtos_check
+    $tem_alteracoes = ($produto['editado'] ?? 0) == 1;
+    
     if ($tem_alteracoes) $produtos_alteracoes[] = $produto;
     elseif ($esta_no_dr) $produtos_dr[] = $produto;
     elseif ($esta_etiqueta) $produtos_etiqueta[] = $produto;
@@ -217,18 +216,31 @@ ob_start();
           <table class="table table-sm table-striped align-middle mb-0">
             <thead>
               <tr>
-                <th>Código</th><th>Nome Original</th><th>Novo Nome</th><th>Dependência Original</th><th>Nova Dependência</th><th>Observações</th>
+                <th>Código</th>
+                <th>Nome</th>
+                <th>Edições</th>
               </tr>
             </thead>
             <tbody>
             <?php foreach ($produtos_alteracoes as $produto): ?>
+              <?php
+                // Construir texto de edições
+                $edicoes = [];
+                if (!empty($produto['nome_editado']) && $produto['nome_editado'] != $produto['nome']) {
+                    $edicoes[] = '<strong>Nome:</strong> ' . htmlspecialchars($produto['nome']) . ' → ' . htmlspecialchars($produto['nome_editado']);
+                }
+                if (!empty($produto['dependencia_editada']) && $produto['dependencia_editada'] != $produto['dependencia']) {
+                    $edicoes[] = '<strong>Dep:</strong> ' . htmlspecialchars($produto['dependencia']) . ' → ' . htmlspecialchars($produto['dependencia_editada']);
+                }
+                if (empty($edicoes)) {
+                    $edicoes[] = '<em class="text-muted">Produto marcado como editado</em>';
+                }
+                $edicoes_texto = implode('<br>', $edicoes);
+              ?>
               <tr>
                 <td><strong><?php echo htmlspecialchars($produto['codigo']); ?></strong></td>
                 <td><?php echo htmlspecialchars($produto['nome']); ?></td>
-                <td class="table-warning fw-semibold"><?php echo htmlspecialchars($produto['nome_editado'] ?? ''); ?></td>
-                <td><?php echo htmlspecialchars($produto['dependencia']); ?></td>
-                <td class="table-warning fw-semibold"><?php echo htmlspecialchars($produto['dependencia_editada'] ?? ''); ?></td>
-                <td class="table-warning fst-italic"><?php echo htmlspecialchars($produto['observacoes'] ?? ''); ?></td>
+                <td class="table-warning"><?php echo $edicoes_texto; ?></td>
               </tr>
             <?php endforeach; ?>
             </tbody>
