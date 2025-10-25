@@ -34,7 +34,8 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
-    width:95%;
+    /* Permite que o título ocupe o espaço restante sem empurrar os botões */
+    flex: 1 1 auto;
 }
 
 .voltar {
@@ -59,6 +60,12 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     flex-shrink: 1;
+}
+
+.acoes {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .acoes a {
