@@ -321,12 +321,20 @@ ob_start();
                         <input type="hidden" name="dependencia" value="<?php echo htmlspecialchars($filtro_dependencia ?? ''); ?>">
                         <input type="hidden" name="codigo" value="<?php echo htmlspecialchars($filtro_codigo ?? ''); ?>">
                         <input type="hidden" name="status" value="<?php echo htmlspecialchars($filtro_status ?? ''); ?>">
-                        <button type="submit" class="btn-acao btn-check <?php echo $p['checado'] == 1 ? 'active' : ''; ?>" 
-                                title="<?php echo $p['checado'] ? 'Desmarcar checado' : 'Marcar como checado'; ?>" 
-                                aria-label="<?php echo $p['checado'] ? 'Desmarcar checado' : 'Marcar como checado'; ?>"
-                                style="display: inline-block !important; visibility: visible !important;">
-                            <i class="bi bi-check-square-fill" style="color: #198754 !important; font-size: 24px !important;"></i>
-                        </button>
+                            <button type="submit" class="btn-acao btn-check <?php echo $p['checado'] == 1 ? 'active' : ''; ?>" 
+                                    title="<?php echo $p['checado'] ? 'Desmarcar checado' : 'Marcar como checado'; ?>" 
+                                    aria-label="<?php echo $p['checado'] ? 'Desmarcar checado' : 'Marcar como checado'; ?>"
+                                    style="display: inline-flex !important; 
+                                           visibility: visible !important; 
+                                           align-items: center !important; 
+                                           justify-content: center !important;
+                                           min-width: 40px !important;
+                                           min-height: 40px !important;
+                                           background: #d4edda !important;
+                                           border-radius: 6px !important;
+                                           border: 2px solid #28a745 !important;">
+                <span style="font-size: 28px; color: #198754; font-weight: bold;">✓</span>
+                            </button>
                     </form>
                     <?php else: ?>
                     <!-- DEBUG: show_check é FALSE -->
