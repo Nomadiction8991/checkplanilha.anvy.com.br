@@ -100,22 +100,10 @@ ob_start();
 <div class="card mb-3">
     <div class="card-body p-3">
         <div class="d-flex flex-wrap gap-2 justify-content-center">
-            <span class="badge bg-secondary">
-                <i class="bi bi-circle-fill me-1"></i>
-                Pendente
-            </span>
-            <span class="badge bg-warning text-white">
-                <i class="bi bi-circle-fill me-1"></i>
-                Em Execução
-            </span>
-            <span class="badge bg-success">
-                <i class="bi bi-circle-fill me-1"></i>
-                Concluído
-            </span>
-            <span class="badge bg-danger">
-                <i class="bi bi-circle-fill me-1"></i>
-                Inativo
-            </span>
+            <span class="badge bg-secondary">Pendente</span>
+            <span class="badge bg-warning text-white">Em Execução</span>
+            <span class="badge bg-success">Concluído</span>
+            <span class="badge bg-danger">Inativo</span>
         </div>
     </div>
 </div>

@@ -6,9 +6,6 @@ require_once __DIR__ . '/../../../CRUD/READ/view-planilha.php';
 $pageTitle = htmlspecialchars($planilha['comum'] ?? 'Visualizar Planilha');
 $backUrl = '../../../index.php';
 $headerActions = '
-    <button id="btnMic" class="btn-header-action mic-btn" type="button" title="Falar código (Ctrl+M)" aria-label="Falar código" aria-pressed="false">
-        <span class="material-icons-round" aria-hidden="true">mic</span>
-    </button>
     <a href="../shared/menu.php?id=' . $id_planilha . '" class="btn-header-action" title="Menu">
         <i class="bi bi-list fs-5"></i>
     </a>
@@ -23,7 +20,7 @@ ob_start();
 .mic-btn {
     border: none;
     background: transparent;
-    color: white;
+    color: inherit;
     cursor: pointer;
     padding: 0.5rem;
     border-radius: 50%;
@@ -32,7 +29,7 @@ ob_start();
 }
 
 .mic-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.05);
 }
 
 .mic-btn.listening {
@@ -126,9 +123,12 @@ ob_start();
                 <div class="input-group">
                     <input type="text" class="form-control" id="codigo" name="codigo" 
                            value="<?php echo htmlspecialchars($filtro_codigo ?? ''); ?>" 
-                           placeholder="Digite ou fale o código...">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-search"></i>
+                           placeholder="Digite, fale ou escaneie o código...">
+                    <button id="btnMic" class="btn btn-outline-secondary mic-btn" type="button" title="Falar código (Ctrl+M)" aria-label="Falar código" aria-pressed="false">
+                        <span class="material-icons-round" aria-hidden="true">mic</span>
+                    </button>
+                    <button id="btnCam" class="btn btn-outline-secondary" type="button" title="Escanear código de barras" aria-label="Escanear código de barras">
+                        <i class="bi bi-camera-video" aria-hidden="true"></i>
                     </button>
                 </div>
             </div>
@@ -176,14 +176,15 @@ ob_start();
                                 </select>
                             </div>
                             
-                            <button type="submit" class="btn btn-primary w-100">
-                                <i class="bi bi-search me-2"></i>
-                                Filtrar
-                            </button>
+                            
                         </div>
                     </div>
                 </div>
             </div>
+            <button type="submit" class="btn btn-primary w-100 mt-2">
+                <i class="bi bi-search me-2"></i>
+                Filtrar
+            </button>
         </form>
     </div>
 </div>
@@ -542,6 +543,94 @@ function confirmarImprimir(form, imprimirAtual) {
       micBtn.click();
     }
   });
+})();
+</script>
+
+<!-- Modal para escanear código de barras -->
+<div class="modal fade" id="barcodeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Escanear código de barras</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <div id="scanner-container" style="width:100%; min-height:240px; background:#000; position:relative; overflow:hidden;"></div>
+                <div class="small text-muted mt-2">Aponte a câmera para o código de barras. Suporta EAN, CODE128, CODE39, UPC…</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            </div>
+        </div>
+    </div>
+  
+</div>
+
+<!-- Quagga2 para leitura de códigos de barras -->
+<script src="https://unpkg.com/@ericblade/quagga2/dist/quagga.min.js"></script>
+<script>
+(function(){
+    const camBtn = document.getElementById('btnCam');
+    const modalEl = document.getElementById('barcodeModal');
+    if(!camBtn || !modalEl || !window.bootstrap) return;
+    const codigoInput = document.getElementById('codigo');
+    const form = codigoInput ? (codigoInput.form || document.querySelector('form')) : document.querySelector('form');
+    const scannerContainer = document.getElementById('scanner-container');
+    const bsModal = new bootstrap.Modal(modalEl);
+    let scanning = false;
+    let lastCode = '';
+
+    function stopScanner(){
+        try{ Quagga.stop(); }catch(e){}
+        scanning = false;
+    }
+
+    function startScanner(){
+        if(scanning) return;
+        scanning = true;
+        Quagga.init({
+            inputStream: {
+                type: 'LiveStream',
+                target: scannerContainer,
+                constraints: { facingMode: 'environment' }
+            },
+            decoder: { readers: ['ean_reader','code_128_reader','code_39_reader','upc_reader','upc_e_reader','ean_8_reader'] },
+            locate: true
+        }, function(err){
+            if(err){
+                alert('Não foi possível acessar a câmera: ' + err.message);
+                scanning = false;
+                return;
+            }
+            Quagga.start();
+        });
+
+        Quagga.offDetected();
+        Quagga.onDetected(function(result){
+            if(!result || !result.codeResult || !result.codeResult.code) return;
+            const code = result.codeResult.code.trim();
+            if(!code || code === lastCode) return;
+            lastCode = code;
+            stopScanner();
+            bsModal.hide();
+            if(codigoInput){
+                codigoInput.value = code;
+                codigoInput.dispatchEvent(new Event('input',{bubbles:true}));
+                codigoInput.dispatchEvent(new Event('change',{bubbles:true}));
+            }
+            if(form){ form.requestSubmit ? form.requestSubmit() : form.submit(); }
+        });
+    }
+
+    camBtn.addEventListener('click', function(){
+        lastCode = '';
+        bsModal.show();
+        setTimeout(startScanner, 250);
+    });
+
+    modalEl.addEventListener('hidden.bs.modal', function(){
+        stopScanner();
+    });
 })();
 </script>
 
