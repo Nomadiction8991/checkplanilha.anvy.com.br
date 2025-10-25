@@ -100,16 +100,26 @@ ob_start();
 }
 
 /* Garantir visibilidade do botão check */
-.btn-check,
-.check-form {
-    display: inline-block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
+.check-form { display: inline-block !important; }
+.btn-check {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    background: #d4edda !important;
+    border: 2px solid #28a745 !important;
+    border-radius: 6px !important;
+    z-index: 1;
+    position: relative;
+    order: -10; /* garantir que aparece primeiro nas ações */
 }
-
-.btn-check i {
-    display: inline-block !important;
-    visibility: visible !important;
+.btn-check::before {
+    content: '✓';
+    color: #198754;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1;
 }
 
 .edicao-pendente {
