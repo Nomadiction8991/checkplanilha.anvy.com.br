@@ -23,6 +23,15 @@ ob_start();
     padding: 0.5rem;
     transition: all 0.3s ease;
     position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mic-btn:focus,
+.mic-btn:active {
+    transform: none !important;
+    box-shadow: none !important;
 }
 
 .mic-btn .material-icons-round {
@@ -38,6 +47,17 @@ ob_start();
 @keyframes pulse {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.15); }
+}
+
+/* Garantir que botões do input-group não se movam */
+.input-group .btn {
+    transform: none !important;
+}
+
+.input-group .btn:hover,
+.input-group .btn:focus,
+.input-group .btn:active {
+    transform: none !important;
 }
 
 .mic-btn .material-icons-round {
@@ -692,9 +712,24 @@ function confirmarImprimir(form, imprimirAtual) {
 <script src="https://unpkg.com/@ericblade/quagga2/dist/quagga.min.js"></script>
 <script>
 (function(){
+    console.log('=== SCRIPT CAMERA INICIANDO ===');
+    
     const camBtn = document.getElementById('btnCam');
     const modalEl = document.getElementById('barcodeModal');
-    if(!camBtn || !modalEl || !window.bootstrap) return;
+    
+    console.log('btnCam:', camBtn);
+    console.log('modalEl:', modalEl);
+    console.log('bootstrap:', window.bootstrap);
+    console.log('Quagga:', typeof Quagga);
+    
+    if(!camBtn || !modalEl || !window.bootstrap) {
+        console.error('ERRO: Elementos não encontrados!', {
+            camBtn: !!camBtn,
+            modalEl: !!modalEl,
+            bootstrap: !!window.bootstrap
+        });
+        return;
+    }
     
     const codigoInput = document.getElementById('codigo');
     const form = codigoInput ? (codigoInput.form || document.querySelector('form')) : document.querySelector('form');
@@ -709,6 +744,7 @@ function confirmarImprimir(form, imprimirAtual) {
     let lastCode = '';
 
     function stopScanner(){
+        console.log('Parando scanner...');
         try{ 
             Quagga.stop(); 
             // Limpar canvas/video elements
@@ -723,7 +759,11 @@ function confirmarImprimir(form, imprimirAtual) {
     }
 
     function startScanner(){
-        if(scanning) return;
+        if(scanning) {
+            console.log('Scanner já está ativo');
+            return;
+        }
+        console.log('Iniciando scanner...');
         scanning = true;
         
         Quagga.init({
@@ -760,6 +800,7 @@ function confirmarImprimir(form, imprimirAtual) {
                 bsModal.hide();
                 return;
             }
+            console.log('Scanner iniciado com sucesso!');
             Quagga.start();
         });
 
@@ -779,6 +820,7 @@ function confirmarImprimir(form, imprimirAtual) {
                 if(avgError > 0.15) return;
             }
             
+            console.log('Código detectado:', code);
             lastCode = code;
             
             // Feedback visual/sonoro
@@ -806,16 +848,24 @@ function confirmarImprimir(form, imprimirAtual) {
     }
 
     // Evento do botão de câmera
-    camBtn.addEventListener('click', function(){
+    camBtn.addEventListener('click', function(e){
+        console.log('Botão de câmera clicado!');
+        e.preventDefault();
+        e.stopPropagation();
         lastCode = '';
         bsModal.show();
         // Dar tempo para o modal abrir antes de iniciar câmera
         setTimeout(startScanner, 400);
     });
 
+    console.log('Event listener da câmera adicionado');
+
     // Evento do botão X customizado
     if(btnCloseScanner) {
-        btnCloseScanner.addEventListener('click', function(){
+        btnCloseScanner.addEventListener('click', function(e){
+            console.log('Botão X clicado');
+            e.preventDefault();
+            e.stopPropagation();
             stopScanner();
             bsModal.hide();
         });
@@ -823,6 +873,7 @@ function confirmarImprimir(form, imprimirAtual) {
 
     // Limpar quando modal fechar
     modalEl.addEventListener('hidden.bs.modal', function(){
+        console.log('Modal fechado');
         stopScanner();
         // Reset visual do frame
         const frame = document.querySelector('.scanner-frame');
@@ -831,6 +882,8 @@ function confirmarImprimir(form, imprimirAtual) {
             frame.style.boxShadow = '0 0 0 9999px rgba(0, 0, 0, 0.5)';
         }
     });
+    
+    console.log('=== SCRIPT CAMERA CARREGADO ===');
 })();
 </script>
 

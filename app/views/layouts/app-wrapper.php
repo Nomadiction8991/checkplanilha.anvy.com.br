@@ -167,6 +167,13 @@
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
         
+        /* Exceção: botões dentro de input-group não devem se mover */
+        .input-group .btn:hover,
+        .input-group .btn:focus,
+        .input-group .btn:active {
+            transform: none !important;
+        }
+        
         /* Tabelas responsivas */
         .table-responsive {
             border-radius: 12px;
