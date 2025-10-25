@@ -23,8 +23,7 @@ try {
     $produto = $stmt_produto->fetch();
     
     if (!$produto) {
-        $base_path = str_replace('/CRUD/DELETE', '', dirname($_SERVER['SCRIPT_NAME']));
-        header('Location: ' . $base_path . '/app/views/produtos/read-produto.php?id=' . $id_planilha);
+        header('Location: /checkplanilha.anvy.com.br/app/views/produtos/read-produto.php?id=' . $id_planilha);
         exit;
     }
 } catch (Exception $e) {
@@ -43,9 +42,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Gerar parâmetros de retorno para manter os filtros
         $parametros_retorno = gerarParametrosFiltro();
         
-        // Redirecionar de volta para a lista (caminho correto)
-        $base_path = str_replace('/CRUD/DELETE', '', dirname($_SERVER['SCRIPT_NAME']));
-        header('Location: ' . $base_path . '/app/views/produtos/read-produto.php?id=' . $id_planilha . ($parametros_retorno ? '&' . $parametros_retorno : ''));
+        // Redirecionar de volta para a lista (caminho absoluto)
+        header('Location: /checkplanilha.anvy.com.br/app/views/produtos/read-produto.php?id=' . $id_planilha . ($parametros_retorno ? '&' . $parametros_retorno : ''));
         exit;
         
     } catch (Exception $e) {
