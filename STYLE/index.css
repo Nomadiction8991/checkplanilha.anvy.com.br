@@ -448,7 +448,7 @@ td:nth-child(1) {
     }
 
     .campo-comum {
-        max-width: 800px;
+        max-width: 100%;
         margin: 0 auto;
     }
 }
@@ -566,20 +566,7 @@ td:nth-child(1) {
     }
 }
 
-/* Ajustes para telas muito grandes */
-@media (min-width: 1200px) {
-    .conteudo {
-        max-width: 1200px;
-        margin: 0 auto;
-    }
-    
-    .pesquisa-container {
-        max-width: 1200px;
-        margin-left: auto;
-        margin-right: auto;
-        margin-top: 60px;
-    }
-}
+/* Ajustes para telas muito grandes - REMOVIDO para manter 400px */
 
 /* Estados de loading */
 .loading {

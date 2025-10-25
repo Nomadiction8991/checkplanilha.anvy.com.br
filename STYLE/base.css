@@ -2,29 +2,26 @@
 
 /* Reset e tipografia básica */
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; overflow-x: hidden; }
+html { height: 100%; overflow-x: hidden; }
 :root { --app-max-width: 400px; }
+
+/* LAYOUT MOBILE-ONLY: TODO o conteúdo limitado a 400px em TODAS as telas */
 body {
     font-family: Arial, Helvetica, sans-serif;
     background: #f5f5f5;
     color: #333;
     font-size: 14px;
     line-height: 1.4;
-    /* Layout mobile-first: no desktop centraliza e limita a 400px */
-    display: flex;
-    justify-content: center;
-}
-
-/* Limita a largura de TODOS os filhos diretos do body para 400px no desktop
-   e mantém 100% em telas pequenas. */
-body > * {
-    width: 100%;
+    min-height: 100%;
+    overflow-x: hidden;
+    /* Centraliza e limita TODO o body a 400px */
     max-width: var(--app-max-width);
     margin-left: auto;
     margin-right: auto;
+    width: 100%;
 }
 
-/* Cabeçalho padrão */
+/* Cabeçalho padrão - também limitado a 400px */
 .cabecalho {
     background: #007bff;
     padding: 12px 15px;
@@ -48,8 +45,12 @@ body > * {
 .voltar, .acoes a { display:flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:50%; transition:background-color .3s; }
 .voltar:hover, .acoes a:hover { background-color: rgba(255,255,255,0.18); }
 
-/* Containers comuns */
-.conteudo, .pesquisa-container, .filtros-container, .tabela-container { width:100%; }
+/* Containers comuns - garantir que não estouram 400px */
+.conteudo, .pesquisa-container, .filtros-container, .tabela-container { 
+    width: 100%; 
+    max-width: 100%; 
+    overflow-x: hidden;
+}
 .conteudo { padding:20px; margin-top:60px; }
 .pesquisa-container, .filtros-container { background:#fff; padding:15px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.06); }
 
@@ -72,11 +73,24 @@ input:focus, select:focus, textarea:focus { outline:none; border-color:#007bff; 
 .filtros-avancados[open] summary::after { transform:rotate(180deg); }
 .filtros-content { padding:12px; background:#f8f9fa; border-top:1px solid #eee; border-radius:0 0 6px 6px; display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; }
 
-/* Tabelas padrão */
-table { width:100%; border-collapse:collapse; background:#fff; font-size:13px; table-layout: fixed; }
+/* Tabelas padrão - sempre dentro dos 400px */
+table { 
+    width: 100%; 
+    max-width: 100%;
+    border-collapse: collapse; 
+    background: #fff; 
+    font-size: 13px; 
+    table-layout: fixed;
+}
 thead { background:#007bff; color:#fff; }
-th, td { padding:10px 8px; border-bottom:1px solid #eee; text-align:left; word-break: break-word; overflow-wrap: anywhere; }
-.tabela-container { overflow-x: hidden; }
+th, td { 
+    padding: 10px 8px; 
+    border-bottom: 1px solid #eee; 
+    text-align: left; 
+    word-break: break-word; 
+    overflow-wrap: anywhere;
+}
+.tabela-container { overflow-x: hidden; max-width: 100%; }
 
 /* Mídia nunca deve estourar 400px */
 img, video, canvas, svg { max-width: 100%; height: auto; }

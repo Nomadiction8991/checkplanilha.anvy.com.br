@@ -362,30 +362,7 @@ td:nth-child(2) {
 
 /* ========== RESPONSIVIDADE CORRIGIDA ========== */
 
-/* Telas grandes - 4 colunas */
-@media (min-width: 1025px) {
-    .form-pesquisa {
-        grid-template-columns: 1fr 1fr 1fr 1fr;
-    }
-}
-
-/* Tablets - 3 colunas */
-@media (max-width: 1024px) and (min-width: 769px) {
-    .form-pesquisa {
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 8px;
-    }
-    
-    .pesquisa-container {
-        padding: 12px;
-    }
-    
-    .campo-pesquisa input,
-    .campo-pesquisa select {
-        padding: 7px 9px;
-        font-size: 13px;
-    }
-}
+/* Media queries de telas grandes REMOVIDOS para manter 400px */
 
 /* Tablets pequenos - 2 colunas */
 @media (max-width: 768px) and (min-width: 481px) {
@@ -404,7 +381,6 @@ td:nth-child(2) {
     
     table {
         font-size: 11px;
-        min-width: 450px;
     }
     
     th, td {
