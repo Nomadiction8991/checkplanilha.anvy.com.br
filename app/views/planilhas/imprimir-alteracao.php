@@ -27,7 +27,14 @@ $filtro_dependencia = $_GET['dependencia'] ?? '';
 
 try {
     // Buscar produtos da planilha importada (tabela produtos)
-    $sql_produtos = "SELECT p.*, pc.checado, pc.dr, pc.imprimir, pc.observacoes, pc.editado, pc.nome as nome_editado, pc.dependencia as dependencia_editada,
+    $sql_produtos = "SELECT p.*, 
+                     CAST(pc.checado AS SIGNED) as checado, 
+                     CAST(pc.dr AS SIGNED) as dr, 
+                     CAST(pc.imprimir AS SIGNED) as imprimir, 
+                     pc.observacoes, 
+                     CAST(pc.editado AS SIGNED) as editado, 
+                     pc.nome as nome_editado, 
+                     pc.dependencia as dependencia_editada,
                      'planilha' as origem
                      FROM produtos p 
                      LEFT JOIN produtos_check pc ON p.id = pc.produto_id 
@@ -76,11 +83,11 @@ foreach ($todos_produtos as $produto) {
     
     // Produtos da planilha importada (tabela produtos)
     $tem_observacao = !empty($produto['observacoes']);
-    $esta_checado = $produto['checado'] == 1;
-    $esta_no_dr = $produto['dr'] == 1;
-    $esta_etiqueta = $produto['imprimir'] == 1;
-    // Usa APENAS a flag editado da tabela produtos_check
-    $tem_alteracoes = ($produto['editado'] ?? 0) == 1;
+    $esta_checado = ($produto['checado'] ?? 0) == 1;
+    $esta_no_dr = ($produto['dr'] ?? 0) == 1;
+    $esta_etiqueta = ($produto['imprimir'] ?? 0) == 1;
+    // Usa APENAS a flag editado da tabela produtos_check (converte para int para comparação segura)
+    $tem_alteracoes = (int)($produto['editado'] ?? 0) === 1;
     // Pendente = não tem registro em produtos_check (todos os campos são null)
     $eh_pendente = is_null($produto['checado']) && is_null($produto['dr']) && is_null($produto['imprimir']) && is_null($produto['observacoes']) && is_null($produto['editado']);
     
@@ -103,6 +110,24 @@ $total_etiqueta = count($produtos_etiqueta);
 $total_alteracoes = count($produtos_alteracoes);
 $total_novos = count($produtos_novos);
 $total_geral = count($todos_produtos);
+
+// DEBUG: Verificar produtos com editado = 1
+if (isset($_GET['debug'])) {
+    echo "<pre>DEBUG - Produtos com editado:<br>";
+    foreach ($todos_produtos as $p) {
+        if (($p['origem'] ?? '') !== 'cadastro') {
+            $editado_valor = $p['editado'] ?? 'NULL';
+            $editado_tipo = gettype($p['editado'] ?? null);
+            $tem_nome_editado = !empty($p['nome_editado']) ? 'SIM' : 'NÃO';
+            $tem_dep_editada = !empty($p['dependencia_editada']) ? 'SIM' : 'NÃO';
+            if ((int)($p['editado'] ?? 0) === 1 || !empty($p['nome_editado']) || !empty($p['dependencia_editada'])) {
+                echo "ID: {$p['id']} | Código: {$p['codigo']} | editado={$editado_valor} (tipo: {$editado_tipo}) | nome_editado: {$tem_nome_editado} | dep_editada: {$tem_dep_editada}<br>";
+            }
+        }
+    }
+    echo "Total em \$produtos_alteracoes: " . count($produtos_alteracoes) . "<br>";
+    echo "</pre>";
+}
 
 $total_mostrar = 0;
 if ($mostrar_pendentes) $total_mostrar += $total_pendentes;
