@@ -22,6 +22,12 @@ ob_start();
   <div class="card mb-3">
     <div class="card-body">
       <div class="mb-3">
+        <label for="codigo" class="form-label">Código <span class="text-muted">(opcional)</span></label>
+        <input type="text" id="codigo" name="codigo" class="form-control" value="<?php echo htmlspecialchars($_POST['codigo'] ?? ''); ?>" placeholder="Código gerado por outro sistema">
+        <div class="form-text">Campo opcional. Código externo que não será incluído na descrição completa.</div>
+      </div>
+
+      <div class="mb-3">
         <label for="quantidade" class="form-label">Quantidade</label>
         <input type="number" id="quantidade" name="quantidade" class="form-control" min="1" value="<?php echo htmlspecialchars($_POST['quantidade'] ?? '1'); ?>" required>
         <div class="invalid-feedback">Informe a quantidade.</div>

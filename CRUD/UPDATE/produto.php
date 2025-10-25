@@ -40,6 +40,7 @@ $dependencias = $stmt_deps->fetchAll();
 
 // Processar o formulário quando enviado
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $codigo = $_POST['codigo'] ?? ''; // Novo campo opcional
     $id_tipo_ben = $_POST['id_tipo_ben'] ?? '';
     $tipo_ben = $_POST['tipo_ben'] ?? '';
     $complemento = $_POST['complemento'] ?? '';
@@ -91,7 +92,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $descricao_completa = $quantidade . "x [" . $tipo_bem['codigo'] . " - " . $tipo_bem['descricao'] . "] " . $tipo_ben . " - " . $complemento . " - (" . $dependencia['descricao'] . ")";
             
             $sql_atualizar = "UPDATE produtos_cadastro 
-                             SET id_tipo_ben = :id_tipo_ben,
+                             SET codigo = :codigo,
+                                 id_tipo_ben = :id_tipo_ben,
                                  tipo_ben = :tipo_ben,
                                  complemento = :complemento,
                                  id_dependencia = :id_dependencia,
@@ -102,6 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                              WHERE id = :id AND id_planilha = :id_planilha";
             
             $stmt_atualizar = $conexao->prepare($sql_atualizar);
+            $stmt_atualizar->bindValue(':codigo', !empty($codigo) ? $codigo : null);
             $stmt_atualizar->bindValue(':id_tipo_ben', $id_tipo_ben);
             $stmt_atualizar->bindValue(':tipo_ben', $tipo_ben);
             $stmt_atualizar->bindValue(':complemento', $complemento);

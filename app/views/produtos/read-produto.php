@@ -14,70 +14,88 @@ ob_start();
     Filtros
   </div>
   <div class="card-body">
-    <form method="GET" class="row g-2">
+    <form method="GET">
       <input type="hidden" name="id" value="<?php echo htmlspecialchars($id_planilha); ?>">
 
-      <div class="col-12">
-        <label for="pesquisa_id" class="form-label">ID</label>
-        <input type="number" id="pesquisa_id" name="pesquisa_id" class="form-control" value="<?php echo htmlspecialchars($pesquisa_id); ?>" placeholder="Digite o ID">
+      <!-- Campo principal de busca por descrição -->
+      <div class="mb-3">
+        <label for="filtro_complemento" class="form-label">
+          <i class="bi bi-search me-1"></i>
+          Pesquisar por Descrição
+        </label>
+        <input type="text" id="filtro_complemento" name="filtro_complemento" class="form-control" value="<?php echo htmlspecialchars($filtro_complemento); ?>" placeholder="Digite para buscar...">
       </div>
 
-      <div class="col-12">
-        <label for="filtro_tipo_ben" class="form-label">Tipos de Bens</label>
-        <select id="filtro_tipo_ben" name="filtro_tipo_ben" class="form-select">
-          <option value="">Todos</option>
-          <?php foreach ($tipos_bens as $tipo): ?>
-            <option value="<?php echo $tipo['id']; ?>" <?php echo $filtro_tipo_ben == $tipo['id'] ? 'selected' : ''; ?>>
-              <?php echo htmlspecialchars($tipo['codigo'] . ' - ' . $tipo['descricao']); ?>
-            </option>
-          <?php endforeach; ?>
-        </select>
+      <!-- Filtros Avançados recolhíveis -->
+      <div class="accordion" id="filtrosAvancados">
+        <div class="accordion-item">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFiltros">
+              <i class="bi bi-sliders me-2"></i>
+              Filtros Avançados
+            </button>
+          </h2>
+          <div id="collapseFiltros" class="accordion-collapse collapse" data-bs-parent="#filtrosAvancados">
+            <div class="accordion-body">
+              <div class="mb-3">
+                <label for="pesquisa_id" class="form-label">ID</label>
+                <input type="number" id="pesquisa_id" name="pesquisa_id" class="form-control" value="<?php echo htmlspecialchars($pesquisa_id); ?>" placeholder="Digite o ID">
+              </div>
+
+              <div class="mb-3">
+                <label for="filtro_tipo_ben" class="form-label">Tipos de Bens</label>
+                <select id="filtro_tipo_ben" name="filtro_tipo_ben" class="form-select">
+                  <option value="">Todos</option>
+                  <?php foreach ($tipos_bens as $tipo): ?>
+                    <option value="<?php echo $tipo['id']; ?>" <?php echo $filtro_tipo_ben == $tipo['id'] ? 'selected' : ''; ?>>
+                      <?php echo htmlspecialchars($tipo['codigo'] . ' - ' . $tipo['descricao']); ?>
+                    </option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label for="filtro_bem" class="form-label">Bem</label>
+                <select id="filtro_bem" name="filtro_bem" class="form-select">
+                  <option value="">Todos</option>
+                  <?php foreach ($bem_codigos as $bem): ?>
+                    <option value="<?php echo htmlspecialchars($bem['tipo_ben']); ?>" <?php echo $filtro_bem == $bem['tipo_ben'] ? 'selected' : ''; ?>>
+                      <?php echo htmlspecialchars($bem['tipo_ben']); ?>
+                    </option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label for="filtro_dependencia" class="form-label">Dependência</label>
+                <select id="filtro_dependencia" name="filtro_dependencia" class="form-select">
+                  <option value="">Todas</option>
+                  <?php foreach ($dependencias as $dep): ?>
+                    <option value="<?php echo $dep['id']; ?>" <?php echo $filtro_dependencia == $dep['id'] ? 'selected' : ''; ?>>
+                      <?php echo htmlspecialchars($dep['descricao']); ?>
+                    </option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label for="filtro_status" class="form-label">Status</label>
+                <select id="filtro_status" name="filtro_status" class="form-select">
+                  <option value="">Todos</option>
+                  <option value="com_nota" <?php echo $filtro_status === 'com_nota' ? 'selected' : ''; ?>>Com Nota</option>
+                  <option value="com_14_1" <?php echo $filtro_status === 'com_14_1' ? 'selected' : ''; ?>>Com 14.1</option>
+                  <option value="sem_status" <?php echo $filtro_status === 'sem_status' ? 'selected' : ''; ?>>Sem Status</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div class="col-12">
-        <label for="filtro_bem" class="form-label">Bem</label>
-        <select id="filtro_bem" name="filtro_bem" class="form-select">
-          <option value="">Todos</option>
-          <?php foreach ($bem_codigos as $bem): ?>
-            <option value="<?php echo htmlspecialchars($bem['tipo_ben']); ?>" <?php echo $filtro_bem == $bem['tipo_ben'] ? 'selected' : ''; ?>>
-              <?php echo htmlspecialchars($bem['tipo_ben']); ?>
-            </option>
-          <?php endforeach; ?>
-        </select>
-      </div>
-
-      <div class="col-12">
-        <label for="filtro_complemento" class="form-label">Complemento</label>
-        <input type="text" id="filtro_complemento" name="filtro_complemento" class="form-control" value="<?php echo htmlspecialchars($filtro_complemento); ?>" placeholder="Pesquisar no complemento">
-      </div>
-
-      <div class="col-12">
-        <label for="filtro_dependencia" class="form-label">Dependência</label>
-        <select id="filtro_dependencia" name="filtro_dependencia" class="form-select">
-          <option value="">Todas</option>
-          <?php foreach ($dependencias as $dep): ?>
-            <option value="<?php echo $dep['id']; ?>" <?php echo $filtro_dependencia == $dep['id'] ? 'selected' : ''; ?>>
-              <?php echo htmlspecialchars($dep['descricao']); ?>
-            </option>
-          <?php endforeach; ?>
-        </select>
-      </div>
-
-      <div class="col-12">
-        <label for="filtro_status" class="form-label">Status</label>
-        <select id="filtro_status" name="filtro_status" class="form-select">
-          <option value="">Todos</option>
-          <option value="com_nota" <?php echo $filtro_status === 'com_nota' ? 'selected' : ''; ?>>Com Nota</option>
-          <option value="com_14_1" <?php echo $filtro_status === 'com_14_1' ? 'selected' : ''; ?>>Com 14.1</option>
-          <option value="sem_status" <?php echo $filtro_status === 'sem_status' ? 'selected' : ''; ?>>Sem Status</option>
-        </select>
-      </div>
-
-      <div class="col-12 d-grid">
-        <button type="submit" class="btn btn-primary">
-          <i class="bi bi-search me-2"></i>Filtrar
-        </button>
-      </div>
+      <button type="submit" class="btn btn-primary w-100 mt-3">
+        <i class="bi bi-search me-2"></i>
+        Filtrar
+      </button>
     </form>
   </div>
   <div class="card-footer text-muted small">
@@ -87,13 +105,16 @@ ob_start();
 </div>
 
 <div class="card">
+  <div class="card-header">
+    <i class="bi bi-box-seam me-2"></i>
+    Produtos
+  </div>
   <div class="table-responsive">
     <table class="table align-middle mb-0">
       <thead>
         <tr>
-          <th class="text-center" style="width:70px;">ID</th>
-          <th>Descrição</th>
-          <th class="text-center" style="width:110px;">Status</th>
+          <th colspan="2">Produtos</th>
+          <th class="text-center" style="width:100px;">Quantidade</th>
           <th class="text-center" style="width:110px;">Ações</th>
         </tr>
       </thead>
@@ -101,7 +122,18 @@ ob_start();
         <?php if (!empty($produtos)): ?>
           <?php foreach ($produtos as $produto): ?>
             <tr>
-              <td class="text-center"><span class="badge bg-secondary">#<?php echo htmlspecialchars($produto['id']); ?></span></td>
+              <td style="width:100px;">
+                <?php if (!empty($produto['codigo'])): ?>
+                  <div class="badge bg-info text-dark mb-1"><?php echo htmlspecialchars($produto['codigo']); ?></div>
+                <?php endif; ?>
+                <span class="badge bg-secondary">#<?php echo htmlspecialchars($produto['id']); ?></span>
+                <?php if ($produto['possui_nota'] == 1): ?>
+                  <span class="badge bg-warning text-dark mt-1">Nota</span>
+                <?php endif; ?>
+                <?php if ($produto['imprimir_14_1'] == 1): ?>
+                  <span class="badge bg-primary mt-1">14.1</span>
+                <?php endif; ?>
+              </td>
               <td>
                 <div class="fw-semibold">
                   <?php 
@@ -112,27 +144,19 @@ ob_start();
                 <div class="text-muted small">
                   <?php echo htmlspecialchars($produto['complemento']); ?>
                   <?php if (!empty($produto['dependencia_descricao'])): ?>
-                    <span class="ms-1">(<?php echo htmlspecialchars($produto['dependencia_descricao']); ?>)</span>
+                    <span class="ms-1">• <?php echo htmlspecialchars($produto['dependencia_descricao']); ?></span>
                   <?php endif; ?>
                 </div>
               </td>
               <td class="text-center">
-                <?php if ($produto['possui_nota'] == 1): ?>
-                  <span class="badge bg-warning text-dark">Nota</span>
-                <?php endif; ?>
-                <?php if ($produto['imprimir_14_1'] == 1): ?>
-                  <span class="badge bg-primary">14.1</span>
-                <?php endif; ?>
-                <?php if ($produto['possui_nota'] == 0 && $produto['imprimir_14_1'] == 0): ?>
-                  <span class="text-muted">-</span>
-                <?php endif; ?>
+                <strong><?php echo htmlspecialchars($produto['quantidade']); ?></strong>
               </td>
               <td class="text-center">
-                <div class="btn-group">
-                  <a class="btn btn-sm btn-outline-success" title="Editar" href="./update-produto.php?id_produto=<?php echo $produto['id']; ?>&id=<?php echo $id_planilha; ?>&<?php echo gerarParametrosFiltro(true); ?>">
+                <div class="btn-group btn-group-sm">
+                  <a class="btn btn-outline-primary" title="Editar" href="./update-produto.php?id_produto=<?php echo $produto['id']; ?>&id=<?php echo $id_planilha; ?>&<?php echo gerarParametrosFiltro(true); ?>">
                     <i class="bi bi-pencil"></i>
                   </a>
-                  <a class="btn btn-sm btn-outline-danger" title="Excluir" href="./delete-produto.php?id_produto=<?php echo $produto['id']; ?>&id=<?php echo $id_planilha; ?>&<?php echo gerarParametrosFiltro(true); ?>">
+                  <a class="btn btn-outline-danger" title="Excluir" href="./delete-produto.php?id_produto=<?php echo $produto['id']; ?>&id=<?php echo $id_planilha; ?>&<?php echo gerarParametrosFiltro(true); ?>">
                     <i class="bi bi-trash"></i>
                   </a>
                 </div>
@@ -142,6 +166,7 @@ ob_start();
         <?php else: ?>
           <tr>
             <td colspan="4" class="text-center text-muted py-4">
+              <i class="bi bi-inbox fs-1 d-block mb-2"></i>
               <?php echo ($pesquisa_id || $filtro_tipo_ben || $filtro_bem || $filtro_complemento || $filtro_dependencia || $filtro_status)
                 ? 'Nenhum produto encontrado com os filtros aplicados.'
                 : 'Nenhum produto cadastrado para esta planilha.'; ?>
