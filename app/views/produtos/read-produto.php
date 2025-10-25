@@ -9,6 +9,8 @@ $headerActions = '<a href="./create-produto.php?id=' . urlencode($id_planilha) .
 $customCss = '
 .btn-group { display: inline-flex !important; }
 .btn-group .btn { display: inline-block !important; visibility: visible !important; }
+.table td, .table th { font-size: 0.85rem; }
+.fw-semibold { font-size: 0.8rem; }
 ';
 
 ob_start();
@@ -119,8 +121,7 @@ ob_start();
     <table class="table align-middle mb-0">
       <thead>
         <tr>
-          <th colspan="2">Produtos</th>
-          <th class="text-center" style="width:100px;">Quantidade</th>
+          <th>Produtos</th>
           <th class="text-center" style="width:110px;">Ações</th>
         </tr>
       </thead>
@@ -128,25 +129,25 @@ ob_start();
         <?php if (!empty($produtos)): ?>
           <?php foreach ($produtos as $produto): ?>
             <tr>
-              <td style="width:100px;">
-                <?php if (!empty($produto['codigo'])): ?>
-                  <div class="badge bg-info text-dark mb-1"><?php echo htmlspecialchars($produto['codigo']); ?></div>
-                <?php endif; ?>
-                <span class="badge bg-secondary">#<?php echo htmlspecialchars($produto['id']); ?></span>
-                <?php if ($produto['possui_nota'] == 1): ?>
-                  <span class="badge bg-warning text-dark mt-1">Nota</span>
-                <?php endif; ?>
-                <?php if ($produto['imprimir_14_1'] == 1): ?>
-                  <span class="badge bg-primary mt-1">14.1</span>
-                <?php endif; ?>
-              </td>
               <td>
-                <div class="fw-semibold">
-                  <?php echo htmlspecialchars($produto['descricao_completa']); ?>
+                <div class="d-flex align-items-start gap-2">
+                  <div class="flex-shrink-0">
+                    <?php if (!empty($produto['codigo'])): ?>
+                      <div class="badge bg-info text-dark mb-1"><?php echo htmlspecialchars($produto['codigo']); ?></div>
+                    <?php endif; ?>
+                    <?php if ($produto['possui_nota'] == 1): ?>
+                      <span class="badge bg-warning text-dark mt-1">Nota</span>
+                    <?php endif; ?>
+                    <?php if ($produto['imprimir_14_1'] == 1): ?>
+                      <span class="badge bg-primary mt-1">14.1</span>
+                    <?php endif; ?>
+                  </div>
+                  <div class="flex-grow-1">
+                    <div class="fw-semibold">
+                      <?php echo htmlspecialchars($produto['descricao_completa']); ?>
+                    </div>
+                  </div>
                 </div>
-              </td>
-              <td class="text-center">
-                <strong><?php echo htmlspecialchars($produto['quantidade']); ?></strong>
               </td>
               <td class="text-center">
                 <div class="btn-group btn-group-sm">
@@ -162,7 +163,7 @@ ob_start();
           <?php endforeach; ?>
         <?php else: ?>
           <tr>
-            <td colspan="4" class="text-center text-muted py-4">
+            <td colspan="2" class="text-center text-muted py-4">
               <i class="bi bi-inbox fs-1 d-block mb-2"></i>
               <?php echo ($pesquisa_id || $filtro_tipo_ben || $filtro_bem || $filtro_complemento || $filtro_dependencia || $filtro_status)
                 ? 'Nenhum produto encontrado com os filtros aplicados.'
