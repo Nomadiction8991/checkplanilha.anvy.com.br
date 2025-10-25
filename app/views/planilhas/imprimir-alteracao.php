@@ -1,17 +1,10 @@
 <?php
-// Página standalone de impressão (relatório de alterações) – mantém layout próprio
+// Agora: página integrada ao layout app-wrapper (Bootstrap 5, 400px)
 require_once __DIR__ . '/../../../CRUD/conexao.php';
 
 $id_planilha = $_GET['id'] ?? null;
 if (!$id_planilha) { header('Location: ../../index.php'); exit; }
 
-// Reutiliza integralmente a lógica existente do arquivo original
-// Copiamos o conteúdo para manter 100% das funcionalidades e o estilo de impressão
-?>
-<?php
-// Início do conteúdo original
-?>
-<?php
 // Buscar dados da planilha
 try {
     $sql_planilha = "SELECT * FROM planilhas WHERE id = :id";
@@ -88,175 +81,267 @@ if ($mostrar_checados_observacao) $total_mostrar += $total_checados_observacao;
 if ($mostrar_dr) $total_mostrar += $total_dr;
 if ($mostrar_etiqueta) $total_mostrar += $total_etiqueta;
 if ($mostrar_alteracoes) $total_mostrar += $total_alteracoes;
-?>
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Impressão de Alterações - <?php echo htmlspecialchars($planilha['descricao']); ?></title>
-  <style>
-  <?php /* CSS mantido do arquivo original */ ?>
-  body { font-family: Arial, sans-serif; margin:0; padding:0; color:#000; font-size:12px; line-height:1.4; }
-  @media print { body { padding:10px; font-size:10px; } .no-print{display:none!important;} .page-break{page-break-after:always;} table{page-break-inside:auto;} tr{page-break-inside:avoid; page-break-after:auto;} .filtros-info{background:#f8f9fa!important;color:#000!important;border:1px solid #000!important;} }
-  header{ background:#007bff; padding:5px 10px; color:#fff; display:flex; align-items:center; justify-content:space-between; height:50px; }
-  .header-title{ width:70%; font-size:16px; margin:0; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .header-actions{ width:30%; display:flex; align-items:center; justify-content:flex-end; gap:10px; }
-  .header-btn,.header-print{ background:none; border:none; color:#fff; cursor:pointer; padding:8px; border-radius:4px; font-size:20px; display:flex; align-items:center; justify-content:center; transition:background-color .2s; text-decoration:none; }
-  .header-btn:hover,.header-print:hover{ background-color:rgba(255,255,255,.2); }
-  .info-planilha{ margin-bottom:15px; padding:10px; background:#f5f5f5; border-left:4px solid #007bff; }
-  .filtros-form{ background:#f8f9fa; padding:20px; border-radius:5px; margin-bottom:20px; border:1px solid #dee2e6; }
-  .filtro-group{ margin-bottom:15px; } .filtro-group label{ display:block; margin-bottom:5px; font-weight:bold; }
-  .filtro-options{ display:flex; flex-wrap:wrap; gap:15px; } .filtro-option{ display:flex; align-items:center; gap:5px; }
-  .btn-apply{ background:#28a745; color:#fff; padding:8px 16px; border:none; border-radius:4px; cursor:pointer; } .btn-apply:hover{ background:#218838; }
-  .resumo{ margin-bottom:20px; padding:15px; background:#e9ecef; border-radius:4px; border:1px solid #ced4da; }
-  table{ width:100%; border-collapse:collapse; margin-bottom:20px; } th{ background:#343a40; color:#fff; padding:8px; text-align:left; border:1px solid #000; font-size:11px; } td{ padding:6px; border:1px solid #000; vertical-align:top; }
-  .observacao-cell{ background:#fff3cd; font-style:italic; } .checado-cell{ background:#d4edda; } .ambos-cell{ background:#e6e6fa; } .dr-cell{ background:#f8d7da; } .etiqueta-cell{ background:#cce7ff; } .alteracao-cell{ background:#fff3cd; font-weight:bold; }
-  .secao-titulo{ background:#6c757d; color:#fff; padding:8px; margin:20px 0 10px 0; font-weight:bold; border-left:4px solid #495057; page-break-before:always; }
-  .sem-registros{ text-align:center; padding:20px; background:#f8f9fa; border:1px dashed #6c757d; margin:10px 0; }
-  .footer{ margin-top:30px; padding-top:10px; border-top:1px solid #000; text-align:center; font-size:10px; }
-  </style>
-</head>
-<body>
-  <header class="no-print">
-    <a href="../shared/menu.php?id=<?php echo $id_planilha; ?>" class="header-btn" title="Fechar">❌</a>
-    <h1 class="header-title">Impressão de Alterações</h1>
-    <div class="header-actions">
-      <button class="header-print" onclick="window.print()" title="Imprimir">🖨️</button>
-    </div>
-  </header>
 
-  <div class="filtros-form no-print">
-    <h3>Seções do Relatório (Marque quais seções deseja incluir)</h3>
-    <form method="GET">
+// Cabeçalho do layout
+$pageTitle = 'Imprimir Alterações';
+$backUrl = '../shared/menu.php?id=' . $id_planilha;
+$headerActions = '<button class="btn-header-action" title="Imprimir" onclick="window.print()"><i class="bi bi-printer"></i></button>';
+
+// CSS de impressão e ajustes para o wrapper mobile
+$customCss = '
+@media print {
+  .app-header, .no-print { display: none !important; }
+  .app-container { padding: 0 !important; }
+  .mobile-wrapper { max-width: 100% !important; border-radius: 0 !important; box-shadow: none !important; }
+  .app-content { padding: 0 !important; background: #fff !important; }
+  table { page-break-inside: auto; }
+  tr { page-break-inside: avoid; page-break-after: auto; }
+}
+.table thead th { font-size: 12px; }
+.table td { font-size: 12px; }
+';
+
+// Conteúdo da página
+ob_start();
+?>
+
+<!-- Filtros -->
+<div class="card mb-3 no-print">
+  <div class="card-header">
+    <i class="bi bi-filter-circle me-2"></i> Filtros do relatório
+  </div>
+  <div class="card-body">
+    <form method="GET" class="row g-3">
       <input type="hidden" name="id" value="<?php echo $id_planilha; ?>">
-      <div class="filtro-group">
-        <label>Seções a Incluir:</label>
-        <div class="filtro-options">
-          <label class="filtro-option"><input type="checkbox" name="mostrar_pendentes" value="1" <?php echo $mostrar_pendentes ? 'checked' : ''; ?>> Imprimir produtos pendentes (<?php echo $total_pendentes; ?>)</label>
-          <label class="filtro-option"><input type="checkbox" name="mostrar_checados" value="1" <?php echo $mostrar_checados ? 'checked' : ''; ?>> Imprimir produtos checados (<?php echo $total_checados; ?>)</label>
-          <label class="filtro-option"><input type="checkbox" name="mostrar_observacao" value="1" <?php echo $mostrar_observacao ? 'checked' : ''; ?>> Imprimir produtos com observação (<?php echo $total_observacao; ?>)</label>
-          <label class="filtro-option"><input type="checkbox" name="mostrar_checados_observacao" value="1" <?php echo $mostrar_checados_observacao ? 'checked' : ''; ?>> Imprimir produtos checados + observação (<?php echo $total_checados_observacao; ?>)</label>
-          <label class="filtro-option"><input type="checkbox" name="mostrar_dr" value="1" <?php echo $mostrar_dr ? 'checked' : ''; ?>> Imprimir produtos do DR (<?php echo $total_dr; ?>)</label>
-          <label class="filtro-option"><input type="checkbox" name="mostrar_etiqueta" value="1" <?php echo $mostrar_etiqueta ? 'checked' : ''; ?>> Imprimir produtos de etiqueta (<?php echo $total_etiqueta; ?>)</label>
-          <label class="filtro-option"><input type="checkbox" name="mostrar_alteracoes" value="1" <?php echo $mostrar_alteracoes ? 'checked' : ''; ?>> Imprimir produtos com alterações (<?php echo $total_alteracoes; ?>)</label>
+      <div class="col-12">
+        <label class="form-label">Seções a incluir</label>
+        <div class="row g-2">
+          <div class="col-12">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="secPend" name="mostrar_pendentes" value="1" <?php echo $mostrar_pendentes ? 'checked' : ''; ?>>
+              <label class="form-check-label" for="secPend">Produtos pendentes (<?php echo $total_pendentes; ?>)</label>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="secChec" name="mostrar_checados" value="1" <?php echo $mostrar_checados ? 'checked' : ''; ?>>
+              <label class="form-check-label" for="secChec">Produtos checados (<?php echo $total_checados; ?>)</label>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="secObs" name="mostrar_observacao" value="1" <?php echo $mostrar_observacao ? 'checked' : ''; ?>>
+              <label class="form-check-label" for="secObs">Produtos com observação (<?php echo $total_observacao; ?>)</label>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="secChecObs" name="mostrar_checados_observacao" value="1" <?php echo $mostrar_checados_observacao ? 'checked' : ''; ?>>
+              <label class="form-check-label" for="secChecObs">Checados + observação (<?php echo $total_checados_observacao; ?>)</label>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="secDR" name="mostrar_dr" value="1" <?php echo $mostrar_dr ? 'checked' : ''; ?>>
+              <label class="form-check-label" for="secDR">Produtos no DR (<?php echo $total_dr; ?>)</label>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="secEtiq" name="mostrar_etiqueta" value="1" <?php echo $mostrar_etiqueta ? 'checked' : ''; ?>>
+              <label class="form-check-label" for="secEtiq">Produtos com etiqueta (<?php echo $total_etiqueta; ?>)</label>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="secAlt" name="mostrar_alteracoes" value="1" <?php echo $mostrar_alteracoes ? 'checked' : ''; ?>>
+              <label class="form-check-label" for="secAlt">Produtos com alterações (<?php echo $total_alteracoes; ?>)</label>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="filtro-group">
-        <label for="dependencia">Filtrar por Dependência:</label>
-        <select name="dependencia" id="dependencia" style="padding:5px; width:300px;">
+      <div class="col-12">
+        <label for="dependencia" class="form-label">Filtrar por dependência</label>
+        <select class="form-select" id="dependencia" name="dependencia">
           <option value="">Todas as dependências</option>
           <?php foreach ($dependencia_options as $dep): ?>
             <option value="<?php echo htmlspecialchars($dep); ?>" <?php echo $filtro_dependencia === $dep ? 'selected' : ''; ?>><?php echo htmlspecialchars($dep); ?></option>
           <?php endforeach; ?>
         </select>
       </div>
-      <button type="submit" class="btn-apply">Aplicar Filtros</button>
+      <div class="col-12 d-grid">
+        <button type="submit" class="btn btn-success"><i class="bi bi-funnel me-2"></i>Aplicar filtros</button>
+      </div>
     </form>
   </div>
 
-  <div class="header-impressao" style="text-align:center; margin-bottom:20px; border-bottom:2px solid #000; padding-bottom:10px;">
-    <h1 style="margin:0; font-size:18px;">RELATÓRIO DE ALTERAÇÕES - CONTROLE DE PATRIMÔNIO</h1>
-    <h2 style="margin:5px 0; font-size:14px; font-weight:normal;">Planilha: <?php echo htmlspecialchars($planilha['descricao']); ?></h2>
-    <p style="margin:0;">Data de geração: <?php echo date('d/m/Y H:i:s'); ?></p>
+<!-- Cabeçalho do relatório -->
+<div class="card mb-3">
+  <div class="card-body text-center">
+    <h5 class="mb-1 text-gradient">RELATÓRIO DE ALTERAÇÕES</h5>
+    <div class="text-muted">Planilha: <?php echo htmlspecialchars($planilha['descricao']); ?></div>
+    <div class="small text-muted">Gerado em <?php echo date('d/m/Y H:i:s'); ?></div>
+  </div>
+  <div class="card-footer">
+    <div><strong>Status:</strong> <?php echo ucfirst($planilha['status']); ?></div>
+  </div>
   </div>
 
-  <div class="info-planilha"><strong>Status da Planilha:</strong> <?php echo ucfirst($planilha['status']); ?></div>
-
-  <div class="resumo">
-    <h3 style="margin-top:0; color:#007bff;">RESUMO GERAL</h3>
-    <p><strong>Total de produtos na planilha:</strong> <?php echo $total_geral; ?></p>
-    <p><strong>Produtos checados:</strong> <?php echo $total_checados; ?></p>
-    <p><strong>Produtos com observação:</strong> <?php echo $total_observacao; ?></p>
-    <p><strong>Produtos checado + observação:</strong> <?php echo $total_checados_observacao; ?></p>
-    <p><strong>Produtos do DR:</strong> <?php echo $total_dr; ?></p>
-    <p><strong>Produtos com etiqueta:</strong> <?php echo $total_etiqueta; ?></p>
-    <p><strong>Produtos pendentes:</strong> <?php echo $total_pendentes; ?></p>
-    <p><strong>Produtos com alterações:</strong> <?php echo $total_alteracoes; ?></p>
-    <p style="font-weight:bold; border-top:1px solid #ccc; padding-top:8px; margin-top:8px;">Total a ser impresso: <?php echo $total_mostrar; ?> produtos</p>
+<!-- Resumo -->
+<div class="card mb-3">
+  <div class="card-header">
+    <i class="bi bi-graph-up-arrow me-2"></i> Resumo geral
+  </div>
+  <div class="card-body">
+    <ul class="mb-0">
+      <li><strong>Total de produtos:</strong> <?php echo $total_geral; ?></li>
+      <li><strong>Checados:</strong> <?php echo $total_checados; ?></li>
+      <li><strong>Com observação:</strong> <?php echo $total_observacao; ?></li>
+      <li><strong>Checados + observação:</strong> <?php echo $total_checados_observacao; ?></li>
+      <li><strong>DR:</strong> <?php echo $total_dr; ?></li>
+      <li><strong>Etiqueta:</strong> <?php echo $total_etiqueta; ?></li>
+      <li><strong>Pendentes:</strong> <?php echo $total_pendentes; ?></li>
+      <li><strong>Com alterações:</strong> <?php echo $total_alteracoes; ?></li>
+      <li class="mt-2"><strong>Total a ser impresso:</strong> <?php echo $total_mostrar; ?> produtos</li>
+    </ul>
+  </div>
   </div>
 
-  <?php if ($total_geral > 0 && $total_mostrar > 0): ?>
-    <?php if ($mostrar_alteracoes && $total_alteracoes > 0): ?>
-      <div class="secao-titulo">PRODUTOS COM ALTERAÇÕES (<?php echo $total_alteracoes; ?> itens)</div>
-      <table>
-        <thead><tr><th width="15%">Código</th><th width="25%">Nome Original</th><th width="25%">Novo Nome</th><th width="20%">Dependência Original</th><th width="20%">Nova Dependência</th><th width="20%">Observações</th></tr></thead>
-        <tbody>
-          <?php foreach ($produtos_alteracoes as $produto): ?>
-            <tr>
-              <td><strong><?php echo htmlspecialchars($produto['codigo']); ?></strong></td>
-              <td><?php echo htmlspecialchars($produto['nome']); ?></td>
-              <td class="alteracao-cell"><?php echo htmlspecialchars($produto['nome_editado'] ?? ''); ?></td>
-              <td><?php echo htmlspecialchars($produto['dependencia']); ?></td>
-              <td class="alteracao-cell"><?php echo htmlspecialchars($produto['dependencia_editada'] ?? ''); ?></td>
-              <td class="observacao-cell"><?php echo htmlspecialchars($produto['observacoes'] ?? ''); ?></td>
-            </tr>
-          <?php endforeach; ?>
-        </tbody>
-      </table>
-    <?php endif; ?>
-
-    <?php if ($mostrar_pendentes && $total_pendentes > 0): ?>
-      <div class="secao-titulo">PRODUTOS PENDENTES (<?php echo $total_pendentes; ?> itens)</div>
-      <table>
-        <thead><tr><th width="20%">Código</th><th width="50%">Nome</th><th width="30%">Dependência</th></tr></thead>
-        <tbody><?php foreach ($produtos_pendentes as $produto): ?><tr><td><strong><?php echo htmlspecialchars($produto['codigo']); ?></strong></td><td><?php echo htmlspecialchars($produto['nome']); ?></td><td><?php echo htmlspecialchars($produto['dependencia']); ?></td></tr><?php endforeach; ?></tbody>
-      </table>
-    <?php endif; ?>
-
-    <?php if ($mostrar_checados && $total_checados > 0): ?>
-      <div class="secao-titulo">PRODUTOS CHECADOS (<?php echo $total_checados; ?> itens)</div>
-      <table>
-        <thead><tr><th width="20%">Código</th><th width="50%">Nome</th><th width="30%">Dependência</th></tr></thead>
-        <tbody><?php foreach ($produtos_checados as $produto): ?><tr><td><strong><?php echo htmlspecialchars($produto['codigo']); ?></strong></td><td class="checado-cell"><?php echo htmlspecialchars($produto['nome']); ?></td><td><?php echo htmlspecialchars($produto['dependencia']); ?></td></tr><?php endforeach; ?></tbody>
-      </table>
-    <?php endif; ?>
-
-    <?php if ($mostrar_observacao && $total_observacao > 0): ?>
-      <div class="secao-titulo">PRODUTOS COM OBSERVAÇÃO (<?php echo $total_observacao; ?> itens)</div>
-      <table>
-        <thead><tr><th width="20%">Código</th><th width="40%">Nome</th><th width="40%">Observações</th></tr></thead>
-        <tbody><?php foreach ($produtos_observacao as $produto): ?><tr><td><strong><?php echo htmlspecialchars($produto['codigo']); ?></strong></td><td><?php echo htmlspecialchars($produto['nome']); ?></td><td class="observacao-cell"><?php echo htmlspecialchars($produto['observacoes']); ?></td></tr><?php endforeach; ?></tbody>
-      </table>
-    <?php endif; ?>
-
-    <?php if ($mostrar_checados_observacao && $total_checados_observacao > 0): ?>
-      <div class="secao-titulo">PRODUTOS CHECADOS + OBSERVAÇÃO (<?php echo $total_checados_observacao; ?> itens)</div>
-      <table>
-        <thead><tr><th width="20%">Código</th><th width="40%">Nome</th><th width="40%">Observações</th></tr></thead>
-        <tbody><?php foreach ($produtos_checados_observacao as $produto): ?><tr><td><strong><?php echo htmlspecialchars($produto['codigo']); ?></strong></td><td class="ambos-cell"><?php echo htmlspecialchars($produto['nome']); ?></td><td class="ambos-cell"><?php echo htmlspecialchars($produto['observacoes']); ?></td></tr><?php endforeach; ?></tbody>
-      </table>
-    <?php endif; ?>
-
-    <?php if ($mostrar_dr && $total_dr > 0): ?>
-      <div class="secao-titulo">PRODUTOS NO DR (<?php echo $total_dr; ?> itens)</div>
-      <table>
-        <thead><tr><th width="15%">Código</th><th width="35%">Nome</th><th width="25%">Dependência</th><th width="25%">Observações</th></tr></thead>
-        <tbody><?php foreach ($produtos_dr as $produto): ?><tr><td><strong><?php echo htmlspecialchars($produto['codigo']); ?></strong></td><td class="dr-cell"><?php echo htmlspecialchars($produto['nome']); ?></td><td><?php echo htmlspecialchars($produto['dependencia']); ?></td><td class="observacao-cell"><?php echo htmlspecialchars($produto['observacoes'] ?? ''); ?></td></tr><?php endforeach; ?></tbody>
-      </table>
-    <?php endif; ?>
-
-    <?php if ($mostrar_etiqueta && $total_etiqueta > 0): ?>
-      <div class="secao-titulo">PRODUTOS COM ETIQUETA (<?php echo $total_etiqueta; ?> itens)</div>
-      <table>
-        <thead><tr><th width="20%">Código</th><th width="50%">Nome</th><th width="30%">Dependência</th></tr></thead>
-        <tbody><?php foreach ($produtos_etiqueta as $produto): ?><tr><td><strong><?php echo htmlspecialchars($produto['codigo']); ?></strong></td><td class="etiqueta-cell"><?php echo htmlspecialchars($produto['nome']); ?></td><td><?php echo htmlspecialchars($produto['dependencia']); ?></td></tr><?php endforeach; ?></tbody>
-      </table>
-    <?php endif; ?>
-  <?php elseif ($total_geral > 0 && $total_mostrar === 0): ?>
-    <div class="sem-registros" style="text-align:center; padding:40px;">
-      <h3>Nenhuma seção selecionada</h3>
-      <p>Marque pelo menos uma seção para visualizar o relatório.</p>
-    </div>
-  <?php else: ?>
-    <div class="sem-registros" style="text-align:center; padding:40px;">
-      <h3>Nenhum produto encontrado</h3>
-      <p>Não há produtos cadastrados nesta planilha ou não correspondem ao filtro de dependência.</p>
+<?php if ($total_geral > 0 && $total_mostrar > 0): ?>
+  <?php if ($mostrar_alteracoes && $total_alteracoes > 0): ?>
+    <div class="card mb-3">
+      <div class="card-header">Produtos com alterações (<?php echo $total_alteracoes; ?>)</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm table-striped align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Código</th><th>Nome Original</th><th>Novo Nome</th><th>Dependência Original</th><th>Nova Dependência</th><th>Observações</th>
+              </tr>
+            </thead>
+            <tbody>
+            <?php foreach ($produtos_alteracoes as $produto): ?>
+              <tr>
+                <td><strong><?php echo htmlspecialchars($produto['codigo']); ?></strong></td>
+                <td><?php echo htmlspecialchars($produto['nome']); ?></td>
+                <td class="table-warning fw-semibold"><?php echo htmlspecialchars($produto['nome_editado'] ?? ''); ?></td>
+                <td><?php echo htmlspecialchars($produto['dependencia']); ?></td>
+                <td class="table-warning fw-semibold"><?php echo htmlspecialchars($produto['dependencia_editada'] ?? ''); ?></td>
+                <td class="table-warning fst-italic"><?php echo htmlspecialchars($produto['observacoes'] ?? ''); ?></td>
+              </tr>
+            <?php endforeach; ?>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   <?php endif; ?>
 
-  <div class="footer">Relatório gerado em <?php echo date('d/m/Y \à\s H:i:s'); ?> | Sistema de Controle de Patrimônio</div>
+  <?php if ($mostrar_pendentes && $total_pendentes > 0): ?>
+    <div class="card mb-3">
+      <div class="card-header">Produtos pendentes (<?php echo $total_pendentes; ?>)</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm table-striped align-middle mb-0">
+            <thead><tr><th>Código</th><th>Nome</th><th>Dependência</th></tr></thead>
+            <tbody><?php foreach ($produtos_pendentes as $produto): ?><tr><td><strong><?php echo htmlspecialchars($produto['codigo']); ?></strong></td><td><?php echo htmlspecialchars($produto['nome']); ?></td><td><?php echo htmlspecialchars($produto['dependencia']); ?></td></tr><?php endforeach; ?></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  <?php endif; ?>
 
-  <script>window.onbeforeprint = function(){ document.title = "Relatório Alterações - <?php echo htmlspecialchars($planilha['descricao']); ?>"; };</script>
-</body>
-</html>
+  <?php if ($mostrar_checados && $total_checados > 0): ?>
+    <div class="card mb-3">
+      <div class="card-header">Produtos checados (<?php echo $total_checados; ?>)</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm table-striped align-middle mb-0">
+            <thead><tr><th>Código</th><th>Nome</th><th>Dependência</th></tr></thead>
+            <tbody><?php foreach ($produtos_checados as $produto): ?><tr><td><strong><?php echo htmlspecialchars($produto['codigo']); ?></strong></td><td class="table-success"><?php echo htmlspecialchars($produto['nome']); ?></td><td><?php echo htmlspecialchars($produto['dependencia']); ?></td></tr><?php endforeach; ?></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  <?php endif; ?>
+
+  <?php if ($mostrar_observacao && $total_observacao > 0): ?>
+    <div class="card mb-3">
+      <div class="card-header">Produtos com observação (<?php echo $total_observacao; ?>)</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm table-striped align-middle mb-0">
+            <thead><tr><th>Código</th><th>Nome</th><th>Observações</th></tr></thead>
+            <tbody><?php foreach ($produtos_observacao as $produto): ?><tr><td><strong><?php echo htmlspecialchars($produto['codigo']); ?></strong></td><td><?php echo htmlspecialchars($produto['nome']); ?></td><td class="table-warning fst-italic"><?php echo htmlspecialchars($produto['observacoes']); ?></td></tr><?php endforeach; ?></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  <?php endif; ?>
+
+  <?php if ($mostrar_checados_observacao && $total_checados_observacao > 0): ?>
+    <div class="card mb-3">
+      <div class="card-header">Checados + observação (<?php echo $total_checados_observacao; ?>)</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm table-striped align-middle mb-0">
+            <thead><tr><th>Código</th><th>Nome</th><th>Observações</th></tr></thead>
+            <tbody><?php foreach ($produtos_checados_observacao as $produto): ?><tr><td><strong><?php echo htmlspecialchars($produto['codigo']); ?></strong></td><td class="table-secondary"><?php echo htmlspecialchars($produto['nome']); ?></td><td class="table-secondary"><?php echo htmlspecialchars($produto['observacoes']); ?></td></tr><?php endforeach; ?></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  <?php endif; ?>
+
+  <?php if ($mostrar_dr && $total_dr > 0): ?>
+    <div class="card mb-3">
+      <div class="card-header">Produtos no DR (<?php echo $total_dr; ?>)</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm table-striped align-middle mb-0">
+            <thead><tr><th>Código</th><th>Nome</th><th>Dependência</th><th>Observações</th></tr></thead>
+            <tbody><?php foreach ($produtos_dr as $produto): ?><tr><td><strong><?php echo htmlspecialchars($produto['codigo']); ?></strong></td><td class="table-danger"><?php echo htmlspecialchars($produto['nome']); ?></td><td><?php echo htmlspecialchars($produto['dependencia']); ?></td><td class="table-warning fst-italic"><?php echo htmlspecialchars($produto['observacoes'] ?? ''); ?></td></tr><?php endforeach; ?></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  <?php endif; ?>
+
+  <?php if ($mostrar_etiqueta && $total_etiqueta > 0): ?>
+    <div class="card mb-3">
+      <div class="card-header">Produtos com etiqueta (<?php echo $total_etiqueta; ?>)</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm table-striped align-middle mb-0">
+            <thead><tr><th>Código</th><th>Nome</th><th>Dependência</th></tr></thead>
+            <tbody><?php foreach ($produtos_etiqueta as $produto): ?><tr><td><strong><?php echo htmlspecialchars($produto['codigo']); ?></strong></td><td class="table-info"><?php echo htmlspecialchars($produto['nome']); ?></td><td><?php echo htmlspecialchars($produto['dependencia']); ?></td></tr><?php endforeach; ?></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  <?php endif; ?>
+
+<?php elseif ($total_geral > 0 && $total_mostrar === 0): ?>
+  <div class="alert alert-warning">
+    <i class="bi bi-info-circle me-2"></i> Marque pelo menos uma seção para visualizar o relatório.
+  </div>
+<?php else: ?>
+  <div class="alert alert-secondary">
+    <i class="bi bi-emoji-frown me-2"></i> Nenhum produto encontrado para os filtros aplicados.
+  </div>
+<?php endif; ?>
+
+<div class="text-center text-muted small my-3">
+  Relatório gerado em <?php echo date('d/m/Y \à\s H:i:s'); ?>
+  </div>
+
+<?php
+$contentHtml = ob_get_clean();
+$tempFile = __DIR__ . '/../../../temp_imprimir_alteracao_' . uniqid() . '.php';
+file_put_contents($tempFile, $contentHtml);
+$contentFile = $tempFile;
+
+include __DIR__ . '/../layouts/app-wrapper.php';
+
+unlink($tempFile);
+?>
