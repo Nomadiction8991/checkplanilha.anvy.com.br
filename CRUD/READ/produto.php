@@ -24,21 +24,20 @@ $offset = ($pagina - 1) * $produtos_por_pagina;
 // Construir a query base
 $sql = "SELECT 
             pc.id,
+            pc.codigo,
+            pc.descricao_completa,
+            pc.quantidade,
             pc.tipo_ben,
             pc.complemento,
             pc.possui_nota,
             pc.imprimir_14_1,
-            tb.codigo as tipo_codigo,
-            tb.descricao as tipo_descricao,
             d.descricao as dependencia_descricao
         FROM produtos_cadastro pc
-        LEFT JOIN tipos_bens tb ON pc.id_tipo_ben = tb.id
         LEFT JOIN dependencias d ON pc.id_dependencia = d.id
         WHERE pc.id_planilha = :id_planilha";
 
 $sql_count = "SELECT COUNT(*) as total 
               FROM produtos_cadastro pc
-              LEFT JOIN tipos_bens tb ON pc.id_tipo_ben = tb.id
               LEFT JOIN dependencias d ON pc.id_dependencia = d.id
               WHERE pc.id_planilha = :id_planilha";
 

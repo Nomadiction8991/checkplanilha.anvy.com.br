@@ -136,17 +136,13 @@ ob_start();
               </td>
               <td>
                 <div class="fw-semibold">
-                  <?php 
-                    echo htmlspecialchars($produto['tipo_codigo'] . ' - ' . $produto['tipo_descricao']);
-                    echo ' [' . htmlspecialchars($produto['tipo_ben']) . ']';
-                  ?>
+                  <?php echo htmlspecialchars($produto['descricao_completa']); ?>
                 </div>
-                <div class="text-muted small">
-                  <?php echo htmlspecialchars($produto['complemento']); ?>
-                  <?php if (!empty($produto['dependencia_descricao'])): ?>
-                    <span class="ms-1">• <?php echo htmlspecialchars($produto['dependencia_descricao']); ?></span>
-                  <?php endif; ?>
-                </div>
+                <?php if (!empty($produto['dependencia_descricao'])): ?>
+                  <div class="text-muted small">
+                    • <?php echo htmlspecialchars($produto['dependencia_descricao']); ?>
+                  </div>
+                <?php endif; ?>
               </td>
               <td class="text-center">
                 <strong><?php echo htmlspecialchars($produto['quantidade']); ?></strong>
