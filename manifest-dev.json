@@ -1,7 +1,7 @@
 {
-  "name": "Check Planilha - Desenvolvimento",
+  "name": "Check Planilha - DEV",
   "short_name": "CheckPlanilha Dev",
-  "description": "Sistema de Gestão de Planilhas - Ambiente de Desenvolvimento",
+  "description": "Sistema de Gestão de Planilhas - Desenvolvimento",
   "start_url": "/dev/index.php",
   "scope": "/dev/",
   "display": "standalone",
@@ -10,13 +10,13 @@
   "theme_color": "#ffc107",
   "icons": [
     {
-      "src": "logo-dev.png",
+      "src": "/dev/logo.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "logo-dev.png",
+      "src": "/dev/logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

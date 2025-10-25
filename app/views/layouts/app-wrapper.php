@@ -395,9 +395,13 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(registration => console.log('SW registrado:', registration.scope))
-                    .catch(err => console.log('SW falhou:', err));
+                const swPath = '<?php echo ($ambiente_manifest === "dev") ? "/dev/sw.js" : "/sw.js"; ?>';
+                navigator.serviceWorker.register(swPath)
+                    .then(registration => {
+                        console.log('Service Worker registrado com sucesso:', registration.scope);
+                        console.log('Ambiente:', '<?php echo $ambiente_manifest; ?>');
+                    })
+                    .catch(err => console.error('Falha ao registrar Service Worker:', err));
             });
         }
     </script>
