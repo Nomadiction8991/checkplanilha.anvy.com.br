@@ -101,26 +101,12 @@ ob_start();
 }
 
 /* Garantir visibilidade do botão check */
-.check-form { display: inline-block !important; }
-.btn-check {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    min-width: 40px !important;
-    min-height: 40px !important;
-    background: #d4edda !important;
-    border: 2px solid #28a745 !important;
-    border-radius: 6px !important;
-    z-index: 1;
-    position: relative;
-    order: -10; /* garantir que aparece primeiro nas ações */
+.check-form { 
+    display: inline-block !important; 
 }
-.btn-check::before {
-    content: '✓';
-    color: #198754;
-    font-size: 22px;
-    font-weight: 700;
-    line-height: 1;
+
+.btn-check {
+    /* Mesmo estilo dos outros botões de ação */
 }
 
 .edicao-pendente {
@@ -332,21 +318,9 @@ ob_start();
                         <input type="hidden" name="dependencia" value="<?php echo htmlspecialchars($filtro_dependencia ?? ''); ?>">
                         <input type="hidden" name="codigo" value="<?php echo htmlspecialchars($filtro_codigo ?? ''); ?>">
                         <input type="hidden" name="status" value="<?php echo htmlspecialchars($filtro_status ?? ''); ?>">
-                <button type="submit" class="btn-acao btn-check <?php echo $p['checado'] == 1 ? 'active' : ''; ?>" 
-                                    title="<?php echo $p['checado'] ? 'Desmarcar checado' : 'Marcar como checado'; ?>" 
-                                    aria-label="<?php echo $p['checado'] ? 'Desmarcar checado' : 'Marcar como checado'; ?>"
-                                    style="display: inline-flex !important; 
-                                           visibility: visible !important; 
-                                           align-items: center !important; 
-                                           justify-content: center !important;
-                                           min-width: 40px !important;
-                                           min-height: 40px !important;
-                                           background: #d4edda !important;
-                                           border-radius: 6px !important;
-                           border: 2px solid #28a745 !important;"
-                    onclick="this.closest('form').requestSubmit ? this.closest('form').requestSubmit() : this.closest('form').submit();">
-                <span style="font-size: 28px; color: #198754; font-weight: bold;">✓</span>
-                            </button>
+                        <button type="submit" class="btn-acao btn-check <?php echo $p['checado'] == 1 ? 'active' : ''; ?>" title="<?php echo $p['checado'] ? 'Desmarcar checado' : 'Marcar como checado'; ?>">
+                            <i class="bi bi-check-circle-fill" style="color: #198754; font-size: 24px;"></i>
+                        </button>
                     </form>
                     <?php else: ?>
                     <!-- DEBUG: show_check é FALSE -->
