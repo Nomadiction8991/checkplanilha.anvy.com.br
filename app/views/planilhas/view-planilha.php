@@ -103,17 +103,36 @@ ob_start();
 /* Garantir visibilidade do botão check */
 .check-form { 
     display: inline-block !important; 
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 .btn-check {
     display: inline-block !important;
     visibility: visible !important;
     opacity: 1 !important;
+    width: auto !important;
+    height: auto !important;
+    position: relative !important;
+    z-index: 1 !important;
+    background: transparent !important;
+    border: 2px solid red !important; /* DEBUG: borda vermelha para visualizar */
+    padding: 0.25rem 0.5rem !important;
 }
 
 .btn-check i {
     display: inline-block !important;
     font-size: 24px !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    color: #198754 !important;
+}
+
+/* Garantir que o formulário do botão de check seja visível */
+.check-form button {
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 .edicao-pendente {
@@ -601,7 +620,7 @@ function confirmarImprimir(form, imprimirAtual) {
     <div class="modal-dialog modal-fullscreen-custom">
         <div class="modal-content bg-dark">
             <div class="modal-body p-0 position-relative">
-                <div id="scanner-container" style="width:100%; height:100vh; background:#000; position:relative; overflow:hidden;"></div>
+                <div id="scanner-container" style="width:100%; height:100%; background:#000; position:relative; overflow:hidden;"></div>
                 
                 <!-- Botão X para fechar -->
                 <button type="button" class="btn-close-scanner" aria-label="Fechar scanner">
@@ -632,13 +651,13 @@ function confirmarImprimir(form, imprimirAtual) {
 </div>
 
 <style>
-/* Modal fullscreen customizado (95% x 95%) */
+/* Modal fullscreen customizado (95% largura x 80% altura) */
 .modal-fullscreen-custom {
     width: 95vw;
-    height: 95vh;
+    height: 80vh;
     max-width: 95vw;
-    max-height: 95vh;
-    margin: 2.5vh auto;
+    max-height: 80vh;
+    margin: 10vh auto;
 }
 
 .modal-fullscreen-custom .modal-content {
