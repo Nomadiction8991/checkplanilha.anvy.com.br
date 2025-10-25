@@ -1,3 +1,13 @@
+<?php
+// Detectar ambiente (produção ou desenvolvimento)
+$ambiente_manifest = 'prod'; // padrão produção
+if (strpos($_SERVER['REQUEST_URI'], '/dev/') !== false) {
+    $ambiente_manifest = 'dev';
+} elseif (strpos($_SERVER['HTTP_HOST'], 'dev.') !== false || strpos($_SERVER['HTTP_HOST'], 'localhost') !== false) {
+    $ambiente_manifest = 'dev';
+}
+$manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/manifest-prod.json';
+?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -6,12 +16,12 @@
     <title><?php echo $pageTitle ?? 'Anvy - Gestão de Planilhas'; ?></title>
     
     <!-- PWA - Progressive Web App -->
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="<?php echo $manifest_path; ?>">
     <meta name="theme-color" content="#667eea">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="CheckPlanilha">
-    <link rel="apple-touch-icon" href="/logo.png">
+    <link rel="apple-touch-icon" href="<?php echo ($ambiente_manifest === 'dev') ? '/dev/logo.png' : '/logo.png'; ?>">
     
     <!-- Bootstrap 5.3 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
