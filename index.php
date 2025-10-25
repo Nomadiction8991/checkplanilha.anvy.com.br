@@ -28,12 +28,9 @@ ob_start();
 
 <!-- Filtros -->
 <div class="card mb-3">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <span>
-            <i class="bi bi-funnel me-2"></i>
-            Filtros
-        </span>
-        <span class="badge bg-white text-dark"><?php echo count($planilhas ?? []); ?> itens</span>
+    <div class="card-header">
+        <i class="bi bi-funnel me-2"></i>
+        Filtros
     </div>
     <div class="card-body">
         <form method="GET" action="">
@@ -108,7 +105,9 @@ ob_start();
             </button>
         </form>
     </div>
-    
+    <div class="card-footer text-muted small">
+        <?php echo count($planilhas ?? []); ?> registros encontrados
+    </div>
 </div>
 
 <!-- Legenda -->
