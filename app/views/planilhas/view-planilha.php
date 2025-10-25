@@ -116,7 +116,6 @@ ob_start();
     position: relative !important;
     z-index: 1 !important;
     background: transparent !important;
-    border: 2px solid red !important; /* DEBUG: borda vermelha para visualizar */
     padding: 0.25rem 0.5rem !important;
 }
 
@@ -294,8 +293,8 @@ ob_start();
                 }
                 
                 // Determinar quais botões mostrar
-                // Exibir o botão de check sempre (permite marcar/desmarcar em qualquer estado)
-                $show_check = true;
+                // Regra do botão de check: NÃO mostrar quando imprimir=1, editado=1 ou dr=1; caso contrário, mostrar
+                $show_check = !($p['imprimir'] == 1 || $p['editado'] == 1 || $p['dr'] == 1);
                 $show_imprimir = ($p['checado'] == 1 && $p['dr'] == 0 && $p['editado'] == 0);
                 $show_dr = !($p['checado'] == 1 || $p['imprimir'] == 1 || $p['editado'] == 1);
                 $show_obs = ($p['dr'] == 0);
