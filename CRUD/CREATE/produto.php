@@ -94,7 +94,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $parametros_retorno = gerarParametrosFiltro();
             
             // Redirecionar de volta para a lista (caminho correto)
-            header('Location: ../../app/views/produtos/read-produto.php?id=' . $id_planilha . ($parametros_retorno ? '&' . $parametros_retorno : ''));
+            $base_path = str_replace('/CRUD/CREATE', '', dirname($_SERVER['SCRIPT_NAME']));
+            header('Location: ' . $base_path . '/app/views/produtos/read-produto.php?id=' . $id_planilha . ($parametros_retorno ? '&' . $parametros_retorno : ''));
             exit;
             
         } catch (Exception $e) {

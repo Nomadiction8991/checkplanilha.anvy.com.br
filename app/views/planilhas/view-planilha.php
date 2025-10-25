@@ -254,7 +254,7 @@ ob_start();
         </form>
     </div>
     <div class="card-footer text-muted small">
-        <?php echo count($produtos ?? []); ?> registros encontrados
+        <?php echo $total_registros ?? 0; ?> registros encontrados no total
     </div>
 </div>
 
