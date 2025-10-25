@@ -734,23 +734,42 @@ function confirmarImprimir(form, imprimirAtual) {
 <!-- Quagga2 para leitura de códigos de barras -->
 <script src="https://unpkg.com/@ericblade/quagga2/dist/quagga.min.js"></script>
 <script>
-(function(){
-    console.log('=== SCRIPT CAMERA INICIANDO ===');
+// Aguardar TUDO carregar (DOM + Bootstrap + Quagga)
+document.addEventListener('DOMContentLoaded', function() {
+    // Aguardar mais um pouco para garantir que Bootstrap está pronto
+    setTimeout(initBarcodeScanner, 500);
+});
+
+function initBarcodeScanner() {
+    console.log('=== INICIANDO BARCODE SCANNER ===');
     
     const camBtn = document.getElementById('btnCam');
     const modalEl = document.getElementById('barcodeModal');
     
-    console.log('btnCam:', camBtn);
-    console.log('modalEl:', modalEl);
-    console.log('bootstrap:', window.bootstrap);
-    console.log('Quagga:', typeof Quagga);
+    console.log('Elementos encontrados:', {
+        camBtn: !!camBtn,
+        modalEl: !!modalEl,
+        bootstrap: !!window.bootstrap,
+        Quagga: typeof Quagga
+    });
     
-    if(!camBtn || !modalEl || !window.bootstrap) {
-        console.error('ERRO: Elementos não encontrados!', {
-            camBtn: !!camBtn,
-            modalEl: !!modalEl,
-            bootstrap: !!window.bootstrap
-        });
+    if(!camBtn) {
+        console.error('ERRO: Botão btnCam não encontrado!');
+        return;
+    }
+    
+    if(!modalEl) {
+        console.error('ERRO: Modal barcodeModal não encontrado!');
+        return;
+    }
+    
+    if(!window.bootstrap) {
+        console.error('ERRO: Bootstrap não carregado!');
+        return;
+    }
+    
+    if(typeof Quagga === 'undefined') {
+        console.error('ERRO: Quagga não carregado!');
         return;
     }
     
@@ -767,26 +786,28 @@ function confirmarImprimir(form, imprimirAtual) {
     let lastCode = '';
 
     function stopScanner(){
-        console.log('Parando scanner...');
+        console.log('🛑 Parando scanner...');
         try{ 
             Quagga.stop(); 
             // Limpar canvas/video elements
-            const container = scannerContainer;
-            while (container.firstChild) {
-                container.removeChild(container.firstChild);
+            if(scannerContainer) {
+                while (scannerContainer.firstChild) {
+                    scannerContainer.removeChild(scannerContainer.firstChild);
+                }
             }
+            console.log('✅ Scanner parado');
         }catch(e){
-            console.error('Erro ao parar scanner:', e);
+            console.error('❌ Erro ao parar scanner:', e);
         }
         scanning = false;
     }
 
     function startScanner(){
         if(scanning) {
-            console.log('Scanner já está ativo');
+            console.log('⚠️ Scanner já está ativo');
             return;
         }
-        console.log('Iniciando scanner...');
+        console.log('▶️ Iniciando scanner...');
         scanning = true;
         
         Quagga.init({
@@ -817,13 +838,13 @@ function confirmarImprimir(form, imprimirAtual) {
             }
         }, function(err){
             if(err){
-                console.error('Erro ao iniciar scanner:', err);
-                alert('Não foi possível acessar a câmera traseira: ' + err.message + '\n\nVerifique se:\n- Você deu permissão para usar a câmera\n- O site está em HTTPS (ou localhost)\n- A câmera não está sendo usada por outro app');
+                console.error('❌ Erro ao iniciar scanner:', err);
+                alert('Não foi possível acessar a câmera traseira:\n\n' + err.message + '\n\nVerifique se:\n✓ Você deu permissão para usar a câmera\n✓ O site está em HTTPS (ou localhost)\n✓ A câmera não está sendo usada por outro app');
                 scanning = false;
                 bsModal.hide();
                 return;
             }
-            console.log('Scanner iniciado com sucesso!');
+            console.log('✅ Scanner iniciado com sucesso!');
             Quagga.start();
         });
 
@@ -843,10 +864,10 @@ function confirmarImprimir(form, imprimirAtual) {
                 if(avgError > 0.15) return;
             }
             
-            console.log('Código detectado:', code);
+            console.log('📷 Código detectado:', code);
             lastCode = code;
             
-            // Feedback visual/sonoro
+            // Feedback visual (borda verde)
             const frame = document.querySelector('.scanner-frame');
             if(frame) {
                 frame.style.borderColor = '#28a745';
@@ -870,33 +891,40 @@ function confirmarImprimir(form, imprimirAtual) {
         });
     }
 
-    // Evento do botão de câmera
+    // ===== EVENTO DO BOTÃO DE CÂMERA =====
     camBtn.addEventListener('click', function(e){
-        console.log('Botão de câmera clicado!');
+        console.log('📸 Botão de câmera CLICADO!');
         e.preventDefault();
         e.stopPropagation();
         lastCode = '';
+        
+        console.log('🎬 Abrindo modal...');
         bsModal.show();
+        
         // Dar tempo para o modal abrir antes de iniciar câmera
-        setTimeout(startScanner, 400);
+        setTimeout(() => {
+            console.log('🎥 Iniciando câmera...');
+            startScanner();
+        }, 400);
     });
 
-    console.log('Event listener da câmera adicionado');
+    console.log('✅ Event listener da câmera ADICIONADO ao botão');
 
-    // Evento do botão X customizado
+    // ===== EVENTO DO BOTÃO X =====
     if(btnCloseScanner) {
         btnCloseScanner.addEventListener('click', function(e){
-            console.log('Botão X clicado');
+            console.log('❌ Botão X clicado');
             e.preventDefault();
             e.stopPropagation();
             stopScanner();
             bsModal.hide();
         });
+        console.log('✅ Event listener do botão X adicionado');
     }
 
-    // Limpar quando modal fechar
+    // ===== LIMPAR QUANDO MODAL FECHAR =====
     modalEl.addEventListener('hidden.bs.modal', function(){
-        console.log('Modal fechado');
+        console.log('🚪 Modal fechado');
         stopScanner();
         // Reset visual do frame
         const frame = document.querySelector('.scanner-frame');
@@ -906,8 +934,8 @@ function confirmarImprimir(form, imprimirAtual) {
         }
     });
     
-    console.log('=== SCRIPT CAMERA CARREGADO ===');
-})();
+    console.log('🎉 === BARCODE SCANNER CONFIGURADO COM SUCESSO ===');
+}
 </script>
 
 <?php
