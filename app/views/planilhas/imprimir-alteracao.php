@@ -237,6 +237,7 @@ ob_start();
       </div>
     </form>
   </div>
+</div>
 
 <!-- Cabeçalho do relatório -->
 <div class="card mb-3">
@@ -281,30 +282,45 @@ ob_start();
             <thead>
               <tr>
                 <th>Código</th>
-                <th>Nome</th>
-                <th>Edições</th>
+                <th>Antigo</th>
+                <th>Novo</th>
               </tr>
             </thead>
             <tbody>
             <?php foreach ($produtos_alteracoes as $produto): ?>
               <?php
-                // Construir texto de edições
-                $edicoes = [];
+                // Construir texto antigo e novo
+                $antigo = [];
+                $novo = [];
+                
+                // Verificar alteração no nome
                 if (!empty($produto['nome_editado']) && $produto['nome_editado'] != $produto['nome']) {
-                    $edicoes[] = '<strong>Nome:</strong> ' . htmlspecialchars($produto['nome']) . ' → ' . htmlspecialchars($produto['nome_editado']);
+                    $antigo[] = '<strong>Nome:</strong> ' . htmlspecialchars($produto['nome']);
+                    $novo[] = '<strong>Nome:</strong> ' . htmlspecialchars($produto['nome_editado']);
+                } else {
+                    // Se não mudou, mostrar o nome atual em ambas as colunas
+                    $antigo[] = '<strong>Nome:</strong> ' . htmlspecialchars($produto['nome']);
+                    $novo[] = '<strong>Nome:</strong> ' . htmlspecialchars($produto['nome']);
                 }
+                
+                // Verificar alteração na dependência
                 if (!empty($produto['dependencia_editada']) && $produto['dependencia_editada'] != $produto['dependencia']) {
-                    $edicoes[] = '<strong>Dep:</strong> ' . htmlspecialchars($produto['dependencia']) . ' → ' . htmlspecialchars($produto['dependencia_editada']);
+                    $antigo[] = '<strong>Dep:</strong> ' . htmlspecialchars($produto['dependencia']);
+                    $novo[] = '<strong>Dep:</strong> ' . htmlspecialchars($produto['dependencia_editada']);
+                } else {
+                    // Se não mudou, mostrar a dependência atual em ambas as colunas
+                    $dep_atual = !empty($produto['dependencia']) ? $produto['dependencia'] : '—';
+                    $antigo[] = '<strong>Dep:</strong> ' . htmlspecialchars($dep_atual);
+                    $novo[] = '<strong>Dep:</strong> ' . htmlspecialchars($dep_atual);
                 }
-                if (empty($edicoes)) {
-                    $edicoes[] = '<em class="text-muted">Produto marcado como editado</em>';
-                }
-                $edicoes_texto = implode('<br>', $edicoes);
+                
+                $texto_antigo = implode('<br>', $antigo);
+                $texto_novo = implode('<br>', $novo);
               ?>
               <tr>
                 <td><strong><?php echo htmlspecialchars($produto['codigo']); ?></strong></td>
-                <td><?php echo htmlspecialchars($produto['nome']); ?></td>
-                <td class="table-warning"><?php echo $edicoes_texto; ?></td>
+                <td><?php echo $texto_antigo; ?></td>
+                <td class="table-warning"><?php echo $texto_novo; ?></td>
               </tr>
             <?php endforeach; ?>
             </tbody>
