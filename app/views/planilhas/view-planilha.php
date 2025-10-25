@@ -126,7 +126,7 @@ ob_start();
                         <span class="material-icons-round" aria-hidden="true">mic</span>
                     </button>
                     <button id="btnCam" class="btn btn-primary" type="button" title="Escanear código de barras" aria-label="Escanear código de barras">
-                        <i class="bi bi-camera-video" aria-hidden="true"></i>
+                        <i class="bi bi-camera-video-fill" aria-hidden="true"></i>
                     </button>
                 </div>
             </div>
@@ -553,24 +553,140 @@ function confirmarImprimir(form, imprimirAtual) {
 </script>
 
 <!-- Modal para escanear código de barras -->
-<div class="modal fade" id="barcodeModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Escanear código de barras</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-            </div>
-            <div class="modal-body">
-                <div id="scanner-container" style="width:100%; min-height:240px; background:#000; position:relative; overflow:hidden;"></div>
-                <div class="small text-muted mt-2">Aponte a câmera para o código de barras. Suporta EAN, CODE128, CODE39, UPC…</div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+<div class="modal fade" id="barcodeModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-fullscreen-custom">
+        <div class="modal-content bg-dark">
+            <div class="modal-body p-0 position-relative">
+                <div id="scanner-container" style="width:100%; height:100vh; background:#000; position:relative; overflow:hidden;"></div>
+                <button type="button" class="btn-close-scanner" aria-label="Fechar scanner">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+                <div class="scanner-overlay">
+                    <div class="scanner-frame"></div>
+                    <div class="scanner-hint">Posicione o código de barras dentro da moldura</div>
+                </div>
             </div>
         </div>
     </div>
-  
 </div>
+
+<style>
+/* Modal fullscreen customizado (95% x 95%) */
+.modal-fullscreen-custom {
+    width: 95vw;
+    height: 95vh;
+    max-width: 95vw;
+    max-height: 95vh;
+    margin: 2.5vh auto;
+}
+
+.modal-fullscreen-custom .modal-content {
+    height: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.modal-fullscreen-custom .modal-body {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Botão X para fechar */
+.btn-close-scanner {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 1050;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.btn-close-scanner:hover {
+    background: rgba(255, 255, 255, 1);
+    transform: scale(1.1);
+}
+
+.btn-close-scanner i {
+    color: #333;
+    font-size: 24px;
+}
+
+/* Overlay com moldura e dica */
+.scanner-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.scanner-frame {
+    width: 80%;
+    max-width: 400px;
+    height: 200px;
+    border: 3px solid rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+    position: relative;
+}
+
+.scanner-frame::before,
+.scanner-frame::after {
+    content: '';
+    position: absolute;
+    background: #fff;
+}
+
+.scanner-frame::before {
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    transform: translateY(-50%);
+    animation: scan 2s ease-in-out infinite;
+}
+
+@keyframes scan {
+    0%, 100% { opacity: 0; }
+    50% { opacity: 1; }
+}
+
+.scanner-hint {
+    color: white;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 12px 24px;
+    border-radius: 8px;
+    margin-top: 20px;
+    font-size: 14px;
+    text-align: center;
+    max-width: 80%;
+}
+
+/* Container de vídeo do Quagga */
+#scanner-container video,
+#scanner-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover;
+}
+</style>
 
 <!-- Quagga2 para leitura de códigos de barras -->
 <script src="https://unpkg.com/@ericblade/quagga2/dist/quagga.min.js"></script>
@@ -579,33 +695,69 @@ function confirmarImprimir(form, imprimirAtual) {
     const camBtn = document.getElementById('btnCam');
     const modalEl = document.getElementById('barcodeModal');
     if(!camBtn || !modalEl || !window.bootstrap) return;
+    
     const codigoInput = document.getElementById('codigo');
     const form = codigoInput ? (codigoInput.form || document.querySelector('form')) : document.querySelector('form');
     const scannerContainer = document.getElementById('scanner-container');
-    const bsModal = new bootstrap.Modal(modalEl);
+    const btnCloseScanner = document.querySelector('.btn-close-scanner');
+    const bsModal = new bootstrap.Modal(modalEl, {
+        backdrop: 'static',
+        keyboard: false
+    });
+    
     let scanning = false;
     let lastCode = '';
 
     function stopScanner(){
-        try{ Quagga.stop(); }catch(e){}
+        try{ 
+            Quagga.stop(); 
+            // Limpar canvas/video elements
+            const container = scannerContainer;
+            while (container.firstChild) {
+                container.removeChild(container.firstChild);
+            }
+        }catch(e){
+            console.error('Erro ao parar scanner:', e);
+        }
         scanning = false;
     }
 
     function startScanner(){
         if(scanning) return;
         scanning = true;
+        
         Quagga.init({
             inputStream: {
                 type: 'LiveStream',
                 target: scannerContainer,
-                constraints: { facingMode: 'environment' }
+                constraints: { 
+                    facingMode: 'environment', // SEMPRE câmera traseira
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 }
+                }
             },
-            decoder: { readers: ['ean_reader','code_128_reader','code_39_reader','upc_reader','upc_e_reader','ean_8_reader'] },
-            locate: true
+            decoder: { 
+                readers: [
+                    'ean_reader',
+                    'code_128_reader',
+                    'code_39_reader',
+                    'upc_reader',
+                    'upc_e_reader',
+                    'ean_8_reader'
+                ],
+                multiple: false
+            },
+            locate: true,
+            locator: {
+                patchSize: 'medium',
+                halfSample: true
+            }
         }, function(err){
             if(err){
-                alert('Não foi possível acessar a câmera: ' + err.message);
+                console.error('Erro ao iniciar scanner:', err);
+                alert('Não foi possível acessar a câmera traseira: ' + err.message + '\n\nVerifique se:\n- Você deu permissão para usar a câmera\n- O site está em HTTPS (ou localhost)\n- A câmera não está sendo usada por outro app');
                 scanning = false;
+                bsModal.hide();
                 return;
             }
             Quagga.start();
@@ -616,26 +768,68 @@ function confirmarImprimir(form, imprimirAtual) {
             if(!result || !result.codeResult || !result.codeResult.code) return;
             const code = result.codeResult.code.trim();
             if(!code || code === lastCode) return;
-            lastCode = code;
-            stopScanner();
-            bsModal.hide();
-            if(codigoInput){
-                codigoInput.value = code;
-                codigoInput.dispatchEvent(new Event('input',{bubbles:true}));
-                codigoInput.dispatchEvent(new Event('change',{bubbles:true}));
+            
+            // Verificar qualidade da leitura (evitar falsos positivos)
+            if(result.codeResult.decodedCodes && result.codeResult.decodedCodes.length > 0) {
+                const avgError = result.codeResult.decodedCodes.reduce((sum, code) => {
+                    return sum + (code.error || 0);
+                }, 0) / result.codeResult.decodedCodes.length;
+                
+                // Se erro médio muito alto, ignorar
+                if(avgError > 0.15) return;
             }
-            if(form){ form.requestSubmit ? form.requestSubmit() : form.submit(); }
+            
+            lastCode = code;
+            
+            // Feedback visual/sonoro
+            const frame = document.querySelector('.scanner-frame');
+            if(frame) {
+                frame.style.borderColor = '#28a745';
+                frame.style.boxShadow = '0 0 0 9999px rgba(40, 167, 69, 0.3)';
+            }
+            
+            // Pequeno delay para dar feedback visual
+            setTimeout(() => {
+                stopScanner();
+                bsModal.hide();
+                
+                if(codigoInput){
+                    codigoInput.value = code;
+                    codigoInput.dispatchEvent(new Event('input',{bubbles:true}));
+                    codigoInput.dispatchEvent(new Event('change',{bubbles:true}));
+                }
+                if(form){ 
+                    form.requestSubmit ? form.requestSubmit() : form.submit(); 
+                }
+            }, 300);
         });
     }
 
+    // Evento do botão de câmera
     camBtn.addEventListener('click', function(){
         lastCode = '';
         bsModal.show();
-        setTimeout(startScanner, 250);
+        // Dar tempo para o modal abrir antes de iniciar câmera
+        setTimeout(startScanner, 400);
     });
 
+    // Evento do botão X customizado
+    if(btnCloseScanner) {
+        btnCloseScanner.addEventListener('click', function(){
+            stopScanner();
+            bsModal.hide();
+        });
+    }
+
+    // Limpar quando modal fechar
     modalEl.addEventListener('hidden.bs.modal', function(){
         stopScanner();
+        // Reset visual do frame
+        const frame = document.querySelector('.scanner-frame');
+        if(frame) {
+            frame.style.borderColor = 'rgba(255, 255, 255, 0.8)';
+            frame.style.boxShadow = '0 0 0 9999px rgba(0, 0, 0, 0.5)';
+        }
     });
 })();
 </script>
