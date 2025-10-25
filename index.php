@@ -5,7 +5,7 @@ require_once 'CRUD/READ/index.php';
 $pageTitle = "Anvy - Planilhas";
 $backUrl = null; // Sem botão voltar na home
 $headerActions = '
-    <a href="VIEW/importar-planilha.php" class="btn-header-action" title="Importar Planilha">
+    <a href="app/views/planilhas/importar-planilha.php" class="btn-header-action" title="Importar Planilha">
         <i class="bi bi-plus-lg fs-5"></i>
     </a>
 ';
@@ -190,11 +190,11 @@ ob_start();
                         </td>
                         <td class="text-center">
                             <div class="btn-group btn-group-sm">
-                                <a href="VIEW/view-planilha.php?id=<?php echo $planilha['id']; ?>" 
+                                <a href="app/views/planilhas/view-planilha.php?id=<?php echo $planilha['id']; ?>" 
                                    class="btn btn-outline-primary" title="Visualizar">
                                     <i class="bi bi-eye"></i>
                                 </a>
-                                <a href="VIEW/editar-planilha.php?id=<?php echo $planilha['id']; ?>" 
+                                <a href="app/views/planilhas/editar-planilha.php?id=<?php echo $planilha['id']; ?>" 
                                    class="btn btn-outline-secondary" title="Editar">
                                     <i class="bi bi-pencil"></i>
                                 </a>

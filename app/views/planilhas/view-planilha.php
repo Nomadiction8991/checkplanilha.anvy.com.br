@@ -9,7 +9,7 @@ $headerActions = '
     <button id="btnMic" class="btn-header-action mic-btn" type="button" title="Falar código (Ctrl+M)" aria-label="Falar código" aria-pressed="false">
         <span class="material-icons-round" aria-hidden="true">mic</span>
     </button>
-    <a href="../../menu.php?id=' . $id_planilha . '" class="btn-header-action" title="Menu">
+    <a href="../shared/menu.php?id=' . $id_planilha . '" class="btn-header-action" title="Menu">
         <i class="bi bi-list fs-5"></i>
     </a>
 ';
@@ -324,7 +324,7 @@ ob_start();
                     
                     <!-- Observação -->
                     <?php if ($show_obs): ?>
-                    <a href="../../observacao-produto.php?id_produto=<?php echo $p['id']; ?>&id=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina ?? 1; ?>&nome=<?php echo urlencode($filtro_nome ?? ''); ?>&dependencia=<?php echo urlencode($filtro_dependencia ?? ''); ?>&filtro_codigo=<?php echo urlencode($filtro_codigo ?? ''); ?>&status=<?php echo urlencode($filtro_status ?? ''); ?>"
+                    <a href="../produtos/observacao-produto.php?id_produto=<?php echo $p['id']; ?>&id=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina ?? 1; ?>&nome=<?php echo urlencode($filtro_nome ?? ''); ?>&dependencia=<?php echo urlencode($filtro_dependencia ?? ''); ?>&filtro_codigo=<?php echo urlencode($filtro_codigo ?? ''); ?>&status=<?php echo urlencode($filtro_status ?? ''); ?>"
                        class="btn-acao btn-observacao <?php echo !empty($p['observacoes']) ? 'active' : ''; ?>" title="Observação">
                         <i class="bi bi-chat-square-text-fill" style="color: #ff9800; font-size: 24px;"></i>
                     </a>
@@ -332,7 +332,7 @@ ob_start();
                     
                     <!-- Editar -->
                     <?php if ($show_edit): ?>
-                    <a href="../../editar-produto.php?id_produto=<?php echo $p['id']; ?>&id=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina ?? 1; ?>&nome=<?php echo urlencode($filtro_nome ?? ''); ?>&dependencia=<?php echo urlencode($filtro_dependencia ?? ''); ?>&filtro_codigo=<?php echo urlencode($filtro_codigo ?? ''); ?>&status=<?php echo urlencode($filtro_status ?? ''); ?>"
+                    <a href="../produtos/editar-produto.php?id_produto=<?php echo $p['id']; ?>&id=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina ?? 1; ?>&nome=<?php echo urlencode($filtro_nome ?? ''); ?>&dependencia=<?php echo urlencode($filtro_dependencia ?? ''); ?>&filtro_codigo=<?php echo urlencode($filtro_codigo ?? ''); ?>&status=<?php echo urlencode($filtro_status ?? ''); ?>"
                        class="btn-acao btn-editar <?php echo $tem_edicao ? 'active' : ''; ?>" title="Editar">
                         <i class="bi bi-pencil-fill" style="color: #9c27b0; font-size: 24px;"></i>
                     </a>
