@@ -126,6 +126,26 @@
             transform: scale(1.1);
         }
         
+        /* Botão PWA com animação de pulso */
+        #installPwaBtn {
+            position: relative;
+            animation: pulsePwa 2s infinite;
+        }
+        
+        @keyframes pulsePwa {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+            }
+            50% {
+                box-shadow: 0 0 0 8px rgba(255, 255, 255, 0);
+            }
+        }
+        
+        #installPwaBtn:hover {
+            animation: none;
+            background: rgba(255, 255, 255, 0.4) !important;
+        }
+        
         /* Conteúdo principal */
         .app-content {
             flex: 1;

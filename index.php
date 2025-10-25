@@ -1,10 +1,22 @@
 <?php
 require_once 'CRUD/READ/index.php';
 
+// Detectar ambiente (produção ou desenvolvimento)
+$ambiente = 'produção'; // padrão
+if (strpos($_SERVER['REQUEST_URI'], '/dev/') !== false) {
+    $ambiente = 'desenvolvimento';
+} elseif (strpos($_SERVER['HTTP_HOST'], 'dev.') !== false || strpos($_SERVER['HTTP_HOST'], 'localhost') !== false) {
+    $ambiente = 'desenvolvimento';
+}
+
 // Configurações da página
 $pageTitle = "Anvy - Planilhas";
 $backUrl = null; // Sem botão voltar na home
 $headerActions = '
+    <!-- Botão Instalar PWA (oculto por padrão, JS controla) -->
+    <button id="installPwaBtn" class="btn-header-action" title="Instalar Aplicativo" style="display: none; background: none; border: none; padding: 0; cursor: pointer;">
+        <i class="bi bi-download fs-5"></i>
+    </button>
     <a href="app/views/planilhas/importar-planilha.php" class="btn-header-action" title="Importar Planilha">
         <i class="bi bi-plus-lg fs-5"></i>
     </a>
@@ -232,6 +244,65 @@ $contentHtml = ob_get_clean();
 // Criar arquivo temporário com o conteúdo
 file_put_contents(__DIR__ . '/temp_index_content.php', $contentHtml);
 $contentFile = __DIR__ . '/temp_index_content.php';
+
+// JavaScript customizado para controle do botão PWA
+$customJs = "
+let deferredPrompt;
+const installBtn = document.getElementById('installPwaBtn');
+const ambiente = '" . $ambiente . "';
+
+// Detectar se já está instalado (modo standalone)
+if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+    console.log('PWA já instalado - botão oculto');
+    if (installBtn) installBtn.style.display = 'none';
+} else {
+    // Detectar evento de instalação disponível
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        
+        // Mostrar botão
+        if (installBtn) {
+            installBtn.style.display = 'inline-block';
+            console.log('Botão de instalação exibido - Ambiente:', ambiente);
+        }
+    });
+    
+    // Evento de clique no botão
+    if (installBtn) {
+        installBtn.addEventListener('click', async () => {
+            if (!deferredPrompt) {
+                alert('Instalação não disponível no momento.');
+                return;
+            }
+            
+            // Mostrar prompt
+            deferredPrompt.prompt();
+            
+            // Aguardar resposta do usuário
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log('Resultado da instalação:', outcome);
+            
+            if (outcome === 'accepted') {
+                console.log('Usuário aceitou instalar o app - Ambiente:', ambiente);
+            } else {
+                console.log('Usuário recusou instalar o app');
+            }
+            
+            // Limpar o prompt
+            deferredPrompt = null;
+            installBtn.style.display = 'none';
+        });
+    }
+    
+    // Detectar quando foi instalado
+    window.addEventListener('appinstalled', () => {
+        console.log('PWA instalado com sucesso! - Ambiente:', ambiente);
+        if (installBtn) installBtn.style.display = 'none';
+        deferredPrompt = null;
+    });
+}
+";
 
 // Renderizar o layout
 include __DIR__ . '/app/views/layouts/app-wrapper.php';

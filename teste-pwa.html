@@ -40,6 +40,17 @@
 <body>
     <h1>🔍 Diagnóstico PWA</h1>
     
+    <div class="status info">
+        <strong>ℹ️ Sobre o Botão de Instalação no Header</strong><br>
+        O botão de download (📥) aparece automaticamente no canto superior direito do index.php quando:
+        <ul style="margin: 10px 0; padding-left: 20px;">
+            <li>O navegador detecta que o PWA pode ser instalado</li>
+            <li>O app ainda NÃO está instalado</li>
+            <li>Todos os critérios PWA são atendidos (HTTPS, manifest, service worker)</li>
+        </ul>
+        Se o app já estiver instalado, o botão fica oculto automaticamente.
+    </div>
+    
     <div id="results"></div>
     
     <h3>Ações:</h3>
