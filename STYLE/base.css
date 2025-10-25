@@ -9,6 +9,22 @@ body {
     color: #333;
     font-size: 14px;
     line-height: 1.4;
+    /* Layout mobile-first: no desktop centraliza e limita a 400px */
+    display: flex;
+    justify-content: center;
+}
+
+/* Limita a largura de todos os filhos diretos do body para 400px no desktop
+   e mantém 100% em telas pequenas. Isso evita ter versões separadas desktop/mobile. */
+body > header,
+body > main,
+body > section,
+body > div,
+body > footer {
+    width: 100%;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 /* Cabeçalho padrão */
@@ -21,12 +37,18 @@ body {
     justify-content: space-between;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     position: fixed;
-    top: 0; left: 0; right: 0;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 400px;
     z-index: 1000;
     height: 60px;
 }
 .titulo { display:flex; align-items:center; gap:12px; }
+.titulo { flex: 1 1 auto; }
 .cabecalho h1 { font-size:18px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:220px; }
+.acoes { display:flex; align-items:center; gap:8px; }
 .voltar, .acoes a { display:flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:50%; transition:background-color .3s; }
 .voltar:hover, .acoes a:hover { background-color: rgba(255,255,255,0.18); }
 
