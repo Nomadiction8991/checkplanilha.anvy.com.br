@@ -73,7 +73,7 @@ $customCss = '
 /* Barra fixa de navegação por páginas */
 .page-toolbar {
     position: fixed;
-    top: 60px; /* logo abaixo do header fixo */
+    top: 68px; /* pequeno espaçamento do header */
     left: 50%;
     transform: translateX(-50%);
     width: 100%;
@@ -131,6 +131,9 @@ $customCss = '
 }
 
 @media print {
+    @page { size: A4; margin: 0; }
+    html, body { background: #ffffff !important; }
+    .app-container, .mobile-wrapper, .app-content { padding: 0 !important; background: #ffffff !important; box-shadow: none !important; }
     .page-toolbar, .valores-comuns, .pagina-header { display: none !important; }
     
     .paginas-container {
@@ -155,6 +158,7 @@ $customCss = '
         padding: 0;
         overflow: visible;
         height: auto !important;
+        width: auto !important;
     }
     
     .a4-scaled {
@@ -169,6 +173,10 @@ $customCss = '
         color: #000 !important;
     }
 }
+
+/* Evitar cortes de conteúdo em campos e células */
+.a4 input[type="text"], .a4 textarea { height: auto; line-height: 1.2; padding: 2px 4px; }
+.a4 table td { overflow: visible; }
 ';
 
 ob_start();
