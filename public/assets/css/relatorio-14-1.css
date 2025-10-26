@@ -86,9 +86,9 @@
         section.conteudo div.conteudo{
             margin-inline:auto;
             width: 95%;
-            height: 97.5%;
+            height: 97%;
             display: flex;
-            margin-bottom: 2.5%;
+            margin-bottom: 1.2%;
             flex-direction: column;
             border: 2px solid #000;
         }
@@ -111,77 +111,77 @@
             font-size: small;
         }
         section.conteudo div.conteudo table tr.row1{
-            height: 10mm;
+            height: 8mm;
         }
         section.conteudo div.conteudo table tr.row2{
-            height: 10mm;
+            height: 8mm;
         }
         section.conteudo div.conteudo table tr.row3{
-            height: 5mm;
+            height: 4mm;
         }
         section.conteudo div.conteudo table tr.row4{
-            height: 5mm;
+            height: 4mm;
             flex: 1;
         }
         section.conteudo div.conteudo table tr.row5{
-            height: 10mm;
+            height: 8mm;
         }
         section.conteudo div.conteudo table tr.row6{
-            height: 5mm;
+            height: 4mm;
         }
         section.conteudo div.conteudo table tr.row7{
-            height: 10mm;
+            height: 8mm;
         }
         section.conteudo div.conteudo table tr.row8{
-            height: 5mm;
+            height: 4mm;
         }
         section.conteudo div.conteudo table tr.row9{
-            height: 15mm;
+            height: 10mm;
         }
         section.conteudo div.conteudo table tr.row10{
-            height: 5mm;
+            height: 4mm;
         }
         section.conteudo div.conteudo table tr.row11{
-            height: 10mm;
+            height: 8mm;
         }
         section.conteudo div.conteudo table tr.row12{
-            height: 50mm;
+            height: 38mm;
         }
         section.conteudo div.conteudo table tr.row13{
-            height: 5mm;
+            height: 4mm;
         }
         section.conteudo div.conteudo table tr.row14{
-            height: 5mm;
+            height: 4mm;
         }
         section.conteudo div.conteudo table tr.row15{
-            height: 10mm;
+            height: 8mm;
         }
         section.conteudo div.conteudo table tr.row16{
-            height: 10mm;
+            height: 8mm;
         }
         section.conteudo div.conteudo table tr.row17{
-            height: 10mm;
+            height: 8mm;
         }
         section.conteudo div.conteudo table tr.row18{
-            height: 10mm;
+            height: 8mm;
         }
         section.conteudo div.conteudo table tr.row19{
-            height: 10mm;
+            height: 8mm;
         }
         section.conteudo div.conteudo table tr.row20{
-            height: 5mm;
+            height: 4mm;
         }
         section.conteudo div.conteudo table tr.row21{
-            height: 10mm;
+            height: 8mm;
         }
         section.conteudo div.conteudo table tr.row22{
-            height: 5mm;
+            height: 4mm;
         }
         section.conteudo div.conteudo table tr.row23{
-            height: 10mm;
+            height: 8mm;
         }
         section.conteudo div.conteudo table tr.row24{
-            height: 10mm;
+            height: 8mm;
         }
         section.conteudo div.conteudo table tr.row1 td.col1{
             width: 70%;
@@ -482,7 +482,7 @@
             color: #0066CC;
             width: 100%;
             text-align: center;
-            font-size: large;
+            font-size: medium;
             border:none;
             font-family: Arial, Helvetica, sans-serif;
             font-weight: 400;
@@ -493,7 +493,7 @@ textarea {
     width: 100%;
     text-align: center;
     font-family: inherit;
-    font-size: large;
+    font-size: medium;
     border: 1px solid #ccc;
     padding: 5px;
     resize: none;
