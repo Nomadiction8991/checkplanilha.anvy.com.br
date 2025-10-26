@@ -132,9 +132,20 @@ $customCss = '
 
 @media print {
     @page { size: A4; margin: 0; }
-    html, body { background: #ffffff !important; }
-    .app-container, .mobile-wrapper, .app-content { padding: 0 !important; background: #ffffff !important; box-shadow: none !important; }
-    .page-toolbar, .valores-comuns, .pagina-header { display: none !important; }
+    html, body { background: #ffffff !important; margin: 0 !important; padding: 0 !important; }
+    /* Remover completamente header e barra de controles na impressão */
+    .app-header, .page-toolbar, .valores-comuns, .pagina-header { display: none !important; }
+    /* Ignorar layout mobile (largura fixa/centralização/sombras) */
+    .app-container, .mobile-wrapper, .app-content {
+        width: auto !important;
+        max-width: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: #ffffff !important;
+        box-shadow: none !important;
+        overflow: visible !important;
+        border-radius: 0 !important;
+    }
     
     .paginas-container {
         display: block;
