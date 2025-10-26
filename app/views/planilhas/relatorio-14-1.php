@@ -14,13 +14,18 @@ $customCss = '
     border-radius: 8px; 
     margin-bottom: 15px;
     position: sticky;
-    top: 0;
+    top: 56px; /* abaixo da toolbar */
     z-index: 10;
 }
 .valores-comuns h6 { margin: 0 0 10px 0; font-size: 0.9rem; font-weight: 600; }
 .form-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
 .form-grid label { font-size: 0.875rem; font-weight: 500; margin-bottom: 4px; display: block; }
 .form-grid input { width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.875rem; }
+
+/* Opções de doação (comuns) */
+.opcoes-comuns { margin-top: 10px; display: grid; gap: 6px; }
+.opcoes-comuns label { display: flex; align-items: flex-start; gap: 8px; font-size: 0.9rem; }
+.valores-comuns label:has(input[type="checkbox"].marcado) { color: #dc3545; font-weight: 600; }
 
 /* Container de páginas */
 .paginas-container {
@@ -183,17 +188,35 @@ ob_start();
             <input type="text" id="admin_acessor_geral" onchange="atualizarTodos('admin_acessor')">
         </div>
     </div>
+    <div class="opcoes-comuns">
+        <strong>Opção de Doação (aplica em todas as páginas):</strong>
+        <label>
+            <input type="checkbox" class="chk-comum" id="chk_comum_1" data-opcao="1">
+            O bem tem mais de cinco anos de uso e o documento fiscal de aquisição está anexo.
+        </label>
+        <label>
+            <input type="checkbox" class="chk-comum" id="chk_comum_2" data-opcao="2">
+            O bem tem mais de cinco anos de uso, porém o documento fiscal de aquisição foi extraviado.
+        </label>
+        <label>
+            <input type="checkbox" class="chk-comum" id="chk_comum_3" data-opcao="3">
+            O bem tem até cinco anos de uso e o documento fiscal de aquisição está anexo.
+        </label>
+    </div>
 </div>
 
 <!-- Barra de navegação por páginas -->
 <div class="page-toolbar">
     <div class="group">
-        <button id="btnPrevPage" class="toolbar-btn" type="button"><i class="bi bi-chevron-left"></i> Anterior</button>
+        <button id="btnFirstPage" class="toolbar-btn" type="button" title="Primeira página"><i class="bi bi-skip-backward-fill"></i></button>
+        <button id="btnPrevPage" class="toolbar-btn" type="button" title="Anterior"><i class="bi bi-chevron-left"></i></button>
         <span class="toolbar-counter"><span id="contadorPaginaAtual">1</span> / <span id="contadorTotalPaginas"><?php echo count($produtos); ?></span></span>
-        <button id="btnNextPage" class="toolbar-btn" type="button">Próxima <i class="bi bi-chevron-right"></i></button>
+        <button id="btnNextPage" class="toolbar-btn" type="button" title="Próxima"><i class="bi bi-chevron-right"></i></button>
+        <button id="btnLastPage" class="toolbar-btn" type="button" title="Última página"><i class="bi bi-skip-forward-fill"></i></button>
     </div>
     <div class="group">
         <button id="btnTopo" class="toolbar-btn" type="button" title="Ir para o topo"><i class="bi bi-arrow-up-short"></i></button>
+        <button id="btnFim" class="toolbar-btn" type="button" title="Ir para o fim"><i class="bi bi-arrow-down-short"></i></button>
     </div>
     
     
@@ -450,7 +473,9 @@ document.addEventListener('DOMContentLoaded', () => {
     inicializarDeteccaoEdicao();
     configurarNavegacaoPaginas();
     ajustarEscalaPaginas();
+    window.addEventListener('load', ajustarEscalaPaginas);
     window.addEventListener('resize', ajustarEscalaPaginas);
+    configurarOpcoesComuns();
 });
 
 // Detectar edição manual em inputs e textareas
@@ -538,9 +563,12 @@ let paginaAtual = 0;
 
 function configurarNavegacaoPaginas() {
     const paginas = document.querySelectorAll('.pagina-card');
+    const btnFirst = document.getElementById('btnFirstPage');
     const btnPrev = document.getElementById('btnPrevPage');
     const btnNext = document.getElementById('btnNextPage');
+    const btnLast = document.getElementById('btnLastPage');
     const btnTopo = document.getElementById('btnTopo');
+    const btnFim = document.getElementById('btnFim');
     const lblAtual = document.getElementById('contadorPaginaAtual');
     const total = paginas.length;
 
@@ -556,9 +584,12 @@ function configurarNavegacaoPaginas() {
         atualizarUI();
     }
 
+    btnFirst.addEventListener('click', () => irParaPagina(0));
     btnPrev.addEventListener('click', () => irParaPagina(paginaAtual - 1));
     btnNext.addEventListener('click', () => irParaPagina(paginaAtual + 1));
+    btnLast.addEventListener('click', () => irParaPagina(total - 1));
     btnTopo.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    btnFim.addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
 
     // Observa o scroll para atualizar o indicador com base na página visível
     const observer = new IntersectionObserver((entries) => {
@@ -608,6 +639,46 @@ function ajustarEscalaPaginas() {
         view.style.height = `${a4Height * scale}px`;
     });
 }
+
+// ---------- Opções comuns (checkbox) ----------
+function configurarOpcoesComuns() {
+    const comuns = document.querySelectorAll('.chk-comum');
+    if (!comuns.length) return;
+
+    function marcarComum(elem) {
+        // Exclusividade no grupo comum
+        comuns.forEach(c => {
+            if (c !== elem) { c.checked = false; c.classList.remove('marcado'); }
+        });
+        if (elem.checked) elem.classList.add('marcado'); else elem.classList.remove('marcado');
+
+        // Aplica em todas as páginas
+        const opc = elem.dataset.opcao; // '1' | '2' | '3'
+        const totalPaginas = document.querySelectorAll('.pagina-card').length;
+        for (let i = 0; i < totalPaginas; i++) {
+            const seletores = [
+                `.opcao-checkbox[name="opcao_1_${getIdByIndex(i)}"]`,
+                `.opcao-checkbox[name="opcao_2_${getIdByIndex(i)}"]`,
+                `.opcao-checkbox[name="opcao_3_${getIdByIndex(i)}"]`
+            ];
+
+            // Nem sempre temos forma simples de mapear id pelo índice; como alternativa, usamos data-page
+            const checksPagina = document.querySelectorAll(`.opcao-checkbox[data-page="${i}"]`);
+            checksPagina.forEach(chk => {
+                const isOpcaoSelecionada = chk.id.includes(`opcao_${opc}_`);
+                chk.checked = isOpcaoSelecionada;
+                if (isOpcaoSelecionada) chk.classList.add('marcado'); else chk.classList.remove('marcado');
+            });
+        }
+    }
+
+    comuns.forEach(chk => {
+        chk.addEventListener('change', () => marcarComum(chk));
+    });
+}
+
+// Helper opcional caso precisemos mapear pelo index (mantido para futura extensão)
+function getIdByIndex(index) { return ''; }
 </script>
 
 <?php
