@@ -77,9 +77,20 @@ $customCss = '
   .valores-comuns, .carousel-nav { display: none !important; }
   .carousel-container { overflow: visible !important; }
   .carousel-track { display: block !important; transform: none !important; }
-  .carousel-page { min-width: auto !important; page-break-after: always; }
+  .carousel-page { min-width: auto !important; page-break-after: always; overflow: visible !important; }
   .carousel-page:last-child { page-break-after: auto; }
   .a4 { margin: 0; }
+  
+  /* Remove o scale na impressão */
+  .a4-content {
+    transform: none !important;
+    width: 100% !important;
+  }
+  
+  .a4-wrapper {
+    overflow: visible !important;
+    padding: 0 !important;
+  }
   
   /* Na impressão tudo fica preto */
   .a4 input.editado,
