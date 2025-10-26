@@ -12,8 +12,25 @@ require_once __DIR__ . '/../../../CRUD/READ/relatorio-14-1.php';
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Parisienne&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/dev/public/assets/css/relatorio-14-1.css">
+        <!-- Ícones (somente para header, não afeta tabela) -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+        <style>
+            /* Header mobile-like (no print) */
+            .rl-header{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#ffffff;border-bottom:1px solid #e5e5e5;position:sticky;top:0;z-index:5}
+            .rl-header .title{font-weight:600}
+            .rl-header .actions a,.rl-header .actions button{border:none;background:transparent;padding:6px 8px;cursor:pointer}
+            @media print{.no-print{display:none !important}}
+        </style>
 </head>
 <body>
+        <!-- Header no-print -->
+        <div class="rl-header no-print">
+            <div class="title">Relatório 14.1</div>
+            <div class="actions">
+                <a href="../shared/menu.php?id=<?php echo urlencode($id_planilha ?? 0); ?>" title="Voltar"><i class="bi bi-arrow-left"></i></a>
+                <button id="btnPrint" title="Imprimir"><i class="bi bi-printer"></i></button>
+            </div>
+        </div>
     <!-- Inputs para valores que se repetem em todos os documentos -->
     <div style="margin-bottom: 20px; padding: 10px; border: 1px solid #ccc; background: #f9f9f9;" class="no-print">
         <h3>Valores Comuns para Todos os Documentos:</h3>
@@ -27,15 +44,7 @@ require_once __DIR__ . '/../../../CRUD/READ/relatorio-14-1.php';
             <div>
                 <label>Setor: <input type="text" id="setor_geral" onchange="atualizarTodos('setor')"></label>
             </div>
-            <div>
-                <label>CNPJ: <input type="text" id="cnpj_geral" onchange="atualizarTodos('cnpj')"></label>
-            </div>
-            <div>
-                <label>N° Relatório: <input type="text" id="relatorio_geral" onchange="atualizarTodos('relatorio')"></label>
-            </div>
-            <div>
-                <label>Casa de Oração: <input type="text" id="casa_oracao_geral" onchange="atualizarTodos('casa_oracao')"></label>
-            </div>
+            <!-- Campos CNPJ, N° Relatório e Casa de Oração removidos (auto-preenchidos por planilha) -->
             <div>
                 <label>Administrador/Acessor: <input type="text" id="admin_acessor_geral" onchange="atualizarTodos('admin_acessor')"></label>
             </div>
@@ -121,13 +130,13 @@ require_once __DIR__ . '/../../../CRUD/READ/relatorio-14-1.php';
                             </tr>
                             <tr class="row7">
                                 <td class="col1">
-                                    <input type="text" name="cnpj" id="cnpj_<?php echo $row['id']; ?>">
+                                    <input type="text" name="cnpj" id="cnpj_<?php echo $row['id']; ?>" value="<?php echo htmlspecialchars($cnpj_planilha ?? ''); ?>">
                                 </td>
                                 <td class="col2">
-                                    <input type="text" name="numero_relatorio" id="numero_relatorio_<?php echo $row['id']; ?>">
+                                    <input type="text" name="numero_relatorio" id="numero_relatorio_<?php echo $row['id']; ?>" value="<?php echo htmlspecialchars($numero_relatorio_auto ?? ''); ?>">
                                 </td>
                                 <td class="col3">
-                                    <input type="text" name="casa_oracao" id="casa_oracao_<?php echo $row['id']; ?>">
+                                    <input type="text" name="casa_oracao" id="casa_oracao_<?php echo $row['id']; ?>" value="<?php echo htmlspecialchars($casa_oracao_auto ?? ''); ?>">
                                 </td>
                             </tr>
                         </table>
@@ -321,9 +330,6 @@ require_once __DIR__ . '/../../../CRUD/READ/relatorio-14-1.php';
             case 'admin': selector = '[id^="administracao_"]'; break;
             case 'cidade': selector = '[id^="cidade_"]'; break;
             case 'setor': selector = '[id^="setor_"]'; break;
-            case 'cnpj': selector = '[id^="cnpj_"]'; break;
-            case 'relatorio': selector = '[id^="numero_relatorio_"]'; break;
-            case 'casa_oracao': selector = '[id^="casa_oracao_"]'; break;
             case 'admin_acessor': selector = '[id^="admin_acessor_"]'; break;
             default: selector = '[id^="' + tipo + '_"]';
         }
@@ -332,6 +338,33 @@ require_once __DIR__ . '/../../../CRUD/READ/relatorio-14-1.php';
             if (!input.id.includes('geral')) input.value = valor;
         });
     }
+
+    // Apenas 1 checkbox por página (grupo) e validação antes de imprimir
+    document.querySelectorAll('.a4').forEach(page => {
+        const checks = page.querySelectorAll('input[type="checkbox"][id^="opcao_"]');
+        checks.forEach(chk => {
+            chk.addEventListener('change', () => {
+                if (chk.checked) {
+                    checks.forEach(other => { if (other !== chk) other.checked = false; });
+                }
+            });
+        });
+    });
+
+    document.getElementById('btnPrint')?.addEventListener('click', (e) => {
+        // Validar: cada página deve ter exatamente 1 opção marcada
+        const pages = document.querySelectorAll('.a4');
+        for (const page of pages) {
+            const checks = page.querySelectorAll('input[type="checkbox"][id^="opcao_"]');
+            const marcados = Array.from(checks).filter(c => c.checked).length;
+            if (marcados !== 1) {
+                alert('Selecione exatamente 1 opção (das 3) em cada folha antes de imprimir.');
+                e.preventDefault();
+                return;
+            }
+        }
+        window.print();
+    });
 </script>
 </body>
 </html>
