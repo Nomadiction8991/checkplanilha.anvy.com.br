@@ -516,14 +516,30 @@ textarea {
 }
 
         @media print {
-    /* Esconder o formulário de preenchimento geral */
-    div[style*="margin-bottom: 20px"] {
-        display: none !important;
-    }
-        textarea {
-        border: none;
-        background: transparent;
-    }
+    /* Enforce A4 physical size and remove browser margins */
+    @page { size: A4; margin: 0; }
+    html, body { width: 210mm; height: 297mm; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    /* Base canvas exactly A4 */
+    div.a4 { width: 210mm; height: 297mm; margin: 0 auto; }
+
+    /* Keep internal widths in mm for fidelity */
+    section.cabecalho { width: 203mm; height: 22mm; margin: 0 auto; }
+    section.conteudo  { width: 203mm; height: 252mm; margin: 0 auto; }
+    section.rodape    { width: 203mm; height: 10mm;  margin: 0 auto; }
+
+    /* Hide any on-screen helper forms/toolbars if still present */
+    div[style*="margin-bottom: 20px"] { display: none !important; }
+
+    /* Inputs/text in black for print-only */
+    section.conteudo div.conteudo table tr td input[type="text"],
+    textarea,
+    input,
+    label,
+    td,
+    th { color: #000 !important; }
+
+    textarea { border: none; background: transparent; }
 }
 
 /* Opcional: para visualizar melhor durante o desenvolvimento */
