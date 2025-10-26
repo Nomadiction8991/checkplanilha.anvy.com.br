@@ -15,11 +15,11 @@
         section.cabecalho{
             display: flex;
             width: 203mm;
-            height: 25mm;
-            margin-block: 3mm;
+            height: 22mm;
+            margin-block: 1.5mm;
             margin-inline: auto;
             overflow: hidden;
-            margin-top:5mm;
+            margin-top: 0;
         }
         section.cabecalho table {
             border-collapse: collapse;
@@ -31,6 +31,8 @@
         section.cabecalho table th, th {
             border: 1px solid #000;
             text-align: left;
+            padding: 0.8mm 1.5mm;
+            line-height: 1;
         }
         
         section.cabecalho table th {
@@ -81,7 +83,7 @@
             font-size:medium;
             width: 95%;
             margin-inline: auto;
-            margin-block: 1.5mm;
+            margin-block: 0.5mm;
         }
         section.conteudo div.conteudo{
             margin-inline:auto;
@@ -103,6 +105,8 @@
         section.conteudo div.conteudo table td, td {
             border: 1px solid #000;
             text-align: left;
+            padding: 0.8mm 1mm;
+            line-height: 1.05;
         }
         
         section.conteudo div.conteudo table td {
@@ -495,7 +499,7 @@ textarea {
     font-family: inherit;
     font-size: medium;
     border: 1px solid #ccc;
-    padding: 5px;
+    padding: 2px 3px;
     resize: none;
     white-space: pre-wrap;
     word-wrap: break-word;
