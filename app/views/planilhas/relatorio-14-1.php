@@ -81,7 +81,7 @@ $customCss = '
     z-index: 990;
     background: #ffffff;
     border: 1px solid #e5e7eb;
-    border-radius: 12px;
+        border-radius: 0 0 12px 12px; /* sem cantos arredondados no topo */
     padding: 6px 8px;
     display: flex;
     align-items: center;
