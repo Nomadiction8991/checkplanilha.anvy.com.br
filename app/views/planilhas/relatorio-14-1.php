@@ -8,9 +8,26 @@ $headerActions = '<button id="btnPrint" class="btn-header-action" title="Imprimi
 // CSS customizado
 $customCss = '
 /* Carrossel */
-.carousel-container { position: relative; overflow: hidden; margin-bottom: 15px; }
-.carousel-track { display: flex; transition: transform 0.3s ease; }
-.carousel-page { min-width: 100%; flex-shrink: 0; }
+.carousel-container { 
+  position: relative; 
+  overflow: hidden; 
+  margin-bottom: 15px;
+  background: #f0f0f0;
+  border-radius: 8px;
+  padding: 10px 0;
+}
+.carousel-track { 
+  display: flex; 
+  transition: transform 0.3s ease; 
+}
+.carousel-page { 
+  min-width: 100%; 
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 10px;
+}
 .carousel-nav { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; margin-bottom: 10px; background: #f8f9fa; border-radius: 8px; padding: 10px; }
 .carousel-nav button { padding: 8px 16px; border: none; border-radius: 8px; background: #667eea; color: white; cursor: pointer; font-weight: 500; }
 .carousel-nav button:disabled { background: #ccc; cursor: not-allowed; }
@@ -27,38 +44,42 @@ $customCss = '
 .a4-wrapper { 
   background: #fff; 
   border-radius: 8px; 
-  overflow: auto;
-  display: flex;
-  justify-content: center;
-  padding: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  display: inline-block;
 }
 
 .a4-content { 
-  width: 100%; 
-  transform-origin: top center;
+  display: flex;
+  justify-content: center;
 }
 
 /* Responsivo para celular - escala a página A4 */
 @media screen and (max-width: 768px) {
-  .a4-content {
-    transform: scale(0.48);
-    transform-origin: top left;
-    width: 208.33%; /* 100% / 0.48 para compensar o scale */
-  }
-  
-  .a4-wrapper {
-    overflow: visible;
-    height: auto;
-    padding: 0;
+  .carousel-container {
+    background: #f0f0f0;
+    min-height: 450px;
+    display: flex;
+    align-items: center;
   }
   
   .carousel-page {
-    overflow: visible;
+    min-height: 450px;
+    align-items: center;
   }
   
-  /* Ajustar altura do container para a página escalada */
-  .a4 {
-    margin-bottom: 20px;
+  .a4-wrapper {
+    transform: scale(0.46);
+    transform-origin: center center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  
+  .a4-content {
+    width: auto;
+  }
+  
+  /* A4 mantém tamanho original, só o wrapper escala */
+  div.a4 {
+    margin: 0;
   }
 }
 
