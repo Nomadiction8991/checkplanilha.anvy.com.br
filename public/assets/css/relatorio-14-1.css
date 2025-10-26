@@ -31,7 +31,7 @@
         section.cabecalho table th, th {
             border: 1px solid #000;
             text-align: left;
-            padding: 0.8mm 1.5mm;
+            padding: 0.6mm 1.2mm;
             line-height: 1;
         }
         
@@ -105,8 +105,12 @@
         section.conteudo div.conteudo table td, td {
             border: 1px solid #000;
             text-align: left;
-            padding: 0.8mm 1mm;
-            line-height: 1.05;
+            padding: 0.5mm 0.8mm;
+            line-height: 1.02;
+        }
+        /* Reduzir recuo à esquerda de células com classes colX */
+        section.conteudo div.conteudo table td[class^="col"] {
+            padding-left: 1.2mm !important;
         }
         
         section.conteudo div.conteudo table td {
@@ -115,77 +119,77 @@
             font-size: small;
         }
         section.conteudo div.conteudo table tr.row1{
-            height: 8mm;
+            height: auto; min-height: 5mm;
         }
         section.conteudo div.conteudo table tr.row2{
-            height: 8mm;
+            height: auto; min-height: 5mm;
         }
         section.conteudo div.conteudo table tr.row3{
-            height: 4mm;
+            height: auto; min-height: 3mm;
         }
         section.conteudo div.conteudo table tr.row4{
-            height: 4mm;
+            height: auto; min-height: 3mm;
             flex: 1;
         }
         section.conteudo div.conteudo table tr.row5{
-            height: 8mm;
+            height: auto; min-height: 5mm;
         }
         section.conteudo div.conteudo table tr.row6{
-            height: 4mm;
+            height: auto; min-height: 3mm;
         }
         section.conteudo div.conteudo table tr.row7{
-            height: 8mm;
+            height: auto; min-height: 5mm;
         }
         section.conteudo div.conteudo table tr.row8{
-            height: 4mm;
+            height: auto; min-height: 3mm;
         }
         section.conteudo div.conteudo table tr.row9{
-            height: 10mm;
+            height: auto; min-height: 5mm;
         }
         section.conteudo div.conteudo table tr.row10{
-            height: 4mm;
+            height: auto; min-height: 3mm;
         }
         section.conteudo div.conteudo table tr.row11{
-            height: 8mm;
+            height: auto; min-height: 5mm;
         }
         section.conteudo div.conteudo table tr.row12{
-            height: 38mm;
+            height: auto; min-height: 34mm;
         }
         section.conteudo div.conteudo table tr.row13{
-            height: 4mm;
+            height: auto; min-height: 3mm;
         }
         section.conteudo div.conteudo table tr.row14{
-            height: 4mm;
+            height: auto; min-height: 3mm;
         }
         section.conteudo div.conteudo table tr.row15{
-            height: 8mm;
+            height: auto; min-height: 5mm;
         }
         section.conteudo div.conteudo table tr.row16{
-            height: 8mm;
+            height: auto; min-height: 5mm;
         }
         section.conteudo div.conteudo table tr.row17{
-            height: 8mm;
+            height: auto; min-height: 5mm;
         }
         section.conteudo div.conteudo table tr.row18{
-            height: 8mm;
+            height: auto; min-height: 5mm;
         }
         section.conteudo div.conteudo table tr.row19{
-            height: 8mm;
+            height: auto; min-height: 5mm;
         }
         section.conteudo div.conteudo table tr.row20{
-            height: 4mm;
+            height: auto; min-height: 3mm;
         }
         section.conteudo div.conteudo table tr.row21{
-            height: 8mm;
+            height: auto; min-height: 5mm;
         }
         section.conteudo div.conteudo table tr.row22{
-            height: 4mm;
+            height: auto; min-height: 3mm;
         }
         section.conteudo div.conteudo table tr.row23{
-            height: 8mm;
+            height: auto; min-height: 5mm;
         }
         section.conteudo div.conteudo table tr.row24{
-            height: 8mm;
+            height: auto; min-height: 5mm;
         }
         section.conteudo div.conteudo table tr.row1 td.col1{
             width: 70%;
