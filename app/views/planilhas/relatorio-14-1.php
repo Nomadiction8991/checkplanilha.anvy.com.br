@@ -13,9 +13,7 @@ $customCss = '
     padding: 15px; 
     border-radius: 8px; 
     margin-bottom: 15px;
-    position: sticky;
-    top: 52px; /* abaixo da toolbar */
-    z-index: 10;
+    margin-top: 56px; /* espaço para toolbar fixa */
 }
 .valores-comuns .valores-header {
     display: flex; align-items: center; justify-content: space-between;
@@ -74,8 +72,12 @@ $customCss = '
 
 /* Barra fixa de navegação por páginas */
 .page-toolbar {
-    position: sticky;
-    top: 0; /* cola no header sticky do layout */
+    position: fixed;
+    top: 60px; /* logo abaixo do header fixo */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 360px;
     z-index: 990;
     background: #ffffff;
     border: 1px solid #e5e7eb;
@@ -85,7 +87,7 @@ $customCss = '
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-    margin: -6px 0 8px 0; /* aproxima do header */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 .page-toolbar .group {
     display: flex;
