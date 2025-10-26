@@ -78,7 +78,6 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
             max-width: 400px;
             z-index: 1000;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            border-radius: 20px 20px 0 0;
         }
         
         .header-left {

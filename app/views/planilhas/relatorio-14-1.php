@@ -226,20 +226,11 @@ ob_start();
 
 <!-- Barra de navegação por páginas -->
 <div class="page-toolbar">
-    <div class="group">
-        <button id="btnFirstPage" class="toolbar-btn" type="button" title="Primeira página"><i class="bi bi-skip-backward-fill"></i></button>
-        <button id="btnPrevPage" class="toolbar-btn" type="button" title="Anterior"><i class="bi bi-chevron-left"></i></button>
-        <span class="toolbar-counter"><span id="contadorPaginaAtual">1</span> / <span id="contadorTotalPaginas"><?php echo count($produtos); ?></span></span>
-        <button id="btnNextPage" class="toolbar-btn" type="button" title="Próxima"><i class="bi bi-chevron-right"></i></button>
-        <button id="btnLastPage" class="toolbar-btn" type="button" title="Última página"><i class="bi bi-skip-forward-fill"></i></button>
-    </div>
-    <div class="group">
-        <button id="btnTopo" class="toolbar-btn" type="button" title="Ir para o topo"><i class="bi bi-arrow-up-short"></i></button>
-        <button id="btnFim" class="toolbar-btn" type="button" title="Ir para o fim"><i class="bi bi-arrow-down-short"></i></button>
-    </div>
-    
-    
-    
+    <button id="btnFirstPage" class="toolbar-btn" type="button" title="Primeira página"><i class="bi bi-skip-backward-fill"></i></button>
+    <button id="btnPrevPage" class="toolbar-btn" type="button" title="Anterior"><i class="bi bi-chevron-left"></i></button>
+    <span class="toolbar-counter"><span id="contadorPaginaAtual">1</span> / <span id="contadorTotalPaginas"><?php echo count($produtos); ?></span></span>
+    <button id="btnNextPage" class="toolbar-btn" type="button" title="Próxima"><i class="bi bi-chevron-right"></i></button>
+    <button id="btnLastPage" class="toolbar-btn" type="button" title="Última página"><i class="bi bi-skip-forward-fill"></i></button>
 </div>
 
 <!-- Container de páginas -->
@@ -586,8 +577,6 @@ function configurarNavegacaoPaginas() {
     const btnPrev = document.getElementById('btnPrevPage');
     const btnNext = document.getElementById('btnNextPage');
     const btnLast = document.getElementById('btnLastPage');
-    const btnTopo = document.getElementById('btnTopo');
-    const btnFim = document.getElementById('btnFim');
     const lblAtual = document.getElementById('contadorPaginaAtual');
     const total = paginas.length;
 
@@ -595,6 +584,8 @@ function configurarNavegacaoPaginas() {
         lblAtual.textContent = paginaAtual + 1;
         btnPrev.disabled = paginaAtual === 0;
         btnNext.disabled = paginaAtual >= total - 1;
+        btnFirst.disabled = paginaAtual === 0;
+        btnLast.disabled = paginaAtual >= total - 1;
     }
 
     function irParaPagina(index, smooth = true) {
@@ -607,8 +598,6 @@ function configurarNavegacaoPaginas() {
     btnPrev.addEventListener('click', () => irParaPagina(paginaAtual - 1));
     btnNext.addEventListener('click', () => irParaPagina(paginaAtual + 1));
     btnLast.addEventListener('click', () => irParaPagina(total - 1));
-    btnTopo.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-    btnFim.addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
 
     // Observa o scroll para atualizar o indicador com base na página visível
     const observer = new IntersectionObserver((entries) => {
