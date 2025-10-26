@@ -14,9 +14,18 @@ $customCss = '
     border-radius: 8px; 
     margin-bottom: 15px;
     position: sticky;
-    top: 56px; /* abaixo da toolbar */
+    top: 52px; /* abaixo da toolbar */
     z-index: 10;
 }
+.valores-comuns .valores-header {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 8px; margin-bottom: 8px;
+}
+.valores-comuns .valores-title { font-weight: 700; font-size: 0.95rem; color: #334155; }
+.valores-comuns .toggle-btn {
+    border: none; background: #667eea; color: #fff; border-radius: 8px; padding: 6px 10px; cursor: pointer; font-weight: 600;
+}
+.valores-comuns.collapsed .valores-content { display: none; }
 .valores-comuns h6 { margin: 0 0 10px 0; font-size: 0.9rem; font-weight: 600; }
 .form-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
 .form-grid label { font-size: 0.875rem; font-weight: 500; margin-bottom: 4px; display: block; }
@@ -66,17 +75,17 @@ $customCss = '
 /* Barra fixa de navegação por páginas */
 .page-toolbar {
     position: sticky;
-    top: 0;
-    z-index: 11;
+    top: 0; /* cola no header sticky do layout */
+    z-index: 990;
     background: #ffffff;
     border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    padding: 8px 10px;
+    border-radius: 12px;
+    padding: 6px 8px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-    margin-bottom: 12px;
+    margin: -6px 0 8px 0; /* aproxima do header */
 }
 .page-toolbar .group {
     display: flex;
@@ -125,7 +134,7 @@ $customCss = '
 }
 
 @media print {
-    .valores-comuns, .pagina-header { display: none !important; }
+    .page-toolbar, .valores-comuns, .pagina-header { display: none !important; }
     
     .paginas-container {
         display: block;
@@ -171,8 +180,12 @@ ob_start();
 <?php if (count($produtos) > 0): ?>
 
 <!-- Formulário de valores comuns -->
-<div class="valores-comuns">
-    <h6><i class="bi bi-ui-checks me-1"></i> Valores Comuns para Todos (<?php echo count($produtos); ?> páginas)</h6>
+<div class="valores-comuns collapsed" id="valoresComuns">
+    <div class="valores-header">
+        <span class="valores-title"><i class="bi bi-ui-checks me-1"></i> Valores Comuns (<?php echo count($produtos); ?> páginas)</span>
+        <button id="toggleValores" class="toggle-btn" type="button"><i class="bi bi-chevron-down"></i> Mostrar</button>
+    </div>
+    <div class="valores-content">
     <div class="form-grid">
         <div>
             <label>Administração</label>
@@ -205,6 +218,7 @@ ob_start();
             <input type="checkbox" class="chk-comum" id="chk_comum_3" data-opcao="3">
             O bem tem até cinco anos de uso e o documento fiscal de aquisição está anexo.
         </label>
+    </div>
     </div>
 </div>
 
@@ -478,6 +492,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('load', ajustarEscalaPaginas);
     window.addEventListener('resize', ajustarEscalaPaginas);
     configurarOpcoesComuns();
+    configurarToggleValores();
 });
 
 // Detectar edição manual em inputs e textareas
@@ -683,6 +698,32 @@ function configurarOpcoesComuns() {
 
 // Helper opcional caso precisemos mapear pelo index (mantido para futura extensão)
 function getIdByIndex(index) { return ''; }
+
+// ---------- Retrátil: Valores Comuns ----------
+function configurarToggleValores() {
+    const container = document.getElementById('valoresComuns');
+    const btn = document.getElementById('toggleValores');
+    if (!container || !btn) return;
+    const iconDown = '<i class="bi bi-chevron-down"></i>';
+    const iconUp = '<i class="bi bi-chevron-up"></i>';
+
+    function atualizarRotulo() {
+        if (container.classList.contains('collapsed')) {
+            btn.innerHTML = iconDown + ' Mostrar';
+        } else {
+            btn.innerHTML = iconUp + ' Ocultar';
+        }
+    }
+
+    btn.addEventListener('click', () => {
+        container.classList.toggle('collapsed');
+        atualizarRotulo();
+        // Recalcula escala porque a altura do viewport pode mudar
+        setTimeout(ajustarEscalaPaginas, 50);
+    });
+
+    atualizarRotulo();
+}
 </script>
 
 <?php
