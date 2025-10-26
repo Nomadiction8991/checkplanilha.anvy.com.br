@@ -97,13 +97,16 @@ $customCss = '
 
 /* Wrapper da página A4 escalada */
 .a4-viewport {
+    position: relative;
     width: 100%;
+    aspect-ratio: 214 / 295; /* Proporção aproximada A4 (largura/altura) */
     overflow: hidden;
     background: #f8f9fa;
     border-radius: 4px;
     display: flex;
     justify-content: center;
-    padding: 10px 0;
+    align-items: flex-start;
+    padding: 0;
 }
 
 .a4-scaled {
@@ -231,7 +234,6 @@ ob_start();
                 <span class="pagina-numero">
                     <i class="bi bi-file-earmark-text"></i> Página <?php echo $index + 1; ?> de <?php echo count($produtos); ?>
                 </span>
-                <span class="pagina-info"><?php echo htmlspecialchars($row['descricao_completa']); ?></span>
             </div>
             
             <div class="a4-viewport">
@@ -619,15 +621,18 @@ function ajustarEscalaPaginas() {
         // Reseta para medir tamanho real
         scaled.style.transform = 'none';
         scaled.style.width = '';
-        view.style.height = '';
+        // não ajusta altura aqui; aspect-ratio já define
 
         const viewportWidth = view.clientWidth;
+        const viewportHeight = view.clientHeight;
         const rect = a4.getBoundingClientRect();
         const a4Width = rect.width; // px
         const a4Height = rect.height; // px
 
         if (a4Width === 0 || !isFinite(a4Width)) return;
-        let scale = viewportWidth / a4Width;
+        let scaleX = viewportWidth / a4Width;
+        let scaleY = viewportHeight && a4Height ? (viewportHeight / a4Height) : scaleX;
+        let scale = Math.min(scaleX, scaleY);
         if (scale > 1) scale = 1; // não amplia além de 100%
 
         // Aplica escala e ajusta altura do viewport para evitar corte
@@ -635,8 +640,7 @@ function ajustarEscalaPaginas() {
         scaled.style.transformOrigin = 'top center';
         // compensar largura para não cortar nas laterais
         scaled.style.width = `${(1/scale)*100}%`;
-        // altura visível igual à altura escalada
-        view.style.height = `${a4Height * scale}px`;
+        // altura do viewport mantida pela aspect-ratio
     });
 }
 
