@@ -24,8 +24,54 @@ $customCss = '
 .form-grid input { width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.875rem; }
 
 /* Container A4 dentro do mobile wrapper */
-.a4-wrapper { background: #fff; border-radius: 8px; overflow: auto; }
-.a4-content { width: 100%; overflow-x: auto; }
+.a4-wrapper { 
+  background: #fff; 
+  border-radius: 8px; 
+  overflow: auto;
+  display: flex;
+  justify-content: center;
+  padding: 10px;
+}
+
+.a4-content { 
+  width: 100%; 
+  transform-origin: top center;
+}
+
+/* Responsivo para celular - escala a página A4 */
+@media screen and (max-width: 768px) {
+  .a4-content {
+    transform: scale(0.48);
+    transform-origin: top left;
+    width: 208.33%; /* 100% / 0.48 para compensar o scale */
+  }
+  
+  .a4-wrapper {
+    overflow: visible;
+    height: auto;
+    padding: 0;
+  }
+  
+  .carousel-page {
+    overflow: visible;
+  }
+  
+  /* Ajustar altura do container para a página escalada */
+  .a4 {
+    margin-bottom: 20px;
+  }
+}
+
+/* Campos editados manualmente ficam vermelhos */
+.a4 input.editado,
+.a4 textarea.editado {
+  color: #dc3545 !important;
+}
+
+/* Checkbox marcado e seu texto ficam vermelhos */
+.a4 label:has(input[type="checkbox"].marcado) {
+  color: #dc3545 !important;
+}
 
 @media print {
   .valores-comuns, .carousel-nav { display: none !important; }
@@ -34,6 +80,13 @@ $customCss = '
   .carousel-page { min-width: auto !important; page-break-after: always; }
   .carousel-page:last-child { page-break-after: auto; }
   .a4 { margin: 0; }
+  
+  /* Na impressão tudo fica preto */
+  .a4 input.editado,
+  .a4 textarea.editado,
+  .a4 label:has(input[type="checkbox"].marcado) {
+    color: #000 !important;
+  }
 }
 ';
 
@@ -336,7 +389,41 @@ function navegarCarrossel(direcao) {
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btnPrev').disabled = true;
     if (totalPaginas <= 1) document.getElementById('btnNext').disabled = true;
+    
+    // Armazenar valores iniciais dos campos
+    inicializarDeteccaoEdicao();
 });
+
+// Detectar edição manual em inputs e textareas
+function inicializarDeteccaoEdicao() {
+    // Armazenar valores originais
+    const valoresOriginais = new Map();
+    
+    document.querySelectorAll('.a4 input[type="text"], .a4 textarea').forEach(campo => {
+        valoresOriginais.set(campo.id, campo.value);
+        
+        // Detectar mudanças
+        campo.addEventListener('input', function() {
+            const valorOriginal = valoresOriginais.get(this.id);
+            if (this.value !== valorOriginal && this.value !== '') {
+                this.classList.add('editado');
+            } else {
+                this.classList.remove('editado');
+            }
+        });
+    });
+    
+    // Detectar checkboxes marcados
+    document.querySelectorAll('.a4 input[type="checkbox"]').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            if (this.checked) {
+                this.classList.add('marcado');
+            } else {
+                this.classList.remove('marcado');
+            }
+        });
+    });
+}
 
 // Atualizar todos os campos
 function atualizarTodos(tipo) {
@@ -351,7 +438,13 @@ function atualizarTodos(tipo) {
     }
     const inputs = document.querySelectorAll(selector);
     inputs.forEach(input => {
-        if (!input.id.includes('geral')) input.value = valor;
+        if (!input.id.includes('geral')) {
+            input.value = valor;
+            // Marca como editado pois foi alterado
+            if (valor !== '') {
+                input.classList.add('editado');
+            }
+        }
     });
 }
 
