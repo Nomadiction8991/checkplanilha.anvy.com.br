@@ -534,4 +534,16 @@ textarea {
         z-index: 100;
         background: #f9f9f9;
     }
+
+    /* Modo relativo na tela: tamanhos proporcionais para evitar variações */
+    div.a4 { width: 100%; height: auto; }
+    section.cabecalho { width: 95%; height: 7.5%; margin-block: 0.5%; }
+    section.conteudo { width: 95%; height: 85.4%; }
+    section.rodape { width: 95%; height: 3.4%; margin-top: 0.5%; }
+
+    /* Larguras das colunas do cabeçalho em % do container */
+    section.cabecalho table th.col1{ width: 13.3%; }
+    section.cabecalho table th.col2{ width: 60.1%; }
+    section.cabecalho table th.col3{ width: 13.8%; }
+    section.cabecalho table th.col4{ width: 10.3%; }
 }
