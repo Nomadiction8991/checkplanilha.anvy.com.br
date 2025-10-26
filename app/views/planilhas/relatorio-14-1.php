@@ -58,6 +58,38 @@ $customCss = '
     color: #666;
 }
 
+/* Barra fixa de navegação por páginas */
+.page-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 11;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 8px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+.page-toolbar .group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.toolbar-btn {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 8px;
+    background: #667eea;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+}
+.toolbar-btn:disabled { background: #cbd5e1; cursor: not-allowed; }
+.toolbar-counter { font-weight: 700; color: #334155; }
+
 /* Wrapper da página A4 escalada */
 .a4-viewport {
     width: 100%;
@@ -70,9 +102,8 @@ $customCss = '
 }
 
 .a4-scaled {
-    transform: scale(0.46);
+    /* Escala aplicada dinamicamente via JS */
     transform-origin: top center;
-    width: 217%; /* 100% / 0.46 */
 }
 
 /* Campos editados ficam vermelhos */
@@ -109,6 +140,7 @@ $customCss = '
         background: transparent;
         padding: 0;
         overflow: visible;
+        height: auto !important;
     }
     
     .a4-scaled {
@@ -151,6 +183,21 @@ ob_start();
             <input type="text" id="admin_acessor_geral" onchange="atualizarTodos('admin_acessor')">
         </div>
     </div>
+</div>
+
+<!-- Barra de navegação por páginas -->
+<div class="page-toolbar">
+    <div class="group">
+        <button id="btnPrevPage" class="toolbar-btn" type="button"><i class="bi bi-chevron-left"></i> Anterior</button>
+        <span class="toolbar-counter"><span id="contadorPaginaAtual">1</span> / <span id="contadorTotalPaginas"><?php echo count($produtos); ?></span></span>
+        <button id="btnNextPage" class="toolbar-btn" type="button">Próxima <i class="bi bi-chevron-right"></i></button>
+    </div>
+    <div class="group">
+        <button id="btnTopo" class="toolbar-btn" type="button" title="Ir para o topo"><i class="bi bi-arrow-up-short"></i></button>
+    </div>
+    
+    
+    
 </div>
 
 <!-- Container de páginas -->
@@ -401,6 +448,9 @@ const valoresOriginais = new Map();
 
 document.addEventListener('DOMContentLoaded', () => {
     inicializarDeteccaoEdicao();
+    configurarNavegacaoPaginas();
+    ajustarEscalaPaginas();
+    window.addEventListener('resize', ajustarEscalaPaginas);
 });
 
 // Detectar edição manual em inputs e textareas
@@ -481,6 +531,82 @@ function validarEImprimir() {
     }
     
     window.print();
+}
+
+// ---------- Navegação por páginas (scroll e contador) ----------
+let paginaAtual = 0;
+
+function configurarNavegacaoPaginas() {
+    const paginas = document.querySelectorAll('.pagina-card');
+    const btnPrev = document.getElementById('btnPrevPage');
+    const btnNext = document.getElementById('btnNextPage');
+    const btnTopo = document.getElementById('btnTopo');
+    const lblAtual = document.getElementById('contadorPaginaAtual');
+    const total = paginas.length;
+
+    function atualizarUI() {
+        lblAtual.textContent = paginaAtual + 1;
+        btnPrev.disabled = paginaAtual === 0;
+        btnNext.disabled = paginaAtual >= total - 1;
+    }
+
+    function irParaPagina(index, smooth = true) {
+        paginaAtual = Math.max(0, Math.min(index, total - 1));
+        paginas[paginaAtual].scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
+        atualizarUI();
+    }
+
+    btnPrev.addEventListener('click', () => irParaPagina(paginaAtual - 1));
+    btnNext.addEventListener('click', () => irParaPagina(paginaAtual + 1));
+    btnTopo.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+    // Observa o scroll para atualizar o indicador com base na página visível
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const index = Array.from(paginas).indexOf(entry.target);
+                if (index !== -1) {
+                    paginaAtual = index;
+                    atualizarUI();
+                }
+            }
+        });
+    }, { root: null, threshold: 0.5 });
+
+    paginas.forEach(p => observer.observe(p));
+    atualizarUI();
+}
+
+// ---------- Escala dinâmica das páginas para caber no container ----------
+function ajustarEscalaPaginas() {
+    // Para cada viewport, calcula a escala da .a4 para caber na largura disponível
+    document.querySelectorAll('.a4-viewport').forEach(view => {
+        const scaled = view.querySelector('.a4-scaled');
+        const a4 = view.querySelector('.a4');
+        if (!scaled || !a4) return;
+
+        // Reseta para medir tamanho real
+        scaled.style.transform = 'none';
+        scaled.style.width = '';
+        view.style.height = '';
+
+        const viewportWidth = view.clientWidth;
+        const rect = a4.getBoundingClientRect();
+        const a4Width = rect.width; // px
+        const a4Height = rect.height; // px
+
+        if (a4Width === 0 || !isFinite(a4Width)) return;
+        let scale = viewportWidth / a4Width;
+        if (scale > 1) scale = 1; // não amplia além de 100%
+
+        // Aplica escala e ajusta altura do viewport para evitar corte
+        scaled.style.transform = `scale(${scale})`;
+        scaled.style.transformOrigin = 'top center';
+        // compensar largura para não cortar nas laterais
+        scaled.style.width = `${(1/scale)*100}%`;
+        // altura visível igual à altura escalada
+        view.style.height = `${a4Height * scale}px`;
+    });
 }
 </script>
 
