@@ -144,8 +144,7 @@ $customCss = '
     width: 100%;
     box-sizing: border-box; /* garantir que padding seja considerado corretamente */
     max-width: 100%;
-    min-width: 140px; /* evita preview extremamente fino (ajustado para mobile) */
-    padding: 4px; /* espaço interno solicitado (~4px) */
+    min-width: 200px; /* evita preview extremamente fino */
     overflow: hidden; /* preview mantém conteúdo contido */
     background: #f1f5f9;
     border-radius: 4px;
@@ -163,18 +162,84 @@ $customCss = '
     display: inline-block;
     width: auto;
     height: auto;
-    position: relative;
+    position:absolute;
+    left:2.5%;
 }
 
 /* Forçar dimensões A4 reais para o iframe quando estiver dentro do wrapper .a4-scaled */
 .a4-scaled iframe.a4-frame {
-    /* manter medidas físicas A4 dentro do iframe para que mmToPx e fitAll funcionem corretamente */
-    width: 210mm !important;
-    height: 297mm !important;
+    width: 100%;
+    aspect-ratio: 210 / 297; /* ou 1 / 1.414 */
     display: block;
     background: #fff;
 }
-/* Removidos estilos obsoletos do viewer overlay para evitar conflitos com o layout in-line */
+
+/* Fundo da página (imagem do PDF) */
+/* Viewer removido: estilos relacionados ao overlay/inline foram eliminados */
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 10;
+    flex-shrink: 0;
+}
+.viewer-btn {
+    padding: 10px 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #f8fafc;
+    color: #334155;
+    cursor: pointer;
+}
+.viewer-btn.primary { background: #667eea; color: #fff; border-color: #667eea; }
+.viewer-body {
+    flex: 1;
+    overflow: auto;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    overscroll-behavior: contain;
+    position: relative;
+}
+.viewer-canvas {
+    transform-origin: top center;
+    width: 100%;
+    min-height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 16px;
+}
+.viewer-canvas iframe.a4-frame {
+    display: block;
+    border: 0;
+    background: #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.viewer-body .viewer-canvas iframe.a4-frame {
+    width: 100vw !important; /* ocupar 100% da largura da página HTML */
+    height: 100vh !important; /* ocupar 100% da altura da página HTML */
+    margin: 0; padding: 0; display: block;
+}
+
+/* Stage (quadro branco) que envolve o iframe e força o tamanho A4 por padrão */
+.viewer-stage {
+    display: inline-block;
+    background: #fff;
+    border-radius: 4px;
+    padding: 0;
+    box-sizing: content-box;
+}
+.viewer-stage iframe.a4-frame {
+    /* Forçar tamanho de folha A4 (CSS mm) por padrão — navegador converte mm para px */
+    width: 210mm !important;
+    height: 297mm !important;
+    max-width: 100%;
+    max-height: 100%;
+    display: block;
+    min-width: 210mm; /* assegura dimensões reais A4 como mínimo */
+    min-height: 297mm;
+}
 
 /* Inline expansion dentro do card (em vez de overlay full-screen) */
 .pagina-card.expanded { z-index: 1500; position: relative; }
@@ -434,12 +499,8 @@ $script = <<<JS
                     return window.print();
                 }
                 w.document.open();
-                // garantir DOCTYPE para comportamentos consistentes de impressão
-                var toWrite = contentHtml;
-                try{ if(!/^\s*<!doctype/i.test(contentHtml)){ toWrite = '<!DOCTYPE html>' + contentHtml; } }catch(e){}
-                w.document.write(toWrite);
+                w.document.write(contentHtml);
                 w.document.close();
-                try{ w.document.title = 'Relatório 14.1 - Impressão'; }catch(e){}
                 // aguardar carregamento e imprimir
                 w.onload = function(){
                     try{ w.focus(); w.print(); }catch(e){ try{ console.warn('print failed', e); }catch(_){} }
@@ -461,19 +522,8 @@ $script = <<<JS
 </script>
 JS;
 
-// Garantir que o botão de imprimir chame a função: listener direto + delegado (logs para diagnóstico)
-echo "<script>
-document.addEventListener('DOMContentLoaded', function(){
-    var b = document.getElementById('btnPrint');
-    if(b){
-        b.addEventListener('click', function(ev){ ev.preventDefault(); try{ console && console.log && console.log('btnPrint clicked (direct)'); if(typeof window.validarEImprimir==='function'){ window.validarEImprimir(); } else { window.print(); } }catch(err){ console && console.error && console.error('print handler error (direct)', err); window.print(); } });
-    } else {
-        console && console.warn && console.warn('btnPrint not found on DOMContentLoaded');
-    }
-});
-// delegated fallback
-document.addEventListener('click', function(e){ var btn = e.target && e.target.closest && e.target.closest('#btnPrint, .btn-header-action'); if(btn){ e.preventDefault(); try{ console && console.log && console.log('print button clicked (delegated)'); if(typeof window.validarEImprimir==='function'){ window.validarEImprimir(); } else { window.print(); } }catch(err){ console && console.error && console.error('print handler error (delegated)', err); window.print(); } } });
-</script>\n";
+// Garantir que o botão de imprimir chame a função (listener delegado, mais robusto)
+echo "<script>document.addEventListener('click', function(e){ var btn = e.target && e.target.closest && e.target.closest('#btnPrint, .btn-header-action'); if(btn){ e.preventDefault(); try{ console && console.log && console.log('print button clicked'); if(typeof window.validarEImprimir==='function'){ window.validarEImprimir(); } else { window.print(); } }catch(err){ console && console.error && console.error('print handler error', err); window.print(); } } });</script>\n";
 
 echo $script;
 
