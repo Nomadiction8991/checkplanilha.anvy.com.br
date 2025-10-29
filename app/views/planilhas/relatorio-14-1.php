@@ -81,6 +81,22 @@ $customCss = '
     border-bottom: 2px solid #667eea;
 }
 
+/* --- ESCONDER TUDO NA IMPRESSÃO, EXCETO O IFRAME DO RELATÓRIO --- */
+@media print {
+  body > *:not(.paginas-container) { display: none !important; }
+  .paginas-container, .pagina-card, .a4-viewport, .a4-scaled, iframe.a4-frame {
+    display: block !important;
+    visibility: visible !important;
+    position: static !important;
+    height: auto !important;
+    width: auto !important;
+    overflow: visible !important;
+  }
+  .page-toolbar, .pagina-header, .pagina-actions {
+    display: none !important;
+  }
+}
+
 .pagina-numero {
     font-weight: 600;
     color: #667eea;
@@ -464,58 +480,10 @@ $script = <<<JS
 
     document.addEventListener('DOMContentLoaded', setupPagination);
 
-    // Função global de impressão usada pelo botão header
+
+    // Função global de impressão simplificada: apenas chama o print do navegador
     window.validarEImprimir = function(){
-        try {
-            const curEl = document.getElementById('contadorPaginaAtual');
-            let pageIndex = 0;
-            if(curEl) {
-                const v = parseInt(curEl.textContent, 10);
-                if(!isNaN(v) && v > 0) pageIndex = v - 1;
-            }
-            const iframe = document.querySelector('iframe.a4-frame[data-page-index="' + pageIndex + '"]');
-            if(!iframe){
-                // nothing to print, fallback
-                return window.print();
-            }
-
-            // preferir obter o HTML diretamente do documento do iframe (mesma origem)
-            let contentHtml = null;
-            try{
-                if(iframe.contentDocument && iframe.contentDocument.documentElement){
-                    contentHtml = iframe.contentDocument.documentElement.outerHTML;
-                }
-            }catch(e){ /* cross-origin or not available */ }
-
-            // se não conseguimos, tentar atributo srcdoc
-            if(!contentHtml){
-                contentHtml = iframe.getAttribute('srcdoc') || null;
-            }
-
-            if(contentHtml){
-                const w = window.open('', '_blank');
-                if(!w){
-                    // popup bloqueado, tentar imprimir via window.print como último recurso
-                    return window.print();
-                }
-                w.document.open();
-                w.document.write(contentHtml);
-                w.document.close();
-                // aguardar carregamento e imprimir
-                w.onload = function(){
-                    try{ w.focus(); w.print(); }catch(e){ try{ console.warn('print failed', e); }catch(_){} }
-                    // fechar a janela após impressão (tempo curto)
-                    setTimeout(()=>{ try{ w.close(); }catch(e){} }, 800);
-                };
-                return;
-            }
-
-            // fallback final
-            window.print();
-        } catch(err){
-            try{ console && console.error && console.error('Impressão falhou:', err); }catch(e){}
-            window.print();
-        }
+        window.print();
     };
 
 })();
