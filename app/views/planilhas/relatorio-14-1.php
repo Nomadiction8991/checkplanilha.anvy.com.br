@@ -293,6 +293,10 @@ $customCss = '
 }
 ';
 
+// adicionar CSS de impressão específico para mostrar apenas a página A4 marcada
+
+$customCss .= "\n@media print {\n  /* esconder tudo por padrão */\n  body * { display: none !important; }\n  /* quando imprimirmos, a classe print-only no card deverá ser exibida */\n  body.printing .pagina-card.print-only { display: block !important; position: relative !important; page-break-after: avoid !important; }\n  body.printing .pagina-card.print-only .a4-viewport { display: block !important; overflow: visible !important; background: transparent !important; }\n  body.printing .pagina-card.print-only .a4-scaled { transform: none !important; width: 100% !important; height: auto !important; display: block !important; }\n  body.printing .pagina-card.print-only iframe.a4-frame { width: 100% !important; height: auto !important; display: block !important; box-shadow: none !important; }\n}\n";
+
 ob_start();
 ?>
 
@@ -504,8 +508,56 @@ $script = <<<JS
 
     // Função global de impressão usada pelo botão header
     window.validarEImprimir = function(){
-        // opcional: podemos preparar a página (fechar overlays, expandir tudo) antes de imprimir
-        window.print();
+        try {
+            // tentar imprimir apenas o iframe da página atual (usando o contador da toolbar)
+            const curEl = document.getElementById('contadorPaginaAtual');
+            let pageIndex = 0;
+            if(curEl) {
+                const v = parseInt(curEl.textContent, 10);
+                if(!isNaN(v) && v > 0) pageIndex = v - 1;
+            }
+            const iframe = document.querySelector('iframe.a4-frame[data-page-index="' + pageIndex + '"]');
+            if(iframe && iframe.contentWindow && typeof iframe.contentWindow.print === 'function'){
+                // focar e imprimir o documento isolado do iframe — isso deve imprimir apenas a A4
+                iframe.contentWindow.focus();
+                iframe.contentWindow.print();
+                return;
+            }
+
+            // fallback: abrir nova janela com o srcdoc do iframe e imprimir
+            if(iframe && iframe.getAttribute('srcdoc')){
+                const w = window.open('', '_blank');
+                if(w){
+                    w.document.open();
+                    w.document.write(iframe.getAttribute('srcdoc'));
+                    w.document.close();
+                    // esperar o carregamento e então imprimir
+                    w.onload = function(){
+                        try{ w.focus(); w.print(); } catch(e){ console.warn('print fallback failed', e); }
+                        // fechar a janela após um pequeno timeout (alguns navegadores pedem interação)
+                        setTimeout(()=>{ try{ w.close(); }catch(e){} }, 500);
+                    };
+                    return;
+                }
+            }
+
+            // último recurso: imprimir a página inteira (mas marcar apenas a página atual para impressão)
+            try {
+                const card = iframe ? iframe.closest('.pagina-card') : null;
+                if(card){
+                    document.body.classList.add('printing');
+                    card.classList.add('print-only');
+                    // chamar print e então limpar as classes
+                    window.print();
+                    setTimeout(()=>{ try{ card.classList.remove('print-only'); document.body.classList.remove('printing'); }catch(e){} }, 700);
+                } else {
+                    window.print();
+                }
+            } catch(e){ window.print(); }
+        } catch(err){
+            console.error('Impressão falhou:', err);
+            window.print();
+        }
     };
 
 })();
