@@ -149,8 +149,8 @@ $customCss = '
     border-radius: 4px;
     display: flex;
     justify-content: center;
-    align-items: center; /* centraliza a miniatura como folha A4 */
-    padding: 0;
+    align-items: flex-start; /* alinhar ao topo para permitir padding-top empurrar a miniatura para baixo */
+    padding: 18px 0 0 0; /* empurra a A4 levemente para baixo dentro do card */
 }
 
 .a4-scaled {
