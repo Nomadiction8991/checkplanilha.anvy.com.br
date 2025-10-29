@@ -81,8 +81,10 @@ $customCss = '
     border-bottom: 2px solid #667eea;
 }
 
-/* --- IMPRESSÃO: mostrar somente as páginas (a4-viewport) e esconder UI --- */
+/* --- IMPRESSÃO: mostrar somente as páginas (a4-viewport), 1 por folha, e esconder UI --- */
 @media print {
+    /* definir tamanho da página também no documento principal */
+    @page { size: A4; margin: 0; }
     /* fundo branco geral e remoção de constraints do layout responsivo */
     html, body { background: #fff !important; }
     .app-container, .mobile-wrapper, .app-content { 
@@ -113,6 +115,7 @@ $customCss = '
         break-inside: avoid-page !important; 
     }
     .a4-viewport:not(:last-child){ page-break-after: always !important; break-after: page !important; }
+    .a4-viewport + .a4-viewport { margin-top: 0 !important; }
 
     /* remover escala/posicionamento para impressão em tamanho real */
     .a4-scaled { transform: none !important; position: static !important; left: auto !important; top: auto !important; width: auto !important; height: auto !important; }
@@ -129,6 +132,8 @@ $customCss = '
         margin: 0 auto !important; 
         overflow: visible !important;
     }
+    /* reforço de quebra por iframe, garantindo 1 por página */
+    .a4-viewport:not(:last-child) iframe.a4-frame { page-break-after: always !important; break-after: page !important; }
 }
 
 .pagina-numero {
