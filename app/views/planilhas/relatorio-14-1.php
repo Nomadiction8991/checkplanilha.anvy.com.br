@@ -256,10 +256,13 @@ border: 0; background: transparent; display: block;
 .viewer-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.7);
+    background: rgba(0,0,0,0.85);
     z-index: 2000;
     display: flex;
     flex-direction: column;
+    max-width: 100vw;
+    max-height: 100vh;
+    overflow: hidden;
 }
 .viewer-toolbar {
     display: flex;
@@ -273,6 +276,7 @@ border: 0; background: transparent; display: block;
     position: sticky;
     top: env(safe-area-inset-top, 0px);
     z-index: 10;
+    flex-shrink: 0;
 }
 .viewer-btn {
     padding: 10px 14px;
@@ -286,14 +290,27 @@ border: 0; background: transparent; display: block;
 .viewer-body {
     flex: 1;
     overflow: auto;
-    padding: 16px clamp(8px, 4vw, 24px);
+    padding: 0;
     display: flex;
     justify-content: center;
     align-items: flex-start;
     overscroll-behavior: contain;
+    position: relative;
 }
 .viewer-canvas {
     transform-origin: top center;
+    width: 100%;
+    min-height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 16px;
+}
+.viewer-canvas iframe.a4-frame {
+    display: block;
+    border: 0;
+    background: #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 /* Mobile refinements */
@@ -752,7 +769,7 @@ function configurarViewer() {
         }
     });
 
-    // Pinch-zoom básico em mobile
+    // Pinch-zoom básico em mobile - atua no iframe do viewer
     let lastDist = null;
     viewer.canvas.addEventListener('touchmove', (e) => {
         if (e.touches.length === 2) {
@@ -830,25 +847,41 @@ function fecharViewer() {
 function setViewerScale(s) {
     const label = document.getElementById('viewerScaleLabel');
     viewer.scale = Math.max(0.3, Math.min(3, s));
-    if (viewer.canvas) {
-        viewer.canvas.style.transform = `scale(${viewer.scale})`;
+    const frameView = viewer.canvas.querySelector('iframe.a4-frame');
+    if (frameView) {
+        try {
+            const doc = frameView.contentDocument || frameView.contentWindow.document;
+            const a4 = doc.querySelector('.r141-root .a4');
+            if (a4) {
+                // Aplicar escala no iframe mesmo
+                frameView.style.transform = `scale(${viewer.scale})`;
+                frameView.style.transformOrigin = 'top center';
+                const rect = a4.getBoundingClientRect();
+                frameView.style.width = rect.width + 'px';
+                frameView.style.height = rect.height + 'px';
+            }
+        } catch (e) {}
     }
     label.textContent = Math.round(viewer.scale * 100) + '%';
 }
 
 function ajustarViewerParaLargura() {
-    if (!viewer.canvas) return;
-    // Temporariamente sem escala para medir
-    viewer.canvas.style.transform = 'none';
-    const body = viewer.canvas.parentElement; // .viewer-body
-    const a4 = viewer.canvas.querySelector('.a4');
-    if (!a4) return;
-    const bodyRect = body.getBoundingClientRect();
-    const a4Rect = a4.getBoundingClientRect();
-    if (a4Rect.width === 0) return;
-    const padding = 32; // margens laterais
-    const scale = (bodyRect.width - padding) / a4Rect.width;
-    setViewerScale(scale);
+    const frameView = viewer.canvas.querySelector('iframe.a4-frame');
+    if (!frameView) return;
+    // Reset para medir
+    frameView.style.transform = 'none';
+    try {
+        const doc = frameView.contentDocument || frameView.contentWindow.document;
+        const a4 = doc.querySelector('.r141-root .a4');
+        if (!a4) return;
+        const body = viewer.canvas.parentElement; // .viewer-body
+        const bodyRect = body.getBoundingClientRect();
+        const a4Rect = a4.getBoundingClientRect();
+        if (a4Rect.width === 0) return;
+        const padding = 32; // margens laterais
+        const scale = (bodyRect.width - padding) / a4Rect.width;
+        setViewerScale(scale);
+    } catch (e) {}
 }
 
 </script>
