@@ -102,8 +102,13 @@ $customCss = '
     header, nav, aside, footer, .app-header, .app-sidebar, .btn-header-action { display: none !important; }
 
     /* limpar estilos de cartão e wrappers para impressão limpa */
-    .paginas-container { display: block !important; margin: 0 !important; padding: 0 !important; }
-    .pagina-card { box-shadow: none !important; border: 0 !important; padding: 0 !important; margin: 0 0 0 0 !important; background: transparent !important; }
+    .paginas-container { display: block !important; margin: 0 !important; padding: 0 !important; width: 210mm !important; }
+    .pagina-card { 
+        display: block !important; 
+        box-shadow: none !important; border: 0 !important; padding: 0 !important; margin: 0 !important; background: transparent !important; 
+        break-inside: avoid-page !important; page-break-inside: avoid !important;
+        width: 210mm !important;
+    }
 
     /* cada viewport corresponde a uma página; evitar cortes e forçar quebras entre elas */
     .a4-viewport { 
@@ -112,13 +117,15 @@ $customCss = '
         padding: 0 !important; 
         background: #fff !important; 
         overflow: visible !important; 
-        break-inside: avoid-page !important; 
+        break-inside: avoid-page !important; page-break-inside: avoid !important;
+        width: 210mm !important; min-height: 297mm !important;
     }
+    .pagina-card:not(:last-child){ page-break-after: always !important; break-after: page !important; }
     .a4-viewport:not(:last-child){ page-break-after: always !important; break-after: page !important; }
     .a4-viewport + .a4-viewport { margin-top: 0 !important; }
 
     /* remover escala/posicionamento para impressão em tamanho real */
-    .a4-scaled { transform: none !important; position: static !important; left: auto !important; top: auto !important; width: auto !important; height: auto !important; }
+    .a4-scaled { transform: none !important; position: static !important; left: auto !important; top: auto !important; width: 210mm !important; height: 297mm !important; }
 
     /* garantir tamanho A4 do conteúdo impresso */
     iframe.a4-frame { 
