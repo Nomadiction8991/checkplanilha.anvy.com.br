@@ -25,7 +25,7 @@ if (file_exists($templatePath)) {
 
 $pageTitle = 'Relatório 14.1';
 $backUrl = '../shared/menu.php?id=' . urlencode($id_planilha);
-$headerActions = '<button id="btnPrint" class="btn-header-action" title="Imprimir" onclick="validarEImprimir()"><i class="bi bi-printer"></i></button>';
+$headerActions = '<button id="btnPrint" class="btn-header-action" title="Imprimir"><i class="bi bi-printer"></i></button>';
 
 // CSS customizado para a interface da aplicação (não do formulário)
 $customCss = '
@@ -83,6 +83,18 @@ $customCss = '
 
 /* --- IMPRESSÃO: mostrar somente as páginas (a4-viewport) e esconder UI --- */
 @media print {
+    /* fundo branco geral e remoção de constraints do layout responsivo */
+    html, body { background: #fff !important; }
+    .app-container, .mobile-wrapper, .app-content { 
+        background: #fff !important; 
+        box-shadow: none !important; 
+        padding: 0 !important; 
+        margin: 0 !important; 
+        width: auto !important; 
+        max-width: none !important; 
+        overflow: visible !important;
+    }
+
     /* esconder elementos de UI comuns */
     .page-toolbar, .pagina-header, .pagina-actions, .toolbar-btn, .toolbar-counter,
     header, nav, aside, footer, .app-header, .app-sidebar, .btn-header-action { display: none !important; }
@@ -514,7 +526,7 @@ $script = <<<JS
 JS;
 
 // Garantir que o botão de imprimir chame a função (listener delegado, mais robusto)
-echo "<script>document.addEventListener('click', function(e){ var btn = e.target && e.target.closest && e.target.closest('#btnPrint, .btn-header-action'); if(btn){ e.preventDefault(); try{ console && console.log && console.log('print button clicked'); if(typeof window.validarEImprimir==='function'){ window.validarEImprimir(); } else { window.print(); } }catch(err){ console && console.error && console.error('print handler error', err); window.print(); } } });</script>\n";
+echo "<script>document.addEventListener('click', function(e){ var btn = e.target && e.target.closest && e.target.closest('#btnPrint'); if(btn){ e.preventDefault(); try{ console && console.log && console.log('print button clicked'); if(typeof window.validarEImprimir==='function'){ window.validarEImprimir(); } else { window.print(); } }catch(err){ console && console.error && console.error('print handler error', err); window.print(); } } });</script>\n";
 
 echo $script;
 
