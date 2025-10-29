@@ -326,8 +326,54 @@ ob_start();
                     
                     <div class="r141-root">
                     <?php
-                        // Repetir o bloco A4 do template (inputs sequenciais)
-                        echo $a4Block ?: '<div class="a4"><p style="padding:10mm;color:#900">Template 14-1 não encontrado.</p></div>';
+                        // Preencher dados do produto no template
+                        $htmlPreenchido = $a4Block;
+                        
+                        if (!empty($htmlPreenchido)) {
+                            // Data de emissão atual
+                            $dataEmissao = date('d/m/Y');
+                            
+                            // Descrição do bem
+                            $descricaoBem = '';
+                            if (!empty($row['tipo_descricao'])) {
+                                $descricaoBem .= $row['tipo_descricao'];
+                            }
+                            if (!empty($row['complemento'])) {
+                                $descricaoBem .= ' - ' . $row['complemento'];
+                            }
+                            if (!empty($row['descricao_completa'])) {
+                                $descricaoBem .= "\n" . $row['descricao_completa'];
+                            }
+                            
+                            // Substituir valores nos inputs
+                            $htmlPreenchido = str_replace('id="input1"', 'id="input1" value="' . htmlspecialchars($dataEmissao) . '"', $htmlPreenchido);
+                            
+                            // Seção A - Localidade (vazios por padrão, preenchidos pelos valores comuns via JS)
+                            $htmlPreenchido = str_replace('id="input2"', 'id="input2" class="campo-admin"', $htmlPreenchido);
+                            $htmlPreenchido = str_replace('id="input3"', 'id="input3" class="campo-cidade"', $htmlPreenchido);
+                            $htmlPreenchido = str_replace('id="input4"', 'id="input4" class="campo-setor"', $htmlPreenchido);
+                            $htmlPreenchido = str_replace('id="input5"', 'id="input5" value="' . htmlspecialchars($cnpj_planilha ?? '') . '"', $htmlPreenchido);
+                            $htmlPreenchido = str_replace('id="input6"', 'id="input6" value="' . htmlspecialchars($numero_relatorio_auto ?? '') . '"', $htmlPreenchido);
+                            $htmlPreenchido = str_replace('id="input7"', 'id="input7" value="' . htmlspecialchars($casa_oracao_auto ?? '') . '"', $htmlPreenchido);
+                            
+                            // Seção B - Descrição do bem
+                            $htmlPreenchido = str_replace('id="input8"', 'id="input8">' . htmlspecialchars($descricaoBem), $htmlPreenchido);
+                            
+                            // Campos vazios para nota fiscal (inputs 9-12)
+                            // Checkboxes (inputs 13-15) - dependem dos valores comuns
+                            $htmlPreenchido = str_replace('id="input13"', 'id="input13" class="opcao-checkbox" data-page="' . $index . '"', $htmlPreenchido);
+                            $htmlPreenchido = str_replace('id="input14"', 'id="input14" class="opcao-checkbox" data-page="' . $index . '"', $htmlPreenchido);
+                            $htmlPreenchido = str_replace('id="input15"', 'id="input15" class="opcao-checkbox" data-page="' . $index . '"', $htmlPreenchido);
+                            
+                            // Seção C - Doador (inputs 17-26) - vazios
+                            
+                            // Seção D - Termo de aceite (inputs 27-30)
+                            $htmlPreenchido = str_replace('id="input27"', 'id="input27" class="campo-admin-assessor"', $htmlPreenchido);
+                            
+                            echo $htmlPreenchido;
+                        } else {
+                            echo '<div class="a4"><p style="padding:10mm;color:#900">Template 14-1 não encontrado.</p></div>';
+                        }
                     ?>
                     </div>
                 </div>
@@ -387,21 +433,30 @@ function inicializarDeteccaoEdicao() {
 // Atualizar todos os campos
 function atualizarTodos(tipo) {
     const valor = document.getElementById(tipo + '_geral').value;
-    let selector;
+    let selectorClass;
+    
     switch(tipo) {
-        case 'admin': selector = '[id^="administracao_"]'; break;
-        case 'cidade': selector = '[id^="cidade_"]'; break;
-        case 'setor': selector = '[id^="setor_"]'; break;
-        case 'admin_acessor': selector = '[id^="admin_acessor_"]'; break;
-        default: selector = '[id^="' + tipo + '_"]';
+        case 'admin': 
+            selectorClass = '.campo-admin';
+            break;
+        case 'cidade': 
+            selectorClass = '.campo-cidade';
+            break;
+        case 'setor': 
+            selectorClass = '.campo-setor';
+            break;
+        case 'admin_acessor': 
+            selectorClass = '.campo-admin-assessor';
+            break;
+        default: 
+            selectorClass = '.campo-' + tipo;
     }
-    const inputs = document.querySelectorAll(selector);
+    
+    const inputs = document.querySelectorAll(selectorClass);
     inputs.forEach(input => {
-        if (!input.id.includes('geral')) {
-            input.value = valor;
-            if (valor !== '') {
-                input.classList.add('editado');
-            }
+        input.value = valor;
+        if (valor !== '') {
+            input.classList.add('editado');
         }
     });
 }

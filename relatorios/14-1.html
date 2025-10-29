@@ -1,567 +1,715 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Relatório 14.1 - Declaração de Doação de Bem Móvel</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-/* CSS DO RELATÓRIO 14.1 - INLINE PARA GARANTIR CARREGAMENTO */
-.r141-root * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: Arial, Helvetica, sans-serif;
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        @font-face {
+            font-family: 'BrunoDeAndradeNascimento';
+            src: url('fonts/BrunoDeAndradeNascimento-Regular.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        div.a4{
+            width: 214mm;
+            height: 295mm;
+            display: flex;
+            flex-direction: column;
+        }
+        section.cabecalho{
+            display: flex;
+            width: 203mm;
+            height: 25mm;
+            margin-block: 3mm;
+            margin-inline: auto;
+            overflow: hidden;
+            margin-top:5mm;
+        }
+        section.cabecalho table {
+            border-collapse: collapse;
+            width: 100%;
+            height: 99%;
+            margin: auto;
+        }
+        
+        section.cabecalho table th, th {
+            border: 1px solid #000;
+            text-align: left;
+        }
+        
+        section.cabecalho table th {
+            background-color: #fff;
+            font-weight: normal;
+        }
+        section.cabecalho table th.col1{
+            text-align: center;
+            width: 27mm ;
+        }
+        section.cabecalho table th.col2{
+            text-align: center;
+            width: 122mm ;
+        }
+        section.cabecalho table th.col3{
+            text-align: right;
+            width: 28mm;
+            font-size:small;
+        }
+        section.cabecalho table th.col4{
+            text-align: center;
+            width: 21mm;
+            font-size:small;
+        }
+        section.cabecalho table tr.row1 th.col1{
+            font-weight: bold;
+            font-size: xx-large;
+        }
+        section.cabecalho table tr.row1 th.col2{
+           font-weight: bold;
+           font-size: x-large;
+        }
+        section.cabecalho table tr.row4 th.col1{
+            font-size:large;
+        }
+        section.cabecalho table tr.row4 th.col2{
+           font-size:large;
+        }
+        section.conteudo{
+            border:1px solid #000;
+            margin-inline:auto;
+            width: 203mm;
+            height: 252mm;
+            display: flex;
+            flex-direction: column;
+        }
+        section.conteudo h1{
+            font-size:medium;
+            width: 95%;
+            margin-inline: auto;
+            margin-block: 1.5mm;
+        }
+        section.conteudo div.conteudo{
+            margin-inline:auto;
+            width: 95%;
+            height: 97.5%;
+            display: flex;
+            margin-bottom: 2.5%;
+            flex-direction: column;
+            border: 2px solid #000;
+        }
+        section.conteudo div.conteudo table {
+            border-collapse: collapse;
+            width: 100%;
+            height: 99%;
+            margin: auto;
+            margin-top: -1px;
+        }
+        
+        section.conteudo div.conteudo table td, td {
+            border: 1px solid #000;
+            text-align: left;
+        }
+        
+        section.conteudo div.conteudo table td {
+            background-color: #fff;
+            font-weight: bold;
+            font-size: small;
+        }
+        section.conteudo div.conteudo table tr.row1{
+            height: 10mm;
+        }
+        section.conteudo div.conteudo table tr.row2{
+            height: 10mm;
+        }
+        section.conteudo div.conteudo table tr.row3{
+            height: 5mm;
+        }
+        section.conteudo div.conteudo table tr.row4{
+            height: 5mm;
+            flex: 1;
+        }
+        section.conteudo div.conteudo table tr.row5{
+            height: 10mm;
+        }
+        section.conteudo div.conteudo table tr.row6{
+            height: 5mm;
+        }
+        section.conteudo div.conteudo table tr.row7{
+            height: 10mm;
+        }
+        section.conteudo div.conteudo table tr.row8{
+            height: 5mm;
+        }
+        section.conteudo div.conteudo table tr.row9{
+            height: 15mm;
+        }
+        section.conteudo div.conteudo table tr.row10{
+            height: 5mm;
+        }
+        section.conteudo div.conteudo table tr.row11{
+            height: 10mm;
+        }
+        section.conteudo div.conteudo table tr.row12{
+            height: 50mm;
+        }
+        section.conteudo div.conteudo table tr.row13{
+            height: 5mm;
+        }
+        section.conteudo div.conteudo table tr.row14{
+            height: 5mm;
+        }
+        section.conteudo div.conteudo table tr.row15{
+            height: 10mm;
+        }
+        section.conteudo div.conteudo table tr.row16{
+            height: 10mm;
+        }
+        section.conteudo div.conteudo table tr.row17{
+            height: 10mm;
+        }
+        section.conteudo div.conteudo table tr.row18{
+            height: 10mm;
+        }
+        section.conteudo div.conteudo table tr.row19{
+            height: 10mm;
+        }
+        section.conteudo div.conteudo table tr.row20{
+            height: 5mm;
+        }
+        section.conteudo div.conteudo table tr.row21{
+            height: 10mm;
+        }
+        section.conteudo div.conteudo table tr.row22{
+            height: 5mm;
+        }
+        section.conteudo div.conteudo table tr.row23{
+            height: 10mm;
+        }
+        section.conteudo div.conteudo table tr.row24{
+            height: 10mm;
+        }
+        section.conteudo div.conteudo table tr.row1 td.col1{
+            width: 70%;
+            color: #999;
+            padding-left: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row1 td.col2{
+            width: 30%;
+            padding-left: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row2 td.col1{
+            width: 70%;
+            text-align: center;
+        }
+        section.conteudo div.conteudo table tr.row2 td.col2{
+            width: 30%;
+            font-size: x-small;
+            padding-left: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row2 td.col2 input{
+            font-family: 'BrunoDeAndradeNascimento', Arial, sans-serif;
+            color: #0066CC;
+            width: 70%;
+            float: right;
+            text-align: center;
+            font-size: medium;
+            border:none;
+        }
+        section.conteudo div.conteudo table tr.row3 td.col1{
+            width: 5%;
+            text-align: center;
+        }
+        section.conteudo div.conteudo table tr.row3 td.col2{
+            width: 95%;
+            background-color: #999;
+            padding-left: 3mm;
+            color: #fff;
+        }
+        section.conteudo div.conteudo table tr.row4 td.col1{
+            width: 20px;
+            background-color: #ccc;
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row4 td.col2{
+            width: 45%;
+            background-color: #ccc;
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row4 td.col3{
+            width: 45%;
+            background-color: #ccc;
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row5 td.col1{
+            width: 33%;
+        }
+        section.conteudo div.conteudo table tr.row5 td.col2{
+            width: 33%;
+        }
+        section.conteudo div.conteudo table tr.row5 td.col3{
+            width: 33%;
+        }
+        section.conteudo div.conteudo table tr.row6 td.col1{
+            width: 33%;
+            background-color: #ccc;
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row6 td.col2{
+            width: 33%;
+            background-color: #ccc;
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row6 td.col3{
+            width: 33%;
+            background-color: #ccc;
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row7 td.col1{
+            width: 33%;
+        }
+        section.conteudo div.conteudo table tr.row7 td.col2{
+            width: 33%;
+        }
+        section.conteudo div.conteudo table tr.row7 td.col3{
+            width: 33%;
+        }
+        section.conteudo div.conteudo table tr.row8 td.col1{
+            width: 5%;
+            text-align: center;
+        }
+        section.conteudo div.conteudo table tr.row8 td.col2{
+            width: 95%;
+            background-color: #999;
+            padding-left: 3mm;
+            color: #fff;
+        }
+        section.conteudo div.conteudo table tr.row10 td.col1{
+            width: 25%;
+            background-color: #ccc;
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row10 td.col2{
+            width: 25%;
+            background-color: #ccc;
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row10 td.col3{
+            width: 25%;
+            background-color: #ccc;
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row10 td.col4{
+            width: 25%;
+            background-color: #ccc;
+            padding-left: 3mm;
+            font-size: x-small;
+        }
 
-.r141-root div.a4 {
-    width: 210mm;
-    height: 297mm;
-    background: white;
-    padding: 8mm 8mm 6mm 8mm;
-    display: flex;
-    flex-direction: column;
-    gap: 2mm;
-}
+        section.conteudo div.conteudo table tr.row12 td.col1 p{ 
+            font-size: x-small;
+            font-weight: normal;
+            width: 95%;
+            margin-inline:2.5%;
+        }
+        section.conteudo div.conteudo table tr.row12 td.col1 label{ 
+            font-size: x-small;
+            font-weight: normal;
+            width: 95%;
+            margin-inline:2.5%;
+        }
+        section.conteudo div.conteudo table tr.row13 td.col1{
+            width: 5%;
+            text-align: center;
+        }
+        section.conteudo div.conteudo table tr.row13 td.col2{
+            width: 95%;
+            background-color: #999;
+            padding-left: 3mm;
+            color: #fff;
+        }
+        section.conteudo div.conteudo table tr.row14 td.col1{
+            width: 25%;
+            background-color: #ccc;
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row14 td.col2{
+            width: 25%;
+            background-color: #ccc;
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row14 td.col3{
+            width: 25%;
+            background-color: #ccc;
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row15 td.col1{
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row15 td.col2{
+            padding-left: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row15 td.col3{
+            padding-left: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row16 td.col1{
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row16 td.col2{
+            padding-left: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row16 td.col3{
+            padding-left: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row17 td.col1{
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row17 td.col2{
+            padding-left: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row17 td.col3{
+            padding-left: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row18 td.col1{
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row18 td.col2{
+            padding-left: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row18 td.col3{
+            padding-left: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row19 td.col1{
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row19 td.col2{
+            padding-left: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row19 td.col3{
+            padding-left: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row20 td.col1{
+            width: 5%;
+            text-align: center;
+        }
+        section.conteudo div.conteudo table tr.row20 td.col2{
+            width: 95%;
+            background-color: #999;
+            padding-left: 3mm;
+            color: #fff;
+        }
+        section.conteudo div.conteudo table tr.row21 td.col1{
+            padding-left: 3mm;
+            font-size: x-small;
+            font-weight: normal;
+        }
+        section.conteudo div.conteudo table tr.row22 td.col1{
+            width: 33%;
+            background-color: #ccc;
+        }
+        section.conteudo div.conteudo table tr.row22 td.col2{
+            width: 33%;
+            background-color: #ccc;
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row22 td.col3{
+            width: 33%;
+            background-color: #ccc;
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row23 td.col1{
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row23 td.col2{
+            padding-left: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row23 td.col3{
+            padding-left: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row24 td.col1{
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row24 td.col2{
+            padding-left: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row24 td.col3{
+            padding-left: 3mm;
+        }
 
-/* ===== CABEÇALHO ===== */
-.r141-root section.cabecalho {
-    border: 2px solid #000;
-}
+        section.rodape{
+            margin-inline:auto;
+            width: 203mm;
+            height: 10mm;
+            display: flex;
+            flex-direction: column;
+            margin-top:3mm;
+        }
 
-.r141-root section.cabecalho table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.r141-root section.cabecalho table th {
-    border: 1px solid #000;
-    padding: 2mm 2mm;
-    text-align: left;
-    font-weight: bold;
-    font-size: 10pt;
-    line-height: 1.2;
-}
-
-.r141-root section.cabecalho table tr.row1 th.col1,
-.r141-root section.cabecalho table tr.row3 th.col1 {
-    width: 15%;
-    text-align: center;
-    font-size: 18pt;
-    font-weight: bold;
-    vertical-align: middle;
-}
-
-.r141-root section.cabecalho table tr.row1 th.col2,
-.r141-root section.cabecalho table tr.row3 th.col2 {
-    width: 55%;
-    text-align: center;
-    font-size: 11pt;
-    font-weight: bold;
-    vertical-align: middle;
-}
-
-.r141-root section.cabecalho table th.col3 {
-    width: 18%;
-    text-align: right;
-    font-size: 9pt;
-    font-weight: normal;
-    padding-right: 3mm;
-}
-
-.r141-root section.cabecalho table th.col4 {
-    width: 12%;
-    text-align: center;
-    font-size: 10pt;
-    font-weight: bold;
-}
-
-/* ===== TÍTULO ===== */
-.r141-root section.titulo {
-    border: 2px solid #000;
-    padding: 0;
-}
-
-.r141-root section.titulo .titulo-box {
-    background: white;
-    text-align: center;
-    font-weight: bold;
-    font-size: 10pt;
-    padding: 2mm;
-    border: none;
-}
-
-/* ===== SUBTÍTULO ===== */
-.r141-root section.subtitulo {
-    border: 2px solid #000;
-}
-
-.r141-root section.subtitulo table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.r141-root section.subtitulo table th {
-    border: 1px solid #000;
-    padding: 2mm;
-    text-align: center;
-    font-weight: bold;
-    font-size: 10pt;
-    line-height: 1.2;
-}
-
-.r141-root section.subtitulo table th.col1 {
-    width: 70%;
-}
-
-.r141-root section.subtitulo table th.col2 {
-    width: 30%;
-}
-
-.r141-root section.subtitulo .input-data {
-    width: 100%;
-    border: none;
-    border-bottom: 1px solid #000;
-    text-align: center;
-    font-size: 10pt;
-    padding: 1mm;
-}
-
-/* ===== SEÇÕES (A, B, C, D) ===== */
-.r141-root section.secao {
-    border: 2px solid #000;
-}
-
-.r141-root section.secao table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.r141-root section.secao table th,
-.r141-root section.secao table td {
-    border: 1px solid #000;
-    padding: 2mm;
-    font-size: 9pt;
-    line-height: 1.3;
-}
-
-.r141-root section.secao .secao-header {
-    background: #999;
-    color: white;
-    font-weight: bold;
-}
-
-.r141-root section.secao .secao-header .letra {
-    width: 8%;
-    text-align: center;
-    font-size: 11pt;
-    font-weight: bold;
-}
-
-.r141-root section.secao .label-row td {
-    background: #ddd;
-    font-weight: bold;
-    padding: 1.5mm 2mm;
-    font-size: 8pt;
-}
-
-.r141-root section.secao .input-row td {
-    background: white;
-    padding: 1mm;
-}
-
-.r141-root section.secao input[type="text"] {
-    width: 100%;
-    border: none;
-    padding: 1mm 2mm;
-    font-size: 9pt;
-    font-family: Arial, Helvetica, sans-serif;
-}
-
-.r141-root section.secao textarea {
-    width: 100%;
-    border: 1px solid #ccc;
-    padding: 2mm;
-    font-size: 9pt;
-    font-family: Arial, Helvetica, sans-serif;
-    resize: vertical;
-    min-height: 15mm;
-}
-
-/* Linhas de assinatura mais altas */
-.r141-root section.secao .assinatura-row td {
-    height: 12mm;
-    vertical-align: bottom;
-}
-
-/* Larguras das colunas */
-.r141-root section.secao table tr .col1 {
-    width: 40%;
-}
-
-.r141-root section.secao table tr .col2 {
-    width: 30%;
-}
-
-.r141-root section.secao table tr .col3 {
-    width: 30%;
-}
-
-.r141-root section.secao table tr .col4 {
-    width: 25%;
-}
-
-/* Área de descrição do bem */
-.r141-root section.secao .descricao-row td {
-    padding: 2mm;
-}
-
-/* Checkboxes */
-.r141-root section.secao .checkbox-row td {
-    padding: 3mm;
-    text-align: justify;
-    line-height: 1.5;
-}
-
-.r141-root section.secao .checkbox-row label {
-    display: block;
-    margin: 2mm 0;
-    font-size: 9pt;
-}
-
-.r141-root section.secao .opcao-checkbox {
-    margin-right: 2mm;
-    transform: scale(1.2);
-}
-
-/* ===== RODAPÉ ===== */
-.r141-root section.rodape {
-    border: 2px solid #000;
-    margin-top: auto;
-}
-
-.r141-root section.rodape table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.r141-root section.rodape table td {
-    border: 1px solid #000;
-    padding: 2mm;
-    text-align: center;
-    font-size: 9pt;
-}
-
-.r141-root section.rodape table td.col1 {
-    width: 30%;
-}
-
-.r141-root section.rodape table td.col2 {
-    width: 40%;
-}
-
-.r141-root section.rodape table td.col3 {
-    width: 30%;
-}
-
-/* ===== IMPRESSÃO ===== */
-@media print {
-    @page {
-        size: A4;
-        margin: 0;
-    }
-
-    .r141-root div.a4 {
-        width: 210mm;
-        height: 297mm;
-        margin: 0;
-        padding: 8mm;
-    }
-
-    .r141-root section.secao input[type="text"],
-    .r141-root section.secao textarea {
-        color: #000 !important;
-        border: none;
-    }
-
-    .r141-root section.subtitulo .input-data {
-        color: #000 !important;
-    }
-}
-
-/* ===== VISUALIZAÇÃO EM TELA ===== */
-@media screen {
-    .r141-root div.a4 {
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        margin: 0 auto;
-    }
-}
-  </style>
+        section.rodape table {
+            border-collapse: collapse;
+            width: 100%;
+            height: 99%;
+            margin: auto;
+        }
+        
+        section.rodape table td, td {
+            border: 1px solid #000;
+            text-align: left;
+        }
+        
+        section.rodape table td {
+            background-color: #fff;
+            font-weight: bold;
+            font-size: small;
+        }
+        section.rodape table tr.row1 td.col1 {
+            width: 20%;
+        }
+        section.rodape table tr.row1 td.col2 {
+            width: 60%;
+            text-align: center;
+        }
+        section.rodape table tr.row1 td.col3 {
+            width: 20%;
+        }
+    </style>
 </head>
 <body>
-<!--
-  Template estático do Relatório 14.1 apenas com a estilização antiga e
-  campos genéricos na sequência: input1, input2, input3...
-
-  Ordem dos campos (sugestão):
-   1  input1  -> CNPJ (8 dígitos)
-   2  input2  -> Nº Relatório
-   3  input3  -> Tipo (Reg/CO/Anx)
-   4  input4  -> Regional
-   5  input5  -> Comum
-   6  input6  -> Casa de Oração
-   7  input7  -> Código do bem
-   8  input8  -> Descrição do bem
-   9  input9  -> Marca
-  10  input10 -> Modelo
-  11  input11 -> Nº Série
-  12  input12 -> Ano Fabricação
-  13  input13 -> Observações (textarea)
-  14  input14 -> Opção (Conforme) checkbox
-  15  input15 -> Opção (Não Conforme) checkbox
-  16  input16 -> Opção (Baixa) checkbox
-  17  input17 -> Resp1 Nome
-  18  input18 -> Resp1 Função
-  19  input19 -> Resp1 Data
-  20  input20 -> Resp2 Nome
-  21  input21 -> Resp2 Função
-  22  input22 -> Resp2 Data
-  23  input23 -> Resp3 Nome
-  24  input24 -> Resp3 Função
-  25  input25 -> Resp3 Data
-  26  input26 -> Resp4 Nome
-  27  input27 -> Resp4 Função
-  28  input28 -> Resp4 Data
-  29  input29 -> Resp5 Nome
-  30  input30 -> Resp5 Função
-  31  input31 -> Resp5 Data
-  32  input32 -> Observações da Comissão (textarea)
-  33  input33 -> Comissão1 Nome
-  34  input34 -> Comissão1 Função
-  35  input35 -> Comissão1 Data
-  36  input36 -> Comissão2 Nome
-  37  input37 -> Comissão2 Função
-  38  input38 -> Comissão2 Data
--->
-
-<!-- A4-START -->
-<div class="a4">
-  <!-- Cabeçalho do formulário -->
-  <section class="cabecalho">
-    <table>
-      <tr class="row1">
-        <th class="col1" rowspan="2">CCB</th>
-        <th class="col2" rowspan="2">MANUAL ADMINISTRATIVO</th>
-        <th class="col3">SEÇÃO:</th>
-        <th class="col4">14</th>
-      </tr>
-      <tr class="row2">
-        <th class="col3">FL. / FLS.</th>
-        <th class="col4">36/46</th>
-      </tr>
-      <tr class="row3">
-        <th class="col1" rowspan="2">ASSUNTO</th>
-        <th class="col2" rowspan="2">PATRIMÔNIO – BENS MÓVEIS</th>
-        <th class="col3">DATA REVISÃO:</th>
-        <th class="col4">24/09/2019</th>
-      </tr>
-      <tr class="row4">
-        <th class="col3">EDIÇÃO:</th>
-        <th class="col4">6</th>
-      </tr>
-      <tr class="row5">
-        <th class="col1"></th>
-        <th class="col2"></th>
-        <th class="col3">REVISÃO:</th>
-        <th class="col4">1</th>
-      </tr>
-    </table>
-  </section>
-
-  <!-- Título principal -->
-  <section class="titulo">
-    <div class="titulo-box">FORMULÁRIO 14.1: DECLARAÇÃO DE DOAÇÃO DE BEM MÓVEL</div>
-  </section>
-
-  <!-- Subtítulo com tabela -->
-  <section class="subtitulo">
-    <table>
-      <tr>
-        <th class="col1">CONGREGAÇÃO CRISTÃ NO BRASIL</th>
-        <th class="col2">FORMULÁRIO 14.1</th>
-      </tr>
-      <tr>
-        <th class="col1">DECLARAÇÃO DE DOAÇÃO DE BENS MÓVEIS</th>
-        <th class="col2">Data Emissão <input type="text" id="input1" class="input-data"></th>
-      </tr>
-    </table>
-  </section>
-
-  <!-- Seção A: LOCALIDADE RECEBEDORA -->
-  <section class="secao">
-    <table>
-      <tr class="secao-header">
-        <th class="letra">A</th>
-        <th colspan="2">LOCALIDADE RECEBEDORA</th>
-      </tr>
-      <tr class="label-row">
-        <td class="col1">Administração</td>
-        <td class="col2">Cidade</td>
-        <td class="col3">Setor</td>
-      </tr>
-      <tr class="input-row">
-        <td class="col1"><input type="text" id="input2"></td>
-        <td class="col2"><input type="text" id="input3"></td>
-        <td class="col3"><input type="text" id="input4"></td>
-      </tr>
-      <tr class="label-row">
-        <td class="col1">CNPJ da Administração</td>
-        <td class="col2">Nº Relatório</td>
-        <td class="col3">Casa de Oração</td>
-      </tr>
-      <tr class="input-row">
-        <td class="col1"><input type="text" id="input5"></td>
-        <td class="col2"><input type="text" id="input6"></td>
-        <td class="col3"><input type="text" id="input7"></td>
-      </tr>
-    </table>
-  </section>
-
-  <!-- Seção B: DESCRIÇÃO DO BEM -->
-  <section class="secao">
-    <table>
-      <tr class="secao-header">
-        <th class="letra">B</th>
-        <th colspan="3">DESCRIÇÃO DO BEM</th>
-      </tr>
-      <tr class="descricao-row">
-        <td colspan="4">
-          <textarea id="input8" rows="4" placeholder="Descrição detalhada do bem"></textarea>
-        </td>
-      </tr>
-      <tr class="label-row">
-        <td class="col1">Nº Nota fiscal</td>
-        <td class="col2">Data de emissão</td>
-        <td class="col3">Valor</td>
-        <td class="col4">Fornecedor</td>
-      </tr>
-      <tr class="input-row">
-        <td class="col1"><input type="text" id="input9"></td>
-        <td class="col2"><input type="text" id="input10"></td>
-        <td class="col3"><input type="text" id="input11"></td>
-        <td class="col4"><input type="text" id="input12"></td>
-      </tr>
-      <tr class="checkbox-row">
-        <td colspan="4">
-          <p style="margin: 8px 0 6px 0;">Declaramos que estamos doando à CONGREGAÇÃO CRISTÃ NO BRASIL o bem acima descrito, de nossa propriedade, livre e desembaraçado de dívidas e ônus, para uso na Casa de Oração acima identificada.</p>
-          <label><input type="checkbox" id="input13" class="opcao-checkbox"> O bem tem mais de cinco anos de uso e o documento fiscal de aquisição está anexo.</label><br>
-          <label><input type="checkbox" id="input14" class="opcao-checkbox"> O bem tem mais de cinco anos de uso, porém o documento fiscal de aquisição foi extraviado.</label><br>
-          <label><input type="checkbox" id="input15" class="opcao-checkbox"> O bem tem até cinco anos de uso e o documento fiscal de aquisição está anexo.</label>
-          <p style="margin: 6px 0 4px 0;">Por ser verdade firmamos esta declaração.</p>
-          <p style="margin: 4px 0;">Local e data: <input type="text" id="input16" style="width: 60%; display: inline-block;"></p>
-        </td>
-      </tr>
-    </table>
-  </section>
-
-  <!-- Seção C: DOADOR -->
-  <section class="secao">
-    <table>
-      <tr class="secao-header">
-        <th class="letra">C</th>
-        <th>DOADOR</th>
-      </tr>
-      <tr class="label-row">
-        <td colspan="2" style="background: #ccc; font-weight: bold; padding: 4px 8px;">Dados do doador</td>
-        <td colspan="2" style="background: #ccc; font-weight: bold; padding: 4px 8px;">Dados do cônjuge</td>
-      </tr>
-      <tr class="label-row">
-        <td colspan="2">Nome</td>
-        <td colspan="2"></td>
-      </tr>
-      <tr class="input-row">
-        <td colspan="2"><input type="text" id="input17"></td>
-        <td colspan="2"><input type="text" id="input18"></td>
-      </tr>
-      <tr class="label-row">
-        <td colspan="2">Endereço</td>
-        <td colspan="2"></td>
-      </tr>
-      <tr class="input-row">
-        <td colspan="2"><input type="text" id="input19"></td>
-        <td colspan="2"><input type="text" id="input20"></td>
-      </tr>
-      <tr class="label-row">
-        <td colspan="2">CPF</td>
-        <td colspan="2"></td>
-      </tr>
-      <tr class="input-row">
-        <td colspan="2"><input type="text" id="input21"></td>
-        <td colspan="2"><input type="text" id="input22"></td>
-      </tr>
-      <tr class="label-row">
-        <td colspan="2">RG</td>
-        <td colspan="2"></td>
-      </tr>
-      <tr class="input-row">
-        <td colspan="2"><input type="text" id="input23"></td>
-        <td colspan="2"><input type="text" id="input24"></td>
-      </tr>
-      <tr class="label-row">
-        <td colspan="2">Assinatura</td>
-        <td colspan="2"></td>
-      </tr>
-      <tr class="input-row assinatura-row">
-        <td colspan="2"><input type="text" id="input25"></td>
-        <td colspan="2"><input type="text" id="input26"></td>
-      </tr>
-    </table>
-  </section>
-
-  <!-- Seção D: TERMO DE ACEITE DA DOAÇÃO -->
-  <section class="secao">
-    <table>
-      <tr class="secao-header">
-        <th class="letra">D</th>
-        <th colspan="2">TERMO DE ACEITE DA DOAÇÃO</th>
-      </tr>
-      <tr>
-        <td colspan="3" style="padding: 8px; text-align: justify; line-height: 1.3;">
-          A Congregação Cristã No Brasil aceita a presente doação por atender necessidade do momento.
-        </td>
-      </tr>
-      <tr class="label-row">
-        <td colspan="2" style="background: #ccc; font-weight: bold; padding: 4px 8px;">Nome</td>
-        <td style="background: #ccc; font-weight: bold; padding: 4px 8px;">Assinatura</td>
-      </tr>
-      <tr class="label-row">
-        <td colspan="3"><strong>Administrador/<br>Assessor</strong></td>
-      </tr>
-      <tr class="input-row assinatura-row">
-        <td colspan="2"><input type="text" id="input27"></td>
-        <td><input type="text" id="input28"></td>
-      </tr>
-      <tr class="label-row">
-        <td colspan="3"><strong>Doador</strong></td>
-      </tr>
-      <tr class="input-row assinatura-row">
-        <td colspan="2"><input type="text" id="input29"></td>
-        <td><input type="text" id="input30"></td>
-      </tr>
-    </table>
-  </section>
-
-  <!-- Rodapé -->
-  <section class="rodape">
-    <table>
-      <tr>
-        <td class="col1"></td>
-        <td class="col2">sp.saopaulo.manualadm@congregacao.org.br</td>
-        <td class="col3"></td>
-      </tr>
-    </table>
-  </section>
-</div>
-<!-- A4-END -->
-
+    <div class="a4">
+        <section class="cabecalho">
+            <table>
+                    <tr class="row1">
+                        <th class="col1" rowspan="3">CCB</th>
+                        <th class="col2" rowspan="3">MANUAL ADMINISTRATIVO</th>
+                        <th class="col3">SEÇÃO: </th>
+                        <th class="col4">14</th>
+                    </tr>
+                    <tr class="row2">
+                        <th class="col3">FL./FLS. </th>
+                        <th class="col4">34/36</th>
+                    </tr>
+                    <tr class="row3">
+                        <th class="col3">DATA REVISÃO: </th>
+                        <th class="col4">24/09/2019</th>
+                    </tr>
+                    <tr class="row4">
+                        <th class="col1" rowspan="2">ASSUNTO</th>
+                        <th class="col2" rowspan="2">PATRIMÔNIO - BENS MÓVEIS</th>
+                        <th class="col3">EDIÇÃO: </th>
+                        <th class="col4">6</th>
+                    </tr>
+                    <tr class="row5">
+                        <th class="col3">REVISÃO: </th>
+                        <th class="col4">1</th>
+                    </tr>
+            </table>
+        </section>
+        <section class="conteudo">
+            <h1>FORMULÁRIO 14.1: DECLARAÇÃO DE DOAÇÃO DE BEM MÓVEL</h1>
+            <div class="conteudo">
+                <table>
+                    <tr class="row1">
+                        <td class="col1" colspan="2">CONGREGAÇÃO CRITÃ NO BRASIL</td>
+                        <td class="col2" colspan="2">FORMULÁRIO 14.1</td>
+                    </tr>
+                    <tr class="row2">
+                        <td class="col1" colspan="2">DECLARAÇÃO DE DOAÇÃO DE BENS MÓVEIS</td>
+                        <td class="col2" colspan="2">
+                            <label for="input1">Data Emissão</label><br>
+                            <input type="text" name="input1" id="input1">
+                        </td>
+                    </tr>
+                </table>
+                <table>
+                    <tr class="row3">
+                        <td class="col1">A</td>
+                        <td class="col2" colspan="2">LOCALIDADE RECEBIDA</td>
+                    </tr>
+                </table>
+                <table>
+                    <tr class="row4">
+                        <td class="col1">Administração</td>
+                        <td class="col2">Cidade</td>
+                        <td class="col3">Setor</td>
+                    </tr>
+                    <tr class="row5">
+                        <td class="col1"><input type="text" id="input2" style="width:100%;border:none;"></td>
+                        <td class="col2"><input type="text" id="input3" style="width:100%;border:none;"></td>
+                        <td class="col3"><input type="text" id="input4" style="width:100%;border:none;"></td>
+                    </tr>
+                    <tr class="row6">
+                        <td class="col1">CNPJ da Administração</td>
+                        <td class="col2">N° Relatório</td>
+                        <td class="col3">Casa de Oração</td>
+                    </tr>
+                    <tr class="row7">
+                        <td class="col1"><input type="text" id="input5" style="width:100%;border:none;"></td>
+                        <td class="col2"><input type="text" id="input6" style="width:100%;border:none;"></td>
+                        <td class="col3"><input type="text" id="input7" style="width:100%;border:none;"></td>
+                    </tr>
+                </table>
+                <table>
+                    <tr class="row8">
+                        <td class="col1">B</td>
+                        <td class="col2" colspan="3">DESCRIÇÃO DO BEM</td>
+                    </tr>
+                </table>
+                <table>
+                    <tr class="row9">
+                        <td class="col1" colspan="4"><textarea id="input8" style="width:100%;height:100%;border:none;resize:none;"></textarea></td>
+                    </tr>
+                </table>
+                <table>
+                    <tr class="row10">
+                        <td class="col1">N° Nota fiscal</td>
+                        <td class="col2">Data de emissão</td>
+                        <td class="col3">Valor</td>
+                        <td class="col4">Fornecedor</td>
+                    </tr>
+                    <tr class="row11">
+                        <td class="col1"><input type="text" id="input9" style="width:100%;border:none;"></td>
+                        <td class="col2"><input type="text" id="input10" style="width:100%;border:none;"></td>
+                        <td class="col3"><input type="text" id="input11" style="width:100%;border:none;"></td>
+                        <td class="col4"><input type="text" id="input12" style="width:100%;border:none;"></td>
+                    </tr>
+                    <tr class="row12">
+                        <td class="col1" colspan="4">
+                            <p>
+                                Declaramos que estamos doando à CONGREGAÇÃO CRITÃ NO BRASIL
+                                o bem acima descrito, de nossa propriedade, livre e sesembaraçado
+                                de dívidas e ônus, para uso na Casa de Oração acima identificada.
+                            </p><br>
+                            <label>
+                                <input type="checkbox" name="input13" id="input13">
+                                O bem tem mais de cinco anos de uso e o documento fiscal de
+                                aquisição está anexo.
+                            </label><br>
+                            <label>
+                                <input type="checkbox" name="input14" id="input14">
+                                O bem tem mais de cinco anos de uso, porém o documento fiscal
+                                de aquisição foi extraviado.
+                            </label><br>
+                            <label>
+                                <input type="checkbox" name="input15" id="input15">
+                                O bem tem até cinco anos de uso e o documento fiscal de
+                                aquisição está anexo.
+                            </label><br><br>
+                            <p>
+                                Por ser verdade firmamos esta declaração.
+                            </p><br>
+                            <label>
+                                Local e data: 
+                                <input type="text" name="input16" id="input16" style="width:60%;border:none;border-bottom:1px solid #000;">
+                            </label>
+                        </td>
+                    </tr>
+                </table>
+                <table>
+                    <tr class="row13">
+                        <td class="col1">C</td>
+                        <td class="col2" colspan="2">DOADOR</td>
+                    </tr>
+                </table>
+                <table>
+                    <tr class="row14">
+                        <td class="col1"></td>
+                        <td class="col2">Dados do doador</td>
+                        <td class="col3">Dados do cônjuge</td>
+                    </tr>
+                    <tr class="row15">
+                        <td class="col1">Nome</td>
+                        <td class="col2"><input type="text" id="input17" style="width:100%;border:none;"></td>
+                        <td class="col3"><input type="text" id="input18" style="width:100%;border:none;"></td>
+                    </tr>
+                    <tr class="row16">
+                        <td class="col1">Endereço</td>
+                        <td class="col2"><input type="text" id="input19" style="width:100%;border:none;"></td>
+                        <td class="col3"><input type="text" id="input20" style="width:100%;border:none;"></td>
+                    </tr>
+                    <tr class="row17">
+                        <td class="col1">CPF</td>
+                        <td class="col2"><input type="text" id="input21" style="width:100%;border:none;"></td>
+                        <td class="col3"><input type="text" id="input22" style="width:100%;border:none;"></td>
+                    </tr>
+                    <tr class="row18">
+                        <td class="col1">RG</td>
+                        <td class="col2"><input type="text" id="input23" style="width:100%;border:none;"></td>
+                        <td class="col3"><input type="text" id="input24" style="width:100%;border:none;"></td>
+                    </tr>
+                    <tr class="row19">
+                        <td class="col1">Assinatura</td>
+                        <td class="col2"><input type="text" id="input25" style="width:100%;border:none;"></td>
+                        <td class="col3"><input type="text" id="input26" style="width:100%;border:none;"></td>
+                    </tr>
+                </table>
+                <table>
+                    <tr class="row20">
+                        <td class="col1">D</td>
+                        <td class="col2" colspan="2">TERMO DE ACEITE DA DOAÇÃO</td>
+                    </tr>
+                </table>
+                <table>
+                    <tr class="row21">
+                        <td class="col1" colspan="3">
+                            <p>
+                                A Congregação Critã No Brasil aceita a presente doação por
+                                atender necessidade do momento.
+                            </p>
+                        </td>
+                    </tr>
+                    <tr class="row22">
+                        <td class="col1"></td>
+                        <td class="col2">Nome</td>
+                        <td class="col3">Assinatura</td>
+                    </tr>
+                    <tr class="row23">
+                        <td class="col1">Administrador/<br>Assessor</td>
+                        <td class="col2"><input type="text" id="input27" style="width:100%;border:none;"></td>
+                        <td class="col3"><input type="text" id="input28" style="width:100%;border:none;"></td>
+                    </tr>
+                    <tr class="row24">
+                        <td class="col1">Doador</td>
+                        <td class="col2"><input type="text" id="input29" style="width:100%;border:none;"></td>
+                        <td class="col3"><input type="text" id="input30" style="width:100%;border:none;"></td>
+                    </tr>
+                </table>
+            </div>
+        </section>
+        <section class="rodape">
+            <table>
+                <tr class="row1">
+                    <td class="col1"></td>
+                    <td class="col2">sp.saopaulo.manualadm@congregacao.org.br</td>
+                    <td class="col3"></td>
+                </tr>
+            </table>
+        </section>
+    </div>
 </body>
 </html>
