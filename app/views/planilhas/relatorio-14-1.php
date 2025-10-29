@@ -157,6 +157,7 @@ $customCss = '
 /* Fundo da página (imagem do PDF) */
 .a4 { position: relative; }
 .a4 { background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.a4-frame { border: 0; background: transparent; display: block; }
 .page-bg {
     position: absolute;
     top: 0; left: 0;
@@ -390,57 +391,36 @@ ob_start();
             
             <div class="a4-viewport">
                 <div class="a4-scaled">
-                    <!-- CSS inline extraído do template -->
-                    <?php if (!empty($styleContent)): ?>
-                    <style><?php echo $styleContent; ?></style>
-                    <?php endif; ?>
-                    
                     <?php
                         // Preencher dados do produto no template
                         $htmlPreenchido = $a4Block;
-                        
                         if (!empty($htmlPreenchido)) {
-                            // Data de emissão atual
                             $dataEmissao = date('d/m/Y');
-                            
-                            // Descrição do bem
                             $descricaoBem = '';
-                            if (!empty($row['tipo_descricao'])) {
-                                $descricaoBem .= $row['tipo_descricao'];
-                            }
-                            if (!empty($row['complemento'])) {
-                                $descricaoBem .= ' - ' . $row['complemento'];
-                            }
-                            if (!empty($row['descricao_completa'])) {
-                                $descricaoBem .= "\n" . $row['descricao_completa'];
-                            }
-                            
-                            // Substituir valores nos inputs
+                            if (!empty($row['tipo_descricao'])) { $descricaoBem .= $row['tipo_descricao']; }
+                            if (!empty($row['complemento'])) { $descricaoBem .= ' - ' . $row['complemento']; }
+                            if (!empty($row['descricao_completa'])) { $descricaoBem .= "\n" . $row['descricao_completa']; }
+
+                            // Injetar valores
                             $htmlPreenchido = str_replace('id="input1"', 'id="input1" value="' . htmlspecialchars($dataEmissao) . '"', $htmlPreenchido);
-                            
-                            // Seção A - Localidade (vazios por padrão, preenchidos pelos valores comuns via JS)
                             $htmlPreenchido = str_replace('id="input2"', 'id="input2" class="campo-admin"', $htmlPreenchido);
                             $htmlPreenchido = str_replace('id="input3"', 'id="input3" class="campo-cidade"', $htmlPreenchido);
                             $htmlPreenchido = str_replace('id="input4"', 'id="input4" class="campo-setor"', $htmlPreenchido);
                             $htmlPreenchido = str_replace('id="input5"', 'id="input5" value="' . htmlspecialchars($cnpj_planilha ?? '') . '"', $htmlPreenchido);
                             $htmlPreenchido = str_replace('id="input6"', 'id="input6" value="' . htmlspecialchars($numero_relatorio_auto ?? '') . '"', $htmlPreenchido);
                             $htmlPreenchido = str_replace('id="input7"', 'id="input7" value="' . htmlspecialchars($casa_oracao_auto ?? '') . '"', $htmlPreenchido);
-                            
-                            // Seção B - Descrição do bem
                             $htmlPreenchido = str_replace('id="input8"', 'id="input8">' . htmlspecialchars($descricaoBem), $htmlPreenchido);
-                            
-                            // Campos vazios para nota fiscal (inputs 9-12)
-                            // Checkboxes (inputs 13-15) - dependem dos valores comuns
                             $htmlPreenchido = str_replace('id="input13"', 'id="input13" class="opcao-checkbox" data-page="' . $index . '"', $htmlPreenchido);
                             $htmlPreenchido = str_replace('id="input14"', 'id="input14" class="opcao-checkbox" data-page="' . $index . '"', $htmlPreenchido);
                             $htmlPreenchido = str_replace('id="input15"', 'id="input15" class="opcao-checkbox" data-page="' . $index . '"', $htmlPreenchido);
-                            
-                            // Seção C - Doador (inputs 17-26) - vazios
-                            
-                            // Seção D - Termo de aceite (inputs 27-30)
                             $htmlPreenchido = str_replace('id="input27"', 'id="input27" class="campo-admin-assessor"', $htmlPreenchido);
-                            
-                            echo $htmlPreenchido;
+
+                            // Montar srcdoc isolado com CSS do template
+                            $styleInline = !empty($styleContent) ? $styleContent : '';
+                            $srcdoc = '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
+                                    . '<style>html,body{margin:0;padding:0;background:#fff;} ' . $styleInline . '</style>'
+                                    . '</head><body>' . $htmlPreenchido . '</body></html>';
+                            echo '<iframe class="a4-frame" data-page-index="' . $index . '" srcdoc="' . htmlspecialchars($srcdoc, ENT_QUOTES) . '"></iframe>';
                         } else {
                             echo '<div class="r141-root"><div class="a4"><p style="padding:10mm;color:#900">Template 14-1 não encontrado.</p></div></div>';
                         }
@@ -520,30 +500,21 @@ function inicializarDeteccaoEdicao() {
 function atualizarTodos(tipo) {
     const valor = document.getElementById(tipo + '_geral').value;
     let selectorClass;
-    
     switch(tipo) {
-        case 'admin': 
-            selectorClass = '.campo-admin';
-            break;
-        case 'cidade': 
-            selectorClass = '.campo-cidade';
-            break;
-        case 'setor': 
-            selectorClass = '.campo-setor';
-            break;
-        case 'admin_acessor': 
-            selectorClass = '.campo-admin-assessor';
-            break;
-        default: 
-            selectorClass = '.campo-' + tipo;
+        case 'admin': selectorClass = '.campo-admin'; break;
+        case 'cidade': selectorClass = '.campo-cidade'; break;
+        case 'setor': selectorClass = '.campo-setor'; break;
+        case 'admin_acessor': selectorClass = '.campo-admin-assessor'; break;
+        default: selectorClass = '.campo-' + tipo;
     }
-    
-    const inputs = document.querySelectorAll(selectorClass);
-    inputs.forEach(input => {
-        input.value = valor;
-        if (valor !== '') {
-            input.classList.add('editado');
-        }
+    // Aplica em cada iframe (página)
+    document.querySelectorAll('iframe.a4-frame').forEach(frame => {
+        try {
+            const doc = frame.contentDocument || frame.contentWindow.document;
+            doc.querySelectorAll(selectorClass).forEach(input => {
+                input.value = valor;
+            });
+        } catch (e) {}
     });
 }
 
@@ -616,32 +587,38 @@ function configurarNavegacaoPaginas() {
 
 // ---------- Escala dinâmica das páginas para caber no container ----------
 function ajustarEscalaPaginas() {
-    // Para cada viewport, calcula a escala da .a4 para caber na largura disponível
+    // Para cada viewport, calcula a escala do iframe (conteúdo A4) para caber na largura/altura disponíveis
     document.querySelectorAll('.a4-viewport').forEach(view => {
-        const scaled = view.querySelector('.a4-scaled');
-        const a4 = view.querySelector('.r141-root .a4');
-        if (!scaled || !a4) return;
+        const frame = view.querySelector('iframe.a4-frame');
+        if (!frame) return;
 
-        // Reseta para medir tamanho real
-        scaled.style.transform = 'none';
-        scaled.style.width = '';
+        // Reset para medir
+        frame.style.transform = 'none';
+        frame.style.width = '';
 
         const viewportWidth = view.clientWidth;
         const viewportHeight = view.clientHeight;
-        const rect = a4.getBoundingClientRect();
-        const a4Width = rect.width; // px
-        const a4Height = rect.height; // px
 
-        if (a4Width === 0 || !isFinite(a4Width)) return;
-        let scaleX = viewportWidth / a4Width;
-        let scaleY = viewportHeight && a4Height ? (viewportHeight / a4Height) : scaleX;
-        let scale = Math.min(scaleX, scaleY);
-        if (scale > 1) scale = 1; // não amplia além de 100%
-
-        // Aplica escala e ajusta largura
-        scaled.style.transform = `scale(${scale})`;
-        scaled.style.transformOrigin = 'top center';
-        scaled.style.width = `${(1/scale)*100}%`;
+        try {
+            const doc = frame.contentDocument || frame.contentWindow.document;
+            const a4 = doc && doc.querySelector('.r141-root .a4');
+            if (!a4) return;
+            const rect = a4.getBoundingClientRect();
+            const a4Width = rect.width;
+            const a4Height = rect.height;
+            if (!a4Width || !a4Height) return;
+            let scaleX = viewportWidth / a4Width;
+            let scaleY = viewportHeight / a4Height;
+            let scale = Math.min(scaleX, scaleY);
+            if (scale > 1) scale = 1;
+            frame.style.transform = `scale(${scale})`;
+            frame.style.transformOrigin = 'top center';
+            frame.style.width = a4Width + 'px';
+            frame.style.height = a4Height + 'px';
+        } catch (e) {
+            // Pode ocorrer se o iframe ainda estiver carregando; tenta novamente depois
+            setTimeout(ajustarEscalaPaginas, 100);
+        }
     });
 }
 
@@ -659,22 +636,14 @@ function configurarOpcoesComuns() {
 
         // Aplica em todas as páginas
         const opc = elem.dataset.opcao; // '1' | '2' | '3'
-        const totalPaginas = document.querySelectorAll('.pagina-card').length;
-        for (let i = 0; i < totalPaginas; i++) {
-            const seletores = [
-                `.opcao-checkbox[name="opcao_1_${getIdByIndex(i)}"]`,
-                `.opcao-checkbox[name="opcao_2_${getIdByIndex(i)}"]`,
-                `.opcao-checkbox[name="opcao_3_${getIdByIndex(i)}"]`
-            ];
-
-            // Nem sempre temos forma simples de mapear id pelo índice; como alternativa, usamos data-page
-            const checksPagina = document.querySelectorAll(`.opcao-checkbox[data-page="${i}"]`);
-            checksPagina.forEach(chk => {
-                const isOpcaoSelecionada = chk.id.includes(`opcao_${opc}_`);
-                chk.checked = isOpcaoSelecionada;
-                if (isOpcaoSelecionada) chk.classList.add('marcado'); else chk.classList.remove('marcado');
-            });
-        }
+        // Marca nos iframes
+        document.querySelectorAll('iframe.a4-frame').forEach((frame, i) => {
+            try {
+                const doc = frame.contentDocument || frame.contentWindow.document;
+                const checks = [doc.getElementById('input13'), doc.getElementById('input14'), doc.getElementById('input15')];
+                checks.forEach((c, idx) => { if (c) c.checked = (idx+1) == parseInt(opc,10); });
+            } catch (e) {}
+        });
     }
 
     comuns.forEach(chk => {
@@ -777,40 +746,48 @@ function abrirViewer(pageIndex) {
     const paginas = document.querySelectorAll('.pagina-card');
     if (!paginas.length || pageIndex < 0 || pageIndex >= paginas.length) return;
     const pagina = paginas[pageIndex];
-    const conteudo = pagina.querySelector('.r141-root');
-    if (!conteudo) return;
+    const framePreview = pagina.querySelector('iframe.a4-frame');
+    if (!framePreview) return;
 
-    // Limpa canvas e clona conteúdo
+    // Copia o srcdoc do preview para o viewer (isolado também)
+    const srcdoc = framePreview.getAttribute('srcdoc');
     viewer.canvas.innerHTML = '';
-    viewer.clonePage = conteudo.cloneNode(true);
-    viewer.originalPage = conteudo;
-    viewer.canvas.appendChild(viewer.clonePage);
+    const frameView = document.createElement('iframe');
+    frameView.className = 'a4-frame';
+    frameView.setAttribute('srcdoc', srcdoc);
+    viewer.canvas.appendChild(frameView);
     viewer.overlay.hidden = false;
 
-    // Sincronizar edições do clone para o original (por id, escopado na página)
-    const origScope = viewer.originalPage; // escopo para evitar conflito de ids
-    viewer.clonePage.querySelectorAll('input, textarea').forEach(el => {
-        el.addEventListener('input', () => {
-            const id = el.getAttribute('id');
-            if (!id) return;
-            const target = origScope.querySelector('#' + CSS.escape(id));
-            if (target) target.value = el.value;
-        });
-        el.addEventListener('change', () => {
-            const id = el.getAttribute('id');
-            if (!id) return;
-            const target = origScope.querySelector('#' + CSS.escape(id));
-            if (!target) return;
-            if (el.type === 'checkbox') {
-                target.checked = el.checked;
-            } else {
-                target.value = el.value;
-            }
-        });
-    });
+    // Travar rolagem do fundo enquanto o overlay está aberto
+    document.body.style.overflow = 'hidden';
 
-    // Define escala para ajustar na largura disponível
-    setTimeout(ajustarViewerParaLargura, 20);
+    // Após carregar o iframe, conectar sincronização de inputs para o preview
+    frameView.addEventListener('load', () => {
+        try {
+            const docView = frameView.contentDocument || frameView.contentWindow.document;
+            const docPrev = framePreview.contentDocument || framePreview.contentWindow.document;
+            const campos = docView.querySelectorAll('input, textarea');
+            campos.forEach(el => {
+                el.addEventListener('input', () => {
+                    const id = el.id;
+                    if (!id) return;
+                    const alvo = docPrev.getElementById(id);
+                    if (!alvo) return;
+                    if (el.type === 'checkbox') alvo.checked = el.checked; else alvo.value = el.value;
+                });
+                el.addEventListener('change', () => {
+                    const id = el.id;
+                    if (!id) return;
+                    const alvo = docPrev.getElementById(id);
+                    if (!alvo) return;
+                    if (el.type === 'checkbox') alvo.checked = el.checked; else alvo.value = el.value;
+                });
+            });
+            ajustarViewerParaLargura();
+        } catch (e) {
+            console.warn('Sync viewer->preview falhou:', e);
+        }
+    });
 }
 
 function fecharViewer() {
@@ -818,6 +795,8 @@ function fecharViewer() {
     viewer.canvas.innerHTML = '';
     viewer.clonePage = null;
     viewer.originalPage = null;
+    // Destravar rolagem do fundo
+    document.body.style.overflow = '';
 }
 
 function setViewerScale(s) {
