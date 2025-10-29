@@ -151,7 +151,7 @@ $customCss = '
     display: flex;
     justify-content: center;
     align-items: flex-start; /* alinhar ao topo para permitir padding-top empurrar a miniatura para baixo */
-    padding: 12px 4px 4px 4px; /* pequeno espaçamento interno, 4px de margem solicitada no mobile */
+/* pequeno espaçamento interno, 4px de margem solicitada no mobile */
 }
 
 .a4-scaled {
@@ -160,7 +160,7 @@ $customCss = '
     transform-origin: top left;
     transform: scale(0.5); /* valor inicial, será recalculado por fitAll() */
     display: inline-block;
-    width: 95%;
+    width: auto;
     height: auto;
     position:absolute;
     left:2.5%;
