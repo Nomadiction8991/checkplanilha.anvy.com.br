@@ -301,12 +301,6 @@ $customCss = '
   .btn-expand { padding: 6px 10px; font-size: 0.9rem; }
   .page-toolbar { top: 64px; max-width: 92%; }
 }
-
-/* Ampliar área desta view em telas maiores (melhor visualização do A4) */
-@media (min-width: 900px) {
-    .app-header { max-width: 1100px; }
-    .mobile-wrapper { max-width: 1100px; }
-}
 ';
 
 ob_start();
