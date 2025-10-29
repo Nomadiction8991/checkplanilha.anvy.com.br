@@ -144,12 +144,12 @@ $customCss = '
 .a4 .a4-fore { position: relative; z-index: 1; }
 
 /* Campos editados ficam vermelhos */
-.a4 input.editado,
-.a4 textarea.editado {
+.r141-root .a4 input.editado,
+.r141-root .a4 textarea.editado {
     color: #dc3545 !important;
 }
 
-.a4 label:has(input[type="checkbox"].marcado) {
+.r141-root .a4 label:has(input[type="checkbox"].marcado) {
     color: #dc3545 !important;
 }
 
@@ -201,9 +201,9 @@ $customCss = '
     }
     
     /* Cores voltam para preto */
-    .a4 input.editado,
-    .a4 textarea.editado,
-    .a4 label:has(input[type="checkbox"].marcado) {
+    .r141-root .a4 input.editado,
+    .r141-root .a4 textarea.editado,
+    .r141-root .a4 label:has(input[type="checkbox"].marcado) {
         color: #000 !important;
     }
 
@@ -212,8 +212,15 @@ $customCss = '
 }
 
 /* Evitar cortes de conteúdo em campos e células */
-.a4 input[type="text"], .a4 textarea { height: auto; line-height: 1.2; padding: 2px 4px; }
-.a4 table td { overflow: visible; }
+.r141-root .a4 input[type="text"], 
+.r141-root .a4 textarea { 
+    height: auto; 
+    line-height: 1.2; 
+    padding: 2px 4px; 
+}
+.r141-root .a4 table td { 
+    overflow: visible; 
+}
 ';
 
 ob_start();
@@ -338,7 +345,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Detectar edição manual em inputs e textareas
 function inicializarDeteccaoEdicao() {
-    document.querySelectorAll('.a4 input[type="text"], .a4 textarea').forEach(campo => {
+    document.querySelectorAll('.r141-root .a4 input[type="text"], .r141-root .a4 textarea').forEach(campo => {
         valoresOriginais.set(campo.id, campo.value);
         
         campo.addEventListener('input', function() {
@@ -352,7 +359,7 @@ function inicializarDeteccaoEdicao() {
     });
     
     // Detectar checkboxes marcados
-    document.querySelectorAll('.a4 input[type="checkbox"]').forEach(checkbox => {
+    document.querySelectorAll('.r141-root .a4 input[type="checkbox"]').forEach(checkbox => {
         checkbox.addEventListener('change', function() {
             if (this.checked) {
                 this.classList.add('marcado');
@@ -397,22 +404,10 @@ document.querySelectorAll('.opcao-checkbox').forEach(chk => {
     });
 });
 
-// Validar e imprimir
+// Imprimir sem validação obrigatória
 function validarEImprimir() {
-    const totalPaginas = document.querySelectorAll('.pagina-card').length;
-    
-    for (let i = 0; i < totalPaginas; i++) {
-        const checks = document.querySelectorAll(`.opcao-checkbox[data-page="${i}"]`);
-        const marcados = Array.from(checks).filter(c => c.checked).length;
-        
-        if (marcados !== 1) {
-            alert(`Selecione exatamente 1 opção na página ${i + 1} antes de imprimir.`);
-            // Rolar até a página com erro
-            document.querySelectorAll('.pagina-card')[i].scrollIntoView({ behavior: 'smooth', block: 'start' });
-            return false;
-        }
-    }
-    
+    // Removida validação obrigatória de checkboxes
+    // Permite impressão mesmo sem campos preenchidos
     window.print();
 }
 
@@ -469,13 +464,12 @@ function ajustarEscalaPaginas() {
     // Para cada viewport, calcula a escala da .a4 para caber na largura disponível
     document.querySelectorAll('.a4-viewport').forEach(view => {
         const scaled = view.querySelector('.a4-scaled');
-        const a4 = view.querySelector('.a4');
+        const a4 = view.querySelector('.r141-root .a4');
         if (!scaled || !a4) return;
 
         // Reseta para medir tamanho real
         scaled.style.transform = 'none';
         scaled.style.width = '';
-        // não ajusta altura aqui; aspect-ratio já define
 
         const viewportWidth = view.clientWidth;
         const viewportHeight = view.clientHeight;
@@ -489,12 +483,10 @@ function ajustarEscalaPaginas() {
         let scale = Math.min(scaleX, scaleY);
         if (scale > 1) scale = 1; // não amplia além de 100%
 
-        // Aplica escala e ajusta altura do viewport para evitar corte
+        // Aplica escala e ajusta largura
         scaled.style.transform = `scale(${scale})`;
         scaled.style.transformOrigin = 'top center';
-        // compensar largura para não cortar nas laterais
         scaled.style.width = `${(1/scale)*100}%`;
-        // altura do viewport mantida pela aspect-ratio
     });
 }
 
