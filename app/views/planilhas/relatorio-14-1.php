@@ -313,6 +313,12 @@ border: 0; background: transparent; display: block;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
+.viewer-body .viewer-canvas iframe.a4-frame {
+    width: 90vw !important; /* preencher 90% da largura da viewport no overlay */
+    height: 80vh !important; /* altura alvo 80% da viewport */
+    margin: 0 auto;
+}
+
 /* Inline expansion dentro do card (em vez de overlay full-screen) */
 .pagina-card.expanded { z-index: 1500; position: relative; }
 .pagina-card.expanded .a4-viewport {
@@ -327,8 +333,9 @@ border: 0; background: transparent; display: block;
 .pagina-card.expanded .a4-scaled { transform: none !important; }
 .pagina-card.expanded iframe.a4-frame {
     transform: none !important;
-    width: 100% !important;
-    height: auto !important;
+    width: 90% !important; /* ocupar 90% da largura do widget/card */
+    height: 80vh !important; /* altura alvo 80% da viewport */
+    margin: 0 auto; /* centralizar */
     box-shadow: 0 8px 24px rgba(0,0,0,0.18);
     border-radius: 6px;
 }
@@ -863,6 +870,16 @@ function abrirInlineViewer(pageIndex) {
     }
 
     // Garante que o iframe interno se ajuste ao novo tamanho
+    // Ajusta imediatamente o iframe inline para ocupar 90% largura e 80% altura da viewport
+    const frameInline = pagina.querySelector('iframe.a4-frame');
+    if (frameInline) {
+        frameInline.style.transform = 'none';
+        frameInline.style.width = '90%';
+        frameInline.style.height = '80vh';
+        frameInline.style.margin = '0 auto';
+        // permitir rolagem interna se exceder
+        const vp = pagina.querySelector('.a4-viewport'); if (vp) vp.style.overflow = 'auto';
+    }
     setTimeout(ajustarEscalaPaginas, 80);
     // rolar para o card expandido
     pagina.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -889,6 +906,12 @@ function abrirViewer(pageIndex) {
     frameView.className = 'a4-frame';
     frameView.setAttribute('srcdoc', srcdoc);
     viewer.canvas.appendChild(frameView);
+    // Definir tamanho alvo do iframe no overlay para 90vw x 80vh
+    frameView.style.width = Math.round(window.innerWidth * 0.9) + 'px';
+    frameView.style.height = Math.round(window.innerHeight * 0.8) + 'px';
+    frameView.style.display = 'block';
+    frameView.style.margin = '0 auto';
+    frameView.style.transform = 'none';
     viewer.overlay.hidden = false;
 
     // Travar rolagem do fundo enquanto o overlay está aberto
@@ -941,12 +964,11 @@ function setViewerScale(s) {
             const doc = frameView.contentDocument || frameView.contentWindow.document;
             const a4 = doc.querySelector('.r141-root .a4');
             if (a4) {
-                // Aplicar escala no iframe mesmo
+                // Aplicar escala no iframe mantendo o tamanho alvo 90vw x 80vh
                 frameView.style.transform = `scale(${viewer.scale})`;
                 frameView.style.transformOrigin = 'top center';
-                const rect = a4.getBoundingClientRect();
-                frameView.style.width = rect.width + 'px';
-                frameView.style.height = rect.height + 'px';
+                frameView.style.width = Math.round(window.innerWidth * 0.9) + 'px';
+                frameView.style.height = Math.round(window.innerHeight * 0.8) + 'px';
             }
         } catch (e) {}
     }
