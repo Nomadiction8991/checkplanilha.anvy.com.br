@@ -154,8 +154,19 @@ $customCss = '
 }
 
 .a4-scaled {
-    /* Escala aplicada dinamicamente via JS */
-    transform-origin: top center;
+    /* Exibir o iframe exatamente no tamanho A4 e aplicar zoom padrão de 50% (scale 0.5).
+       Usamos transform no wrapper para fazer o "zoom" visual sem alterar as dimensões físicas A4 do iframe. */
+    transform-origin: top left;
+    transform: scale(0.5);
+    width: 95%;
+    height: 95%;
+}
+
+/* Forçar dimensões A4 reais para o iframe quando estiver dentro do wrapper .a4-scaled */
+.a4-scaled iframe.a4-frame {
+    width: 210mm !important;
+    height: 297mm !important;
+    display: block;
 }
 
 /* Fundo da página (imagem do PDF) */
@@ -397,7 +408,7 @@ ob_start();
                         . '</head><body>' . $htmlIsolado . '</body></html>';
                                 // Gerar iframe de preview (Visualizar removido — iframe permanece como miniatura)
                                 $title = 'Visualização da página ' . ($index + 1);
-                                echo '<iframe class="a4-frame" data-page-index="' . $index . '" title="' . htmlspecialchars($title, ENT_QUOTES) . '" aria-label="' . htmlspecialchars($title, ENT_QUOTES) . '" tabindex="0" sandbox="allow-same-origin allow-scripts allow-forms" srcdoc="' . htmlspecialchars($srcdoc, ENT_QUOTES) . '"></iframe>';
+                                echo '<iframe class="a4-frame" data-page-index="' . $index . '" title="' . htmlspecialchars($title, ENT_QUOTES) . '" aria-label="' . htmlspecialchars($title, ENT_QUOTES) . '" tabindex="0" sandbox="allow-same-origin allow-scripts allow-forms" style="width:210mm;height:297mm;" srcdoc="' . htmlspecialchars($srcdoc, ENT_QUOTES) . '"></iframe>';
                             } else {
                                 echo '<div class="r141-root"><div class="a4"><p style="padding:10mm;color:#900">Template 14-1 não encontrado.</p></div></div>';
                             }
