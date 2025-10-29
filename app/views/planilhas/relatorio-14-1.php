@@ -324,7 +324,6 @@ ob_start();
                     <style><?php echo $styleContent; ?></style>
                     <?php endif; ?>
                     
-                    <div class="r141-root">
                     <?php
                         // Preencher dados do produto no template
                         $htmlPreenchido = $a4Block;
@@ -372,10 +371,9 @@ ob_start();
                             
                             echo $htmlPreenchido;
                         } else {
-                            echo '<div class="a4"><p style="padding:10mm;color:#900">Template 14-1 não encontrado.</p></div>';
+                            echo '<div class="r141-root"><div class="a4"><p style="padding:10mm;color:#900">Template 14-1 não encontrado.</p></div></div>';
                         }
                     ?>
-                    </div>
                 </div>
             </div>
         </div>
