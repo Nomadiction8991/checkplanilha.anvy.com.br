@@ -12,7 +12,7 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title><?php echo $pageTitle ?? 'Anvy - Gestão de Planilhas'; ?></title>
     
     <!-- PWA - Progressive Web App -->
@@ -396,6 +396,44 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
+    <!-- Bloqueio de zoom global (pinch/double-tap) fora do viewer do relatório -->
+    <script>
+        (function(){
+            const isViewerOpen = () => {
+                const ov = document.getElementById('viewerOverlay');
+                return !!(ov && !ov.hasAttribute('hidden'));
+            };
+
+            // Evita pinch-zoom (2+ dedos) fora do viewer
+            document.addEventListener('touchstart', function(e){
+                if (isViewerOpen()) return; // permitir no viewer (zoom customizado)
+                if (e.touches && e.touches.length > 1) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
+            // Evita double-tap zoom fora do viewer
+            let lastTouchEnd = 0;
+            document.addEventListener('touchend', function(e){
+                if (isViewerOpen()) return;
+                const now = Date.now();
+                if (now - lastTouchEnd <= 300) {
+                    e.preventDefault();
+                }
+                lastTouchEnd = now;
+            }, { passive: false });
+
+            // Alguns navegadores disparam gesturestart (iOS antigos)
+            document.addEventListener('gesturestart', function(e){
+                if (isViewerOpen()) return;
+                e.preventDefault();
+            });
+
+            // Melhora em navegadores que suportam touch-action
+            document.body.style.touchAction = 'manipulation';
+        })();
+    </script>
+
     <!-- PWA Service Worker Registration -->
     <script>
         if ('serviceWorker' in navigator) {
