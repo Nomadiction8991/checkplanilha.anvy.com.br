@@ -432,7 +432,8 @@ $script = <<<JS
     function mmToPx(mm){ const el=document.createElement('div'); el.style.position='absolute'; el.style.left='-9999px'; el.style.width=mm+'mm'; document.body.appendChild(el); const px=el.getBoundingClientRect().width; document.body.removeChild(el); return px; }
 
     function fitAll(){
-        const a4px = mmToPx(210);
+        const a4w = mmToPx(210);
+        const a4h = mmToPx(297);
         document.querySelectorAll('.a4-viewport').forEach(vp=>{
             const scaled = vp.querySelector('.a4-scaled');
             const frame = vp.querySelector('iframe.a4-frame');
@@ -441,12 +442,19 @@ $script = <<<JS
             const parentW = vp.clientWidth - (parseFloat(style.paddingLeft)||0) - (parseFloat(style.paddingRight)||0);
             // margem interna para não colar nas bordas
             const available = parentW * 0.95;
-            let scale = available / a4px;
+            let scale = available / a4w;
             if(!isFinite(scale) || scale <= 0) scale = 0.5;
             // limitar entre 0.2 e 1
             scale = Math.max(0.2, Math.min(1, scale));
             scaled.style.transformOrigin = 'top left';
             scaled.style.transform = 'scale(' + scale + ')';
+
+            // Ajustar a altura do container para o A4 escalado (inclui padding-top)
+            const paddingTop = parseFloat(style.paddingTop) || 0;
+            const targetH = Math.round(a4h * scale + paddingTop);
+            vp.style.height = targetH + 'px';
+            // assegurar overflow hidden para não mostrar fundo além do A4
+            vp.style.overflow = 'hidden';
         });
     }
 
