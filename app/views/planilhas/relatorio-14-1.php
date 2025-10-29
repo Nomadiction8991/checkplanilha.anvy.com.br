@@ -424,7 +424,43 @@ ob_start();
     <i class="bi bi-exclamation-triangle me-2"></i>
     Nenhum produto encontrado para impressão do relatório 14.1.
 </div>
-<?php endif; ?>
+<?php endif;
+$script = <<<JS
+<script>
+(function(){
+    // Calcula px a partir de mm usando elemento temporário
+    function mmToPx(mm){ const el=document.createElement('div'); el.style.position='absolute'; el.style.left='-9999px'; el.style.width=mm+'mm'; document.body.appendChild(el); const px=el.getBoundingClientRect().width; document.body.removeChild(el); return px; }
+
+    function fitAll(){
+        const a4px = mmToPx(210);
+        document.querySelectorAll('.a4-viewport').forEach(vp=>{
+            const scaled = vp.querySelector('.a4-scaled');
+            const frame = vp.querySelector('iframe.a4-frame');
+            if(!scaled || !frame) return;
+            const style = getComputedStyle(vp);
+            const parentW = vp.clientWidth - (parseFloat(style.paddingLeft)||0) - (parseFloat(style.paddingRight)||0);
+            // margem interna para não colar nas bordas
+            const available = parentW * 0.95;
+            let scale = available / a4px;
+            if(!isFinite(scale) || scale <= 0) scale = 0.5;
+            // limitar entre 0.2 e 1
+            scale = Math.max(0.2, Math.min(1, scale));
+            scaled.style.transformOrigin = 'top left';
+            scaled.style.transform = 'scale(' + scale + ')';
+        });
+    }
+
+    const debounce = (fn,wait)=>{ let t; return function(){ clearTimeout(t); t=setTimeout(fn,wait); }; };
+    window.addEventListener('resize', debounce(fitAll, 120));
+    window.addEventListener('load', fitAll);
+    document.addEventListener('DOMContentLoaded', fitAll);
+})();
+</script>
+JS;
+
+echo $script;
+
+?>
 
 <?php
 $contentHtml = ob_get_clean();
