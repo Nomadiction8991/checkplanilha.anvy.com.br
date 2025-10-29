@@ -517,482 +517,83 @@ ob_start();
 
 <!-- Overlay de visualização em tela cheia -->
 <div id="viewerOverlay" class="viewer-overlay" hidden>
-    <div class="viewer-toolbar">
-        <button type="button" class="viewer-btn" id="viewerClose"><i class="bi bi-x-lg"></i> Fechar</button>
-        <button type="button" class="viewer-btn" id="viewerZoomOut"><i class="bi bi-zoom-out"></i></button>
-        <button type="button" class="viewer-btn" id="viewerZoomIn"><i class="bi bi-zoom-in"></i></button>
-        <button type="button" class="viewer-btn" id="viewerFit"><i class="bi bi-arrows-angle-contract"></i> Ajustar</button>
-        <button type="button" class="viewer-btn" id="viewer100"><i class="bi bi-aspect-ratio"></i> 100%</button>
-        <span id="viewerScaleLabel" style="margin-left:8px;color:#fff;background:#334155;padding:4px 8px;border-radius:6px;">100%</span>
+  <div class="viewer-toolbar">
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button id="viewerClose" class="viewer-btn primary" title="Fechar"><i class="bi bi-x-lg"></i></button>
+      <button id="viewerZoomOut" class="viewer-btn" title="Diminuir"><i class="bi bi-zoom-out"></i></button>
+      <button id="viewerZoomIn" class="viewer-btn" title="Aumentar"><i class="bi bi-zoom-in"></i></button>
+      <button id="viewerFit" class="viewer-btn" title="Ajustar"><i class="bi bi-arrows-angle-contract"></i></button>
+      <button id="viewer100" class="viewer-btn" title="100%">100%</button>
     </div>
-    <div class="viewer-body">
-        <div id="viewerCanvas" class="viewer-canvas"></div>
-    </div>
-  
+    <div style="margin-left:12px;flex:1;text-align:right;color:#fff; background:#334155;padding:6px 10px;border-radius:6px;">Escala: <span id="viewerScaleLabel">40%</span></div>
+  </div>
+  <div class="viewer-body">
+    <div id="viewerCanvas" class="viewer-canvas"></div>
+  </div>
 </div>
 
 <script>
-// Armazenar valores iniciais dos campos
-const valoresOriginais = new Map();
-// Ajuste de escala do preview é automático (fit)
+// Viewer simples baseado em iframe (isolado). Abre inline (>=768px) ou overlay (<768px).
+const Viewer = (function(){
+  let scale = 0.4; // escala inicial
+  let currentFrame = null;
+  const overlay = document.getElementById('viewerOverlay');
+  const canvas = document.getElementById('viewerCanvas');
+  const lbl = document.getElementById('viewerScaleLabel');
 
-document.addEventListener('DOMContentLoaded', () => {
-    inicializarDeteccaoEdicao();
-    configurarNavegacaoPaginas();
-    ajustarEscalaPaginas();
-    window.addEventListener('load', ajustarEscalaPaginas);
-    window.addEventListener('resize', ajustarEscalaPaginas);
-    configurarOpcoesComuns();
-    configurarToggleValores();
-    configurarViewer();
-    // Ajuste automático apenas
-});
+  function updateLabel(){ lbl.textContent = Math.round(scale*100) + '%'; }
 
-// Ajustar escala quando iframes carregarem
-window.addEventListener('load', () => {
-    document.querySelectorAll('iframe.a4-frame').forEach(f => {
-        try { f.addEventListener('load', ajustarEscalaPaginas); } catch(e){}
-    });
-    // Chamada extra para garantir ajuste depois de recursos internos
-    setTimeout(ajustarEscalaPaginas, 200);
-});
+  function createFrame(srcdoc, fullpage){
+    const f = document.createElement('iframe');
+    f.className = 'a4-frame';
+    f.setAttribute('srcdoc', srcdoc);
+    f.style.border = '0'; f.style.display = 'block'; f.style.transformOrigin = 'top center';
+    if(fullpage){ f.style.width='100vw'; f.style.height='100vh'; f.style.margin='0'; }
+    else { f.style.width='100%'; f.style.height='80vh'; f.style.margin='0 auto'; }
+    return f;
+  }
 
-// Detectar edição manual em inputs e textareas
-function inicializarDeteccaoEdicao() {
-    document.querySelectorAll('.r141-root .a4 input[type="text"], .r141-root .a4 textarea').forEach(campo => {
-        valoresOriginais.set(campo.id, campo.value);
-        
-        campo.addEventListener('input', function() {
-            const valorOriginal = valoresOriginais.get(this.id);
-            if (this.value !== valorOriginal && this.value !== '') {
-                this.classList.add('editado');
-            } else {
-                this.classList.remove('editado');
-            }
-        });
-    });
-    
-    // Detectar checkboxes marcados
-    document.querySelectorAll('.r141-root .a4 input[type="checkbox"]').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            if (this.checked) {
-                this.classList.add('marcado');
-            } else {
-                this.classList.remove('marcado');
-            }
-        });
-    });
-}
+  function setScale(s){ scale = Math.max(0.05, Math.min(3, s)); if(currentFrame) currentFrame.style.transform = `scale(${scale})`; updateLabel(); }
 
-// Atualizar todos os campos
-function atualizarTodos(tipo) {
-    const valor = document.getElementById(tipo + '_geral').value;
-    let selectorClass;
-    switch(tipo) {
-        case 'admin': selectorClass = '.campo-admin'; break;
-        case 'cidade': selectorClass = '.campo-cidade'; break;
-        case 'setor': selectorClass = '.campo-setor'; break;
-        case 'admin_acessor': selectorClass = '.campo-admin-assessor'; break;
-        default: selectorClass = '.campo-' + tipo;
-    }
-    // Aplica em cada iframe (página)
-    document.querySelectorAll('iframe.a4-frame').forEach(frame => {
-        try {
-            const doc = frame.contentDocument || frame.contentWindow.document;
-            doc.querySelectorAll(selectorClass).forEach(input => {
-                input.value = valor;
-            });
-        } catch (e) {}
-    });
-}
+  function syncInputs(frameView, frameOriginal){
+    try{
+      const dv = frameView.contentDocument || frameView.contentWindow.document;
+      const dof = frameOriginal.contentDocument || frameOriginal.contentWindow.document;
+      if(!dv || !dof) return;
+      dv.querySelectorAll('input, textarea, select').forEach(el=>{
+        el.addEventListener('input', ()=>{ if(!el.id) return; const t=dof.getElementById(el.id); if(!t) return; if(el.type==='checkbox'||el.type==='radio') t.checked=el.checked; else t.value=el.value; });
+        el.addEventListener('change', ()=>{ if(!el.id) return; const t=dof.getElementById(el.id); if(!t) return; if(el.type==='checkbox'||el.type==='radio') t.checked=el.checked; else t.value=el.value; });
+      });
+    }catch(e){}
+  }
 
-// Apenas 1 checkbox por página
-document.querySelectorAll('.opcao-checkbox').forEach(chk => {
-    chk.addEventListener('change', () => {
-        if (chk.checked) {
-            const pageIndex = chk.dataset.page;
-            document.querySelectorAll(`.opcao-checkbox[data-page="${pageIndex}"]`).forEach(other => {
-                if (other !== chk) other.checked = false;
-            });
-        }
-    });
-});
+  function openOverlay(previewFrame){
+    const srcdoc = previewFrame.getAttribute('srcdoc'); canvas.innerHTML=''; currentFrame = createFrame(srcdoc, true); canvas.appendChild(currentFrame); overlay.hidden=false; document.body.style.overflow='hidden';
+    currentFrame.addEventListener('load', ()=>{ try{ setScale(0.4); syncInputs(currentFrame, previewFrame); }catch(e){} });
+  }
 
-// Imprimir sem validação obrigatória
-function validarEImprimir() {
-    // Removida validação obrigatória de checkboxes
-    // Permite impressão mesmo sem campos preenchidos
-    window.print();
-}
+  function openInline(previewFrame, paginaCard){
+    const srcdoc = previewFrame.getAttribute('srcdoc'); document.querySelectorAll('.pagina-card.expanded').forEach(p=>p.classList.remove('expanded'));
+    paginaCard.classList.add('expanded'); document.querySelectorAll('.inline-close-btn').forEach(b=>b.remove());
+    const actions = paginaCard.querySelector('.pagina-actions'); const closeBtn = document.createElement('button'); closeBtn.type='button'; closeBtn.className='inline-close-btn'; closeBtn.innerHTML='<i class="bi bi-x-lg"></i> Fechar'; if(actions) actions.appendChild(closeBtn); closeBtn.addEventListener('click', ()=>{ paginaCard.classList.remove('expanded'); closeBtn.remove(); });
+    const vp = paginaCard.querySelector('.a4-viewport'); if(!vp) return; vp.innerHTML=''; currentFrame = createFrame(srcdoc, false); vp.appendChild(currentFrame); currentFrame.addEventListener('load', ()=>{ try{ setScale(0.4); syncInputs(currentFrame, previewFrame); }catch(e){} });
+  }
 
-// ---------- Navegação por páginas (scroll e contador) ----------
-let paginaAtual = 0;
+  function close(){ overlay.hidden=true; canvas.innerHTML=''; currentFrame=null; document.body.style.overflow=''; document.querySelectorAll('.pagina-card.expanded').forEach(p=>p.classList.remove('expanded')); document.querySelectorAll('.inline-close-btn').forEach(b=>b.remove()); }
 
-function configurarNavegacaoPaginas() {
-    const paginas = document.querySelectorAll('.pagina-card');
-    const btnFirst = document.getElementById('btnFirstPage');
-    const btnPrev = document.getElementById('btnPrevPage');
-    const btnNext = document.getElementById('btnNextPage');
-    const btnLast = document.getElementById('btnLastPage');
-    const lblAtual = document.getElementById('contadorPaginaAtual');
-    const total = paginas.length;
+  function init(){
+    document.querySelectorAll('.btn-expand').forEach(btn=>{ btn.addEventListener('click', ()=>{ const pageIndex=parseInt(btn.getAttribute('data-page-index'))||0; const paginas = document.querySelectorAll('.pagina-card'); const pagina = paginas[pageIndex]; const preview = pagina.querySelector('iframe.a4-frame'); if(window.innerWidth>=768) openInline(preview,pagina); else openOverlay(preview); }); });
+    document.getElementById('viewerClose').addEventListener('click', close);
+    document.getElementById('viewerZoomIn').addEventListener('click', ()=>setScale(scale+0.1));
+    document.getElementById('viewerZoomOut').addEventListener('click', ()=>setScale(scale-0.1));
+    document.getElementById('viewer100').addEventListener('click', ()=>setScale(1));
+    document.getElementById('viewerFit').addEventListener('click', ()=>{ if(!currentFrame) return; try{ const doc = currentFrame.contentDocument || currentFrame.contentWindow.document; const a4 = doc.querySelector('.r141-root .a4'); if(!a4) return; const a4Rect = a4.getBoundingClientRect(); const vw = window.innerWidth; const scaleFit = (vw / a4Rect.width) * 0.95; setScale(scaleFit); }catch(e){} });
+  }
 
-    function atualizarUI() {
-        lblAtual.textContent = paginaAtual + 1;
-        btnPrev.disabled = paginaAtual === 0;
-        btnNext.disabled = paginaAtual >= total - 1;
-        btnFirst.disabled = paginaAtual === 0;
-        btnLast.disabled = paginaAtual >= total - 1;
-    }
+  return { init, setScale, openOverlay, openInline, close };
+})();
 
-    function irParaPagina(index, smooth = true) {
-        paginaAtual = Math.max(0, Math.min(index, total - 1));
-        paginas[paginaAtual].scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
-        atualizarUI();
-    }
-
-    btnFirst.addEventListener('click', () => irParaPagina(0));
-    btnPrev.addEventListener('click', () => irParaPagina(paginaAtual - 1));
-    btnNext.addEventListener('click', () => irParaPagina(paginaAtual + 1));
-    btnLast.addEventListener('click', () => irParaPagina(total - 1));
-
-    // Observa o scroll para atualizar o indicador com base na página visível
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const index = Array.from(paginas).indexOf(entry.target);
-                if (index !== -1) {
-                    paginaAtual = index;
-                    atualizarUI();
-                }
-            }
-        });
-    }, { root: null, threshold: 0.5 });
-
-    paginas.forEach(p => observer.observe(p));
-    atualizarUI();
-}
-
-// ---------- Escala dinâmica das páginas para caber no container ----------
-function ajustarEscalaPaginas() {
-    // Para cada viewport, calcula a escala do iframe (conteúdo A4) para caber na largura/altura disponíveis
-    document.querySelectorAll('.a4-viewport').forEach(view => {
-        const frame = view.querySelector('iframe.a4-frame');
-        if (!frame) return;
-
-        // Reset para medir
-        frame.style.transform = 'none';
-        frame.style.width = '';
-
-        const viewportWidth = view.clientWidth;
-        const viewportHeight = view.clientHeight;
-
-        try {
-            const doc = frame.contentDocument || frame.contentWindow.document;
-            const a4 = doc && doc.querySelector('.r141-root .a4');
-            if (!a4) return;
-            const rect = a4.getBoundingClientRect();
-            const a4Width = rect.width;
-            const a4Height = rect.height;
-            if (!a4Width || !a4Height) return;
-            let fitX = viewportWidth / a4Width;
-            let fitY = viewportHeight / a4Height;
-            let fit = Math.min(fitX, fitY);
-            if (fit > 1) fit = 1;
-
-            let scale = fit;
-
-            frame.style.transform = `scale(${scale})`;
-            frame.style.transformOrigin = 'top center';
-            frame.style.width = a4Width + 'px';
-            frame.style.height = a4Height + 'px';
-            // No preview, mantemos sem rolagem (sempre fit)
-            view.style.overflow = 'hidden';
-        } catch (e) {
-            // Pode ocorrer se o iframe ainda estiver carregando; tenta novamente depois
-            setTimeout(ajustarEscalaPaginas, 100);
-        }
-    });
-}
-
-// Sem controles de zoom no preview (apenas fit)
-
-// ---------- Opções comuns (checkbox) ----------
-function configurarOpcoesComuns() {
-    const comuns = document.querySelectorAll('.chk-comum');
-    if (!comuns.length) return;
-
-    function marcarComum(elem) {
-        // Exclusividade no grupo comum
-        comuns.forEach(c => {
-            if (c !== elem) { c.checked = false; c.classList.remove('marcado'); }
-        });
-        if (elem.checked) elem.classList.add('marcado'); else elem.classList.remove('marcado');
-
-        // Aplica em todas as páginas
-        const opc = elem.dataset.opcao; // '1' | '2' | '3'
-        // Marca nos iframes
-        document.querySelectorAll('iframe.a4-frame').forEach((frame, i) => {
-            try {
-                const doc = frame.contentDocument || frame.contentWindow.document;
-                const checks = [doc.getElementById('input13'), doc.getElementById('input14'), doc.getElementById('input15')];
-                checks.forEach((c, idx) => { if (c) c.checked = (idx+1) == parseInt(opc,10); });
-            } catch (e) {}
-        });
-    }
-
-    comuns.forEach(chk => {
-        chk.addEventListener('change', () => marcarComum(chk));
-    });
-}
-
-// Helper opcional caso precisemos mapear pelo index (mantido para futura extensão)
-function getIdByIndex(index) { return ''; }
-
-// ---------- Retrátil: Valores Comuns ----------
-function configurarToggleValores() {
-    const container = document.getElementById('valoresComuns');
-    const btn = document.getElementById('toggleValores');
-    if (!container || !btn) return;
-    const iconDown = '<i class="bi bi-chevron-down"></i>';
-    const iconUp = '<i class="bi bi-chevron-up"></i>';
-
-    function atualizarRotulo() {
-        if (container.classList.contains('collapsed')) {
-            btn.innerHTML = iconDown + ' Mostrar';
-        } else {
-            btn.innerHTML = iconUp + ' Ocultar';
-        }
-    }
-
-    btn.addEventListener('click', () => {
-        container.classList.toggle('collapsed');
-        atualizarRotulo();
-        // Recalcula escala porque a altura do viewport pode mudar
-        setTimeout(ajustarEscalaPaginas, 50);
-    });
-
-    atualizarRotulo();
-}
-
-// ========== Viewer em tela cheia ==========
-const viewer = {
-    overlay: null, canvas: null,
-    scale: 1,
-    originalPage: null,
-    clonePage: null
-};
-
-function configurarViewer() {
-    viewer.overlay = document.getElementById('viewerOverlay');
-    viewer.canvas = document.getElementById('viewerCanvas');
-    const btnClose = document.getElementById('viewerClose');
-    const btnIn = document.getElementById('viewerZoomIn');
-    const btnOut = document.getElementById('viewerZoomOut');
-    const btnFit = document.getElementById('viewerFit');
-    const btn100 = document.getElementById('viewer100');
-
-    // Ao clicar em Visualizar: em telas grandes abrimos inline dentro do card (não full-screen).
-    // Em telas pequenas usamos o overlay (com zoom/fit) para oferecer controle de visualização móvel.
-    document.querySelectorAll('.btn-expand').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const pageIndex = parseInt(btn.getAttribute('data-page-index')) || 0;
-            // Escolha baseada em largura do viewport
-            if (window.innerWidth >= 900) {
-                abrirInlineViewer(pageIndex);
-            } else {
-                abrirViewer(pageIndex);
-            }
-        });
-    });
-
-    btnClose.addEventListener('click', fecharViewer);
-    btnIn.addEventListener('click', () => setViewerScale(viewer.scale + 0.1));
-    btnOut.addEventListener('click', () => setViewerScale(viewer.scale - 0.1));
-    btnFit.addEventListener('click', ajustarViewerParaLargura);
-    btn100.addEventListener('click', () => setViewerScale(1));
-
-    // Reajusta ao rotacionar/trocar tamanho da janela
-    window.addEventListener('resize', () => {
-        if (!viewer.overlay.hidden) ajustarViewerParaLargura();
-    });
-
-    // Duplo clique para alternar 100%/Ajustar
-    viewer.canvas.addEventListener('dblclick', () => {
-        if (Math.abs(viewer.scale - 1) < 0.05) {
-            ajustarViewerParaLargura();
-        } else {
-            setViewerScale(1);
-        }
-    });
-
-    // Pinch-zoom básico em mobile - atua no iframe do viewer
-    let lastDist = null;
-    viewer.canvas.addEventListener('touchmove', (e) => {
-        if (e.touches.length === 2) {
-            const dx = e.touches[0].clientX - e.touches[1].clientX;
-            const dy = e.touches[0].clientY - e.touches[1].clientY;
-            const dist = Math.hypot(dx, dy);
-            if (lastDist != null) {
-                const delta = (dist - lastDist) / 300; // sensibilidade
-                setViewerScale(viewer.scale + delta);
-            }
-            lastDist = dist;
-            e.preventDefault();
-        }
-    }, { passive: false });
-    viewer.canvas.addEventListener('touchend', () => { lastDist = null; });
-}
-
-// Abre o viewer inline dentro do card (evita overlay full-screen)
-function abrirInlineViewer(pageIndex) {
-    const paginas = document.querySelectorAll('.pagina-card');
-    if (!paginas.length || pageIndex < 0 || pageIndex >= paginas.length) return;
-    // Fecha qualquer expansão anterior
-    document.querySelectorAll('.pagina-card.expanded').forEach(p => {
-        p.classList.remove('expanded');
-        const btn = p.querySelector('.inline-close-btn'); if (btn) btn.remove();
-    });
-
-    const pagina = paginas[pageIndex];
-    pagina.classList.add('expanded');
-
-    // Inserir botão de fechar inline na área de ações se não existir
-    let closeBtn = pagina.querySelector('.inline-close-btn');
-    if (!closeBtn) {
-        closeBtn = document.createElement('button');
-        closeBtn.type = 'button';
-        closeBtn.className = 'inline-close-btn';
-        closeBtn.innerHTML = '<i class="bi bi-x-lg"></i> Fechar';
-        const actions = pagina.querySelector('.pagina-actions');
-        if (actions) actions.appendChild(closeBtn);
-        closeBtn.addEventListener('click', () => fecharInlineViewer(pagina));
-    }
-
-    // Garante que o iframe interno se ajuste ao novo tamanho e aplica escala padrão 40%
-    const frameInline = pagina.querySelector('iframe.a4-frame');
-    if (frameInline) {
-        frameInline.style.transformOrigin = 'top center';
-        frameInline.style.transform = 'scale(0.4)'; // escala inicial 40%
-        frameInline.style.width = '100%';
-        frameInline.style.height = '80vh';
-        frameInline.style.margin = '0 auto';
-        // permitir rolagem interna se o conteúdo for maior
-        const vp = pagina.querySelector('.a4-viewport'); if (vp) vp.style.overflow = 'auto';
-    }
-    setTimeout(ajustarEscalaPaginas, 80);
-    // rolar para o card expandido
-    pagina.scrollIntoView({ behavior: 'smooth', block: 'center' });
-}
-
-function fecharInlineViewer(paginaElement) {
-    if (!paginaElement) return;
-    paginaElement.classList.remove('expanded');
-    const btn = paginaElement.querySelector('.inline-close-btn'); if (btn) btn.remove();
-    setTimeout(ajustarEscalaPaginas, 80);
-}
-
-function abrirViewer(pageIndex) {
-    const paginas = document.querySelectorAll('.pagina-card');
-    if (!paginas.length || pageIndex < 0 || pageIndex >= paginas.length) return;
-    const pagina = paginas[pageIndex];
-    const framePreview = pagina.querySelector('iframe.a4-frame');
-    if (!framePreview) return;
-
-    // Copia o srcdoc do preview para o viewer (isolado também)
-    const srcdoc = framePreview.getAttribute('srcdoc');
-    viewer.canvas.innerHTML = '';
-    const frameView = document.createElement('iframe');
-    frameView.className = 'a4-frame';
-    frameView.setAttribute('srcdoc', srcdoc);
-    // tornar o iframe do overlay full-page (100% da página HTML)
-    frameView.style.width = '100vw';
-    frameView.style.height = '100vh';
-    frameView.style.margin = '0';
-    frameView.style.padding = '0';
-    frameView.style.display = 'block';
-    frameView.style.transform = 'none';
-    viewer.canvas.appendChild(frameView);
-    // mostrar overlay
-    viewer.overlay.hidden = false;
-
-    // Travar rolagem do fundo enquanto o overlay está aberto
-    document.body.style.overflow = 'hidden';
-
-    // Após carregar o iframe, conectar sincronização de inputs para o preview
-    frameView.addEventListener('load', () => {
-        try {
-            const docView = frameView.contentDocument || frameView.contentWindow.document;
-            const docPrev = framePreview.contentDocument || framePreview.contentWindow.document;
-            const campos = docView.querySelectorAll('input, textarea');
-            campos.forEach(el => {
-                el.addEventListener('input', () => {
-                    const id = el.id;
-                    if (!id) return;
-                    const alvo = docPrev.getElementById(id);
-                    if (!alvo) return;
-                    if (el.type === 'checkbox') alvo.checked = el.checked; else alvo.value = el.value;
-                });
-                el.addEventListener('change', () => {
-                    const id = el.id;
-                    if (!id) return;
-                    const alvo = docPrev.getElementById(id);
-                    if (!alvo) return;
-                    if (el.type === 'checkbox') alvo.checked = el.checked; else alvo.value = el.value;
-                });
-            });
-            // Aplicar escala padrão inicial de 40% (0.4)
-            try { setViewerScale(0.4); } catch (e) {}
-            // deixar o botão Ajustar disponível para forçar fit
-            // ajustarViewerParaLargura();
-        } catch (e) {
-            console.warn('Sync viewer->preview falhou:', e);
-        }
-    });
-}
-
-function fecharViewer() {
-    viewer.overlay.hidden = true;
-    viewer.canvas.innerHTML = '';
-    viewer.clonePage = null;
-    viewer.originalPage = null;
-    // Destravar rolagem do fundo
-    document.body.style.overflow = '';
-}
-
-function setViewerScale(s) {
-    const label = document.getElementById('viewerScaleLabel');
-    viewer.scale = Math.max(0.1, Math.min(3, s));
-    const frameView = viewer.canvas.querySelector('iframe.a4-frame');
-    if (frameView) {
-        try {
-            // Apenas aplica transform scale no iframe; o tamanho do iframe deve ser controlado por CSS
-            frameView.style.transform = `scale(${viewer.scale})`;
-            frameView.style.transformOrigin = 'top center';
-        } catch (e) { /* ignore */ }
-    }
-    label.textContent = Math.round(viewer.scale * 100) + '%';
-}
-
-function ajustarViewerParaLargura() {
-    const frameView = viewer.canvas.querySelector('iframe.a4-frame');
-    if (!frameView) return;
-    // Reset para medir
-    frameView.style.transform = 'none';
-    try {
-        const doc = frameView.contentDocument || frameView.contentWindow.document;
-        const a4 = doc.querySelector('.r141-root .a4');
-        if (!a4) return;
-        const body = viewer.canvas.parentElement; // .viewer-body
-        const bodyRect = body.getBoundingClientRect();
-        const a4Rect = a4.getBoundingClientRect();
-        if (a4Rect.width === 0) return;
-        const padding = 32; // margens laterais
-        const scale = (bodyRect.width - padding) / a4Rect.width;
-        setViewerScale(scale);
-    } catch (e) {}
-}
-
+document.addEventListener('DOMContentLoaded', ()=>{ Viewer.init(); });
 </script>
 
 <?php
