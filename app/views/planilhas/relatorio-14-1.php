@@ -564,9 +564,8 @@ $script = <<<JS
 </script>
 JS;
 
-// Garantir que o botão de imprimir chame a função mesmo que o onclick inline falhe
-// (liga um handler no carregamento do documento)
-echo "<script>document.addEventListener('DOMContentLoaded', function(){ const b = document.getElementById('btnPrint'); if(b){ b.removeAttribute('onclick'); b.addEventListener('click', function(e){ e.preventDefault(); if(typeof window.validarEImprimir==='function'){ window.validarEImprimir(); } else { window.print(); } }); } });</script>\n";
+// Garantir que o botão de imprimir chame a função (listener delegado, mais robusto)
+echo "<script>document.addEventListener('click', function(e){ var btn = e.target && e.target.closest && e.target.closest('#btnPrint, .btn-header-action'); if(btn){ e.preventDefault(); try{ console && console.log && console.log('print button clicked'); if(typeof window.validarEImprimir==='function'){ window.validarEImprimir(); } else { window.print(); } }catch(err){ console && console.error && console.error('print handler error', err); window.print(); } } });</script>\n";
 
 echo $script;
 
