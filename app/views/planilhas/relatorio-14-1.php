@@ -533,96 +533,176 @@ ob_start();
 </div>
 
 <script>
-// Viewer simples baseado em iframe (isolado). Abre inline (>=768px) ou overlay (<768px).
+// Viewer com quadro (stage) branco, suporte a zoom/pan/drag e pinch/wheel zoom.
 const Viewer = (function(){
-  let scale = 0.4; // escala inicial
-  let currentFrame = null;
-  const overlay = document.getElementById('viewerOverlay');
-  const canvas = document.getElementById('viewerCanvas');
-  const lbl = document.getElementById('viewerScaleLabel');
+    let scale = 0.4; // escala inicial
+    let currentStage = null; // stage contém o iframe
+    let innerFrame = null;
+    let offsetX = 0, offsetY = 0; // translation em unidades pre-scale
+    const overlay = document.getElementById('viewerOverlay');
+    const canvas = document.getElementById('viewerCanvas');
+    const lbl = document.getElementById('viewerScaleLabel');
 
-  function updateLabel(){ lbl.textContent = Math.round(scale*100) + '%'; }
+    function updateLabel(){ lbl.textContent = Math.round(scale*100) + '%'; }
 
-  function createFrame(srcdoc, fullpage){
-    const f = document.createElement('iframe');
-    f.className = 'a4-frame';
-    f.setAttribute('srcdoc', srcdoc);
-    f.style.border = '0'; f.style.display = 'block'; f.style.transformOrigin = 'top center';
-        if(fullpage){ f.style.width='100vw'; f.style.height='100vh'; f.style.margin='0'; f.dataset.fullpage = '1'; }
-        else { f.style.width='100%'; f.style.height='80vh'; f.style.margin='0 auto'; f.dataset.fullpage = '0'; }
-    return f;
-  }
+    function createStage(srcdoc, fullpage){
+        const stage = document.createElement('div');
+        stage.className = 'viewer-stage';
+        stage.style.background = '#fff';
+        stage.style.boxShadow = '0 6px 18px rgba(0,0,0,0.18)';
+        stage.style.position = 'relative';
+        stage.style.overflow = 'hidden';
+        stage.dataset.fullpage = fullpage ? '1' : '0';
 
-    function setScale(s){
-        scale = Math.max(0.05, Math.min(3, s));
-        if(currentFrame){
-            try{
-                const isFull = currentFrame.dataset && currentFrame.dataset.fullpage === '1';
-                // calcular área disponível (considera padding/barras)
-                let availRect;
-                if(isFull){
-                    // usar overlay's bounding rect (exclui toolbar altura)
-                    const bodyRect = overlay.getBoundingClientRect();
-                    // considerar a altura disponível dentro da viewer-body (overlay menos toolbar)
-                    const toolbar = overlay.querySelector('.viewer-toolbar');
-                    let toolbarH = toolbar ? toolbar.getBoundingClientRect().height : 0;
-                    availRect = { width: bodyRect.width, height: Math.max(bodyRect.height - toolbarH, 100) };
-                } else {
-                    const parent = currentFrame.parentElement;
-                    const pr = parent.getBoundingClientRect();
-                    availRect = { width: pr.width, height: Math.max(pr.height, window.innerHeight * 0.5) };
-                }
+        const f = document.createElement('iframe');
+        f.className = 'a4-frame';
+        f.setAttribute('srcdoc', srcdoc);
+        f.style.border = '0';
+        f.style.display = 'block';
+        f.style.background = '#fff';
+        // dimensões serão ajustadas após carregar o conteúdo
+        stage.appendChild(f);
+        return stage;
+    }
 
-                // Aplicar escala via transform e ajustar dimensões do iframe para que a área visível coincida com availRect
-                currentFrame.style.transformOrigin = 'top left';
-                currentFrame.style.transform = `scale(${scale})`;
-                // dimensões não-scaladas necessárias para ocupar availRect quando aplicado scale
-                currentFrame.style.width = Math.max(100, Math.round(availRect.width / scale)) + 'px';
-                currentFrame.style.height = Math.max(100, Math.round(availRect.height / scale)) + 'px';
-            }catch(e){
-                // fallback: apenas aplicar transform
-                currentFrame.style.transform = `scale(${scale})`;
-            }
+    function applyTransform(){
+        if(!currentStage) return;
+        currentStage.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+        currentStage.style.transformOrigin = 'top left';
+    }
+
+    function setScale(s, centerClientX, centerClientY){
+        const prevScale = scale;
+        scale = Math.max(0.05, Math.min(4, s));
+        if(!currentStage) { updateLabel(); return; }
+
+        // ajustar offsets para manter o ponto do cliente sob o cursor (se informado)
+        if(typeof centerClientX === 'number'){
+            const rect = currentStage.parentElement.getBoundingClientRect();
+            const px = centerClientX - rect.left; const py = centerClientY - rect.top;
+            // conteúdo coordinate before change
+            const contentX = px / prevScale - offsetX;
+            const contentY = py / prevScale - offsetY;
+            // new offset so that (offset'+content)*scale = px
+            offsetX = px/scale - contentX;
+            offsetY = py/scale - contentY;
         }
+
+        // Se innerFrame tem dimensão do conteúdo, ajusta stage tamanho para conteúdo
+        try{
+            if(innerFrame){
+                const doc = innerFrame.contentDocument || innerFrame.contentWindow.document;
+                const a4 = doc && doc.querySelector('.r141-root .a4');
+                if(a4){
+                    const a4Rect = a4.getBoundingClientRect();
+                    innerFrame.style.width = Math.round(a4Rect.width) + 'px';
+                    innerFrame.style.height = Math.round(a4Rect.height) + 'px';
+                    currentStage.style.width = innerFrame.style.width;
+                    currentStage.style.height = innerFrame.style.height;
+                }
+            }
+        }catch(e){}
+
+        applyTransform();
         updateLabel();
     }
 
-  function syncInputs(frameView, frameOriginal){
-    try{
-      const dv = frameView.contentDocument || frameView.contentWindow.document;
-      const dof = frameOriginal.contentDocument || frameOriginal.contentWindow.document;
-      if(!dv || !dof) return;
-      dv.querySelectorAll('input, textarea, select').forEach(el=>{
-        el.addEventListener('input', ()=>{ if(!el.id) return; const t=dof.getElementById(el.id); if(!t) return; if(el.type==='checkbox'||el.type==='radio') t.checked=el.checked; else t.value=el.value; });
-        el.addEventListener('change', ()=>{ if(!el.id) return; const t=dof.getElementById(el.id); if(!t) return; if(el.type==='checkbox'||el.type==='radio') t.checked=el.checked; else t.value=el.value; });
-      });
-    }catch(e){}
-  }
+    function enablePan(stage){
+        let dragging = false; let startX=0, startY=0;
+        stage.addEventListener('pointerdown', (e)=>{
+            dragging = true; startX = e.clientX; startY = e.clientY; stage.setPointerCapture(e.pointerId);
+        });
+        stage.addEventListener('pointermove', (e)=>{
+            if(!dragging) return;
+            const dx = e.clientX - startX; const dy = e.clientY - startY;
+            // delta in pre-scale units
+            offsetX += dx / scale; offsetY += dy / scale;
+            startX = e.clientX; startY = e.clientY;
+            applyTransform();
+        });
+        stage.addEventListener('pointerup', (e)=>{ dragging = false; try{ stage.releasePointerCapture(e.pointerId);}catch(_){} });
+        stage.addEventListener('pointercancel', ()=>{ dragging = false; });
 
-  function openOverlay(previewFrame){
-    const srcdoc = previewFrame.getAttribute('srcdoc'); canvas.innerHTML=''; currentFrame = createFrame(srcdoc, true); canvas.appendChild(currentFrame); overlay.hidden=false; document.body.style.overflow='hidden';
-    currentFrame.addEventListener('load', ()=>{ try{ setScale(0.4); syncInputs(currentFrame, previewFrame); }catch(e){} });
-  }
+        // wheel zoom (ctrl+wheel or pinch) - if ctrl pressed, zoom centered
+        stage.addEventListener('wheel', (e)=>{
+            if(!e.ctrlKey) return; e.preventDefault();
+            const delta = -e.deltaY * 0.0015; const newScale = scale * (1 + delta);
+            setScale(newScale, e.clientX, e.clientY);
+        }, { passive:false });
+    }
 
-  function openInline(previewFrame, paginaCard){
-    const srcdoc = previewFrame.getAttribute('srcdoc'); document.querySelectorAll('.pagina-card.expanded').forEach(p=>p.classList.remove('expanded'));
-    paginaCard.classList.add('expanded'); document.querySelectorAll('.inline-close-btn').forEach(b=>b.remove());
-    const actions = paginaCard.querySelector('.pagina-actions'); const closeBtn = document.createElement('button'); closeBtn.type='button'; closeBtn.className='inline-close-btn'; closeBtn.innerHTML='<i class="bi bi-x-lg"></i> Fechar'; if(actions) actions.appendChild(closeBtn); closeBtn.addEventListener('click', ()=>{ paginaCard.classList.remove('expanded'); closeBtn.remove(); });
-    const vp = paginaCard.querySelector('.a4-viewport'); if(!vp) return; vp.innerHTML=''; currentFrame = createFrame(srcdoc, false); vp.appendChild(currentFrame); currentFrame.addEventListener('load', ()=>{ try{ setScale(0.4); syncInputs(currentFrame, previewFrame); }catch(e){} });
-  }
+    function syncInputs(frameView, frameOriginal){
+        try{
+            const dv = frameView.contentDocument || frameView.contentWindow.document;
+            const dof = frameOriginal.contentDocument || frameOriginal.contentWindow.document;
+            if(!dv || !dof) return;
+            dv.querySelectorAll('input, textarea, select').forEach(el=>{
+                el.addEventListener('input', ()=>{ if(!el.id) return; const t=dof.getElementById(el.id); if(!t) return; if(el.type==='checkbox'||el.type==='radio') t.checked=el.checked; else t.value=el.value; });
+                el.addEventListener('change', ()=>{ if(!el.id) return; const t=dof.getElementById(el.id); if(!t) return; if(el.type==='checkbox'||el.type==='radio') t.checked=el.checked; else t.value=el.value; });
+            });
+        }catch(e){}
+    }
 
-  function close(){ overlay.hidden=true; canvas.innerHTML=''; currentFrame=null; document.body.style.overflow=''; document.querySelectorAll('.pagina-card.expanded').forEach(p=>p.classList.remove('expanded')); document.querySelectorAll('.inline-close-btn').forEach(b=>b.remove()); }
+    function openOverlay(previewFrame){
+        const srcdoc = previewFrame.getAttribute('srcdoc');
+        canvas.innerHTML = '';
+        currentStage = createStage(srcdoc, true);
+        innerFrame = currentStage.querySelector('iframe');
+        canvas.appendChild(currentStage);
+        overlay.hidden = false; document.body.style.overflow = 'hidden';
 
-  function init(){
-    document.querySelectorAll('.btn-expand').forEach(btn=>{ btn.addEventListener('click', ()=>{ const pageIndex=parseInt(btn.getAttribute('data-page-index'))||0; const paginas = document.querySelectorAll('.pagina-card'); const pagina = paginas[pageIndex]; const preview = pagina.querySelector('iframe.a4-frame'); if(window.innerWidth>=768) openInline(preview,pagina); else openOverlay(preview); }); });
-    document.getElementById('viewerClose').addEventListener('click', close);
-    document.getElementById('viewerZoomIn').addEventListener('click', ()=>setScale(scale+0.1));
-    document.getElementById('viewerZoomOut').addEventListener('click', ()=>setScale(scale-0.1));
-    document.getElementById('viewer100').addEventListener('click', ()=>setScale(1));
-    document.getElementById('viewerFit').addEventListener('click', ()=>{ if(!currentFrame) return; try{ const doc = currentFrame.contentDocument || currentFrame.contentWindow.document; const a4 = doc.querySelector('.r141-root .a4'); if(!a4) return; const a4Rect = a4.getBoundingClientRect(); const vw = window.innerWidth; const scaleFit = (vw / a4Rect.width) * 0.95; setScale(scaleFit); }catch(e){} });
-  }
+        innerFrame.addEventListener('load', ()=>{
+            try{
+                // ajustar dimensões iniciais com base no conteúdo
+                const doc = innerFrame.contentDocument || innerFrame.contentWindow.document;
+                const a4 = doc && doc.querySelector('.r141-root .a4');
+                if(a4){ const a4Rect = a4.getBoundingClientRect(); innerFrame.style.width = Math.round(a4Rect.width) + 'px'; innerFrame.style.height = Math.round(a4Rect.height) + 'px'; currentStage.style.width = innerFrame.style.width; currentStage.style.height = innerFrame.style.height; }
+            }catch(e){}
+            // centralizar
+            offsetX = (overlay.getBoundingClientRect().width - (currentStage.getBoundingClientRect().width * scale)) / (2 * scale);
+            offsetY = 20/scale; // pequeno padding top
+            applyTransform();
+            setScale(0.4);
+            enablePan(currentStage);
+            syncInputs(innerFrame, previewFrame);
+        });
+    }
 
-  return { init, setScale, openOverlay, openInline, close };
+    function openInline(previewFrame, paginaCard){
+        const srcdoc = previewFrame.getAttribute('srcdoc');
+        document.querySelectorAll('.pagina-card.expanded').forEach(p=>p.classList.remove('expanded'));
+        paginaCard.classList.add('expanded'); document.querySelectorAll('.inline-close-btn').forEach(b=>b.remove());
+        const actions = paginaCard.querySelector('.pagina-actions'); const closeBtn = document.createElement('button'); closeBtn.type='button'; closeBtn.className='inline-close-btn'; closeBtn.innerHTML='<i class="bi bi-x-lg"></i> Fechar'; if(actions) actions.appendChild(closeBtn); closeBtn.addEventListener('click', ()=>{ paginaCard.classList.remove('expanded'); closeBtn.remove(); });
+        const vp = paginaCard.querySelector('.a4-viewport'); if(!vp) return; vp.innerHTML='';
+        currentStage = createStage(srcdoc, false);
+        innerFrame = currentStage.querySelector('iframe');
+        vp.appendChild(currentStage);
+
+        innerFrame.addEventListener('load', ()=>{
+            try{ const doc = innerFrame.contentDocument || innerFrame.contentWindow.document; const a4 = doc && doc.querySelector('.r141-root .a4'); if(a4){ const a4Rect = a4.getBoundingClientRect(); innerFrame.style.width = Math.round(a4Rect.width) + 'px'; innerFrame.style.height = Math.round(a4Rect.height) + 'px'; currentStage.style.width = innerFrame.style.width; currentStage.style.height = innerFrame.style.height; } }catch(e){}
+            // centralizar no viewport do card
+            const parentRect = currentStage.parentElement.getBoundingClientRect();
+            offsetX = (parentRect.width - (currentStage.getBoundingClientRect().width * scale)) / (2 * scale);
+            offsetY = 10/scale;
+            applyTransform();
+            setScale(0.4);
+            enablePan(currentStage);
+            syncInputs(innerFrame, previewFrame);
+        });
+    }
+
+    function close(){ overlay.hidden=true; canvas.innerHTML=''; currentStage=null; innerFrame=null; offsetX=0; offsetY=0; document.body.style.overflow=''; document.querySelectorAll('.pagina-card.expanded').forEach(p=>p.classList.remove('expanded')); document.querySelectorAll('.inline-close-btn').forEach(b=>b.remove()); }
+
+    function init(){
+        document.querySelectorAll('.btn-expand').forEach(btn=>{ btn.addEventListener('click', ()=>{ const pageIndex=parseInt(btn.getAttribute('data-page-index'))||0; const paginas = document.querySelectorAll('.pagina-card'); const pagina = paginas[pageIndex]; const preview = pagina.querySelector('iframe.a4-frame'); if(window.innerWidth>=768) openInline(preview,pagina); else openOverlay(preview); }); });
+        document.getElementById('viewerClose').addEventListener('click', close);
+        document.getElementById('viewerZoomIn').addEventListener('click', ()=>setScale(scale+0.1));
+        document.getElementById('viewerZoomOut').addEventListener('click', ()=>setScale(scale-0.1));
+        document.getElementById('viewer100').addEventListener('click', ()=>setScale(1));
+        document.getElementById('viewerFit').addEventListener('click', ()=>{ if(!innerFrame) return; try{ const doc = innerFrame.contentDocument || innerFrame.contentWindow.document; const a4 = doc.querySelector('.r141-root .a4'); if(!a4) return; const a4Rect = a4.getBoundingClientRect(); const parent = currentStage.parentElement.getBoundingClientRect(); const scaleFit = Math.min((parent.width*0.95) / a4Rect.width, (parent.height*0.95) / a4Rect.height); setScale(scaleFit); }catch(e){} });
+    }
+
+    return { init, setScale, openOverlay, openInline, close };
 })();
 
 document.addEventListener('DOMContentLoaded', ()=>{ Viewer.init(); });
