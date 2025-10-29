@@ -120,6 +120,17 @@ $customCss = '
     transform-origin: top center;
 }
 
+/* Fundo da página (imagem do PDF) */
+.a4 { position: relative; }
+.page-bg {
+    position: absolute;
+    top: 0; left: 0;
+    width: 214mm; height: 295mm;
+    object-fit: cover;
+    z-index: 0; pointer-events: none; opacity: 0.25; /* leve para não poluir durante edição */
+}
+.a4 .a4-fore { position: relative; z-index: 1; }
+
 /* Campos editados ficam vermelhos */
 .a4 input.editado,
 .a4 textarea.editado {
@@ -183,6 +194,9 @@ $customCss = '
     .a4 label:has(input[type="checkbox"].marcado) {
         color: #000 !important;
     }
+
+    /* Fundo com opacidade total na impressão */
+    .page-bg { opacity: 1 !important; }
 }
 
 /* Evitar cortes de conteúdo em campos e células */
@@ -194,6 +208,23 @@ ob_start();
 ?>
 
 <?php if (count($produtos) > 0): ?>
+<?php
+    // Descobrir imagem de fundo, se existir
+    $bgCandidates = [
+        '/relatorios/relatorio-14-1-bg.png',
+        '/relatorios/relatorio-14-1-bg.jpg',
+        '/relatorios/relatorio-14-1-bg.jpeg',
+        '/relatorios/relatorio-14-1.png',
+        '/relatorios/relatorio-14-1.jpg',
+        '/relatorios/ralatorio14-1.png',
+        '/relatorios/ralatorio14-1.jpg',
+    ];
+    $bgUrl = '';
+    foreach ($bgCandidates as $rel) {
+        $abs = $_SERVER['DOCUMENT_ROOT'] . $rel;
+        if (file_exists($abs)) { $bgUrl = $rel; break; }
+    }
+?>
 
 <!-- Formulário de valores comuns -->
 <div class="valores-comuns collapsed" id="valoresComuns">
@@ -261,6 +292,10 @@ ob_start();
                 <div class="a4-scaled">
                     <link rel="stylesheet" href="/dev/public/assets/css/relatorio-14-1.css">
                     <div class="a4">
+                        <?php if ($bgUrl): ?>
+                            <img class="page-bg" src="<?php echo htmlspecialchars($bgUrl); ?>" alt="Fundo Relatório 14.1">
+                        <?php endif; ?>
+                        <div class="a4-fore">
                         <section class="cabecalho">
                             <table>
                                 <tr class="row1">
@@ -474,6 +509,7 @@ ob_start();
                                 </tr>
                             </table>
                         </section>
+                        </div><!-- /.a4-fore -->
                     </div>
                 </div>
             </div>

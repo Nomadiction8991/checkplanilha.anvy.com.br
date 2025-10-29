@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>Relatório 14.1 - Template Padrão (inputs sequenciais)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="./14-1.css">
+  <style>
+    /* Fundo opcional como imagem (comente se não quiser) */
+    .a4 { position: relative; }
+    .page-bg { position:absolute; inset:0; width:214mm; height:295mm; object-fit:cover; opacity:.25; pointer-events:none; }
+    @media print { .page-bg{ opacity:1; } }
+  </style>
+</head>
+<body>
+<!--
+  Template estático do Relatório 14.1 apenas com a estilização antiga e
+  campos genéricos na sequência: input1, input2, input3...
+
+  Ordem dos campos (sugestão):
+   1  input1  -> CNPJ (8 dígitos)
+   2  input2  -> Nº Relatório
+   3  input3  -> Tipo (Reg/CO/Anx)
+   4  input4  -> Regional
+   5  input5  -> Comum
+   6  input6  -> Casa de Oração
+   7  input7  -> Código do bem
+   8  input8  -> Descrição do bem
+   9  input9  -> Marca
+  10  input10 -> Modelo
+  11  input11 -> Nº Série
+  12  input12 -> Ano Fabricação
+  13  input13 -> Observações (textarea)
+  14  input14 -> Opção (Conforme) checkbox
+  15  input15 -> Opção (Não Conforme) checkbox
+  16  input16 -> Opção (Baixa) checkbox
+  17  input17 -> Resp1 Nome
+  18  input18 -> Resp1 Função
+  19  input19 -> Resp1 Data
+  20  input20 -> Resp2 Nome
+  21  input21 -> Resp2 Função
+  22  input22 -> Resp2 Data
+  23  input23 -> Resp3 Nome
+  24  input24 -> Resp3 Função
+  25  input25 -> Resp3 Data
+  26  input26 -> Resp4 Nome
+  27  input27 -> Resp4 Função
+  28  input28 -> Resp4 Data
+  29  input29 -> Resp5 Nome
+  30  input30 -> Resp5 Função
+  31  input31 -> Resp5 Data
+  32  input32 -> Observações da Comissão (textarea)
+  33  input33 -> Comissão1 Nome
+  34  input34 -> Comissão1 Função
+  35  input35 -> Comissão1 Data
+  36  input36 -> Comissão2 Nome
+  37  input37 -> Comissão2 Função
+  38  input38 -> Comissão2 Data
+-->
+
+<div class="a4">
+  <!-- Se desejar usar fundo, exporte a primeira página do PDF para PNG/JPG A4 e salve como relatorios/relatorio-14-1-bg.png -->
+  <!-- <img class="page-bg" src="./relatorio-14-1-bg.png" alt="Fundo"> -->
+
+  <section class="cabecalho">
+    <table>
+      <tr class="row1">
+        <th class="col1">CCB</th>
+        <th class="col2">MANUAL ADMINISTRATIVO</th>
+        <th class="col3">Nº FORM</th>
+        <th class="col4">14.1</th>
+      </tr>
+      <tr class="row2">
+        <th class="col1">ASSUNTO</th>
+        <th class="col2">PATRIMÔNIO - BENS MÓVEIS</th>
+        <th class="col3">VALIDADE</th>
+        <th class="col4"></th>
+      </tr>
+      <tr class="row3">
+        <th class="col1">APLICAÇÃO</th>
+        <th class="col2">Setores Administrativos das Regionais, Casas de Oração e Anexos</th>
+        <th class="col3">APROVAÇÃO</th>
+        <th class="col4"></th>
+      </tr>
+      <tr class="row4">
+        <th class="col1">TÍTULO</th>
+        <th class="col2">FORMULÁRIO PARA INVENTÁRIO FÍSICO DE BENS PATRIMONIAIS</th>
+        <th class="col3">REVISÃO</th>
+        <th class="col4"></th>
+      </tr>
+    </table>
+  </section>
+
+  <section class="conteudo">
+    <h1>FORMULÁRIO 14.1</h1>
+
+    <div class="conteudo">
+      <table>
+        <tr class="row1">
+          <td class="col1">01 CNPJ (Raiz com 08 dígitos)</td>
+          <td class="col2"><input type="text" id="input1"></td>
+        </tr>
+        <tr class="row2">
+          <td class="col1"><input type="text" id="input2"></td>
+          <td class="col2">02 Nº Relatório</td>
+        </tr>
+        <tr class="row3">
+          <td class="col1">A</td>
+          <td class="col2">IDENTIFICAÇÃO</td>
+        </tr>
+        <tr class="row4">
+          <td class="col1">03 Tipo (Reg, CO, Anx)</td>
+          <td class="col2">04 Regional</td>
+          <td class="col3">05 Comum</td>
+        </tr>
+        <tr class="row5">
+          <td class="col1"><input type="text" id="input3"></td>
+          <td class="col2"><input type="text" id="input4"></td>
+          <td class="col3"><input type="text" id="input5"></td>
+        </tr>
+        <tr class="row6">
+          <td class="col1" colspan="3">06 Nome da Casa de Oração</td>
+        </tr>
+        <tr class="row7">
+          <td class="col1" colspan="3"><input type="text" id="input6"></td>
+        </tr>
+        <tr class="row8">
+          <td class="col1">B</td>
+          <td class="col2" colspan="2">IDENTIFICAÇÃO DO BEM PATRIMONIAL</td>
+        </tr>
+        <tr class="row9">
+          <td colspan="3">
+            <strong>07 Código:</strong> <input type="text" id="input7" style="width:30%">&nbsp;&nbsp;
+            <strong>08 Descrição:</strong> <input type="text" id="input8" style="width:50%">
+          </td>
+        </tr>
+        <tr class="row10">
+          <td class="col1">09 Marca</td>
+          <td class="col2">10 Modelo</td>
+          <td class="col3">11 Nº Série</td>
+          <td class="col4">12 Ano Fabric.</td>
+        </tr>
+        <tr class="row11">
+          <td class="col1"><input type="text" id="input9"></td>
+          <td class="col2"><input type="text" id="input10"></td>
+          <td class="col3"><input type="text" id="input11"></td>
+          <td class="col4"><input type="text" id="input12"></td>
+        </tr>
+        <tr class="row12">
+          <td class="col1">
+            <p><strong>13 Observações:</strong></p>
+            <textarea id="input13" rows="6"></textarea>
+            <br><br>
+            <label><input type="checkbox" id="input14"> 14 ( ) CONFORME</label><br>
+            <label><input type="checkbox" id="input15"> 15 ( ) NÃO CONFORME</label><br>
+            <label><input type="checkbox" id="input16"> 16 ( ) BAIXA</label>
+          </td>
+        </tr>
+        <tr class="row13">
+          <td class="col1">C</td>
+          <td class="col2">RESPONSÁVEL PELO PREENCHIMENTO</td>
+        </tr>
+        <tr class="row14">
+          <td class="col1">17 Nome</td>
+          <td class="col2">18 Função</td>
+          <td class="col3">19 Data</td>
+        </tr>
+        <tr class="row15">
+          <td class="col1"><input type="text" id="input17"></td>
+          <td class="col2"><input type="text" id="input18"></td>
+          <td class="col3"><input type="text" id="input19"></td>
+        </tr>
+        <tr class="row16">
+          <td class="col1"><input type="text" id="input20"></td>
+          <td class="col2"><input type="text" id="input21"></td>
+          <td class="col3"><input type="text" id="input22"></td>
+        </tr>
+        <tr class="row17">
+          <td class="col1"><input type="text" id="input23"></td>
+          <td class="col2"><input type="text" id="input24"></td>
+          <td class="col3"><input type="text" id="input25"></td>
+        </tr>
+        <tr class="row18">
+          <td class="col1"><input type="text" id="input26"></td>
+          <td class="col2"><input type="text" id="input27"></td>
+          <td class="col3"><input type="text" id="input28"></td>
+        </tr>
+        <tr class="row19">
+          <td class="col1"><input type="text" id="input29"></td>
+          <td class="col2"><input type="text" id="input30"></td>
+          <td class="col3"><input type="text" id="input31"></td>
+        </tr>
+        <tr class="row20">
+          <td class="col1">D</td>
+          <td class="col2">VISTORIADO POR (Comissão Regional de Inventário)</td>
+        </tr>
+        <tr class="row21">
+          <td colspan="3">
+            <strong>20 Observações da Comissão:</strong>
+            <textarea id="input32" rows="2"></textarea>
+          </td>
+        </tr>
+        <tr class="row22">
+          <td class="col1">21 Nome</td>
+          <td class="col2">22 Função</td>
+          <td class="col3">23 Data</td>
+        </tr>
+        <tr class="row23">
+          <td class="col1"><input type="text" id="input33"></td>
+          <td class="col2"><input type="text" id="input34"></td>
+          <td class="col3"><input type="text" id="input35"></td>
+        </tr>
+        <tr class="row24">
+          <td class="col1"><input type="text" id="input36"></td>
+          <td class="col2"><input type="text" id="input37"></td>
+          <td class="col3"><input type="text" id="input38"></td>
+        </tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="rodape">
+    <table>
+      <tr class="row1">
+        <td class="col1"></td>
+        <td class="col2" style="text-align:center">Página 1 de 1</td>
+        <td class="col3"></td>
+      </tr>
+    </table>
+  </section>
+</div>
+
+</body>
+</html>
