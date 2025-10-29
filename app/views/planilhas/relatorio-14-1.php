@@ -92,6 +92,18 @@ $customCss = '
     color: #666;
 }
 
+/* Ações do cabeçalho da página */
+.pagina-actions { display: flex; gap: 8px; }
+.btn-expand {
+    padding: 6px 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #f1f5f9;
+    color: #334155;
+    cursor: pointer;
+}
+.btn-expand:hover { background: #e2e8f0; }
+
 /* Barra fixa de navegação por páginas */
 .page-toolbar {
     position: fixed;
@@ -128,7 +140,7 @@ $customCss = '
     position: relative;
     width: 100%;
     aspect-ratio: 214 / 295; /* Proporção aproximada A4 (largura/altura) */
-    overflow: hidden;
+    overflow: hidden; /* preview mantém conteúdo contido */
     background: #f8f9fa;
     border-radius: 4px;
     display: flex;
@@ -231,6 +243,46 @@ $customCss = '
 .r141-root .a4 table td { 
     overflow: visible; 
 }
+
+/* ========= Viewer em tela cheia ========= */
+.viewer-overlay[hidden] { display: none !important; }
+.viewer-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+}
+.viewer-toolbar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    background: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+}
+.viewer-btn {
+    padding: 8px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #f8fafc;
+    color: #334155;
+    cursor: pointer;
+}
+.viewer-btn.primary { background: #667eea; color: #fff; border-color: #667eea; }
+.viewer-body {
+    flex: 1;
+    overflow: auto;
+    padding: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+.viewer-canvas {
+    transform-origin: top left;
+}
 ';
 
 ob_start();
@@ -315,6 +367,11 @@ ob_start();
                 <span class="pagina-numero">
                     <i class="bi bi-file-earmark-text"></i> Página <?php echo $index + 1; ?> de <?php echo count($produtos); ?>
                 </span>
+                <div class="pagina-actions">
+                    <button class="btn-expand" type="button" data-page-index="<?php echo $index; ?>" title="Expandir visualização">
+                        <i class="bi bi-arrows-fullscreen"></i> Visualizar
+                    </button>
+                </div>
             </div>
             
             <div class="a4-viewport">
@@ -387,6 +444,22 @@ ob_start();
 </div>
 <?php endif; ?>
 
+<!-- Overlay de visualização em tela cheia -->
+<div id="viewerOverlay" class="viewer-overlay" hidden>
+    <div class="viewer-toolbar">
+        <button type="button" class="viewer-btn" id="viewerClose"><i class="bi bi-x-lg"></i> Fechar</button>
+        <button type="button" class="viewer-btn" id="viewerZoomOut"><i class="bi bi-zoom-out"></i></button>
+        <button type="button" class="viewer-btn" id="viewerZoomIn"><i class="bi bi-zoom-in"></i></button>
+        <button type="button" class="viewer-btn" id="viewerFit"><i class="bi bi-arrows-angle-contract"></i> Ajustar</button>
+        <button type="button" class="viewer-btn" id="viewer100"><i class="bi bi-aspect-ratio"></i> 100%</button>
+        <span id="viewerScaleLabel" style="margin-left:8px;color:#fff;background:#334155;padding:4px 8px;border-radius:6px;">100%</span>
+    </div>
+    <div class="viewer-body">
+        <div id="viewerCanvas" class="viewer-canvas"></div>
+    </div>
+  
+</div>
+
 <script>
 // Armazenar valores iniciais dos campos
 const valoresOriginais = new Map();
@@ -399,6 +472,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('resize', ajustarEscalaPaginas);
     configurarOpcoesComuns();
     configurarToggleValores();
+    configurarViewer();
 });
 
 // Detectar edição manual em inputs e textareas
@@ -622,6 +696,109 @@ function configurarToggleValores() {
 
     atualizarRotulo();
 }
+
+// ========== Viewer em tela cheia ==========
+const viewer = {
+    overlay: null, canvas: null,
+    scale: 1,
+    originalPage: null,
+    clonePage: null
+};
+
+function configurarViewer() {
+    viewer.overlay = document.getElementById('viewerOverlay');
+    viewer.canvas = document.getElementById('viewerCanvas');
+    const btnClose = document.getElementById('viewerClose');
+    const btnIn = document.getElementById('viewerZoomIn');
+    const btnOut = document.getElementById('viewerZoomOut');
+    const btnFit = document.getElementById('viewerFit');
+    const btn100 = document.getElementById('viewer100');
+
+    document.querySelectorAll('.btn-expand').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const pageIndex = parseInt(btn.getAttribute('data-page-index')) || 0;
+            abrirViewer(pageIndex);
+        });
+    });
+
+    btnClose.addEventListener('click', fecharViewer);
+    btnIn.addEventListener('click', () => setViewerScale(viewer.scale + 0.1));
+    btnOut.addEventListener('click', () => setViewerScale(viewer.scale - 0.1));
+    btnFit.addEventListener('click', ajustarViewerParaLargura);
+    btn100.addEventListener('click', () => setViewerScale(1));
+}
+
+function abrirViewer(pageIndex) {
+    const paginas = document.querySelectorAll('.pagina-card');
+    if (!paginas.length || pageIndex < 0 || pageIndex >= paginas.length) return;
+    const pagina = paginas[pageIndex];
+    const conteudo = pagina.querySelector('.r141-root');
+    if (!conteudo) return;
+
+    // Limpa canvas e clona conteúdo
+    viewer.canvas.innerHTML = '';
+    viewer.clonePage = conteudo.cloneNode(true);
+    viewer.originalPage = conteudo;
+    viewer.canvas.appendChild(viewer.clonePage);
+    viewer.overlay.hidden = false;
+
+    // Sincronizar edições do clone para o original (por id, escopado na página)
+    const origScope = viewer.originalPage; // escopo para evitar conflito de ids
+    viewer.clonePage.querySelectorAll('input, textarea').forEach(el => {
+        el.addEventListener('input', () => {
+            const id = el.getAttribute('id');
+            if (!id) return;
+            const target = origScope.querySelector('#' + CSS.escape(id));
+            if (target) target.value = el.value;
+        });
+        el.addEventListener('change', () => {
+            const id = el.getAttribute('id');
+            if (!id) return;
+            const target = origScope.querySelector('#' + CSS.escape(id));
+            if (!target) return;
+            if (el.type === 'checkbox') {
+                target.checked = el.checked;
+            } else {
+                target.value = el.value;
+            }
+        });
+    });
+
+    // Define escala para ajustar na largura disponível
+    setTimeout(ajustarViewerParaLargura, 20);
+}
+
+function fecharViewer() {
+    viewer.overlay.hidden = true;
+    viewer.canvas.innerHTML = '';
+    viewer.clonePage = null;
+    viewer.originalPage = null;
+}
+
+function setViewerScale(s) {
+    const label = document.getElementById('viewerScaleLabel');
+    viewer.scale = Math.max(0.3, Math.min(3, s));
+    if (viewer.canvas) {
+        viewer.canvas.style.transform = `scale(${viewer.scale})`;
+    }
+    label.textContent = Math.round(viewer.scale * 100) + '%';
+}
+
+function ajustarViewerParaLargura() {
+    if (!viewer.canvas) return;
+    // Temporariamente sem escala para medir
+    viewer.canvas.style.transform = 'none';
+    const body = viewer.canvas.parentElement; // .viewer-body
+    const a4 = viewer.canvas.querySelector('.a4');
+    if (!a4) return;
+    const bodyRect = body.getBoundingClientRect();
+    const a4Rect = a4.getBoundingClientRect();
+    if (a4Rect.width === 0) return;
+    const padding = 32; // margens laterais
+    const scale = (bodyRect.width - padding) / a4Rect.width;
+    setViewerScale(scale);
+}
+
 </script>
 
 <?php
