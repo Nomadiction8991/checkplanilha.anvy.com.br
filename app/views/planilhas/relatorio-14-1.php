@@ -302,11 +302,13 @@ ob_start();
             
             <div class="a4-viewport">
                 <div class="a4-scaled">
-                    <link rel="stylesheet" href="/relatorios/14-1.css">
+                    <link rel="stylesheet" href="/relatorios/14-1.scoped.css">
+                    <div class="r141-root">
                     <?php
                         // Repetir o bloco A4 do template (inputs sequenciais)
                         echo $a4Block ?: '<div class="a4"><p style="padding:10mm;color:#900">Template 14-1 não encontrado.</p></div>';
                     ?>
+                    </div>
                 </div>
             </div>
         </div>
