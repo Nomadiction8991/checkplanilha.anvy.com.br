@@ -349,8 +349,9 @@ ob_start();
         '/relatorios/ralatorio14-1.jpg',
     ];
     $bgUrl = '';
+    $projectRoot = __DIR__ . '/../../../';
     foreach ($bgCandidates as $rel) {
-        $abs = $_SERVER['DOCUMENT_ROOT'] . $rel;
+        $abs = $projectRoot . ltrim($rel, '/');
         if (file_exists($abs)) { $bgUrl = $rel; break; }
     }
 ?>
