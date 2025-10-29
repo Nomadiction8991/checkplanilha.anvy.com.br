@@ -313,12 +313,55 @@ border: 0; background: transparent; display: block;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
+/* Inline expansion dentro do card (em vez de overlay full-screen) */
+.pagina-card.expanded { z-index: 1500; position: relative; }
+.pagina-card.expanded .a4-viewport {
+    position: relative;
+    max-width: calc(100% - 8px);
+    margin: 4px; /* mantém 4px de espaçamento interno conforme solicitado */
+    height: auto !important;
+    max-height: 80vh; /* limita altura para não ocupar a tela inteira */
+    overflow: auto; /* permitir scroll interno se necessário */
+    background: transparent;
+}
+.pagina-card.expanded .a4-scaled { transform: none !important; }
+.pagina-card.expanded iframe.a4-frame {
+    transform: none !important;
+    width: 100% !important;
+    height: auto !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    border-radius: 6px;
+}
+
+/* Botão de fechar quando estiver expandido inline */
+.pagina-card .inline-close-btn {
+    margin-left: 8px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    cursor: pointer;
+}
+
 /* Mobile refinements */
 @media (max-width: 768px) {
   .viewer-btn { padding: 10px 12px; font-size: 0.95rem; }
   .viewer-toolbar { gap: 6px; }
   .btn-expand { padding: 6px 10px; font-size: 0.9rem; }
   .page-toolbar { top: 64px; max-width: 92%; }
+}
+
+/* Ajustes específicos para telas pequenas para evitar preview muito fino */
+@media (max-width: 480px) {
+    .a4-viewport {
+        aspect-ratio: unset; /* deixa a altura fluir */
+        height: auto !important;
+        max-height: 80vh; /* permite que ocupe boa parte da tela sem ficar muito fino */
+        padding: 6px;
+    }
+    .a4-scaled { width: 100%; }
+    iframe.a4-frame { width: 100% !important; height: auto !important; }
+    .pagina-card { padding: 10px; }
 }
 ';
 
@@ -742,10 +785,17 @@ function configurarViewer() {
     const btnFit = document.getElementById('viewerFit');
     const btn100 = document.getElementById('viewer100');
 
+    // Ao clicar em Visualizar: em telas grandes abrimos inline dentro do card (não full-screen).
+    // Em telas pequenas usamos o overlay (com zoom/fit) para oferecer controle de visualização móvel.
     document.querySelectorAll('.btn-expand').forEach(btn => {
         btn.addEventListener('click', () => {
             const pageIndex = parseInt(btn.getAttribute('data-page-index')) || 0;
-            abrirViewer(pageIndex);
+            // Escolha baseada em largura do viewport
+            if (window.innerWidth >= 900) {
+                abrirInlineViewer(pageIndex);
+            } else {
+                abrirViewer(pageIndex);
+            }
         });
     });
 
@@ -785,6 +835,44 @@ function configurarViewer() {
         }
     }, { passive: false });
     viewer.canvas.addEventListener('touchend', () => { lastDist = null; });
+}
+
+// Abre o viewer inline dentro do card (evita overlay full-screen)
+function abrirInlineViewer(pageIndex) {
+    const paginas = document.querySelectorAll('.pagina-card');
+    if (!paginas.length || pageIndex < 0 || pageIndex >= paginas.length) return;
+    // Fecha qualquer expansão anterior
+    document.querySelectorAll('.pagina-card.expanded').forEach(p => {
+        p.classList.remove('expanded');
+        const btn = p.querySelector('.inline-close-btn'); if (btn) btn.remove();
+    });
+
+    const pagina = paginas[pageIndex];
+    pagina.classList.add('expanded');
+
+    // Inserir botão de fechar inline na área de ações se não existir
+    let closeBtn = pagina.querySelector('.inline-close-btn');
+    if (!closeBtn) {
+        closeBtn = document.createElement('button');
+        closeBtn.type = 'button';
+        closeBtn.className = 'inline-close-btn';
+        closeBtn.innerHTML = '<i class="bi bi-x-lg"></i> Fechar';
+        const actions = pagina.querySelector('.pagina-actions');
+        if (actions) actions.appendChild(closeBtn);
+        closeBtn.addEventListener('click', () => fecharInlineViewer(pagina));
+    }
+
+    // Garante que o iframe interno se ajuste ao novo tamanho
+    setTimeout(ajustarEscalaPaginas, 80);
+    // rolar para o card expandido
+    pagina.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function fecharInlineViewer(paginaElement) {
+    if (!paginaElement) return;
+    paginaElement.classList.remove('expanded');
+    const btn = paginaElement.querySelector('.inline-close-btn'); if (btn) btn.remove();
+    setTimeout(ajustarEscalaPaginas, 80);
 }
 
 function abrirViewer(pageIndex) {
