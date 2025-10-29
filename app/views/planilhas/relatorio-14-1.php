@@ -160,7 +160,7 @@ $customCss = '
     transform-origin: top left;
     transform: scale(0.5); /* valor inicial, será recalculado por fitAll() */
     display: inline-block;
-    width: auto;
+    width: 95%;
     height: auto;
     position:absolute;
     left:2.5%;
