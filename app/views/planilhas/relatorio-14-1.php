@@ -162,6 +162,8 @@ $customCss = '
     display: inline-block;
     width: auto;
     height: auto;
+    position:absolute;
+    left:2.5%;
 }
 
 /* Forçar dimensões A4 reais para o iframe quando estiver dentro do wrapper .a4-scaled */
