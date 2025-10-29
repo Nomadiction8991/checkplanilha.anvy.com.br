@@ -533,12 +533,13 @@ ob_start();
 <?php endif; ?>
 
 <!-- Overlay de visualização em tela cheia -->
-<div id="viewerOverlay" class="viewer-overlay" hidden>
+<div id="viewerOverlay" class="viewer-overlay" hidden data-report-id="<?php echo htmlspecialchars($id_planilha ?? '', ENT_QUOTES); ?>">
   <div class="viewer-toolbar">
     <div style="display:flex;gap:8px;align-items:center;">
       <button id="viewerClose" class="viewer-btn primary" title="Fechar"><i class="bi bi-x-lg"></i></button>
       <button id="viewerZoomOut" class="viewer-btn" title="Diminuir"><i class="bi bi-zoom-out"></i></button>
       <button id="viewerZoomIn" class="viewer-btn" title="Aumentar"><i class="bi bi-zoom-in"></i></button>
+            <button id="viewerCenter" class="viewer-btn" title="Centralizar"><i class="bi bi-camera-fill"></i></button>
       <button id="viewerFit" class="viewer-btn" title="Ajustar"><i class="bi bi-arrows-angle-contract"></i></button>
       <button id="viewer100" class="viewer-btn" title="100%">100%</button>
     </div>
@@ -593,6 +594,29 @@ const Viewer = (function(){
         currentStage.style.transformOrigin = 'top left';
     }
 
+    // persistência de estado (scale + offset) por relatório
+    function storageKey(){
+        const id = (document.getElementById('viewerOverlay') || {}).dataset.reportId || '';
+        return id ? ('r141_viewer_state_' + id) : null;
+    }
+    function saveState(){
+        try{
+            const key = storageKey(); if(!key) return;
+            const state = { scale: scale, offsetX: offsetX, offsetY: offsetY, ts: Date.now() };
+            localStorage.setItem(key, JSON.stringify(state));
+        }catch(e){}
+    }
+    function loadState(){
+        try{
+            const key = storageKey(); if(!key) return null;
+            const raw = localStorage.getItem(key); if(!raw) return null;
+            return JSON.parse(raw);
+        }catch(e){ return null; }
+    }
+
+    // debounce helper
+    function debounce(fn, wait){ let t; return function(){ clearTimeout(t); t=setTimeout(()=>fn.apply(this, arguments), wait); }; }
+
     function setScale(s, centerClientX, centerClientY){
         const prevScale = scale;
         scale = Math.max(0.05, Math.min(4, s));
@@ -641,15 +665,20 @@ const Viewer = (function(){
             offsetX += dx / scale; offsetY += dy / scale;
             startX = e.clientX; startY = e.clientY;
             applyTransform();
+            // salvar estado de forma debounced
+            saveStateDebounced();
         });
         stage.addEventListener('pointerup', (e)=>{ dragging = false; try{ stage.releasePointerCapture(e.pointerId);}catch(_){} });
         stage.addEventListener('pointercancel', ()=>{ dragging = false; });
 
         // wheel zoom (ctrl+wheel or pinch) - if ctrl pressed, zoom centered
         stage.addEventListener('wheel', (e)=>{
-            if(!e.ctrlKey) return; e.preventDefault();
-            const delta = -e.deltaY * 0.0015; const newScale = scale * (1 + delta);
+            // permitir zoom por roda sem necessidade de Ctrl — comportamento mais amigável em desktop
+            e.preventDefault();
+            const delta = -e.deltaY * 0.0012; // sensibilidade
+            const newScale = scale * (1 + delta);
             setScale(newScale, e.clientX, e.clientY);
+            saveStateDebounced();
         }, { passive:false });
     }
 
@@ -681,13 +710,22 @@ const Viewer = (function(){
                 currentStage.style.width = '210mm';
                 currentStage.style.height = '297mm';
             }catch(e){}
-            // centralizar
-            offsetX = (overlay.getBoundingClientRect().width - (currentStage.getBoundingClientRect().width * scale)) / (2 * scale);
-            offsetY = 20/scale; // pequeno padding top
-            applyTransform();
-            setScale(0.4);
+            // tentar restaurar estado salvo
+            const st = loadState();
+            if(st && typeof st.scale === 'number'){
+                scale = st.scale; offsetX = st.offsetX || 0; offsetY = st.offsetY || 0;
+                applyTransform();
+            } else {
+                // centralizar por padrão
+                offsetX = (overlay.getBoundingClientRect().width - (currentStage.getBoundingClientRect().width * scale)) / (2 * scale);
+                offsetY = 20/scale; // pequeno padding top
+                applyTransform();
+                setScale(0.4);
+            }
             enablePan(currentStage);
             syncInputs(innerFrame, previewFrame);
+            // salvar estado inicial (debounced)
+            saveStateDebounced();
         });
     }
 
@@ -709,14 +747,22 @@ const Viewer = (function(){
                 currentStage.style.width = '210mm';
                 currentStage.style.height = '297mm';
             }catch(e){}
-            // centralizar no viewport do card
-            const parentRect = currentStage.parentElement.getBoundingClientRect();
-            offsetX = (parentRect.width - (currentStage.getBoundingClientRect().width * scale)) / (2 * scale);
-            offsetY = 10/scale;
-            applyTransform();
-            setScale(0.4);
+            // tentar restaurar estado salvo
+            const st = loadState();
+            if(st && typeof st.scale === 'number'){
+                scale = st.scale; offsetX = st.offsetX || 0; offsetY = st.offsetY || 0;
+                applyTransform();
+            } else {
+                // centralizar no viewport do card
+                const parentRect = currentStage.parentElement.getBoundingClientRect();
+                offsetX = (parentRect.width - (currentStage.getBoundingClientRect().width * scale)) / (2 * scale);
+                offsetY = 10/scale;
+                applyTransform();
+                setScale(0.4);
+            }
             enablePan(currentStage);
             syncInputs(innerFrame, previewFrame);
+            saveStateDebounced();
         });
     }
 
@@ -730,7 +776,18 @@ const Viewer = (function(){
         document.getElementById('viewerZoomIn').addEventListener('click', ()=>setScale(scale+0.1));
         document.getElementById('viewerZoomOut').addEventListener('click', ()=>setScale(scale-0.1));
         document.getElementById('viewer100').addEventListener('click', ()=>setScale(1));
-        document.getElementById('viewerFit').addEventListener('click', ()=>{ if(!innerFrame) return; try{ const doc = innerFrame.contentDocument || innerFrame.contentWindow.document; const a4 = doc.querySelector('.r141-root .a4'); const parent = currentStage.parentElement.getBoundingClientRect(); let a4w=0,a4h=0; if(a4){ const a4Rect = a4.getBoundingClientRect(); a4w = a4Rect.width; a4h = a4Rect.height; } else { a4w = mmToPx(210); a4h = mmToPx(297); } const scaleFit = Math.min((parent.width*0.95) / a4w, (parent.height*0.95) / a4h); setScale(scaleFit); }catch(e){} });
+        document.getElementById('viewerFit').addEventListener('click', ()=>{ if(!innerFrame) return; try{ const doc = innerFrame.contentDocument || innerFrame.contentWindow.document; const a4 = doc.querySelector('.r141-root .a4'); const parent = currentStage.parentElement.getBoundingClientRect(); let a4w=0,a4h=0; if(a4){ const a4Rect = a4.getBoundingClientRect(); a4w = a4Rect.width; a4h = a4Rect.height; } else { a4w = mmToPx(210); a4h = mmToPx(297); } const scaleFit = Math.min((parent.width*0.95) / a4w, (parent.height*0.95) / a4h); // centralizar após fit
+            setScale(scaleFit);
+            // centralizar
+            offsetX = (parent.width - (a4w * scaleFit)) / (2 * scaleFit);
+            offsetY = (parent.height - (a4h * scaleFit)) / (2 * scaleFit);
+            applyTransform();
+            saveStateDebounced();
+        }catch(e){} });
+
+        // centralizar botão
+        const centerBtn = document.getElementById('viewerCenter'); if(centerBtn){ centerBtn.addEventListener('click', ()=>{
+            if(!currentStage) return; const parent = currentStage.parentElement.getBoundingClientRect(); const stRect = currentStage.getBoundingClientRect(); offsetX = (parent.width - (stRect.width * scale)) / (2 * scale); offsetY = (parent.height - (stRect.height * scale)) / (2 * scale); applyTransform(); saveStateDebounced(); }); }
     }
 
     return { init, setScale, openOverlay, openInline, close };
