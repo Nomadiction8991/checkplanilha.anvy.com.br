@@ -1,557 +1,292 @@
-    /* CSS DO RELATÓRIO 14.1 ESCOPADO EM .r141-root PARA NÃO VAZAR PARA O RESTO DO SITE */
+/* CSS DO RELATÓRIO 14.1 ESCOPADO EM .r141-root PARA NÃO VAZAR PARA O RESTO DO SITE */
+/* Baseado na imagem do formulário de Declaração de Doação de Bem Móvel */
 
-    .r141-root *{
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        font-family: 'Courier New', Courier, monospace;
-    }
-    .r141-root div.a4{
-        width: 214mm;
-        height: 295mm;
-        display: flex;
-        flex-direction: column;
-    }
-    .r141-root section.cabecalho{
-        display: flex;
-        width: 203mm;
-        height: 22mm;
-        margin-block: 1.5mm;
-        margin-inline: auto;
-        overflow: hidden;
-        margin-top: 0;
-    }
-    .r141-root section.cabecalho table {
-        border-collapse: collapse;
-        width: 100%;
-        height: 99%;
-        margin: auto;
-    }
-    
-    .r141-root section.cabecalho table th, 
-    .r141-root th {
-        border: 1px solid #000;
-        text-align: left;
-        padding: 0.6mm 1.2mm;
-        line-height: 1;
-    }
-    
-    .r141-root section.cabecalho table th {
-        background-color: #fff;
-        font-weight: normal;
-    }
-    .r141-root section.cabecalho table th.col1{
-        text-align: center;
-        width: 27mm ;
-    }
-    .r141-root section.cabecalho table th.col2{
-        text-align: center;
-        width: 122mm ;
-    }
-    .r141-root section.cabecalho table th.col3{
-        text-align: right;
-        width: 28mm;
-        font-size:small;
-    }
-    .r141-root section.cabecalho table th.col4{
-        text-align: center;
-        width: 21mm;
-        font-size:small;
-    }
-    .r141-root section.cabecalho table tr.row1 th.col1{
-        font-weight: bold;
-        font-size: xx-large;
-    }
-    .r141-root section.cabecalho table tr.row1 th.col2{
-       font-weight: bold;
-       font-size: x-large;
-    }
-    .r141-root section.cabecalho table tr.row4 th.col1{
-        font-size:large;
-    }
-    .r141-root section.cabecalho table tr.row4 th.col2{
-       font-size:large;
-    }
-    .r141-root section.conteudo{
-        border:1px solid #000;
-        margin-inline:auto;
-        width: 203mm;
-        height: 252mm;
-        display: flex;
-        flex-direction: column;
-    }
-    .r141-root section.conteudo h1{
-        font-size:medium;
-        width: 95%;
-        margin-inline: auto;
-        margin-block: 0.5mm;
-    }
-    .r141-root section.conteudo div.conteudo{
-        margin-inline:auto;
-        width: 95%;
-        height: 97%;
-        display: flex;
-        margin-bottom: 1.2%;
-        flex-direction: column;
-        border: 2px solid #000;
-    }
-    .r141-root section.conteudo div.conteudo table {
-        border-collapse: collapse;
-        width: 100%;
-        height: 99%;
-        margin: auto;
-        margin-top: -1px;
-    }
-    
-    .r141-root section.conteudo div.conteudo table td, 
-    .r141-root td {
-        border: 1px solid #000;
-        text-align: left;
-        padding: 0.5mm 0.8mm;
-        line-height: 1.02;
-    }
-    /* Reduzir recuo à esquerda de células com classes colX */
-    .r141-root section.conteudo div.conteudo table td[class^="col"] {
-        padding-left: 1.2mm !important;
-    }
-    
-    .r141-root section.conteudo div.conteudo table td {
-        background-color: #fff;
-        font-weight: bold;
-        font-size: small;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row1{
-        height: auto; min-height: 5mm;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row2{
-        height: auto; min-height: 5mm;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row3{
-        height: auto; min-height: 3mm;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row4{
-        height: auto; min-height: 3mm;
-        flex: 1;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row5{
-        height: auto; min-height: 5mm;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row6{
-        height: auto; min-height: 3mm;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row7{
-        height: auto; min-height: 5mm;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row8{
-        height: auto; min-height: 3mm;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row9{
-        height: auto; min-height: 5mm;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row10{
-        height: auto; min-height: 3mm;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row11{
-        height: auto; min-height: 5mm;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row12{
-        height: auto; min-height: 34mm;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row13{
-        height: auto; min-height: 3mm;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row14{
-        height: auto; min-height: 3mm;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row15{
-        height: auto; min-height: 5mm;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row16{
-        height: auto; min-height: 5mm;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row17{
-        height: auto; min-height: 5mm;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row18{
-        height: auto; min-height: 5mm;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row19{
-        height: auto; min-height: 5mm;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row20{
-        height: auto; min-height: 3mm;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row21{
-        height: auto; min-height: 5mm;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row22{
-        height: auto; min-height: 3mm;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row23{
-        height: auto; min-height: 5mm;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row24{
-        height: auto; min-height: 5mm;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row1 td.col1{
-        width: 70%;
-        color: #999;
-        padding-left: 3mm;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row1 td.col2{
-        width: 30%;
-        padding-left: 3mm;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row2 td.col1{
-        width: 70%;
-        text-align: center;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row2 td.col2{
-        width: 30%;
-        font-size: x-small;
-        padding-left: 3mm;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row3 td.col1{
-        width: 5%;
-        text-align: center;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row3 td.col2{
-        width: 95%;
-        background-color: #999;
-        padding-left: 3mm;
-        color: #fff;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row4 td.col1{
-        width: 33%;
-        background-color: #ccc;
-        padding-left: 3mm;
-        font-size: x-small;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row4 td.col2{
-        width: 33%;
-        background-color: #ccc;
-        padding-left: 3mm;
-        font-size: x-small;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row4 td.col3{
-        width: 33%;
-        background-color: #ccc;
-        padding-left: 3mm;
-        font-size: x-small;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row5 td.col1{
-        width: 33%;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row5 td.col2{
-        width: 33%;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row5 td.col3{
-        width: 33%;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row6 td.col1{
-        width: 33%;
-        background-color: #ccc;
-        padding-left: 3mm;
-        font-size: x-small;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row6 td.col2{
-        width: 33%;
-        background-color: #ccc;
-        padding-left: 3mm;
-        font-size: x-small;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row6 td.col3{
-        width: 33%;
-        background-color: #ccc;
-        padding-left: 3mm;
-        font-size: x-small;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row7 td.col1{
-        width: 33%;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row7 td.col2{
-        width: 33%;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row7 td.col3{
-        width: 33%;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row8 td.col1{
-        width: 5%;
-        text-align: center;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row8 td.col2{
-        width: 95%;
-        background-color: #999;
-        padding-left: 3mm;
-        color: #fff;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row10 td.col1{
-        width: 25%;
-        background-color: #ccc;
-        padding-left: 3mm;
-        font-size: x-small;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row10 td.col2{
-        width: 25%;
-        background-color: #ccc;
-        padding-left: 3mm;
-        font-size: x-small;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row10 td.col3{
-        width: 25%;
-        background-color: #ccc;
-        padding-left: 3mm;
-        font-size: x-small;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row10 td.col4{
-        width: 25%;
-        background-color: #ccc;
-        padding-left: 3mm;
-        font-size: x-small;
-    }
-
-    .r141-root section.conteudo div.conteudo table tr.row12 td.col1 p{ 
-        font-size: x-small;
-        font-weight: normal;
-        width: 95%;
-        margin-inline:2.5%;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row12 td.col1 label{ 
-        font-size: x-small;
-        font-weight: normal;
-        width: 95%;
-        margin-inline:2.5%;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row13 td.col1{
-        width: 5%;
-        text-align: center;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row13 td.col2{
-        width: 95%;
-        background-color: #999;
-        padding-left: 3mm;
-        color: #fff;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row14 td.col1{
-        width: 20%;
-        background-color: #ccc;
-        padding-left: 3mm;
-        font-size: x-small;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row14 td.col2{
-        width: 40%;
-        background-color: #ccc;
-        padding-left: 3mm;
-        font-size: x-small;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row14 td.col3{
-        width: 40%;
-        background-color: #ccc;
-        padding-left: 3mm;
-        font-size: x-small;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row15 td.col1{
-        padding-left: 3mm;
-        font-size: x-small;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row15 td.col2{
-        padding-left: 3mm;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row15 td.col3{
-        padding-left: 3mm;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row16 td.col1{
-        padding-left: 3mm;
-        font-size: x-small;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row16 td.col2{
-        padding-left: 3mm;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row16 td.col3{
-        padding-left: 3mm;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row17 td.col1{
-        padding-left: 3mm;
-        font-size: x-small;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row17 td.col2{
-        padding-left: 3mm;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row17 td.col3{
-        padding-left: 3mm;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row18 td.col1{
-        padding-left: 3mm;
-        font-size: x-small;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row18 td.col2{
-        padding-left: 3mm;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row18 td.col3{
-        padding-left: 3mm;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row19 td.col1{
-        padding-left: 3mm;
-        font-size: x-small;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row19 td.col2{
-        padding-left: 3mm;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row19 td.col3{
-        padding-left: 3mm;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row20 td.col1{
-        width: 5%;
-        text-align: center;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row20 td.col2{
-        width: 95%;
-        background-color: #999;
-        padding-left: 3mm;
-        color: #fff;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row21 td.col1{
-        padding-left: 3mm;
-        font-size: x-small;
-        font-weight: normal;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row22 td.col1{
-        width: 20%;
-        background-color: #ccc;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row22 td.col2{
-        width: 40%;
-        background-color: #ccc;
-        padding-left: 3mm;
-        font-size: x-small;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row22 td.col3{
-        width: 40%;
-        background-color: #ccc;
-        padding-left: 3mm;
-        font-size: x-small;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row23 td.col1{
-        padding-left: 3mm;
-        font-size: x-small;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row23 td.col2{
-        padding-left: 3mm;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row23 td.col3{
-        padding-left: 3mm;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row24 td.col1{
-        padding-left: 3mm;
-        font-size: x-small;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row24 td.col2{
-        padding-left: 3mm;
-    }
-    .r141-root section.conteudo div.conteudo table tr.row24 td.col3{
-        padding-left: 3mm;
-    }
-
-    .r141-root section.rodape{
-        margin-inline:auto;
-        width: 203mm;
-        height: 10mm;
-        display: flex;
-        flex-direction: column;
-        margin-top:3mm;
-    }
-
-    .r141-root section.rodape table {
-        border-collapse: collapse;
-        width: 100%;
-        height: 99%;
-        margin: auto;
-    }
-    
-    .r141-root section.rodape table td, 
-    .r141-root td {
-        border: 1px solid #000;
-        text-align: left;
-    }
-    
-    .r141-root section.rodape table td {
-        background-color: #fff;
-        font-weight: bold;
-        font-size: small;
-    }
-    .r141-root section.rodape table tr.row1 td.col1 {
-        width: 20%;
-    }
-    .r141-root section.rodape table tr.row1 td.col2 {
-        width: 60%;
-        text-align: center;
-    }
-    .r141-root section.rodape table tr.row1 td.col3 {
-        width: 20%;
-    }
-    .r141-root section.conteudo div.conteudo table tr td input[type="text"]{
-        color: #0066CC;
-        width: 100%;
-        text-align: center;
-        font-size: medium;
-        border:none;
-        font-family: Arial, Helvetica, sans-serif;
-        font-weight: 400;
-        font-style: normal;
-    }
-.r141-root textarea {
-    color: #0066CC;
-    width: 100%;
-    text-align: center;
-    font-family: inherit;
-    font-size: medium;
-    border: 1px solid #ccc;
-    padding: 2px 3px;
-    resize: none;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    border: none;
-    background: transparent;
+.r141-root * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
     font-family: Arial, Helvetica, sans-serif;
-    font-weight: 400;
-    font-style: normal;
 }
 
-    @media print {
-    /* Tamanho da página de impressão */
-    @page { size: A4; margin: 0; }
-
-    /* Canvas A4 do relatório apenas dentro do escopo */
-    .r141-root div.a4 { width: 210mm; height: 297mm; margin: 0 auto; }
-
-    /* Larguras internas em mm para fidelidade */
-    .r141-root section.cabecalho { width: 203mm; height: 22mm; margin: 0 auto; }
-    .r141-root section.conteudo  { width: 203mm; height: 252mm; margin: 0 auto; }
-    .r141-root section.rodape    { width: 203mm; height: 10mm;  margin: 0 auto; }
-
-    /* Texto preto na impressão dentro do relatório */
-    .r141-root section.conteudo div.conteudo table tr td input[type="text"],
-    .r141-root textarea,
-    .r141-root input,
-    .r141-root label,
-    .r141-root td,
-    .r141-root th { color: #000 !important; }
-
-    .r141-root textarea { border: none; background: transparent; }
+.r141-root div.a4 {
+    width: 210mm;
+    height: 297mm;
+    background: white;
+    padding: 8mm 8mm 6mm 8mm;
+    display: flex;
+    flex-direction: column;
+    gap: 2mm;
 }
 
-/* Visualização em tela do relatório, sem afetar o restante do site */
+/* ===== CABEÇALHO ===== */
+.r141-root section.cabecalho {
+    border: 2px solid #000;
+}
+
+.r141-root section.cabecalho table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.r141-root section.cabecalho table th {
+    border: 1px solid #000;
+    padding: 2mm 2mm;
+    text-align: left;
+    font-weight: bold;
+    font-size: 10pt;
+    line-height: 1.2;
+}
+
+.r141-root section.cabecalho table tr.row1 th.col1,
+.r141-root section.cabecalho table tr.row3 th.col1 {
+    width: 15%;
+    text-align: center;
+    font-size: 18pt;
+    font-weight: bold;
+    vertical-align: middle;
+}
+
+.r141-root section.cabecalho table tr.row1 th.col2,
+.r141-root section.cabecalho table tr.row3 th.col2 {
+    width: 55%;
+    text-align: center;
+    font-size: 11pt;
+    font-weight: bold;
+    vertical-align: middle;
+}
+
+.r141-root section.cabecalho table th.col3 {
+    width: 18%;
+    text-align: right;
+    font-size: 9pt;
+    font-weight: normal;
+    padding-right: 3mm;
+}
+
+.r141-root section.cabecalho table th.col4 {
+    width: 12%;
+    text-align: center;
+    font-size: 10pt;
+    font-weight: bold;
+}
+
+/* ===== TÍTULO ===== */
+.r141-root section.titulo {
+    border: 2px solid #000;
+    padding: 0;
+}
+
+.r141-root section.titulo .titulo-box {
+    background: white;
+    text-align: center;
+    font-weight: bold;
+    font-size: 10pt;
+    padding: 2mm;
+    border: none;
+}
+
+/* ===== SUBTÍTULO ===== */
+.r141-root section.subtitulo {
+    border: 2px solid #000;
+}
+
+.r141-root section.subtitulo table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.r141-root section.subtitulo table th {
+    border: 1px solid #000;
+    padding: 2mm;
+    text-align: center;
+    font-weight: bold;
+    font-size: 10pt;
+    line-height: 1.2;
+}
+
+.r141-root section.subtitulo table th.col1 {
+    width: 70%;
+}
+
+.r141-root section.subtitulo table th.col2 {
+    width: 30%;
+}
+
+.r141-root section.subtitulo .input-data {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid #000;
+    text-align: center;
+    font-size: 10pt;
+    padding: 1mm;
+}
+
+/* ===== SEÇÕES (A, B, C, D) ===== */
+.r141-root section.secao {
+    border: 2px solid #000;
+}
+
+.r141-root section.secao table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.r141-root section.secao table th,
+.r141-root section.secao table td {
+    border: 1px solid #000;
+    padding: 2mm;
+    font-size: 9pt;
+    line-height: 1.3;
+}
+
+.r141-root section.secao .secao-header {
+    background: #999;
+    color: white;
+    font-weight: bold;
+}
+
+.r141-root section.secao .secao-header .letra {
+    width: 8%;
+    text-align: center;
+    font-size: 11pt;
+    font-weight: bold;
+}
+
+.r141-root section.secao .label-row td {
+    background: #ddd;
+    font-weight: bold;
+    padding: 1.5mm 2mm;
+    font-size: 8pt;
+}
+
+.r141-root section.secao .input-row td {
+    background: white;
+    padding: 1mm;
+}
+
+.r141-root section.secao input[type="text"] {
+    width: 100%;
+    border: none;
+    padding: 1mm 2mm;
+    font-size: 9pt;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.r141-root section.secao textarea {
+    width: 100%;
+    border: 1px solid #ccc;
+    padding: 2mm;
+    font-size: 9pt;
+    font-family: Arial, Helvetica, sans-serif;
+    resize: vertical;
+    min-height: 15mm;
+}
+
+/* Linhas de assinatura mais altas */
+.r141-root section.secao .assinatura-row td {
+    height: 12mm;
+    vertical-align: bottom;
+}
+
+/* Larguras das colunas para Seção A */
+.r141-root section.secao table tr .col1 {
+    width: 40%;
+}
+
+.r141-root section.secao table tr .col2 {
+    width: 30%;
+}
+
+.r141-root section.secao table tr .col3 {
+    width: 30%;
+}
+
+.r141-root section.secao table tr .col4 {
+    width: 25%;
+}
+
+/* Área de descrição do bem */
+.r141-root section.secao .descricao-row td {
+    padding: 2mm;
+}
+
+/* Checkboxes */
+.r141-root section.secao .checkbox-row td {
+    padding: 3mm;
+    text-align: justify;
+    line-height: 1.5;
+}
+
+.r141-root section.secao .checkbox-row label {
+    display: block;
+    margin: 2mm 0;
+    font-size: 9pt;
+}
+
+.r141-root section.secao .opcao-checkbox {
+    margin-right: 2mm;
+    transform: scale(1.2);
+}
+
+/* ===== RODAPÉ ===== */
+.r141-root section.rodape {
+    border: 2px solid #000;
+    margin-top: auto;
+}
+
+.r141-root section.rodape table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.r141-root section.rodape table td {
+    border: 1px solid #000;
+    padding: 2mm;
+    text-align: center;
+    font-size: 9pt;
+}
+
+.r141-root section.rodape table td.col1 {
+    width: 30%;
+}
+
+.r141-root section.rodape table td.col2 {
+    width: 40%;
+}
+
+.r141-root section.rodape table td.col3 {
+    width: 30%;
+}
+
+/* ===== IMPRESSÃO ===== */
+@media print {
+    @page {
+        size: A4;
+        margin: 0;
+    }
+
+    .r141-root div.a4 {
+        width: 210mm;
+        height: 297mm;
+        margin: 0;
+        padding: 8mm;
+    }
+
+    .r141-root section.secao input[type="text"],
+    .r141-root section.secao textarea {
+        color: #000 !important;
+        border: none;
+    }
+
+    .r141-root section.subtitulo .input-data {
+        color: #000 !important;
+    }
+}
+
+/* ===== VISUALIZAÇÃO EM TELA ===== */
 @media screen {
-    /* Modo relativo na tela: tamanhos proporcionais */
-    .r141-root div.a4 { width: 100%; height: auto; }
-    .r141-root section.cabecalho { width: 95%; height: 7.5%; margin-block: 0.5%; }
-    .r141-root section.conteudo { width: 95%; height: 85.4%; }
-    .r141-root section.rodape { width: 95%; height: 3.4%; margin-top: 0.5%; }
-
-    /* Larguras das colunas do cabeçalho em % do container */
-    .r141-root section.cabecalho table th.col1{ width: 13.3%; }
-    .r141-root section.cabecalho table th.col2{ width: 60.1%; }
-    .r141-root section.cabecalho table th.col3{ width: 13.8%; }
-    .r141-root section.cabecalho table th.col4{ width: 10.3%; }
+    .r141-root div.a4 {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin: 0 auto;
+    }
 }
