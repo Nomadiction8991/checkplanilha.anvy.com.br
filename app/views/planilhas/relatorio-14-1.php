@@ -319,6 +319,23 @@ border: 0; background: transparent; display: block;
     margin: 0; padding: 0; display: block;
 }
 
+/* Stage (quadro branco) que envolve o iframe e força o tamanho A4 por padrão */
+.viewer-stage {
+    display: inline-block;
+    background: #fff;
+    border-radius: 4px;
+    padding: 0;
+    box-sizing: content-box;
+}
+.viewer-stage iframe.a4-frame {
+    /* Forçar tamanho de folha A4 (CSS mm) por padrão — navegador converte mm para px */
+    width: 210mm !important;
+    height: 297mm !important;
+    max-width: 100%;
+    max-height: 100%;
+    display: block;
+}
+
 /* Inline expansion dentro do card (em vez de overlay full-screen) */
 .pagina-card.expanded { z-index: 1500; position: relative; }
 .pagina-card.expanded .a4-viewport {
@@ -560,7 +577,12 @@ const Viewer = (function(){
         f.style.border = '0';
         f.style.display = 'block';
         f.style.background = '#fff';
-        // dimensões serão ajustadas após carregar o conteúdo
+            // dimensões padrão A4 (em mm) — garante que o iframe sempre represente uma folha A4
+            f.style.width = '210mm';
+            f.style.height = '297mm';
+            // dimensões do stage serão ajustadas para a4
+            stage.style.width = '210mm';
+            stage.style.height = '297mm';
         stage.appendChild(f);
         return stage;
     }
@@ -653,10 +675,11 @@ const Viewer = (function(){
 
         innerFrame.addEventListener('load', ()=>{
             try{
-                // ajustar dimensões iniciais com base no conteúdo
-                const doc = innerFrame.contentDocument || innerFrame.contentWindow.document;
-                const a4 = doc && doc.querySelector('.r141-root .a4');
-                if(a4){ const a4Rect = a4.getBoundingClientRect(); innerFrame.style.width = Math.round(a4Rect.width) + 'px'; innerFrame.style.height = Math.round(a4Rect.height) + 'px'; currentStage.style.width = innerFrame.style.width; currentStage.style.height = innerFrame.style.height; }
+                // forçar dimensões A4 (mm) — evita que estilos externos alterem o tamanho
+                innerFrame.style.width = '210mm';
+                innerFrame.style.height = '297mm';
+                currentStage.style.width = '210mm';
+                currentStage.style.height = '297mm';
             }catch(e){}
             // centralizar
             offsetX = (overlay.getBoundingClientRect().width - (currentStage.getBoundingClientRect().width * scale)) / (2 * scale);
@@ -679,7 +702,13 @@ const Viewer = (function(){
         vp.appendChild(currentStage);
 
         innerFrame.addEventListener('load', ()=>{
-            try{ const doc = innerFrame.contentDocument || innerFrame.contentWindow.document; const a4 = doc && doc.querySelector('.r141-root .a4'); if(a4){ const a4Rect = a4.getBoundingClientRect(); innerFrame.style.width = Math.round(a4Rect.width) + 'px'; innerFrame.style.height = Math.round(a4Rect.height) + 'px'; currentStage.style.width = innerFrame.style.width; currentStage.style.height = innerFrame.style.height; } }catch(e){}
+            try{ 
+                // forçar A4
+                innerFrame.style.width = '210mm';
+                innerFrame.style.height = '297mm';
+                currentStage.style.width = '210mm';
+                currentStage.style.height = '297mm';
+            }catch(e){}
             // centralizar no viewport do card
             const parentRect = currentStage.parentElement.getBoundingClientRect();
             offsetX = (parentRect.width - (currentStage.getBoundingClientRect().width * scale)) / (2 * scale);
@@ -693,13 +722,15 @@ const Viewer = (function(){
 
     function close(){ overlay.hidden=true; canvas.innerHTML=''; currentStage=null; innerFrame=null; offsetX=0; offsetY=0; document.body.style.overflow=''; document.querySelectorAll('.pagina-card.expanded').forEach(p=>p.classList.remove('expanded')); document.querySelectorAll('.inline-close-btn').forEach(b=>b.remove()); }
 
+    function mmToPx(mm){ const el = document.createElement('div'); el.style.position='absolute'; el.style.left='-9999px'; el.style.width = mm + 'mm'; document.body.appendChild(el); const px = el.getBoundingClientRect().width; document.body.removeChild(el); return px; }
+
     function init(){
         document.querySelectorAll('.btn-expand').forEach(btn=>{ btn.addEventListener('click', ()=>{ const pageIndex=parseInt(btn.getAttribute('data-page-index'))||0; const paginas = document.querySelectorAll('.pagina-card'); const pagina = paginas[pageIndex]; const preview = pagina.querySelector('iframe.a4-frame'); if(window.innerWidth>=768) openInline(preview,pagina); else openOverlay(preview); }); });
         document.getElementById('viewerClose').addEventListener('click', close);
         document.getElementById('viewerZoomIn').addEventListener('click', ()=>setScale(scale+0.1));
         document.getElementById('viewerZoomOut').addEventListener('click', ()=>setScale(scale-0.1));
         document.getElementById('viewer100').addEventListener('click', ()=>setScale(1));
-        document.getElementById('viewerFit').addEventListener('click', ()=>{ if(!innerFrame) return; try{ const doc = innerFrame.contentDocument || innerFrame.contentWindow.document; const a4 = doc.querySelector('.r141-root .a4'); if(!a4) return; const a4Rect = a4.getBoundingClientRect(); const parent = currentStage.parentElement.getBoundingClientRect(); const scaleFit = Math.min((parent.width*0.95) / a4Rect.width, (parent.height*0.95) / a4Rect.height); setScale(scaleFit); }catch(e){} });
+        document.getElementById('viewerFit').addEventListener('click', ()=>{ if(!innerFrame) return; try{ const doc = innerFrame.contentDocument || innerFrame.contentWindow.document; const a4 = doc.querySelector('.r141-root .a4'); const parent = currentStage.parentElement.getBoundingClientRect(); let a4w=0,a4h=0; if(a4){ const a4Rect = a4.getBoundingClientRect(); a4w = a4Rect.width; a4h = a4Rect.height; } else { a4w = mmToPx(210); a4h = mmToPx(297); } const scaleFit = Math.min((parent.width*0.95) / a4w, (parent.height*0.95) / a4h); setScale(scaleFit); }catch(e){} });
     }
 
     return { init, setScale, openOverlay, openInline, close };
