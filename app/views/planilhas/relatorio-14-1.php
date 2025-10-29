@@ -314,9 +314,9 @@ border: 0; background: transparent; display: block;
 }
 
 .viewer-body .viewer-canvas iframe.a4-frame {
-    width: 90vw !important; /* preencher 90% da largura da viewport no overlay */
-    height: 80vh !important; /* altura alvo 80% da viewport */
-    margin: 0 auto;
+    width: 100vw !important; /* ocupar 100% da largura da página HTML */
+    height: 100vh !important; /* ocupar 100% da altura da página HTML */
+    margin: 0; padding: 0; display: block;
 }
 
 /* Inline expansion dentro do card (em vez de overlay full-screen) */
@@ -869,15 +869,15 @@ function abrirInlineViewer(pageIndex) {
         closeBtn.addEventListener('click', () => fecharInlineViewer(pagina));
     }
 
-    // Garante que o iframe interno se ajuste ao novo tamanho
-    // Ajusta imediatamente o iframe inline para ocupar 90% largura e 80% altura da viewport
+    // Garante que o iframe interno se ajuste ao novo tamanho e aplica escala padrão 40%
     const frameInline = pagina.querySelector('iframe.a4-frame');
     if (frameInline) {
-        frameInline.style.transform = 'none';
-        frameInline.style.width = '90%';
+        frameInline.style.transformOrigin = 'top center';
+        frameInline.style.transform = 'scale(0.4)'; // escala inicial 40%
+        frameInline.style.width = '100%';
         frameInline.style.height = '80vh';
         frameInline.style.margin = '0 auto';
-        // permitir rolagem interna se exceder
+        // permitir rolagem interna se o conteúdo for maior
         const vp = pagina.querySelector('.a4-viewport'); if (vp) vp.style.overflow = 'auto';
     }
     setTimeout(ajustarEscalaPaginas, 80);
@@ -905,13 +905,15 @@ function abrirViewer(pageIndex) {
     const frameView = document.createElement('iframe');
     frameView.className = 'a4-frame';
     frameView.setAttribute('srcdoc', srcdoc);
-    viewer.canvas.appendChild(frameView);
-    // Definir tamanho alvo do iframe no overlay para 90vw x 80vh
-    frameView.style.width = Math.round(window.innerWidth * 0.9) + 'px';
-    frameView.style.height = Math.round(window.innerHeight * 0.8) + 'px';
+    // tornar o iframe do overlay full-page (100% da página HTML)
+    frameView.style.width = '100vw';
+    frameView.style.height = '100vh';
+    frameView.style.margin = '0';
+    frameView.style.padding = '0';
     frameView.style.display = 'block';
-    frameView.style.margin = '0 auto';
     frameView.style.transform = 'none';
+    viewer.canvas.appendChild(frameView);
+    // mostrar overlay
     viewer.overlay.hidden = false;
 
     // Travar rolagem do fundo enquanto o overlay está aberto
@@ -939,7 +941,10 @@ function abrirViewer(pageIndex) {
                     if (el.type === 'checkbox') alvo.checked = el.checked; else alvo.value = el.value;
                 });
             });
-            ajustarViewerParaLargura();
+            // Aplicar escala padrão inicial de 40% (0.4)
+            try { setViewerScale(0.4); } catch (e) {}
+            // deixar o botão Ajustar disponível para forçar fit
+            // ajustarViewerParaLargura();
         } catch (e) {
             console.warn('Sync viewer->preview falhou:', e);
         }
@@ -957,20 +962,14 @@ function fecharViewer() {
 
 function setViewerScale(s) {
     const label = document.getElementById('viewerScaleLabel');
-    viewer.scale = Math.max(0.3, Math.min(3, s));
+    viewer.scale = Math.max(0.1, Math.min(3, s));
     const frameView = viewer.canvas.querySelector('iframe.a4-frame');
     if (frameView) {
         try {
-            const doc = frameView.contentDocument || frameView.contentWindow.document;
-            const a4 = doc.querySelector('.r141-root .a4');
-            if (a4) {
-                // Aplicar escala no iframe mantendo o tamanho alvo 90vw x 80vh
-                frameView.style.transform = `scale(${viewer.scale})`;
-                frameView.style.transformOrigin = 'top center';
-                frameView.style.width = Math.round(window.innerWidth * 0.9) + 'px';
-                frameView.style.height = Math.round(window.innerHeight * 0.8) + 'px';
-            }
-        } catch (e) {}
+            // Apenas aplica transform scale no iframe; o tamanho do iframe deve ser controlado por CSS
+            frameView.style.transform = `scale(${viewer.scale})`;
+            frameView.style.transformOrigin = 'top center';
+        } catch (e) { /* ignore */ }
     }
     label.textContent = Math.round(viewer.scale * 100) + '%';
 }
