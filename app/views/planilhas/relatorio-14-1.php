@@ -443,7 +443,7 @@ ob_start();
 
                             // Injetar valores nos campos por ID (textarea/input)
                             $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input1', $dataEmissao);
-                            if (!empty($administracao_auto)) { $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input2', $administracao_auto); }
+                            // input2 (Administração) não deve ser preenchido automaticamente por enquanto
                             // Campo de cidade (input3) não possui fonte inequívoca — manter em branco para edição manual
                             if (!empty($setor_auto)) { $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input4', $setor_auto); }
                             $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input5', (string)($cnpj_planilha ?? ''));
