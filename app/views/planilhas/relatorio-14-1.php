@@ -142,6 +142,7 @@ $customCss = '
 .a4-viewport {
     position: relative;
     width: 100%;
+    min-width: 280px; /* evita preview muito fino em telas pequenas */
     aspect-ratio: 214 / 295; /* Proporção aproximada A4 (largura/altura) */
     overflow: hidden; /* preview mantém conteúdo contido */
     background: #f1f5f9;
@@ -334,6 +335,8 @@ border: 0; background: transparent; display: block;
     max-width: 100%;
     max-height: 100%;
     display: block;
+    min-width: 210mm; /* assegura dimensões reais A4 como mínimo */
+    min-height: 297mm;
 }
 
 /* Inline expansion dentro do card (em vez de overlay full-screen) */
@@ -514,7 +517,9 @@ ob_start();
                 $srcdoc = '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
                     . '<style>html,body{margin:0;padding:0;background:#fff;} ' . $styleInline . '</style>'
                     . '</head><body>' . $htmlIsolado . '</body></html>';
-                            echo '<iframe class="a4-frame" data-page-index="' . $index . '" srcdoc="' . htmlspecialchars($srcdoc, ENT_QUOTES) . '"></iframe>';
+                            // Adiciona atributos de acessibilidade e sandbox para a iframe de preview
+                            $title = 'Visualização da página ' . ($index + 1);
+                            echo '<iframe class="a4-frame" data-page-index="' . $index . '" title="' . htmlspecialchars($title, ENT_QUOTES) . '" aria-label="' . htmlspecialchars($title, ENT_QUOTES) . '" tabindex="0" sandbox="allow-same-origin allow-scripts allow-forms" srcdoc="' . htmlspecialchars($srcdoc, ENT_QUOTES) . '"></iframe>';
                         } else {
                             echo '<div class="r141-root"><div class="a4"><p style="padding:10mm;color:#900">Template 14-1 não encontrado.</p></div></div>';
                         }
@@ -537,13 +542,14 @@ ob_start();
   <div class="viewer-toolbar">
     <div style="display:flex;gap:8px;align-items:center;">
       <button id="viewerClose" class="viewer-btn primary" title="Fechar"><i class="bi bi-x-lg"></i></button>
-      <button id="viewerZoomOut" class="viewer-btn" title="Diminuir"><i class="bi bi-zoom-out"></i></button>
-      <button id="viewerZoomIn" class="viewer-btn" title="Aumentar"><i class="bi bi-zoom-in"></i></button>
-            <button id="viewerCenter" class="viewer-btn" title="Centralizar"><i class="bi bi-camera-fill"></i></button>
+    <button id="viewerZoomOut" class="viewer-btn" title="Diminuir" aria-label="Diminuir zoom"><i class="bi bi-zoom-out"></i></button>
+    <button id="viewerZoomIn" class="viewer-btn" title="Aumentar" aria-label="Aumentar zoom"><i class="bi bi-zoom-in"></i></button>
+    <button id="viewerCenter" class="viewer-btn" title="Centralizar" aria-label="Centralizar" ><i class="bi bi-camera-fill"></i></button>
+    <button id="viewerReset" class="viewer-btn" title="Reset" aria-label="Redefinir escala"><i class="bi bi-arrow-counterclockwise"></i></button>
       <button id="viewerFit" class="viewer-btn" title="Ajustar"><i class="bi bi-arrows-angle-contract"></i></button>
       <button id="viewer100" class="viewer-btn" title="100%">100%</button>
     </div>
-    <div style="margin-left:12px;flex:1;text-align:right;color:#fff; background:#334155;padding:6px 10px;border-radius:6px;">Escala: <span id="viewerScaleLabel">40%</span></div>
+        <div style="margin-left:12px;flex:1;text-align:right;color:#fff; background:#334155;padding:6px 10px;border-radius:6px;">Escala: <span id="viewerScaleLabel">40%</span></div>
   </div>
   <div class="viewer-body">
     <div id="viewerCanvas" class="viewer-canvas"></div>
@@ -788,6 +794,16 @@ const Viewer = (function(){
         // centralizar botão
         const centerBtn = document.getElementById('viewerCenter'); if(centerBtn){ centerBtn.addEventListener('click', ()=>{
             if(!currentStage) return; const parent = currentStage.parentElement.getBoundingClientRect(); const stRect = currentStage.getBoundingClientRect(); offsetX = (parent.width - (stRect.width * scale)) / (2 * scale); offsetY = (parent.height - (stRect.height * scale)) / (2 * scale); applyTransform(); saveStateDebounced(); }); }
+
+        // reset botão
+        const resetBtn = document.getElementById('viewerReset'); if(resetBtn){ resetBtn.addEventListener('click', ()=>{
+            // reset para escala padrão e offset central
+            setScale(0.4);
+            offsetX = 0; offsetY = 0; applyTransform(); saveStateDebounced();
+        }); }
+
+        // Esc fecha overlay quando aberta
+        document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape'){ if(overlay && !overlay.hidden){ close(); } } });
     }
 
     return { init, setScale, openOverlay, openInline, close };
