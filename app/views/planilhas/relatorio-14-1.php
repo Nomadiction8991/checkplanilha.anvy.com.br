@@ -357,6 +357,22 @@ $customCss = '
 
 // (removed previous @media print rules - printing will open a clean window with the A4 content)
 
+// Helper para preencher campos no template (suporta textarea e input)
+if (!function_exists('r141_fillFieldById')) {
+    function r141_fillFieldById(string $html, string $id, string $text): string {
+        // Tenta preencher <textarea id="...">conteúdo</textarea>
+        $patternTextarea = '/(<textarea\b[^>]*\bid=["\']' . preg_quote($id, '/') . '["\'][^>]*>)(.*?)(<\/textarea>)/si';
+        $replaced = preg_replace($patternTextarea, '$1' . htmlspecialchars($text) . '$3', $html, 1);
+        if ($replaced !== null && $replaced !== $html) {
+            return $replaced;
+        }
+        // Fallback: preencher <input id="..." ... value="...">
+        $patternInput = '/(<input\b[^>]*\bid=["\']' . preg_quote($id, '/') . '["\'][^>]*)(>)/i';
+        $replaced = preg_replace($patternInput, '$1 value="' . htmlspecialchars($text, ENT_QUOTES) . '"$2', $html, 1);
+        return $replaced ?? $html;
+    }
+}
+
 ob_start();
 ?>
 
@@ -416,31 +432,43 @@ ob_start();
                             if (!empty($row['complemento'])) { $descricaoBem .= ' - ' . $row['complemento']; }
                             if (!empty($row['descricao_completa'])) { $descricaoBem .= "\n" . $row['descricao_completa']; }
 
-                            // Injetar valores
-                            $htmlPreenchido = str_replace('id="input1"', 'id="input1" value="' . htmlspecialchars($dataEmissao) . '"', $htmlPreenchido);
-                            $htmlPreenchido = str_replace('id="input2"', 'id="input2" class="campo-admin"', $htmlPreenchido);
-                            $htmlPreenchido = str_replace('id="input3"', 'id="input3" class="campo-cidade"', $htmlPreenchido);
-                            $htmlPreenchido = str_replace('id="input4"', 'id="input4" class="campo-setor"', $htmlPreenchido);
-                            $htmlPreenchido = str_replace('id="input5"', 'id="input5" value="' . htmlspecialchars($cnpj_planilha ?? '') . '"', $htmlPreenchido);
-                            $htmlPreenchido = str_replace('id="input6"', 'id="input6" value="' . htmlspecialchars($numero_relatorio_auto ?? '') . '"', $htmlPreenchido);
-                            $htmlPreenchido = str_replace('id="input7"', 'id="input7" value="' . htmlspecialchars($casa_oracao_auto ?? '') . '"', $htmlPreenchido);
-                    // Opcional: injetar imagem de fundo se detectada
-                    $htmlIsolado = $htmlPreenchido;
-                    if (!empty($bgUrl)) {
-                    $htmlIsolado = preg_replace('/(<div\s+class="a4"[^>]*>)/', '$1'.'<img class="page-bg" src="'.htmlspecialchars($bgUrl, ENT_QUOTES).'" alt="">', $htmlIsolado, 1);
-                    }
-                    // Montar srcdoc isolado com CSS do template
-                    $styleInline = !empty($styleContent) ? $styleContent : '';
-                    $srcdoc = '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
-                        . '<style>html,body{margin:0;padding:0;background:#fff;} ' . $styleInline . '</style>'
-                        . '</head><body>' . $htmlIsolado . '</body></html>';
-                                // Gerar iframe de preview (Visualizar removido — iframe permanece como miniatura)
-                                $title = 'Visualização da página ' . ($index + 1);
-                                // adicionar allow-modals no sandbox para permitir que o iframe dispare dialogs/print em alguns navegadores
-                                echo '<iframe class="a4-frame" data-page-index="' . $index . '" title="' . htmlspecialchars($title, ENT_QUOTES) . '" aria-label="' . htmlspecialchars($title, ENT_QUOTES) . '" tabindex="0" sandbox="allow-same-origin allow-scripts allow-forms allow-modals" style="width:210mm;height:297mm;" srcdoc="' . htmlspecialchars($srcdoc, ENT_QUOTES) . '"></iframe>';
-                            } else {
-                                echo '<div class="r141-root"><div class="a4"><p style="padding:10mm;color:#900">Template 14-1 não encontrado.</p></div></div>';
+                            // Derivar alguns campos comuns adicionais
+                            $administracao_auto = '';
+                            if (!empty($comum_planilha)) {
+                                $partesComum = array_map('trim', explode('-', $comum_planilha));
+                                if (count($partesComum) >= 1) { $administracao_auto = $partesComum[0]; }
                             }
+                            $setor_auto = isset($row['dependencia_descricao']) ? trim((string)$row['dependencia_descricao']) : '';
+                            $local_data_auto = trim(($comum_planilha ?? '') . ' ' . $dataEmissao);
+
+                            // Injetar valores nos campos por ID (textarea/input)
+                            $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input1', $dataEmissao);
+                            if (!empty($administracao_auto)) { $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input2', $administracao_auto); }
+                            // Campo de cidade (input3) não possui fonte inequívoca — manter em branco para edição manual
+                            if (!empty($setor_auto)) { $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input4', $setor_auto); }
+                            $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input5', (string)($cnpj_planilha ?? ''));
+                            $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input6', (string)($numero_relatorio_auto ?? ''));
+                            $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input7', (string)($casa_oracao_auto ?? ''));
+                            if (!empty($descricaoBem)) { $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input8', $descricaoBem); }
+                            if (!empty($local_data_auto)) { $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input16', $local_data_auto); }
+
+                            // Opcional: injetar imagem de fundo se detectada
+                            $htmlIsolado = $htmlPreenchido;
+                            if (!empty($bgUrl)) {
+                                $htmlIsolado = preg_replace('/(<div\s+class="a4"[^>]*>)/', '$1'.'<img class="page-bg" src="'.htmlspecialchars($bgUrl, ENT_QUOTES).'" alt="">', $htmlIsolado, 1);
+                            }
+                            // Montar srcdoc isolado com CSS do template
+                            $styleInline = !empty($styleContent) ? $styleContent : '';
+                            $srcdoc = '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
+                                . '<style>html,body{margin:0;padding:0;background:#fff;} ' . $styleInline . '</style>'
+                                . '</head><body>' . $htmlIsolado . '</body></html>';
+                            // Gerar iframe de preview (Visualizar removido — iframe permanece como miniatura)
+                            $title = 'Visualização da página ' . ($index + 1);
+                            // adicionar allow-modals no sandbox para permitir que o iframe dispare dialogs/print em alguns navegadores
+                            echo '<iframe class="a4-frame" data-page-index="' . $index . '" title="' . htmlspecialchars($title, ENT_QUOTES) . '" aria-label="' . htmlspecialchars($title, ENT_QUOTES) . '" tabindex="0" sandbox="allow-same-origin allow-scripts allow-forms allow-modals" style="width:210mm;height:297mm;" srcdoc="' . htmlspecialchars($srcdoc, ENT_QUOTES) . '"></iframe>';
+                        } else {
+                            echo '<div class="r141-root"><div class="a4"><p style="padding:10mm;color:#900">Template 14-1 não encontrado.</p></div></div>';
+                        }
                     ?>
                 </div>
             </div>
