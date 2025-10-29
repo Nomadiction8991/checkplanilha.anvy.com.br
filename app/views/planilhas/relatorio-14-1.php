@@ -462,6 +462,42 @@ $script = <<<JS
     window.addEventListener('resize', debounce(fitAll, 120));
     window.addEventListener('load', fitAll);
     document.addEventListener('DOMContentLoaded', fitAll);
+
+    // --- paginação simples para navegar entre .pagina-card ---
+    function setupPagination(){
+        const pages = Array.from(document.querySelectorAll('.pagina-card'));
+        if(pages.length === 0) return;
+        let current = 0;
+        const totalEl = document.getElementById('contadorTotalPaginas');
+        const curEl = document.getElementById('contadorPaginaAtual');
+        if(totalEl) totalEl.textContent = pages.length;
+        function showPage(i){
+            i = Math.max(0, Math.min(pages.length-1, i));
+            current = i;
+            if(curEl) curEl.textContent = (current+1);
+            // rola suavemente para o topo do card
+            pages[current].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        const first = document.getElementById('btnFirstPage');
+        const prev  = document.getElementById('btnPrevPage');
+        const next  = document.getElementById('btnNextPage');
+        const last  = document.getElementById('btnLastPage');
+        if(first) first.addEventListener('click', ()=> showPage(0));
+        if(prev)  prev.addEventListener('click', ()=> showPage(current-1));
+        if(next)  next.addEventListener('click', ()=> showPage(current+1));
+        if(last)  last.addEventListener('click', ()=> showPage(pages.length-1));
+        // inicializa na primeira
+        showPage(0);
+    }
+
+    document.addEventListener('DOMContentLoaded', setupPagination);
+
+    // Função global de impressão usada pelo botão header
+    window.validarEImprimir = function(){
+        // opcional: podemos preparar a página (fechar overlays, expandir tudo) antes de imprimir
+        window.print();
+    };
+
 })();
 </script>
 JS;
