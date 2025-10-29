@@ -81,20 +81,42 @@ $customCss = '
     border-bottom: 2px solid #667eea;
 }
 
-/* --- ESCONDER TUDO NA IMPRESSÃO, EXCETO O IFRAME DO RELATÓRIO --- */
+/* --- IMPRESSÃO: mostrar somente as páginas (a4-viewport) e esconder UI --- */
 @media print {
-  body > *:not(.paginas-container) { display: none !important; }
-  .paginas-container, .pagina-card, .a4-viewport, .a4-scaled, iframe.a4-frame {
-    display: block !important;
-    visibility: visible !important;
-    position: static !important;
-    height: auto !important;
-    width: auto !important;
-    overflow: visible !important;
-  }
-  .page-toolbar, .pagina-header, .pagina-actions {
-    display: none !important;
-  }
+    /* esconder elementos de UI comuns */
+    .page-toolbar, .pagina-header, .pagina-actions, .toolbar-btn, .toolbar-counter,
+    header, nav, aside, footer, .app-header, .app-sidebar, .btn-header-action { display: none !important; }
+
+    /* limpar estilos de cartão e wrappers para impressão limpa */
+    .paginas-container { display: block !important; margin: 0 !important; padding: 0 !important; }
+    .pagina-card { box-shadow: none !important; border: 0 !important; padding: 0 !important; margin: 0 0 0 0 !important; background: transparent !important; }
+
+    /* cada viewport corresponde a uma página; evitar cortes e forçar quebras entre elas */
+    .a4-viewport { 
+        display: block !important; 
+        margin: 0 auto !important; 
+        padding: 0 !important; 
+        background: #fff !important; 
+        overflow: visible !important; 
+        break-inside: avoid-page !important; 
+    }
+    .a4-viewport:not(:last-child){ page-break-after: always !important; break-after: page !important; }
+
+    /* remover escala/posicionamento para impressão em tamanho real */
+    .a4-scaled { transform: none !important; position: static !important; left: auto !important; top: auto !important; width: auto !important; height: auto !important; }
+
+    /* garantir tamanho A4 do conteúdo impresso */
+    iframe.a4-frame { 
+        width: 210mm !important; 
+        height: 297mm !important; 
+        max-width: none !important; 
+        max-height: none !important; 
+        border: 0 !important; 
+        box-shadow: none !important; 
+        display: block !important; 
+        margin: 0 auto !important; 
+        overflow: visible !important;
+    }
 }
 
 .pagina-numero {
