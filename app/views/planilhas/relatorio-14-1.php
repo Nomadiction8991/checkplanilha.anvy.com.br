@@ -104,6 +104,10 @@ $customCss = '
 }
 .btn-expand:hover { background: #e2e8f0; }
 
+/* Botões de zoom no preview */
+.btn-zoom { padding: 6px 10px; border: 1px solid #e5e7eb; border-radius: 8px; background: #fff; color: #334155; cursor: pointer; }
+.btn-zoom:hover { background: #f8fafc; }
+
 /* Barra fixa de navegação por páginas */
 .page-toolbar {
     position: fixed;
@@ -298,6 +302,12 @@ $customCss = '
   .btn-expand { padding: 6px 10px; font-size: 0.9rem; }
   .page-toolbar { top: 64px; max-width: 92%; }
 }
+
+/* Ampliar área desta view em telas maiores (melhor visualização do A4) */
+@media (min-width: 900px) {
+    .app-header { max-width: 1100px; }
+    .mobile-wrapper { max-width: 1100px; }
+}
 ';
 
 ob_start();
@@ -383,6 +393,10 @@ ob_start();
                     <i class="bi bi-file-earmark-text"></i> Página <?php echo $index + 1; ?> de <?php echo count($produtos); ?>
                 </span>
                 <div class="pagina-actions">
+                    <button class="btn-zoom" type="button" data-zoom-action="out" data-page-index="<?php echo $index; ?>" title="Reduzir"><i class="bi bi-zoom-out"></i></button>
+                    <button class="btn-zoom" type="button" data-zoom-action="in" data-page-index="<?php echo $index; ?>" title="Aumentar"><i class="bi bi-zoom-in"></i></button>
+                    <button class="btn-zoom" type="button" data-zoom-action="fit" data-page-index="<?php echo $index; ?>" title="Ajustar"><i class="bi bi-arrows-angle-contract"></i></button>
+                    <button class="btn-zoom" type="button" data-zoom-action="100" data-page-index="<?php echo $index; ?>" title="100%"><i class="bi bi-aspect-ratio"></i></button>
                     <button class="btn-expand" type="button" data-page-index="<?php echo $index; ?>" title="Expandir visualização">
                         <i class="bi bi-arrows-fullscreen"></i> Visualizar
                     </button>
@@ -457,6 +471,8 @@ ob_start();
 <script>
 // Armazenar valores iniciais dos campos
 const valoresOriginais = new Map();
+// Escalas personalizadas por página (preview)
+const pageScales = new Map(); // key: index, value: number | 'fit'
 
 document.addEventListener('DOMContentLoaded', () => {
     inicializarDeteccaoEdicao();
@@ -467,6 +483,7 @@ document.addEventListener('DOMContentLoaded', () => {
     configurarOpcoesComuns();
     configurarToggleValores();
     configurarViewer();
+    configurarZoomPreview();
 });
 
 // Detectar edição manual em inputs e textareas
@@ -607,18 +624,68 @@ function ajustarEscalaPaginas() {
             const a4Width = rect.width;
             const a4Height = rect.height;
             if (!a4Width || !a4Height) return;
-            let scaleX = viewportWidth / a4Width;
-            let scaleY = viewportHeight / a4Height;
-            let scale = Math.min(scaleX, scaleY);
-            if (scale > 1) scale = 1;
+            let fitX = viewportWidth / a4Width;
+            let fitY = viewportHeight / a4Height;
+            let fit = Math.min(fitX, fitY);
+            if (fit > 1) fit = 1;
+
+            // Se houver escala personalizada para esta página, usar
+            const card = view.closest('.pagina-card');
+            let idx = 0;
+            if (card) {
+                const btn = card.querySelector('.btn-zoom[data-page-index]');
+                if (btn) idx = parseInt(btn.getAttribute('data-page-index')) || 0;
+            }
+            let user = pageScales.has(idx) ? pageScales.get(idx) : 'fit';
+            let scale = (user === 'fit') ? fit : Math.max(0.3, Math.min(2.5, user));
+
             frame.style.transform = `scale(${scale})`;
             frame.style.transformOrigin = 'top center';
             frame.style.width = a4Width + 'px';
             frame.style.height = a4Height + 'px';
+            // Quando maior que fit, permitir rolagem do viewport
+            view.style.overflow = (scale > fit + 0.001) ? 'auto' : 'hidden';
         } catch (e) {
             // Pode ocorrer se o iframe ainda estiver carregando; tenta novamente depois
             setTimeout(ajustarEscalaPaginas, 100);
         }
+    });
+}
+
+function configurarZoomPreview() {
+    const step = 0.1;
+    document.querySelectorAll('.btn-zoom').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const action = btn.getAttribute('data-zoom-action');
+            const idx = parseInt(btn.getAttribute('data-page-index')) || 0;
+            const view = btn.closest('.pagina-card')?.querySelector('.a4-viewport');
+            const frame = view?.querySelector('iframe.a4-frame');
+            if (!frame) return;
+
+            // Descobrir fit atual
+            let fit = 1;
+            try {
+                const doc = frame.contentDocument || frame.contentWindow.document;
+                const a4 = doc.querySelector('.r141-root .a4');
+                const vw = view.clientWidth, vh = view.clientHeight;
+                const r = a4.getBoundingClientRect();
+                fit = Math.min(vw / r.width, vh / r.height);
+                if (fit > 1) fit = 1;
+            } catch (e) {}
+
+            let current = pageScales.has(idx) ? pageScales.get(idx) : 'fit';
+            let curVal = (current === 'fit') ? fit : current;
+            if (action === 'in') {
+                pageScales.set(idx, Math.min(2.5, curVal + step));
+            } else if (action === 'out') {
+                pageScales.set(idx, Math.max(0.3, curVal - step));
+            } else if (action === 'fit') {
+                pageScales.set(idx, 'fit');
+            } else if (action === '100') {
+                pageScales.set(idx, 1);
+            }
+            ajustarEscalaPaginas();
+        });
     });
 }
 
