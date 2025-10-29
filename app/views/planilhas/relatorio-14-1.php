@@ -142,24 +142,26 @@ $customCss = '
 .a4-viewport {
     position: relative;
     width: 100%;
-    min-width: 280px; /* evita preview muito fino em telas pequenas */
-    aspect-ratio: 214 / 295; /* Proporção aproximada A4 (largura/altura) */
+    box-sizing: border-box; /* garantir que padding seja considerado corretamente */
+    max-width: 100%;
+    min-width: 200px; /* evita preview extremamente fino */
     overflow: hidden; /* preview mantém conteúdo contido */
     background: #f1f5f9;
     border-radius: 4px;
     display: flex;
     justify-content: center;
     align-items: flex-start; /* alinhar ao topo para permitir padding-top empurrar a miniatura para baixo */
-    padding: 18px 0 0 0; /* empurra a A4 levemente para baixo dentro do card */
+    padding: 12px 4px 4px 4px; /* pequeno espaçamento interno, 4px de margem solicitada no mobile */
 }
 
 .a4-scaled {
-    /* Exibir o iframe exatamente no tamanho A4 e aplicar zoom padrão de 50% (scale 0.5).
-       Usamos transform no wrapper para fazer o "zoom" visual sem alterar as dimensões físicas A4 do iframe. */
+    /* Exibir o iframe exatamente no tamanho A4 (o iframe usa 210mm) e aplicar zoom via transform.
+       Tornamos o wrapper inline-block e sem width% para que o scale seja aplicado sobre a largura real do A4 em px. */
     transform-origin: top left;
-    transform: scale(0.5);
-    width: 95%;
-    height: 95%;
+    transform: scale(0.5); /* valor inicial, será recalculado por fitAll() */
+    display: inline-block;
+    width: auto;
+    height: auto;
 }
 
 /* Forçar dimensões A4 reais para o iframe quando estiver dentro do wrapper .a4-scaled */
@@ -278,13 +280,12 @@ $customCss = '
 /* Ajustes específicos para telas pequenas para evitar preview muito fino */
 @media (max-width: 480px) {
     .a4-viewport {
-        aspect-ratio: unset; /* deixa a altura fluir */
-        height: auto !important;
+        /* em telas muito pequenas deixamos o fitAll controlar a altura; mantemos um padding menor */
+        padding: 6px 4px;
         max-height: 80vh; /* permite que ocupe boa parte da tela sem ficar muito fino */
-        padding: 6px;
     }
-    .a4-scaled { width: 100%; }
-    iframe.a4-frame { width: 100% !important; height: auto !important; }
+    .a4-scaled { width: auto; }
+    iframe.a4-frame { max-width: 100% !important; height: auto !important; }
     .pagina-card { padding: 10px; }
 }
 ';
@@ -438,20 +439,26 @@ $script = <<<JS
             const scaled = vp.querySelector('.a4-scaled');
             const frame = vp.querySelector('iframe.a4-frame');
             if(!scaled || !frame) return;
+            const rect = vp.getBoundingClientRect();
             const style = getComputedStyle(vp);
-            const parentW = vp.clientWidth - (parseFloat(style.paddingLeft)||0) - (parseFloat(style.paddingRight)||0);
-            // margem interna para não colar nas bordas
-            const available = parentW * 0.95;
+            const paddingLeft = parseFloat(style.paddingLeft) || 0;
+            const paddingRight = parseFloat(style.paddingRight) || 0;
+            // largura útil dentro do viewport (inclui a área visível menos paddings)
+            const available = rect.width - paddingLeft - paddingRight - 8; // 8px de margem de segurança
             let scale = available / a4w;
             if(!isFinite(scale) || scale <= 0) scale = 0.5;
-            // limitar entre 0.2 e 1
-            scale = Math.max(0.2, Math.min(1, scale));
+            // limitar entre 0.25 e 1
+            scale = Math.max(0.25, Math.min(1, scale));
+
+            // definir dimensões reais do wrapper scaled para que o transform seja aplicado sobre valores previsíveis
+            scaled.style.width = a4w + 'px';
+            scaled.style.height = a4h + 'px';
             scaled.style.transformOrigin = 'top left';
             scaled.style.transform = 'scale(' + scale + ')';
 
             // Ajustar a altura do container para o A4 escalado (inclui padding-top)
             const paddingTop = parseFloat(style.paddingTop) || 0;
-            const targetH = Math.round(a4h * scale + paddingTop);
+            const targetH = Math.round(a4h * scale + paddingTop + 4); // +4px folga
             vp.style.height = targetH + 'px';
             // assegurar overflow hidden para não mostrar fundo além do A4
             vp.style.overflow = 'hidden';
