@@ -168,9 +168,10 @@ $customCss = '
 
 /* Forçar dimensões A4 reais para o iframe quando estiver dentro do wrapper .a4-scaled */
 .a4-scaled iframe.a4-frame {
-    width: 210mm !important;
-    height: 297mm !important;
+    width: 100%;
+    aspect-ratio: 210 / 297; /* ou 1 / 1.414 */
     display: block;
+    background: #fff;
 }
 
 /* Fundo da página (imagem do PDF) */
