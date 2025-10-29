@@ -1,23 +1,33 @@
 <?php
 require_once __DIR__ . '/../../../CRUD/READ/relatorio-14-1.php';
 
-// Carregar bloco do template A4 com inputs sequenciais
+// Carregar template completo com CSS inline
 $templatePath = __DIR__ . '/../../../relatorios/14-1.html';
-$a4Block = '';
+$templateCompleto = '';
 if (file_exists($templatePath)) {
-    $tpl = file_get_contents($templatePath);
-    $start = strpos($tpl, '<!-- A4-START -->');
-    $end   = strpos($tpl, '<!-- A4-END -->');
+    $templateCompleto = file_get_contents($templatePath);
+    // Extrair apenas o conteúdo entre <!-- A4-START --> e <!-- A4-END -->
+    $start = strpos($templateCompleto, '<!-- A4-START -->');
+    $end   = strpos($templateCompleto, '<!-- A4-END -->');
     if ($start !== false && $end !== false && $end > $start) {
-        $a4Block = trim(substr($tpl, $start + strlen('<!-- A4-START -->'), $end - ($start + strlen('<!-- A4-START -->'))));
+        $a4Block = trim(substr($templateCompleto, $start + strlen('<!-- A4-START -->'), $end - ($start + strlen('<!-- A4-START -->'))));
+    } else {
+        $a4Block = '';
     }
+    
+    // Extrair o <style> do template
+    preg_match('/<style>(.*?)<\/style>/s', $templateCompleto, $matchesStyle);
+    $styleContent = isset($matchesStyle[1]) ? $matchesStyle[1] : '';
+} else {
+    $a4Block = '';
+    $styleContent = '';
 }
 
 $pageTitle = 'Relatório 14.1';
 $backUrl = '../shared/menu.php?id=' . urlencode($id_planilha);
 $headerActions = '<button id="btnPrint" class="btn-header-action" title="Imprimir" onclick="validarEImprimir()"><i class="bi bi-printer"></i></button>';
 
-// CSS customizado
+// CSS customizado para a interface da aplicação (não do formulário)
 $customCss = '
 /* Formulário valores comuns */
 .valores-comuns { 
@@ -309,7 +319,11 @@ ob_start();
             
             <div class="a4-viewport">
                 <div class="a4-scaled">
-                    <link rel="stylesheet" href="/relatorios/14-1.scoped.css">
+                    <!-- CSS inline extraído do template -->
+                    <?php if (!empty($styleContent)): ?>
+                    <style><?php echo $styleContent; ?></style>
+                    <?php endif; ?>
+                    
                     <div class="r141-root">
                     <?php
                         // Repetir o bloco A4 do template (inputs sequenciais)
