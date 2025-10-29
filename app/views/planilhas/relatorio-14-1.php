@@ -545,6 +545,7 @@ ob_start();
     <button id="viewerZoomOut" class="viewer-btn" title="Diminuir" aria-label="Diminuir zoom"><i class="bi bi-zoom-out"></i></button>
     <button id="viewerZoomIn" class="viewer-btn" title="Aumentar" aria-label="Aumentar zoom"><i class="bi bi-zoom-in"></i></button>
     <button id="viewerCenter" class="viewer-btn" title="Centralizar" aria-label="Centralizar" ><i class="bi bi-camera-fill"></i></button>
+    <button id="viewerCropToggle" class="viewer-btn" title="Máscara (clip)" aria-pressed="true" aria-label="Ativar máscara de recorte"><i class="bi bi-card-image"></i> Máscara</button>
     <button id="viewerReset" class="viewer-btn" title="Reset" aria-label="Redefinir escala"><i class="bi bi-arrow-counterclockwise"></i></button>
       <button id="viewerFit" class="viewer-btn" title="Ajustar"><i class="bi bi-arrows-angle-contract"></i></button>
       <button id="viewer100" class="viewer-btn" title="100%">100%</button>
@@ -563,6 +564,7 @@ const Viewer = (function(){
     let currentStage = null; // stage contém o iframe
     let innerFrame = null;
     let offsetX = 0, offsetY = 0; // translation em unidades pre-scale
+    let cropEnabled = true; // máscara/clipping ativado por padrão
     const overlay = document.getElementById('viewerOverlay');
     const canvas = document.getElementById('viewerCanvas');
     const lbl = document.getElementById('viewerScaleLabel');
@@ -596,8 +598,36 @@ const Viewer = (function(){
 
     function applyTransform(){
         if(!currentStage) return;
+        if(cropEnabled) clampOffsets();
         currentStage.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
         currentStage.style.transformOrigin = 'top left';
+    }
+
+    // Garante que o stage cubra o viewport quando cropEnabled=true
+    function clampOffsets(){
+        if(!currentStage || !currentStage.parentElement) return;
+        const parentRect = currentStage.parentElement.getBoundingClientRect();
+        const stageW = currentStage.offsetWidth; // largura sem escala (px)
+        const stageH = currentStage.offsetHeight; // altura sem escala (px)
+
+        // limites possíveis em coordenadas pré-escala
+        const minX = Math.min(0, parentRect.width/scale - stageW);
+        const maxX = 0;
+        const minY = Math.min(0, parentRect.height/scale - stageH);
+        const maxY = 0;
+
+        if(stageW * scale <= parentRect.width){
+            // conteúdo menor que viewport: centraliza
+            offsetX = (parentRect.width/scale - stageW) / 2;
+        } else {
+            offsetX = Math.max(minX, Math.min(maxX, offsetX));
+        }
+
+        if(stageH * scale <= parentRect.height){
+            offsetY = (parentRect.height/scale - stageH) / 2;
+        } else {
+            offsetY = Math.max(minY, Math.min(maxY, offsetY));
+        }
     }
 
     // persistência de estado (scale + offset) por relatório
@@ -793,7 +823,19 @@ const Viewer = (function(){
 
         // centralizar botão
         const centerBtn = document.getElementById('viewerCenter'); if(centerBtn){ centerBtn.addEventListener('click', ()=>{
-            if(!currentStage) return; const parent = currentStage.parentElement.getBoundingClientRect(); const stRect = currentStage.getBoundingClientRect(); offsetX = (parent.width - (stRect.width * scale)) / (2 * scale); offsetY = (parent.height - (stRect.height * scale)) / (2 * scale); applyTransform(); saveStateDebounced(); }); }
+            if(!currentStage) return; const parent = currentStage.parentElement.getBoundingClientRect(); const stRect = currentStage.getBoundingClientRect();
+            // calcular centralização baseada no tamanho não-escalado
+            offsetX = (parent.width/scale - currentStage.offsetWidth) / 2;
+            offsetY = (parent.height/scale - currentStage.offsetHeight) / 2;
+            applyTransform(); saveStateDebounced(); }); }
+
+        // toggle máscara (clip)
+        const cropBtn = document.getElementById('viewerCropToggle'); if(cropBtn){ cropBtn.addEventListener('click', ()=>{
+            cropEnabled = !cropEnabled; cropBtn.setAttribute('aria-pressed', cropEnabled ? 'true' : 'false');
+            if(cropEnabled){ cropBtn.classList.add('primary'); } else { cropBtn.classList.remove('primary'); }
+            // reaplica transform para aplicar/retirar clamp
+            applyTransform(); saveStateDebounced();
+        }); }
 
         // reset botão
         const resetBtn = document.getElementById('viewerReset'); if(resetBtn){ resetBtn.addEventListener('click', ()=>{
