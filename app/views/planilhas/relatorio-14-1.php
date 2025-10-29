@@ -141,11 +141,11 @@ $customCss = '
     width: 100%;
     aspect-ratio: 214 / 295; /* Proporção aproximada A4 (largura/altura) */
     overflow: hidden; /* preview mantém conteúdo contido */
-    background: #f8f9fa;
+    background: #f1f5f9;
     border-radius: 4px;
     display: flex;
     justify-content: center;
-    align-items: flex-start;
+    align-items: center; /* centraliza a miniatura como folha A4 */
     padding: 0;
 }
 
@@ -156,6 +156,7 @@ $customCss = '
 
 /* Fundo da página (imagem do PDF) */
 .a4 { position: relative; }
+.a4 { background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
 .page-bg {
     position: absolute;
     top: 0; left: 0;
@@ -256,15 +257,19 @@ $customCss = '
 }
 .viewer-toolbar {
     display: flex;
+    flex-wrap: wrap;
     gap: 8px;
     align-items: center;
     justify-content: center;
-    padding: 10px;
+    padding: 10px 12px;
     background: #ffffff;
     border-bottom: 1px solid #e5e7eb;
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 10;
 }
 .viewer-btn {
-    padding: 8px 12px;
+    padding: 10px 14px;
     border: 1px solid #e5e7eb;
     border-radius: 8px;
     background: #f8fafc;
@@ -275,13 +280,22 @@ $customCss = '
 .viewer-body {
     flex: 1;
     overflow: auto;
-    padding: 16px;
+    padding: 16px clamp(8px, 4vw, 24px);
     display: flex;
     justify-content: center;
     align-items: flex-start;
+    overscroll-behavior: contain;
 }
 .viewer-canvas {
-    transform-origin: top left;
+    transform-origin: top center;
+}
+
+/* Mobile refinements */
+@media (max-width: 768px) {
+  .viewer-btn { padding: 10px 12px; font-size: 0.95rem; }
+  .viewer-toolbar { gap: 6px; }
+  .btn-expand { padding: 6px 10px; font-size: 0.9rem; }
+  .page-toolbar { top: 64px; max-width: 92%; }
 }
 ';
 
@@ -726,6 +740,37 @@ function configurarViewer() {
     btnOut.addEventListener('click', () => setViewerScale(viewer.scale - 0.1));
     btnFit.addEventListener('click', ajustarViewerParaLargura);
     btn100.addEventListener('click', () => setViewerScale(1));
+
+    // Reajusta ao rotacionar/trocar tamanho da janela
+    window.addEventListener('resize', () => {
+        if (!viewer.overlay.hidden) ajustarViewerParaLargura();
+    });
+
+    // Duplo clique para alternar 100%/Ajustar
+    viewer.canvas.addEventListener('dblclick', () => {
+        if (Math.abs(viewer.scale - 1) < 0.05) {
+            ajustarViewerParaLargura();
+        } else {
+            setViewerScale(1);
+        }
+    });
+
+    // Pinch-zoom básico em mobile
+    let lastDist = null;
+    viewer.canvas.addEventListener('touchmove', (e) => {
+        if (e.touches.length === 2) {
+            const dx = e.touches[0].clientX - e.touches[1].clientX;
+            const dy = e.touches[0].clientY - e.touches[1].clientY;
+            const dist = Math.hypot(dx, dy);
+            if (lastDist != null) {
+                const delta = (dist - lastDist) / 300; // sensibilidade
+                setViewerScale(viewer.scale + delta);
+            }
+            lastDist = dist;
+            e.preventDefault();
+        }
+    }, { passive: false });
+    viewer.canvas.addEventListener('touchend', () => { lastDist = null; });
 }
 
 function abrirViewer(pageIndex) {

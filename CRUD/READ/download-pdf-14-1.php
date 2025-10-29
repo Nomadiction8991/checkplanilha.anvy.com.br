@@ -38,9 +38,22 @@ try {
         $html = ob_get_clean();
     }
 
-    // Carregar CSS do relatório
-    $cssPath = __DIR__ . '/../../public/assets/css/relatorio-14-1.css';
-    $css = file_exists($cssPath) ? file_get_contents($cssPath) : '';
+    // Carregar CSS do relatório (preferir CSS inline do template HTML unificado)
+    $css = '';
+    $templateHtmlPath = __DIR__ . '/../../relatorios/14-1.html';
+    if (file_exists($templateHtmlPath)) {
+        $tpl = file_get_contents($templateHtmlPath);
+        if (preg_match('/<style>(.*?)<\/style>/s', $tpl, $m)) {
+            $css = $m[1];
+        }
+    }
+    // Fallback: CSS antigo, se existir
+    if ($css === '') {
+        $cssPath = __DIR__ . '/../../public/assets/css/relatorio-14-1.css';
+        if (file_exists($cssPath)) {
+            $css = file_get_contents($cssPath);
+        }
+    }
 
     // Instanciar mPDF (A4 Portrait)
         $mpdfClass = '\\Mpdf\\Mpdf';
@@ -55,7 +68,7 @@ try {
 
     // CSS primeiro, depois HTML
     if ($css) {
-           $mpdf->WriteHTML($css, 1);
+        $mpdf->WriteHTML($css, 1);
     }
         $mpdf->WriteHTML($html, 2);
 

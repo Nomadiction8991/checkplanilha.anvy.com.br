@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Formulário 14.1 - Template</title>
-    <link rel="stylesheet" href="/public/assets/css/relatorio-14-1.css">
+    <!-- CSS externo removido para evitar interferência; estilos devem vir do HTML/inline quando necessário -->
 </head>
 <body>
 
