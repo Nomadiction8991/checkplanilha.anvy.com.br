@@ -160,7 +160,9 @@ $customCss = '
 /* Fundo da página (imagem do PDF) */
 .a4 { position: relative; }
 .a4 { background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-.a4-frame { border: 0; background: transparent; display: block; }
+.a4-frame { 
+border: 0; background: transparent; display: block; 
+}
 .page-bg {
     position: absolute;
     top: 0; left: 0;
