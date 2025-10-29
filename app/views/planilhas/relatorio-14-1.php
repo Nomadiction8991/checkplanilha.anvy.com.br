@@ -548,12 +548,44 @@ const Viewer = (function(){
     f.className = 'a4-frame';
     f.setAttribute('srcdoc', srcdoc);
     f.style.border = '0'; f.style.display = 'block'; f.style.transformOrigin = 'top center';
-    if(fullpage){ f.style.width='100vw'; f.style.height='100vh'; f.style.margin='0'; }
-    else { f.style.width='100%'; f.style.height='80vh'; f.style.margin='0 auto'; }
+        if(fullpage){ f.style.width='100vw'; f.style.height='100vh'; f.style.margin='0'; f.dataset.fullpage = '1'; }
+        else { f.style.width='100%'; f.style.height='80vh'; f.style.margin='0 auto'; f.dataset.fullpage = '0'; }
     return f;
   }
 
-  function setScale(s){ scale = Math.max(0.05, Math.min(3, s)); if(currentFrame) currentFrame.style.transform = `scale(${scale})`; updateLabel(); }
+    function setScale(s){
+        scale = Math.max(0.05, Math.min(3, s));
+        if(currentFrame){
+            try{
+                const isFull = currentFrame.dataset && currentFrame.dataset.fullpage === '1';
+                // calcular área disponível (considera padding/barras)
+                let availRect;
+                if(isFull){
+                    // usar overlay's bounding rect (exclui toolbar altura)
+                    const bodyRect = overlay.getBoundingClientRect();
+                    // considerar a altura disponível dentro da viewer-body (overlay menos toolbar)
+                    const toolbar = overlay.querySelector('.viewer-toolbar');
+                    let toolbarH = toolbar ? toolbar.getBoundingClientRect().height : 0;
+                    availRect = { width: bodyRect.width, height: Math.max(bodyRect.height - toolbarH, 100) };
+                } else {
+                    const parent = currentFrame.parentElement;
+                    const pr = parent.getBoundingClientRect();
+                    availRect = { width: pr.width, height: Math.max(pr.height, window.innerHeight * 0.5) };
+                }
+
+                // Aplicar escala via transform e ajustar dimensões do iframe para que a área visível coincida com availRect
+                currentFrame.style.transformOrigin = 'top left';
+                currentFrame.style.transform = `scale(${scale})`;
+                // dimensões não-scaladas necessárias para ocupar availRect quando aplicado scale
+                currentFrame.style.width = Math.max(100, Math.round(availRect.width / scale)) + 'px';
+                currentFrame.style.height = Math.max(100, Math.round(availRect.height / scale)) + 'px';
+            }catch(e){
+                // fallback: apenas aplicar transform
+                currentFrame.style.transform = `scale(${scale})`;
+            }
+        }
+        updateLabel();
+    }
 
   function syncInputs(frameView, frameOriginal){
     try{
