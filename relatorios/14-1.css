@@ -1,0 +1,565 @@
+    /* Removido import do base.css para evitar conflito com layout A4/print */
+
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        div.a4{
+            width: 214mm;
+            height: 295mm;
+            display: flex;
+            flex-direction: column;
+        }
+        section.cabecalho{
+            display: flex;
+            width: 203mm;
+            height: 22mm;
+            margin-block: 1.5mm;
+            margin-inline: auto;
+            overflow: hidden;
+            margin-top: 0;
+        }
+        section.cabecalho table {
+            border-collapse: collapse;
+            width: 100%;
+            height: 99%;
+            margin: auto;
+        }
+        
+        section.cabecalho table th, th {
+            border: 1px solid #000;
+            text-align: left;
+            padding: 0.6mm 1.2mm;
+            line-height: 1;
+        }
+        
+        section.cabecalho table th {
+            background-color: #fff;
+            font-weight: normal;
+        }
+        section.cabecalho table th.col1{
+            text-align: center;
+            width: 27mm ;
+        }
+        section.cabecalho table th.col2{
+            text-align: center;
+            width: 122mm ;
+        }
+        section.cabecalho table th.col3{
+            text-align: right;
+            width: 28mm;
+            font-size:small;
+        }
+        section.cabecalho table th.col4{
+            text-align: center;
+            width: 21mm;
+            font-size:small;
+        }
+        section.cabecalho table tr.row1 th.col1{
+            font-weight: bold;
+            font-size: xx-large;
+        }
+        section.cabecalho table tr.row1 th.col2{
+           font-weight: bold;
+           font-size: x-large;
+        }
+        section.cabecalho table tr.row4 th.col1{
+            font-size:large;
+        }
+        section.cabecalho table tr.row4 th.col2{
+           font-size:large;
+        }
+        section.conteudo{
+            border:1px solid #000;
+            margin-inline:auto;
+            width: 203mm;
+            height: 252mm;
+            display: flex;
+            flex-direction: column;
+        }
+        section.conteudo h1{
+            font-size:medium;
+            width: 95%;
+            margin-inline: auto;
+            margin-block: 0.5mm;
+        }
+        section.conteudo div.conteudo{
+            margin-inline:auto;
+            width: 95%;
+            height: 97%;
+            display: flex;
+            margin-bottom: 1.2%;
+            flex-direction: column;
+            border: 2px solid #000;
+        }
+        section.conteudo div.conteudo table {
+            border-collapse: collapse;
+            width: 100%;
+            height: 99%;
+            margin: auto;
+            margin-top: -1px;
+        }
+        
+        section.conteudo div.conteudo table td, td {
+            border: 1px solid #000;
+            text-align: left;
+            padding: 0.5mm 0.8mm;
+            line-height: 1.02;
+        }
+        /* Reduzir recuo à esquerda de células com classes colX */
+        section.conteudo div.conteudo table td[class^="col"] {
+            padding-left: 1.2mm !important;
+        }
+        
+        section.conteudo div.conteudo table td {
+            background-color: #fff;
+            font-weight: bold;
+            font-size: small;
+        }
+        section.conteudo div.conteudo table tr.row1{
+            height: auto; min-height: 5mm;
+        }
+        section.conteudo div.conteudo table tr.row2{
+            height: auto; min-height: 5mm;
+        }
+        section.conteudo div.conteudo table tr.row3{
+            height: auto; min-height: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row4{
+            height: auto; min-height: 3mm;
+            flex: 1;
+        }
+        section.conteudo div.conteudo table tr.row5{
+            height: auto; min-height: 5mm;
+        }
+        section.conteudo div.conteudo table tr.row6{
+            height: auto; min-height: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row7{
+            height: auto; min-height: 5mm;
+        }
+        section.conteudo div.conteudo table tr.row8{
+            height: auto; min-height: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row9{
+            height: auto; min-height: 5mm;
+        }
+        section.conteudo div.conteudo table tr.row10{
+            height: auto; min-height: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row11{
+            height: auto; min-height: 5mm;
+        }
+        section.conteudo div.conteudo table tr.row12{
+            height: auto; min-height: 34mm;
+        }
+        section.conteudo div.conteudo table tr.row13{
+            height: auto; min-height: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row14{
+            height: auto; min-height: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row15{
+            height: auto; min-height: 5mm;
+        }
+        section.conteudo div.conteudo table tr.row16{
+            height: auto; min-height: 5mm;
+        }
+        section.conteudo div.conteudo table tr.row17{
+            height: auto; min-height: 5mm;
+        }
+        section.conteudo div.conteudo table tr.row18{
+            height: auto; min-height: 5mm;
+        }
+        section.conteudo div.conteudo table tr.row19{
+            height: auto; min-height: 5mm;
+        }
+        section.conteudo div.conteudo table tr.row20{
+            height: auto; min-height: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row21{
+            height: auto; min-height: 5mm;
+        }
+        section.conteudo div.conteudo table tr.row22{
+            height: auto; min-height: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row23{
+            height: auto; min-height: 5mm;
+        }
+        section.conteudo div.conteudo table tr.row24{
+            height: auto; min-height: 5mm;
+        }
+        section.conteudo div.conteudo table tr.row1 td.col1{
+            width: 70%;
+            color: #999;
+            padding-left: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row1 td.col2{
+            width: 30%;
+            padding-left: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row2 td.col1{
+            width: 70%;
+            text-align: center;
+        }
+        section.conteudo div.conteudo table tr.row2 td.col2{
+            width: 30%;
+            font-size: x-small;
+            padding-left: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row3 td.col1{
+            width: 5%;
+            text-align: center;
+        }
+        section.conteudo div.conteudo table tr.row3 td.col2{
+            width: 95%;
+            background-color: #999;
+            padding-left: 3mm;
+            color: #fff;
+        }
+        section.conteudo div.conteudo table tr.row4 td.col1{
+            width: 33%;
+            background-color: #ccc;
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row4 td.col2{
+            width: 33%;
+            background-color: #ccc;
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row4 td.col3{
+            width: 33%;
+            background-color: #ccc;
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row5 td.col1{
+            width: 33%;
+        }
+        section.conteudo div.conteudo table tr.row5 td.col2{
+            width: 33%;
+        }
+        section.conteudo div.conteudo table tr.row5 td.col3{
+            width: 33%;
+        }
+        section.conteudo div.conteudo table tr.row6 td.col1{
+            width: 33%;
+            background-color: #ccc;
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row6 td.col2{
+            width: 33%;
+            background-color: #ccc;
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row6 td.col3{
+            width: 33%;
+            background-color: #ccc;
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row7 td.col1{
+            width: 33%;
+        }
+        section.conteudo div.conteudo table tr.row7 td.col2{
+            width: 33%;
+        }
+        section.conteudo div.conteudo table tr.row7 td.col3{
+            width: 33%;
+        }
+        section.conteudo div.conteudo table tr.row8 td.col1{
+            width: 5%;
+            text-align: center;
+        }
+        section.conteudo div.conteudo table tr.row8 td.col2{
+            width: 95%;
+            background-color: #999;
+            padding-left: 3mm;
+            color: #fff;
+        }
+        section.conteudo div.conteudo table tr.row10 td.col1{
+            width: 25%;
+            background-color: #ccc;
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row10 td.col2{
+            width: 25%;
+            background-color: #ccc;
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row10 td.col3{
+            width: 25%;
+            background-color: #ccc;
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row10 td.col4{
+            width: 25%;
+            background-color: #ccc;
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+
+        section.conteudo div.conteudo table tr.row12 td.col1 p{ 
+            font-size: x-small;
+            font-weight: normal;
+            width: 95%;
+            margin-inline:2.5%;
+        }
+        section.conteudo div.conteudo table tr.row12 td.col1 label{ 
+            font-size: x-small;
+            font-weight: normal;
+            width: 95%;
+            margin-inline:2.5%;
+        }
+        section.conteudo div.conteudo table tr.row13 td.col1{
+            width: 5%;
+            text-align: center;
+        }
+        section.conteudo div.conteudo table tr.row13 td.col2{
+            width: 95%;
+            background-color: #999;
+            padding-left: 3mm;
+            color: #fff;
+        }
+        section.conteudo div.conteudo table tr.row14 td.col1{
+            width: 20%;
+            background-color: #ccc;
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row14 td.col2{
+            width: 40%;
+            background-color: #ccc;
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row14 td.col3{
+            width: 40%;
+            background-color: #ccc;
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row15 td.col1{
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row15 td.col2{
+            padding-left: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row15 td.col3{
+            padding-left: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row16 td.col1{
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row16 td.col2{
+            padding-left: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row16 td.col3{
+            padding-left: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row17 td.col1{
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row17 td.col2{
+            padding-left: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row17 td.col3{
+            padding-left: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row18 td.col1{
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row18 td.col2{
+            padding-left: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row18 td.col3{
+            padding-left: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row19 td.col1{
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row19 td.col2{
+            padding-left: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row19 td.col3{
+            padding-left: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row20 td.col1{
+            width: 5%;
+            text-align: center;
+        }
+        section.conteudo div.conteudo table tr.row20 td.col2{
+            width: 95%;
+            background-color: #999;
+            padding-left: 3mm;
+            color: #fff;
+        }
+        section.conteudo div.conteudo table tr.row21 td.col1{
+            padding-left: 3mm;
+            font-size: x-small;
+            font-weight: normal;
+        }
+        section.conteudo div.conteudo table tr.row22 td.col1{
+            width: 20%;
+            background-color: #ccc;
+        }
+        section.conteudo div.conteudo table tr.row22 td.col2{
+            width: 40%;
+            background-color: #ccc;
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row22 td.col3{
+            width: 40%;
+            background-color: #ccc;
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row23 td.col1{
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row23 td.col2{
+            padding-left: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row23 td.col3{
+            padding-left: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row24 td.col1{
+            padding-left: 3mm;
+            font-size: x-small;
+        }
+        section.conteudo div.conteudo table tr.row24 td.col2{
+            padding-left: 3mm;
+        }
+        section.conteudo div.conteudo table tr.row24 td.col3{
+            padding-left: 3mm;
+        }
+
+        section.rodape{
+            margin-inline:auto;
+            width: 203mm;
+            height: 10mm;
+            display: flex;
+            flex-direction: column;
+            margin-top:3mm;
+        }
+
+        section.rodape table {
+            border-collapse: collapse;
+            width: 100%;
+            height: 99%;
+            margin: auto;
+        }
+        
+        section.rodape table td, td {
+            border: 1px solid #000;
+            text-align: left;
+        }
+        
+        section.rodape table td {
+            background-color: #fff;
+            font-weight: bold;
+            font-size: small;
+        }
+        section.rodape table tr.row1 td.col1 {
+            width: 20%;
+        }
+        section.rodape table tr.row1 td.col2 {
+            width: 60%;
+            text-align: center;
+        }
+        section.rodape table tr.row1 td.col3 {
+            width: 20%;
+        }
+        section.conteudo div.conteudo table tr td input[type="text"]{
+            color: #0066CC;
+            width: 100%;
+            text-align: center;
+            font-size: medium;
+            border:none;
+            font-family: Arial, Helvetica, sans-serif;
+            font-weight: 400;
+            font-style: normal;
+        }
+textarea {
+    color: #0066CC;
+    width: 100%;
+    text-align: center;
+    font-family: inherit;
+    font-size: medium;
+    border: 1px solid #ccc;
+    padding: 2px 3px;
+    resize: none;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    border: none;
+    background: transparent;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 400;
+    font-style: normal;
+}
+
+        @media print {
+    /* Enforce A4 physical size and remove browser margins */
+    @page { size: A4; margin: 0; }
+    html, body { width: 210mm; height: 297mm; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    /* Base canvas exactly A4 */
+    div.a4 { width: 210mm; height: 297mm; margin: 0 auto; }
+
+    /* Keep internal widths in mm for fidelity */
+    section.cabecalho { width: 203mm; height: 22mm; margin: 0 auto; }
+    section.conteudo  { width: 203mm; height: 252mm; margin: 0 auto; }
+    section.rodape    { width: 203mm; height: 10mm;  margin: 0 auto; }
+
+    /* Hide any on-screen helper forms/toolbars if still present */
+    div[style*="margin-bottom: 20px"] { display: none !important; }
+
+    /* Inputs/text in black for print-only */
+    section.conteudo div.conteudo table tr td input[type="text"],
+    textarea,
+    input,
+    label,
+    td,
+    th { color: #000 !important; }
+
+    textarea { border: none; background: transparent; }
+}
+
+/* Opcional: para visualizar melhor durante o desenvolvimento */
+@media screen {
+    div[style*="margin-bottom: 20px"] {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: #f9f9f9;
+    }
+
+    /* Modo relativo na tela: tamanhos proporcionais para evitar variações */
+    div.a4 { width: 100%; height: auto; }
+    section.cabecalho { width: 95%; height: 7.5%; margin-block: 0.5%; }
+    section.conteudo { width: 95%; height: 85.4%; }
+    section.rodape { width: 95%; height: 3.4%; margin-top: 0.5%; }
+
+    /* Larguras das colunas do cabeçalho em % do container */
+    section.cabecalho table th.col1{ width: 13.3%; }
+    section.cabecalho table th.col2{ width: 60.1%; }
+    section.cabecalho table th.col3{ width: 13.8%; }
+    section.cabecalho table th.col4{ width: 10.3%; }
+}
