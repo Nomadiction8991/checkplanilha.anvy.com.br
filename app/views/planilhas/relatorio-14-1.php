@@ -30,10 +30,6 @@ $headerActions = '<button id="btnPrint" class="btn-header-action" title="Imprimi
 // CSS customizado para a interface da aplicação (não do formulário)
 $customCss = '
 
-.form-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
-.form-grid label { font-size: 0.875rem; font-weight: 500; margin-bottom: 4px; display: block; }
-.form-grid input { width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.875rem; }
-
 /* Container de páginas */
 .paginas-container {
     display: flex;
@@ -405,10 +401,7 @@ ob_start();
                         $htmlPreenchido = $a4Block;
                         if (!empty($htmlPreenchido)) {
                             $dataEmissao = date('d/m/Y');
-                            $descricaoBem = '';
-                            if (!empty($row['tipo_descricao'])) { $descricaoBem .= $row['tipo_descricao']; }
-                            if (!empty($row['complemento'])) { $descricaoBem .= ' - ' . $row['complemento']; }
-                            if (!empty($row['descricao_completa'])) { $descricaoBem .= "\n" . $row['descricao_completa']; }
+                            $descricaoBem = $row['descricao_completa'];
 
                             // Derivar alguns campos comuns adicionais
                             $administracao_auto = '';
