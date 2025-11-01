@@ -29,32 +29,10 @@ $headerActions = '<button id="btnPrint" class="btn-header-action" title="Imprimi
 
 // CSS customizado para a interface da aplicação (não do formulário)
 $customCss = '
-/* Formulário valores comuns */
-.valores-comuns { 
-    background: #f8f9fa; 
-    padding: 15px; 
-    border-radius: 8px; 
-    margin-bottom: 15px;
-    margin-top: 56px; /* espaço para toolbar fixa */
-}
-.valores-comuns .valores-header {
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 8px; margin-bottom: 8px;
-}
-.valores-comuns .valores-title { font-weight: 700; font-size: 0.95rem; color: #334155; }
-.valores-comuns .toggle-btn {
-    border: none; background: #667eea; color: #fff; border-radius: 8px; padding: 6px 10px; cursor: pointer; font-weight: 600;
-}
-.valores-comuns.collapsed .valores-content { display: none; }
-.valores-comuns h6 { margin: 0 0 10px 0; font-size: 0.9rem; font-weight: 600; }
+
 .form-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
 .form-grid label { font-size: 0.875rem; font-weight: 500; margin-bottom: 4px; display: block; }
 .form-grid input { width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.875rem; }
-
-/* Opções de doação (comuns) */
-.opcoes-comuns { margin-top: 10px; display: grid; gap: 6px; }
-.opcoes-comuns label { display: flex; align-items: flex-start; gap: 8px; font-size: 0.9rem; }
-.valores-comuns label:has(input[type="checkbox"].marcado) { color: #dc3545; font-weight: 600; }
 
 /* Container de páginas */
 .paginas-container {
