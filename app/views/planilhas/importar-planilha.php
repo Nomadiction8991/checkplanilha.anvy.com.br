@@ -420,7 +420,7 @@ document.addEventListener('DOMContentLoaded', function(){
             // ensure the modal canvas uses most of the viewport after rotation
             if (!modalCanvas) initModalCanvas();
             modalCanvas.style.width = Math.floor(window.innerWidth * 0.95) + 'px';
-            modalCanvas.style.height = Math.floor(window.innerHeight * 0.85) + 'px';
+            modalCanvas.style.height = Math.floor(window.innerHeight * 0.40) + 'px';
             resizeModalCanvas();
         } }catch(e){} }
 
