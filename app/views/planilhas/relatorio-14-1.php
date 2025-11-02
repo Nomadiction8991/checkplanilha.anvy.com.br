@@ -77,6 +77,20 @@ if (!function_exists('r141_fillFieldById')) {
             return $replacedInput;
         }
 
+        // 3) Fallback de preview (não altera o template no disco):
+        // Se existir um <label for="id">...<\/label> seguido de texto (valor exibido no template),
+        // vamos inserir um <textarea id="id" readonly>com o valor</textarea> logo após o label.
+        // Isso corrige visualização quando o template em produção não possui <textarea> mas mostra o valor em texto.
+        $patternLabel = '/(<label\b[^>]*\bfor=["\']' . preg_quote($id, '/') . '["\'][^>]*>.*?<\/label>\s*)(?:<br\s*\/?>\s*)?([^<\n][^<]*)/si';
+        $replacedLabel = preg_replace_callback($patternLabel, function($m) use ($escaped, $id) {
+            $prefix = $m[1];
+            // Substitui o texto visível pelo textarea readonly com o valor escapado
+            return $prefix . '<br><textarea id="' . $id . '" rows="2" readonly>' . $escaped . '</textarea>';
+        }, $html, 1);
+        if ($replacedLabel !== null && $replacedLabel !== $html) {
+            return $replacedLabel;
+        }
+
         // Não modificar o template se textarea/input não existir
         return $html;
     }
@@ -167,27 +181,8 @@ ob_start();
                                 . '<style>html,body{margin:0;padding:0;background:#fff;} ' . $styleInline . '</style>'
                                 . '</head><body>' . $htmlIsolado . '</body></html>';
 
-                            // --- DEBUG: gravar srcdoc e valores brutos para inspeção (apenas primeira página)
-                            // Isso ajuda a identificar por que alguns campos aparecem como texto em <td>
-                            try {
-                                $tmpDir = __DIR__ . '/../../../app/tmp';
-                                if (!is_dir($tmpDir)) { @mkdir($tmpDir, 0777, true); }
-                                if ($index === 0 && is_dir($tmpDir) && is_writable($tmpDir)) {
-                                    @file_put_contents($tmpDir . '/relatorio14_debug_1.html', $srcdoc);
-                                    $dbgValues = [
-                                        'input1' => $dataEmissao,
-                                        'input4' => $setor_auto,
-                                        'input5' => ($cnpj_planilha ?? ''),
-                                        'input6' => ($numero_relatorio_auto ?? ''),
-                                        'input7' => ($casa_oracao_auto ?? ''),
-                                        'input8' => ($descricaoBem ?? ''),
-                                        'input16' => ($local_data_auto ?? ''),
-                                    ];
-                                    @file_put_contents($tmpDir . '/relatorio14_values_1.json', json_encode($dbgValues, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-                                }
-                            } catch (\Throwable $e) {
-                                // não bloquear renderização se não for possível gravar
-                            }
+                            // Nota: removida gravação de debug em disco (ambiente remoto).
+                            // Implementamos fallback de preview abaixo no helper quando necessário.
 
                             // Gerar iframe de preview (Visualizar removido — iframe permanece como miniatura)
                             $title = 'Visualização da página ' . ($index + 1);
