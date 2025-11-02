@@ -154,8 +154,7 @@ ob_start();
                         <div style="white-space:nowrap;">
                             <div class="btn-group-vertical">
                                 <button type="button" class="btn btn-secondary btn-sm" onclick="clearCanvas('canvas_responsavel')">Limpar</button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="downloadCanvas('canvas_responsavel')">Baixar</button>
-                                <button type="button" class="btn btn-primary btn-sm" onclick="openSignatureModal()">Expandir</button>
+                                <button type="button" class="btn btn-primary btn-sm" onclick="openSignatureModal()">Fazer Assinatura</button>
                             </div>
                         </div>
                     </div>
@@ -200,52 +199,9 @@ $pre_cidade = json_encode($_POST['cidade'] ?? '');
 $script = <<<HTML
 <script>
 function initSignature(canvasId) {
+    // Preview canvas should be non-editable. We only return the element and disable pointer events.
     const canvas = document.getElementById(canvasId);
-    const ctx = canvas.getContext('2d');
-    ctx.lineWidth = 2;
-    ctx.lineCap = 'round';
-    let drawing = false;
-    let lastX = 0, lastY = 0;
-
-    // Map client coordinates to canvas coordinates (handles CSS scaling)
-    function getCoords(e, element) {
-        const rect = element.getBoundingClientRect();
-        const clientX = (e.touches ? e.touches[0].clientX : e.clientX);
-        const clientY = (e.touches ? e.touches[0].clientY : e.clientY);
-        const scaleX = element.width / rect.width;
-        const scaleY = element.height / rect.height;
-        const x = (clientX - rect.left) * scaleX;
-        const y = (clientY - rect.top) * scaleY;
-        return { x, y };
-    }
-
-    function start(e) {
-        drawing = true;
-        const p = getCoords(e, canvas);
-        lastX = p.x; lastY = p.y;
-    }
-
-    function move(e) {
-        if (!drawing) return;
-        e.preventDefault();
-        const p = getCoords(e, canvas);
-        ctx.beginPath();
-        ctx.moveTo(lastX, lastY);
-        ctx.lineTo(p.x, p.y);
-        ctx.stroke();
-        lastX = p.x; lastY = p.y;
-    }
-
-    function end() { drawing = false; }
-
-    canvas.addEventListener('mousedown', start);
-    canvas.addEventListener('touchstart', start, { passive: false });
-    canvas.addEventListener('mousemove', move);
-    canvas.addEventListener('touchmove', move, { passive: false });
-    canvas.addEventListener('mouseup', end);
-    canvas.addEventListener('mouseout', end);
-    canvas.addEventListener('touchend', end);
-
+    canvas.style.pointerEvents = 'none';
     return canvas;
 }
 
@@ -323,22 +279,22 @@ document.addEventListener('DOMContentLoaded', function(){
     }
     function modalEnd(){ modalDrawing=false; }
 
-    // Abrir modal, copiar preview para modal
+    // Abrir modal: abrir em branco já girado (pronto para assinar)
     window.openSignatureModal = function(){
         document.getElementById('signatureModal').style.display = 'block';
         if (!modalCanvas) initModalCanvas();
-        resizeModalCanvas();
-        const preview = document.getElementById('canvas_responsavel');
-        const data = preview.toDataURL('image/png');
-        const img = new Image();
-        img.onload = function(){
-            modalCtx.clearRect(0,0,modalCanvas.width, modalCanvas.height);
-            const scale = Math.min(modalCanvas.width / img.width, modalCanvas.height / img.height);
-            const w = img.width * scale; const h = img.height * scale;
-            const x = (modalCanvas.width - w)/2; const y = (modalCanvas.height - h)/2;
-            modalCtx.drawImage(img, x, y, w, h);
-        };
-        img.src = data;
+        // calcular dimensões e forçar orientação girada (swap)
+        const w = Math.max(800, window.innerWidth * 0.92);
+        const h = Math.max(360, window.innerHeight * 0.72);
+        // forçar canvas com orientação trocada (portrait-like)
+        modalCanvas.width = h;
+        modalCanvas.height = w;
+        modalCtx = modalCanvas.getContext('2d');
+        modalCtx.lineWidth = 2; modalCtx.lineCap = 'round';
+        // limpar e deixar fundo branco
+        modalCtx.fillStyle = '#ffffff';
+        modalCtx.fillRect(0,0,modalCanvas.width, modalCanvas.height);
+        modalCtx.strokeStyle = '#000000';
     };
 
     window.closeSignatureModal = function(){
