@@ -12,6 +12,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $localizacao_data_posicao = trim($_POST['localizacao_data_posicao'] ?? 'D13');
     $localizacao_endereco = trim($_POST['localizacao_endereco'] ?? 'A4');
     $localizacao_cnpj = trim($_POST['localizacao_cnpj'] ?? 'U8');
+    // Novo campo: nome e assinatura do responsável (Administrador/Acessor)
+    $nome_responsavel = trim($_POST['nome_responsavel'] ?? null);
+    $assinatura_responsavel = $_POST['assinatura_responsavel'] ?? null; // data URL base64
     
     // Mapeamento simplificado
     $mapeamento = [
@@ -100,13 +103,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Iniciar transação
         $conexao->beginTransaction();
 
-        // Inserir a planilha na tabela planilhas com os valores obtidos do CSV
-        $sql_planilha = "INSERT INTO planilhas (comum, data_posicao, endereco, cnpj) VALUES (:comum, :data_posicao, :endereco, :cnpj)";
-        $stmt_planilha = $conexao->prepare($sql_planilha);
-        $stmt_planilha->bindValue(':comum', $valor_comum);
-        $stmt_planilha->bindValue(':data_posicao', $data_mysql);
-        $stmt_planilha->bindValue(':endereco', $valor_endereco);
-        $stmt_planilha->bindValue(':cnpj', $cnpj_somente_numeros);
+    // Inserir a planilha na tabela planilhas com os valores obtidos do CSV
+    $sql_planilha = "INSERT INTO planilhas (comum, data_posicao, endereco, cnpj, nome_responsavel, assinatura_responsavel) VALUES (:comum, :data_posicao, :endereco, :cnpj, :nome_responsavel, :assinatura_responsavel)";
+    $stmt_planilha = $conexao->prepare($sql_planilha);
+    $stmt_planilha->bindValue(':comum', $valor_comum);
+    $stmt_planilha->bindValue(':data_posicao', $data_mysql);
+    $stmt_planilha->bindValue(':endereco', $valor_endereco);
+    $stmt_planilha->bindValue(':cnpj', $cnpj_somente_numeros);
+    $stmt_planilha->bindValue(':nome_responsavel', $nome_responsavel);
+    $stmt_planilha->bindValue(':assinatura_responsavel', $assinatura_responsavel);
         $stmt_planilha->execute();
         $id_planilha = $conexao->lastInsertId();
 

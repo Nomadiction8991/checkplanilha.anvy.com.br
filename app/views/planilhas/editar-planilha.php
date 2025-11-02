@@ -121,6 +121,40 @@ ob_start();
         </div>
     </div>
 
+    <!-- Informações do Responsável (Administrador/Acessor) -->
+    <div class="card mb-3">
+        <div class="card-header">
+            <i class="bi bi-person-lines-fill me-2"></i>
+            Responsável (Administrador / Acessor)
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-12">
+                    <label for="nome_responsavel" class="form-label">Nome do Responsável</label>
+                    <input type="text" class="form-control" id="nome_responsavel" name="nome_responsavel" 
+                           value="<?php echo htmlspecialchars($planilha['nome_responsavel'] ?? ''); ?>" maxlength="255">
+                </div>
+            </div>
+
+            <div class="row g-3 mt-3">
+                <div class="col-12">
+                    <label class="form-label">Assinatura do Responsável</label>
+                    <div class="border p-2 mb-2">
+                        <canvas id="canvas_responsavel" width="600" height="150" style="touch-action: none; background:#fff; border:1px solid #ddd;"></canvas>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="clearCanvas('canvas_responsavel')">Limpar</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="downloadCanvas('canvas_responsavel')">Baixar</button>
+                    </div>
+                    <input type="hidden" name="assinatura_responsavel" id="assinatura_responsavel" value="<?php echo htmlspecialchars($planilha['assinatura_responsavel'] ?? ''); ?>">
+                    <?php if (!empty($planilha['assinatura_responsavel'])): ?>
+                        <div class="mt-2 small text-muted">Assinatura existente abaixo (pode redesenhar para substituir)</div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <button type="submit" class="btn btn-primary w-100">
         <i class="bi bi-check-lg me-2"></i>
         Atualizar Planilha
@@ -129,6 +163,112 @@ ob_start();
 
 <?php
 $contentHtml = ob_get_clean();
+
+// Script para captura de assinaturas e carregar assinaturas existentes
+$script = <<<HTML
+<script>
+function initSignature(canvasId) {
+    const canvas = document.getElementById(canvasId);
+    const ctx = canvas.getContext('2d');
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    let drawing = false;
+    let lastX = 0, lastY = 0;
+
+    function start(e) {
+        drawing = true;
+        const rect = canvas.getBoundingClientRect();
+        const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+        const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+        lastX = x; lastY = y;
+    }
+
+    function move(e) {
+        if (!drawing) return;
+        e.preventDefault();
+        const rect = canvas.getBoundingClientRect();
+        const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+        const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        lastX = x; lastY = y;
+    }
+
+    function end() { drawing = false; }
+
+    canvas.addEventListener('mousedown', start);
+    canvas.addEventListener('touchstart', start);
+    canvas.addEventListener('mousemove', move);
+    canvas.addEventListener('touchmove', move);
+    canvas.addEventListener('mouseup', end);
+    canvas.addEventListener('mouseout', end);
+    canvas.addEventListener('touchend', end);
+
+    return canvas;
+}
+
+function clearCanvas(id) {
+    const c = document.getElementById(id);
+    const ctx = c.getContext('2d');
+    ctx.clearRect(0,0,c.width,c.height);
+    // limpar campo hidden relacionado
+    if (id === 'canvas_admin') document.getElementById('assinatura_administrador').value = '';
+    if (id === 'canvas_acessor') document.getElementById('assinatura_acessor').value = '';
+}
+
+function downloadCanvas(id) {
+    const c = document.getElementById(id);
+    const a = document.createElement('a');
+    a.href = c.toDataURL('image/png');
+    a.download = id + '.png';
+    a.click();
+}
+
+function drawImageOnCanvas(canvasId, dataUrl) {
+    if (!dataUrl) return;
+    const c = document.getElementById(canvasId);
+    const ctx = c.getContext('2d');
+    const img = new Image();
+    img.onload = function() {
+        // Redimensionar mantendo proporcionalidade, centralizando
+        ctx.clearRect(0,0,c.width,c.height);
+        const scale = Math.min(c.width / img.width, c.height / img.height);
+        const w = img.width * scale;
+        const h = img.height * scale;
+        const x = (c.width - w) / 2;
+        const y = (c.height - h) / 2;
+        ctx.drawImage(img, x, y, w, h);
+    };
+    img.src = dataUrl;
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+    const cResp = initSignature('canvas_responsavel');
+
+    // Carregar assinatura existente, se houver
+    const existingResp = document.getElementById('assinatura_responsavel').value;
+    if (existingResp) drawImageOnCanvas('canvas_responsavel', existingResp);
+
+    // Antes do submit, serializar os canvases para os hidden inputs
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(){
+        const dataResp = document.getElementById('canvas_responsavel').toDataURL('image/png');
+        function isCanvasBlank(c) {
+            const blank = document.createElement('canvas');
+            blank.width = c.width; blank.height = c.height;
+            return c.toDataURL() === blank.toDataURL();
+        }
+        if (!isCanvasBlank(document.getElementById('canvas_responsavel'))) {
+            document.getElementById('assinatura_responsavel').value = dataResp;
+        }
+    });
+});
+</script>
+HTML;
+
+$contentHtml = $contentHtml . $script;
 $tempFile = __DIR__ . '/../../../temp_editar_planilha_' . uniqid() . '.php';
 file_put_contents($tempFile, $contentHtml);
 $contentFile = $tempFile;
