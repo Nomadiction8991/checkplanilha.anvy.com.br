@@ -268,9 +268,9 @@ document.addEventListener('DOMContentLoaded', function(){
     function setModalLandscape() {
         if (!modalCanvas) initModalCanvas();
         // Use most of the viewport so the canvas becomes large after rotation.
-        // Target ~95% width and ~85% height to leave room for controls.
+        // Target ~95% width and ~40% height (matches importar view) to leave room for controls.
         const cssW = Math.floor(window.innerWidth * 0.95);
-        const cssH = Math.floor(window.innerHeight * 0.85);
+        const cssH = Math.floor(window.innerHeight * 0.40);
         modalCanvas.style.width = cssW + 'px';
         modalCanvas.style.height = cssH + 'px';
         resizeModalCanvas();
@@ -359,7 +359,7 @@ document.addEventListener('DOMContentLoaded', function(){
     function resizeModalIfVisible(){ try{ const m=document.getElementById('signatureModal'); if (m && m.style.display !== 'none') {
             if (!modalCanvas) initModalCanvas();
             modalCanvas.style.width = Math.floor(window.innerWidth * 0.95) + 'px';
-            modalCanvas.style.height = Math.floor(window.innerHeight * 0.85) + 'px';
+            modalCanvas.style.height = Math.floor(window.innerHeight * 0.40) + 'px';
             resizeModalCanvas();
         } }catch(e){} }
 
