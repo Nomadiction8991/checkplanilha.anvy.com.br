@@ -220,6 +220,11 @@ document.addEventListener('DOMContentLoaded', function(){
         modalCanvas = document.getElementById('modal_canvas');
         modalCtx = modalCanvas.getContext('2d');
         // actual pixel buffer configured in resizeModalCanvas()
+        // Prevent default touch gestures on modal canvas to avoid page scrolling/zooming
+        try {
+            modalCanvas.style.touchAction = 'none';
+            modalCanvas.style.webkitUserSelect = 'none';
+        } catch(e){}
     }
     function resizeModalCanvas(){
         if(!modalCanvas) return;
@@ -262,7 +267,7 @@ document.addEventListener('DOMContentLoaded', function(){
         manualListenersEnabled = false;
     }
     function getModalCoords(e){ const rect = modalCanvas.getBoundingClientRect(); const clientX = (e.touches?e.touches[0].clientX:e.clientX); const clientY = (e.touches?e.touches[0].clientY:e.clientY); return { x: clientX - rect.left, y: clientY - rect.top }; }
-    function modalStart(e){ modalDrawing=true; const p=getModalCoords(e); modalLastX=p.x; modalLastY=p.y; }
+    function modalStart(e){ try{ if (e && e.preventDefault) e.preventDefault(); }catch(err){} modalDrawing=true; const p=getModalCoords(e); modalLastX=p.x; modalLastY=p.y; try{ modalCtx.beginPath(); modalCtx.moveTo(modalLastX, modalLastY); }catch(err){} }
     function modalMove(e){ if(!modalDrawing) return; e.preventDefault(); const p=getModalCoords(e); modalCtx.beginPath(); modalCtx.moveTo(modalLastX, modalLastY); modalCtx.lineTo(p.x, p.y); modalCtx.stroke(); modalLastX=p.x; modalLastY=p.y; }
     function modalEnd(){ modalDrawing=false; }
 

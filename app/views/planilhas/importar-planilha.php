@@ -231,6 +231,11 @@ document.addEventListener('DOMContentLoaded', function(){
         // Do not attach manual pointer listeners here. We will enable them only
         // when SignaturePad is not available to avoid duplicate drawing handlers.
         // Actual pixel buffer is set in resizeModalCanvas() which takes devicePixelRatio into account.
+        // Prevent default touch gestures on modal canvas to avoid page scrolling/zooming
+        try {
+            modalCanvas.style.touchAction = 'none';
+            modalCanvas.style.webkitUserSelect = 'none';
+        } catch(e){}
     }
     // Manual drawing handlers (fallback when SignaturePad is not present)
     let manualListenersEnabled = false;
@@ -285,9 +290,13 @@ document.addEventListener('DOMContentLoaded', function(){
     }
 
     function modalStart(e){
+        // Prevent default to avoid the browser interpreting touch as scroll/zoom
+        try { if (e && e.preventDefault) e.preventDefault(); } catch(e){}
         modalDrawing = true;
         const p = getModalCoords(e);
         modalLastX = p.x; modalLastY = p.y;
+        // begin a new path so the first segment starts exactly at the touch point
+        try { modalCtx.beginPath(); modalCtx.moveTo(modalLastX, modalLastY); } catch(e){}
     }
     function modalMove(e){
         if (!modalDrawing) return;
