@@ -444,12 +444,10 @@ ob_start();
 
                             // Injetar valores nos campos por ID (textarea/input)
                             $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input1', $dataEmissao);
-                            // input2 (Administração) não deve ser preenchido automaticamente por enquanto
-                            // Campo de cidade (input3) não possui fonte inequívoca — manter em branco para edição manual
                             if (!empty($setor_auto)) { $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input4', $setor_auto); }
-                            $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input5', (string)($cnpj_planilha ?? ''));
-                            $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input6', (string)($numero_relatorio_auto ?? ''));
-                            $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input7', (string)($casa_oracao_auto ?? ''));
+                            $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input5', $cnpj_planilha ?? '');
+                            $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input6', $numero_relatorio_auto ?? '');
+                            $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input7', $casa_oracao_auto ?? '');
                             if (!empty($descricaoBem)) { $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input8', $descricaoBem); }
                             if (!empty($local_data_auto)) { $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input16', $local_data_auto); }
 
