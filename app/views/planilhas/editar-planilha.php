@@ -114,51 +114,45 @@ ob_start();
         </div>
     </div>
 
-    <!-- Informações do Responsável (Administrador/Acessor) -->
+    <!-- Outros Dados -->
     <div class="card mb-3">
         <div class="card-header">
             <i class="bi bi-person-lines-fill me-2"></i>
-            Responsável (Administrador / Acessor)
+            Outros Dados
         </div>
         <div class="card-body">
             <div class="row g-3">
                 <div class="col-md-6">
-                    <label for="nome_responsavel" class="form-label">Nome do Responsável <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="nome_responsavel" name="nome_responsavel" 
-                           value="<?php echo htmlspecialchars($planilha['nome_responsavel'] ?? ''); ?>" maxlength="255" required>
-                </div>
-                <div class="col-md-3">
-                    <label for="administracao" class="form-label">Estado (Administração) <span class="text-danger">*</span></label>
+                    <label for="administracao" class="form-label">Administração <span class="text-danger">*</span></label>
                     <select id="administracao" name="administracao" class="form-select" required>
-                        <option value="">Carregando estados...</option>
+                        <option value="">Carregando...</option>
                     </select>
                 </div>
                 <div class="col-md-3">
                     <label for="cidade" class="form-label">Cidade <span class="text-danger">*</span></label>
                     <select id="cidade" name="cidade" class="form-select" required disabled>
-                        <option value="">Selecione o estado primeiro</option>
+                        <option value="">Carregando...</option>
                     </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="nome_responsavel" class="form-label">Nome do Administrador/Acessor <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="nome_responsavel" name="nome_responsavel" 
+                           value="<?php echo htmlspecialchars($planilha['nome_responsavel'] ?? ''); ?>" maxlength="255" required>
                 </div>
             </div>
 
             <div class="row g-3 mt-3">
                 <div class="col-12">
-                    <label class="form-label">Assinatura do Responsável</label>
-                    <div class="d-flex align-items-start gap-3">
-                        <div style="flex:1; min-width:0;">
-                            <div class="border p-2 mb-2" style="overflow:hidden;">
-                                <canvas id="canvas_responsavel" width="400" height="120" style="touch-action: none; background:#fff; border:1px solid #ddd; width:100%; height:auto;"></canvas>
-                            </div>
-                        </div>
-                        <div style="white-space:nowrap;">
-                                <div style="margin-top:8px;">
-                                    <button type="button" class="btn btn-primary btn-sm w-100" onclick="openSignatureModal()">Fazer Assinatura</button>
-                                </div>
-                        </div>
+                    <label class="form-label">Assinatura do Administrador/Acessor</label>
+                    <div class="border p-2 mb-2" style="overflow:hidden;">
+                        <canvas id="canvas_responsavel" width="800" height="160" style="touch-action: none; background:#fff; border:1px solid #ddd; width:100%; height:auto;"></canvas>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-primary btn-lg w-100 mt-2" onclick="openSignatureModal()">Fazer Assinatura</button>
                     </div>
                     <input type="hidden" name="assinatura_responsavel" id="assinatura_responsavel" value="<?php echo htmlspecialchars($planilha['assinatura_responsavel'] ?? ''); ?>">
                     <?php if (!empty($planilha['assinatura_responsavel'])): ?>
-                        <div class="mt-2 small text-muted">Assinatura existente abaixo (pode redesenhar para substituir)</div>
+                        <div class="mt-2 small text-muted">Assinatura existente (pode redesenhar para substituir)</div>
                     <?php endif; ?>
                 </div>
             </div>
@@ -222,8 +216,27 @@ document.addEventListener('DOMContentLoaded', function(){
 
     // Modal full-screen canvas
     let modalCanvas, modalCtx, modalDrawing=false, modalLastX=0, modalLastY=0;
-    function resizeModalCanvas(){ if(!modalCanvas) return; const w=Math.max(800, window.innerWidth*0.92); const h=Math.max(360, window.innerHeight*0.72); modalCanvas.width=w; modalCanvas.height=h; }
-    function initModalCanvas(){ modalCanvas = document.getElementById('modal_canvas'); modalCtx = modalCanvas.getContext('2d'); resizeModalCanvas(); /* do not attach manual listeners here */ modalCtx.lineWidth = 2; modalCtx.lineCap = 'round'; }
+    function initModalCanvas(){
+        modalCanvas = document.getElementById('modal_canvas');
+        modalCtx = modalCanvas.getContext('2d');
+        // actual pixel buffer configured in resizeModalCanvas()
+    }
+    function resizeModalCanvas(){
+        if(!modalCanvas) return;
+        const rect = modalCanvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        const cssW = Math.max(300, Math.floor(rect.width));
+        const cssH = Math.max(150, Math.floor(rect.height));
+        modalCanvas.style.width = cssW + 'px';
+        modalCanvas.style.height = cssH + 'px';
+        modalCanvas.width = Math.floor(cssW * dpr);
+        modalCanvas.height = Math.floor(cssH * dpr);
+        modalCtx = modalCanvas.getContext('2d');
+        try{ modalCtx.setTransform(1,0,0,1,0,0); } catch(e){}
+        modalCtx.scale(dpr, dpr);
+        modalCtx.lineWidth = 2; modalCtx.lineCap = 'round';
+        try{ modalCtx.fillStyle = '#ffffff'; modalCtx.fillRect(0,0,cssW,cssH); } catch(e){}
+    }
     // Manual drawing handlers (fallback when SignaturePad is not present)
     let manualListenersEnabled = false;
     function enableManualDrawing(){
@@ -248,7 +261,7 @@ document.addEventListener('DOMContentLoaded', function(){
         modalCanvas.removeEventListener('touchend', modalEnd);
         manualListenersEnabled = false;
     }
-    function getModalCoords(e){ const rect = modalCanvas.getBoundingClientRect(); const clientX = (e.touches?e.touches[0].clientX:e.clientX); const clientY = (e.touches?e.touches[0].clientY:e.clientY); const scaleX = modalCanvas.width / rect.width; const scaleY = modalCanvas.height / rect.height; return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY }; }
+    function getModalCoords(e){ const rect = modalCanvas.getBoundingClientRect(); const clientX = (e.touches?e.touches[0].clientX:e.clientX); const clientY = (e.touches?e.touches[0].clientY:e.clientY); return { x: clientX - rect.left, y: clientY - rect.top }; }
     function modalStart(e){ modalDrawing=true; const p=getModalCoords(e); modalLastX=p.x; modalLastY=p.y; }
     function modalMove(e){ if(!modalDrawing) return; e.preventDefault(); const p=getModalCoords(e); modalCtx.beginPath(); modalCtx.moveTo(modalLastX, modalLastY); modalCtx.lineTo(p.x, p.y); modalCtx.stroke(); modalLastX=p.x; modalLastY=p.y; }
     function modalEnd(){ modalDrawing=false; }
@@ -256,30 +269,24 @@ document.addEventListener('DOMContentLoaded', function(){
     function setModalLandscape() {
         if (!modalCanvas) initModalCanvas();
         const vw = window.innerWidth, vh = window.innerHeight;
-        let width = Math.max(800, Math.max(vw, vh) * 0.92);
-        let height = Math.max(360, Math.min(vw, vh) * 0.6);
-        if (width <= height) { width = height + 200; }
-        modalCanvas.width = Math.floor(width);
-        modalCanvas.height = Math.floor(height);
-        modalCtx = modalCanvas.getContext('2d');
-        modalCtx.lineWidth = 2; modalCtx.lineCap = 'round';
-        modalCtx.fillStyle = '#ffffff';
-        modalCtx.fillRect(0,0,modalCanvas.width, modalCanvas.height);
+        let cssW = Math.max(800, Math.max(vw, vh) * 0.92);
+        let cssH = Math.max(360, Math.min(vw, vh) * 0.6);
+        if (cssW <= cssH) cssW = cssH + 200;
+        modalCanvas.style.width = Math.floor(cssW) + 'px';
+        modalCanvas.style.height = Math.floor(cssH) + 'px';
+        resizeModalCanvas();
         modalCtx.strokeStyle = '#000000';
     }
 
     function setModalPortrait() {
         if (!modalCanvas) initModalCanvas();
         const vw = window.innerWidth, vh = window.innerHeight;
-        let width = Math.max(360, Math.min(vw, vh) * 0.6);
-        let height = Math.max(800, Math.max(vw, vh) * 0.92);
-        if (width >= height) { height = width + 200; }
-        modalCanvas.width = Math.floor(width);
-        modalCanvas.height = Math.floor(height);
-        modalCtx = modalCanvas.getContext('2d');
-        modalCtx.lineWidth = 2; modalCtx.lineCap = 'round';
-        modalCtx.fillStyle = '#ffffff';
-        modalCtx.fillRect(0,0,modalCanvas.width, modalCanvas.height);
+        let cssW = Math.max(360, Math.min(vw, vh) * 0.6);
+        let cssH = Math.max(800, Math.max(vw, vh) * 0.92);
+        if (cssW >= cssH) cssH = cssW + 200;
+        modalCanvas.style.width = Math.floor(cssW) + 'px';
+        modalCanvas.style.height = Math.floor(cssH) + 'px';
+        resizeModalCanvas();
         modalCtx.strokeStyle = '#000000';
     }
 
@@ -315,12 +322,12 @@ document.addEventListener('DOMContentLoaded', function(){
             s.src = 'https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js';
             s.onload = function(){
                 startSignaturePad(!!existing);
-                if (existing) { const img=new Image(); img.onload=function(){ try{ modalCtx.drawImage(img, 0, 0, modalCanvas.width, modalCanvas.height); }catch(e){} }; img.src=existing; }
+                if (existing) { const img=new Image(); img.onload=function(){ try{ const dpr = window.devicePixelRatio || 1; modalCtx.drawImage(img, 0, 0, modalCanvas.width / dpr, modalCanvas.height / dpr); }catch(e){} }; img.src=existing; }
                 enterFullscreenAndLock();
             };
             s.onerror = function(){ startSignaturePad(!!existing); enterFullscreenAndLock(); };
             document.head.appendChild(s);
-        } else { startSignaturePad(!!existing); if (existing) { const img=new Image(); img.onload=function(){ try{ modalCtx.drawImage(img, 0, 0, modalCanvas.width, modalCanvas.height); }catch(e){} }; img.src=existing; } enterFullscreenAndLock(); }
+    } else { startSignaturePad(!!existing); if (existing) { const img=new Image(); img.onload=function(){ try{ const dpr = window.devicePixelRatio || 1; modalCtx.drawImage(img, 0, 0, modalCanvas.width / dpr, modalCanvas.height / dpr); }catch(e){} }; img.src=existing; } enterFullscreenAndLock(); }
     };
 
     window.closeSignatureModal = async function(){
@@ -390,7 +397,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
     // Antes de submeter, garantir que administracao e cidade estejam no formato "MT - Cidade"
     const form = document.querySelector('form');
-    form.addEventListener('submit', function(e){ const nome = document.getElementById('nome_responsavel').value.trim(); const estado = document.getElementById('administracao').value; const cidadeVal = document.getElementById('cidade').value; if(!nome || !estado || !cidadeVal){ e.preventDefault(); alert('Por favor preencha Nome do Responsável, Estado e Cidade (campos obrigatórios).'); return false; }
+    form.addEventListener('submit', function(e){ const nome = document.getElementById('nome_responsavel').value.trim(); const estado = document.getElementById('administracao').value; const cidadeVal = document.getElementById('cidade').value; if(!nome || !estado || !cidadeVal){ e.preventDefault(); alert('Por favor preencha Administração, Cidade e Nome do Administrador/Acessor (campos obrigatórios).'); return false; }
     // Os selects são independentes — não sobrescrevemos automaticamente o campo 'administracao'.
         // assinatura
         function isCanvasBlank(c){ const blank=document.createElement('canvas'); blank.width=c.width; blank.height=c.height; return c.toDataURL()===blank.toDataURL(); }

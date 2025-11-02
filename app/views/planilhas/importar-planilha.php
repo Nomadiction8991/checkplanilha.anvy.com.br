@@ -115,38 +115,37 @@ ob_start();
         </div>
     </div>
 
-    <!-- Informações do Responsável (Administrador/Acessor) -->
+    <!-- Outros Dados -->
     <div class="card mb-3">
         <div class="card-header">
             <i class="bi bi-person-lines-fill me-2"></i>
-            Responsável (Administrador / Acessor)
+            Outros Dados
         </div>
         <div class="card-body">
             <div class="row g-3">
                 <div class="col-md-6">
-                    <label for="nome_responsavel" class="form-label">Nome do Responsável <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="nome_responsavel" name="nome_responsavel" 
-                           value="<?php echo htmlspecialchars($_POST['nome_responsavel'] ?? ''); ?>" maxlength="255" required>
-                </div>
-                <div class="col-md-3">
-                    <label for="administracao" class="form-label">Estado (Administração) <span class="text-danger">*</span></label>
+                    <label for="administracao" class="form-label">Administração <span class="text-danger">*</span></label>
                     <select id="administracao" name="administracao" class="form-select" required>
-                        <option value="">Carregando estados...</option>
+                        <option value="">Carregando...</option>
                     </select>
                 </div>
                 <div class="col-md-3">
                     <label for="cidade" class="form-label">Cidade <span class="text-danger">*</span></label>
                     <select id="cidade" name="cidade" class="form-select" required disabled>
-                        <option value="">Selecione o estado primeiro</option>
+                        <option value="">Carregando...</option>
                     </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="nome_responsavel" class="form-label">Nome do Administrador/Acessor <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="nome_responsavel" name="nome_responsavel" 
+                           value="<?php echo htmlspecialchars($_POST['nome_responsavel'] ?? ''); ?>" maxlength="255" required>
                 </div>
             </div>
 
             <div class="row g-3 mt-3">
                 <div class="col-12">
-                    <label class="form-label">Assinatura do Responsável</label>
+                    <label class="form-label">Assinatura do Administrador/Acessor</label>
                     <div class="border p-2 mb-2" style="overflow:hidden;">
-                        <!-- Canvas maior e responsivo: atributos de pixel maiores para melhor qualidade, CSS width:100% -->
                         <canvas id="canvas_responsavel" width="800" height="160" style="touch-action: none; background:#fff; border:1px solid #ddd; width:100%; height:auto;"></canvas>
                     </div>
                     <div>
@@ -229,11 +228,9 @@ document.addEventListener('DOMContentLoaded', function(){
     function initModalCanvas() {
         modalCanvas = document.getElementById('modal_canvas');
         modalCtx = modalCanvas.getContext('2d');
-        resizeModalCanvas();
         // Do not attach manual pointer listeners here. We will enable them only
         // when SignaturePad is not available to avoid duplicate drawing handlers.
-        modalCtx.lineWidth = 2;
-        modalCtx.lineCap = 'round';
+        // Actual pixel buffer is set in resizeModalCanvas() which takes devicePixelRatio into account.
     }
     // Manual drawing handlers (fallback when SignaturePad is not present)
     let manualListenersEnabled = false;
@@ -261,18 +258,30 @@ document.addEventListener('DOMContentLoaded', function(){
     }
     function resizeModalCanvas() {
         if (!modalCanvas) return;
-        const w = Math.max(800, window.innerWidth * 0.92);
-        const h = Math.max(360, window.innerHeight * 0.72);
-        modalCanvas.width = w;
-        modalCanvas.height = h;
+        // compute current display size (client rect) and scale internal buffer by devicePixelRatio
+        const rect = modalCanvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        const cssW = Math.max(300, Math.floor(rect.width));
+        const cssH = Math.max(150, Math.floor(rect.height));
+        modalCanvas.style.width = cssW + 'px';
+        modalCanvas.style.height = cssH + 'px';
+        modalCanvas.width = Math.floor(cssW * dpr);
+        modalCanvas.height = Math.floor(cssH * dpr);
+        modalCtx = modalCanvas.getContext('2d');
+        // reset any transform and scale so drawings map to CSS pixels
+        try { modalCtx.setTransform(1,0,0,1,0,0); } catch(e){}
+        modalCtx.scale(dpr, dpr);
+        modalCtx.lineWidth = 2;
+        modalCtx.lineCap = 'round';
+        // clear with white background
+        try{ modalCtx.fillStyle = '#ffffff'; modalCtx.fillRect(0,0,cssW,cssH); }catch(e){}
     }
     function getModalCoords(e) {
         const rect = modalCanvas.getBoundingClientRect();
         const clientX = (e.touches ? e.touches[0].clientX : e.clientX);
         const clientY = (e.touches ? e.touches[0].clientY : e.clientY);
-        const scaleX = modalCanvas.width / rect.width;
-        const scaleY = modalCanvas.height / rect.height;
-        return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+        // map client coords to CSS pixels, SignaturePad / canvas drawing uses CSS space after scaling
+        return { x: clientX - rect.left, y: clientY - rect.top };
     }
 
     function modalStart(e){
@@ -296,35 +305,24 @@ document.addEventListener('DOMContentLoaded', function(){
     function setModalLandscape() {
         if (!modalCanvas) initModalCanvas();
         const vw = window.innerWidth, vh = window.innerHeight;
-        // preferir largura maior que altura
-        let width = Math.max(800, Math.max(vw, vh) * 0.92);
-        let height = Math.max(360, Math.min(vw, vh) * 0.6);
-        if (width <= height) {
-            width = height + 200;
-        }
-        modalCanvas.width = Math.floor(width);
-        modalCanvas.height = Math.floor(height);
-        modalCtx = modalCanvas.getContext('2d');
-        modalCtx.lineWidth = 2; modalCtx.lineCap = 'round';
-        modalCtx.fillStyle = '#ffffff';
-        modalCtx.fillRect(0,0,modalCanvas.width, modalCanvas.height);
+        let cssW = Math.max(800, Math.max(vw, vh) * 0.92);
+        let cssH = Math.max(360, Math.min(vw, vh) * 0.6);
+        if (cssW <= cssH) cssW = cssH + 200;
+        modalCanvas.style.width = Math.floor(cssW) + 'px';
+        modalCanvas.style.height = Math.floor(cssH) + 'px';
+        resizeModalCanvas();
         modalCtx.strokeStyle = '#000000';
     }
 
     function setModalPortrait() {
         if (!modalCanvas) initModalCanvas();
         const vw = window.innerWidth, vh = window.innerHeight;
-        let width = Math.max(360, Math.min(vw, vh) * 0.6);
-        let height = Math.max(800, Math.max(vw, vh) * 0.92);
-        if (width >= height) {
-            height = width + 200;
-        }
-        modalCanvas.width = Math.floor(width);
-        modalCanvas.height = Math.floor(height);
-        modalCtx = modalCanvas.getContext('2d');
-        modalCtx.lineWidth = 2; modalCtx.lineCap = 'round';
-        modalCtx.fillStyle = '#ffffff';
-        modalCtx.fillRect(0,0,modalCanvas.width, modalCanvas.height);
+        let cssW = Math.max(360, Math.min(vw, vh) * 0.6);
+        let cssH = Math.max(800, Math.max(vw, vh) * 0.92);
+        if (cssW >= cssH) cssH = cssW + 200;
+        modalCanvas.style.width = Math.floor(cssW) + 'px';
+        modalCanvas.style.height = Math.floor(cssH) + 'px';
+        resizeModalCanvas();
         modalCtx.strokeStyle = '#000000';
     }
 
@@ -373,10 +371,14 @@ document.addEventListener('DOMContentLoaded', function(){
                 // start and keep existing image if any
                 startSignaturePad(!!existing);
                 // if there is existing signature, draw it into modal so user can edit/overwrite
-                if (existing) {
+                    if (existing) {
                     const img = new Image();
                     img.onload = function(){
-                        try { modalCtx.drawImage(img, 0, 0, modalCanvas.width, modalCanvas.height); } catch(e){}
+                        try { 
+                            const dpr = window.devicePixelRatio || 1;
+                            // draw using CSS pixel dimensions (internal buffer is scaled)
+                            modalCtx.drawImage(img, 0, 0, modalCanvas.width / dpr, modalCanvas.height / dpr);
+                        } catch(e){}
                     };
                     img.src = existing;
                 }
@@ -388,7 +390,7 @@ document.addEventListener('DOMContentLoaded', function(){
             startSignaturePad(!!existing);
             if (existing) {
                 const img = new Image();
-                img.onload = function(){ try { modalCtx.drawImage(img, 0, 0, modalCanvas.width, modalCanvas.height); } catch(e){} };
+                img.onload = function(){ try { const dpr = window.devicePixelRatio || 1; modalCtx.drawImage(img, 0, 0, modalCanvas.width / dpr, modalCanvas.height / dpr); } catch(e){} };
                 img.src = existing;
             }
             enterFullscreenAndLock();
@@ -452,7 +454,7 @@ document.addEventListener('DOMContentLoaded', function(){
         const cidade = document.getElementById('cidade').value;
         if (!nome || !estado || !cidade) {
             e.preventDefault();
-            alert('Por favor preencha Nome do Responsável, Estado e Cidade (campos obrigatórios).');
+            alert('Por favor preencha Administração, Cidade e Nome do Administrador/Acessor (campos obrigatórios).');
             return false;
         }
     // Os selects são independentes — não sobrescrevemos automaticamente o campo 'administracao'.

@@ -259,10 +259,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Validações de campos obrigatórios enviados pelo form
         if (isset($_POST['nome_responsavel']) && trim($_POST['nome_responsavel']) === '') {
-            throw new Exception('O campo Nome do Responsável é obrigatório.');
+            throw new Exception('O campo Nome do Administrador/Acessor é obrigatório.');
         }
         if (isset($_POST['administracao']) && trim($_POST['administracao']) === '') {
-            throw new Exception('O campo Estado (Administração) é obrigatório.');
+            throw new Exception('O campo Administração é obrigatório.');
         }
         if (isset($_POST['cidade']) && trim($_POST['cidade']) === '') {
             throw new Exception('O campo Cidade é obrigatório.');
