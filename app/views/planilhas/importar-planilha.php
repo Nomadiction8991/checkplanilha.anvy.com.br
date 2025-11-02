@@ -145,17 +145,12 @@ ob_start();
             <div class="row g-3 mt-3">
                 <div class="col-12">
                     <label class="form-label">Assinatura do Responsável</label>
-                    <div class="d-flex align-items-start gap-3">
-                        <div style="flex:1; min-width:0;">
-                            <div class="border p-2 mb-2" style="overflow:hidden;">
-                                <canvas id="canvas_responsavel" width="400" height="120" style="touch-action: none; background:#fff; border:1px solid #ddd; width:100%; height:auto;"></canvas>
-                            </div>
-                        </div>
-                        <div style="white-space:nowrap;">
-                            <div style="margin-top:8px;">
-                                <button type="button" class="btn btn-primary btn-sm w-100" onclick="openSignatureModal()">Fazer Assinatura</button>
-                            </div>
-                        </div>
+                    <div class="border p-2 mb-2" style="overflow:hidden;">
+                        <!-- Canvas maior e responsivo: atributos de pixel maiores para melhor qualidade, CSS width:100% -->
+                        <canvas id="canvas_responsavel" width="800" height="160" style="touch-action: none; background:#fff; border:1px solid #ddd; width:100%; height:auto;"></canvas>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-primary btn-lg w-100 mt-2" onclick="openSignatureModal()">Fazer Assinatura</button>
                     </div>
                     <input type="hidden" name="assinatura_responsavel" id="assinatura_responsavel">
                 </div>

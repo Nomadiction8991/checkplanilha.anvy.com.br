@@ -88,28 +88,21 @@ ob_start();
             </div>
 
             <h6 class="mt-4 mb-3">Mapeamento de Colunas</h6>
-            <div class="row g-3">
-                <div class="col-4">
-                    <label for="codigo" class="form-label">Código</label>
-                    <input type="text" class="form-control text-center fw-bold" name="codigo" 
-                           value="<?php echo $mapeamento_array['codigo'] ?? 'A'; ?>" maxlength="3" required>
-                </div>
-                <div class="col-4">
-                    <label for="nome" class="form-label">Nome</label>
-                    <input type="text" class="form-control text-center fw-bold" name="nome" 
-                           value="<?php echo $mapeamento_array['nome'] ?? 'D'; ?>" maxlength="3" required>
-                </div>
-                <div class="col-4">
-                    <label for="dependencia" class="form-label">Dependência</label>
-                    <input type="text" class="form-control text-center fw-bold" name="dependencia" 
-                           value="<?php echo $mapeamento_array['dependencia'] ?? 'P'; ?>" maxlength="3" required>
+            <div class="row g-3 mt-3">
+                <div class="col-12">
+                    <label class="form-label">Assinatura do Responsável</label>
+                    <div class="border p-2 mb-2" style="overflow:hidden;">
+                        <canvas id="canvas_responsavel" width="800" height="160" style="touch-action: none; background:#fff; border:1px solid #ddd; width:100%; height:auto;"></canvas>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-primary btn-lg w-100 mt-2" onclick="openSignatureModal()">Fazer Assinatura</button>
+                    </div>
+                    <input type="hidden" name="assinatura_responsavel" id="assinatura_responsavel" value="<?php echo htmlspecialchars($planilha['assinatura_responsavel'] ?? ''); ?>">
+                    <?php if (!empty($planilha['assinatura_responsavel'])): ?>
+                        <div class="mt-2 small text-muted">Assinatura existente (pode redesenhar para substituir)</div>
+                    <?php endif; ?>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Atualizar Dados -->
-    <div class="card mb-3">
         <div class="card-header">
             <i class="bi bi-arrow-repeat me-2"></i>
             Atualizar Dados
