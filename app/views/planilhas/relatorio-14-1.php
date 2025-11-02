@@ -171,7 +171,9 @@ ob_start();
                             $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input6', $numero_relatorio_auto ?? '');
                             $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input7', $casa_oracao_auto ?? '');
                             if (!empty($descricaoBem)) { $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input8', $descricaoBem); }
-                            if (!empty($local_data_auto)) { $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input16', $local_data_auto); }
+                            // Preencher input16 com o valor comum da planilha seguido do placeholder de data
+                            $local_data_with_placeholder = trim(($local_data_auto ?? '') . ' ' . '___/___/_____');
+                            $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input16', $local_data_with_placeholder);
 
                             // Opcional: injetar imagem de fundo se detectada
                             $htmlIsolado = $htmlPreenchido;
