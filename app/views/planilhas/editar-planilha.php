@@ -171,7 +171,7 @@ ob_start();
                             </div>
                         </div>
                         <div style="width:100%; height:calc(100% - 48px); display:flex; align-items:center; justify-content:center;">
-                            <canvas id="modal_canvas" style="background:#fff; border:1px solid #ddd; max-width:100%; max-height:100%;"></canvas>
+                            <canvas id="modal_canvas" style="background:#fff; border:1px solid #ddd; width:auto; height:auto; display:block;"></canvas>
                         </div>
                     </div>
                 </div>
@@ -273,14 +273,17 @@ document.addEventListener('DOMContentLoaded', function(){
 
     function setModalLandscape() {
         if (!modalCanvas) initModalCanvas();
-        const vw = window.innerWidth, vh = window.innerHeight;
-        let cssW = Math.max(800, Math.max(vw, vh) * 0.92);
-        let cssH = Math.max(360, Math.min(vw, vh) * 0.6);
-        if (cssW <= cssH) cssW = cssH + 200;
+        // Force a wide, long canvas using a fixed aspect ratio (5:1) to make
+        // signing with the finger easier and avoid square/distorção.
+        const vw = window.innerWidth;
+        // Limit the canvas width to viewport width minus small margin
+        const cssW = Math.max(600, Math.floor(vw * 0.95));
+        // Maintain a 5:1 width:height ratio (e.g., 800x160)
+        const cssH = Math.max(120, Math.floor(cssW / 5));
         modalCanvas.style.width = Math.floor(cssW) + 'px';
         modalCanvas.style.height = Math.floor(cssH) + 'px';
         resizeModalCanvas();
-        modalCtx.strokeStyle = '#000000';
+        try { modalCtx.strokeStyle = '#000000'; } catch(e){}
     }
 
     function setModalPortrait() {
