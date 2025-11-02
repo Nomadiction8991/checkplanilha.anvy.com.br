@@ -166,6 +166,7 @@ ob_start();
                                 <button type="button" class="btn btn-warning btn-sm" onclick="clearModalSignature()">Limpar</button>
                             </div>
                             <div>
+                                <button type="button" class="btn btn-secondary btn-sm me-1" onclick="expandModalWidth()">Expandir</button>
                                 <button type="button" class="btn btn-success btn-sm" onclick="applyModalSignature()">Salvar</button>
                                 <button type="button" class="btn btn-danger btn-sm" onclick="closeSignatureModal()">Fechar</button>
                             </div>
@@ -242,34 +243,28 @@ document.addEventListener('DOMContentLoaded', function(){
         modalCtx.lineWidth = 2; modalCtx.lineCap = 'round';
         try{ modalCtx.fillStyle = '#ffffff'; modalCtx.fillRect(0,0,cssW,cssH); } catch(e){}
     }
-    // Manual drawing handlers (fallback when SignaturePad is not present)
-    let manualListenersEnabled = false;
-    function enableManualDrawing(){
-        if(!modalCanvas || manualListenersEnabled) return;
-        modalCanvas.addEventListener('mousedown', modalStart);
-        modalCanvas.addEventListener('touchstart', modalStart, { passive: false });
-        modalCanvas.addEventListener('mousemove', modalMove);
-        modalCanvas.addEventListener('touchmove', modalMove, { passive: false });
-        modalCanvas.addEventListener('mouseup', modalEnd);
-        modalCanvas.addEventListener('mouseout', modalEnd);
-        modalCanvas.addEventListener('touchend', modalEnd);
-        manualListenersEnabled = true;
+    // Pointer-based drawing handlers (preferred) as fallback when SignaturePad is not present
+    let pointerListenersEnabled = false;
+    function enablePointerDrawing(){
+        if (!modalCanvas || pointerListenersEnabled) return;
+        modalCanvas.addEventListener('pointerdown', modalPointerDown);
+        modalCanvas.addEventListener('pointermove', modalPointerMove);
+        modalCanvas.addEventListener('pointerup', modalPointerUp);
+        modalCanvas.addEventListener('pointercancel', modalPointerUp);
+        pointerListenersEnabled = true;
     }
-    function disableManualDrawing(){
-        if(!modalCanvas || !manualListenersEnabled) return;
-        modalCanvas.removeEventListener('mousedown', modalStart);
-        modalCanvas.removeEventListener('touchstart', modalStart);
-        modalCanvas.removeEventListener('mousemove', modalMove);
-        modalCanvas.removeEventListener('touchmove', modalMove);
-        modalCanvas.removeEventListener('mouseup', modalEnd);
-        modalCanvas.removeEventListener('mouseout', modalEnd);
-        modalCanvas.removeEventListener('touchend', modalEnd);
-        manualListenersEnabled = false;
+    function disablePointerDrawing(){
+        if (!modalCanvas || !pointerListenersEnabled) return;
+        modalCanvas.removeEventListener('pointerdown', modalPointerDown);
+        modalCanvas.removeEventListener('pointermove', modalPointerMove);
+        modalCanvas.removeEventListener('pointerup', modalPointerUp);
+        modalCanvas.removeEventListener('pointercancel', modalPointerUp);
+        pointerListenersEnabled = false;
     }
-    function getModalCoords(e){ const rect = modalCanvas.getBoundingClientRect(); const clientX = (e.touches?e.touches[0].clientX:e.clientX); const clientY = (e.touches?e.touches[0].clientY:e.clientY); return { x: clientX - rect.left, y: clientY - rect.top }; }
-    function modalStart(e){ try{ if (e && e.preventDefault) e.preventDefault(); }catch(err){} modalDrawing=true; const p=getModalCoords(e); modalLastX=p.x; modalLastY=p.y; try{ modalCtx.beginPath(); modalCtx.moveTo(modalLastX, modalLastY); }catch(err){} }
-    function modalMove(e){ if(!modalDrawing) return; e.preventDefault(); const p=getModalCoords(e); modalCtx.beginPath(); modalCtx.moveTo(modalLastX, modalLastY); modalCtx.lineTo(p.x, p.y); modalCtx.stroke(); modalLastX=p.x; modalLastY=p.y; }
-    function modalEnd(){ modalDrawing=false; }
+    function getModalCoords(e){ const rect = modalCanvas.getBoundingClientRect(); const clientX = (e.clientX !== undefined ? e.clientX : (e.touches ? e.touches[0].clientX : 0)); const clientY = (e.clientY !== undefined ? e.clientY : (e.touches ? e.touches[0].clientY : 0)); return { x: clientX - rect.left, y: clientY - rect.top }; }
+    function modalPointerDown(e){ try{ if (e && e.preventDefault) e.preventDefault(); }catch(err){} if (!modalCanvas) return; try{ modalCanvas.setPointerCapture(e.pointerId); }catch(err){} modalDrawing=true; const p=getModalCoords(e); modalLastX=p.x; modalLastY=p.y; try{ modalCtx.beginPath(); modalCtx.moveTo(modalLastX, modalLastY); }catch(err){} }
+    function modalPointerMove(e){ if(!modalDrawing) return; try{ if (e && e.preventDefault) e.preventDefault(); }catch(err){} const p=getModalCoords(e); try{ modalCtx.beginPath(); modalCtx.moveTo(modalLastX, modalLastY); modalCtx.lineTo(p.x, p.y); modalCtx.stroke(); }catch(err){} modalLastX=p.x; modalLastY=p.y; }
+    function modalPointerUp(e){ try{ if (modalCanvas && e && e.pointerId) modalCanvas.releasePointerCapture(e.pointerId); }catch(err){} modalDrawing=false; }
 
     function setModalLandscape() {
         if (!modalCanvas) initModalCanvas();
@@ -286,6 +281,20 @@ document.addEventListener('DOMContentLoaded', function(){
         modalCanvas.style.height = Math.floor(cssH) + 'px';
         resizeModalCanvas();
         try { modalCtx.strokeStyle = '#000000'; } catch(e){}
+    }
+
+    // Allow user to expand modal width for longer signature area
+    function expandModalWidth(step = 400){
+        if (!modalCanvas) initModalCanvas();
+        const parent = modalCanvas.parentElement || document.getElementById('signatureModal');
+        const rect = modalCanvas.getBoundingClientRect();
+        const currentW = Math.max(parseInt(modalCanvas.style.width) || 0, Math.floor(rect.width));
+        const newW = Math.min(3000, currentW + step);
+        const newH = Math.max(90, Math.floor(newW / 8));
+        modalCanvas.style.width = newW + 'px';
+        modalCanvas.style.height = newH + 'px';
+        resizeModalCanvas();
+        try{ if (parent && parent.scrollLeft !== undefined) parent.scrollLeft = Math.max(0, (newW - parent.clientWidth)/2); } catch(e){}
     }
 
     function setModalPortrait() {
@@ -307,10 +316,10 @@ document.addEventListener('DOMContentLoaded', function(){
         if (!modalCanvas) initModalCanvas();
         if (!keepExisting) { try { modalCtx.clearRect(0,0,modalCanvas.width, modalCanvas.height); } catch(e){} }
         if (typeof SignaturePad !== 'undefined'){
-            disableManualDrawing();
+            disablePointerDrawing();
             signaturePad = new SignaturePad(modalCanvas, { backgroundColor: 'rgb(255,255,255)', penColor: 'black' });
             if (!keepExisting) signaturePad.clear();
-        } else { signaturePad = null; enableManualDrawing(); }
+        } else { signaturePad = null; enablePointerDrawing(); }
     }
 
     // No-op: removed automatic fullscreen/orientation lock. Users may rotate their
