@@ -207,33 +207,41 @@ function initSignature(canvasId) {
     let drawing = false;
     let lastX = 0, lastY = 0;
 
+    // Map client coordinates to canvas coordinates (handles CSS scaling)
+    function getCoords(e, element) {
+        const rect = element.getBoundingClientRect();
+        const clientX = (e.touches ? e.touches[0].clientX : e.clientX);
+        const clientY = (e.touches ? e.touches[0].clientY : e.clientY);
+        const scaleX = element.width / rect.width;
+        const scaleY = element.height / rect.height;
+        const x = (clientX - rect.left) * scaleX;
+        const y = (clientY - rect.top) * scaleY;
+        return { x, y };
+    }
+
     function start(e) {
         drawing = true;
-        const rect = canvas.getBoundingClientRect();
-        const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
-        const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
-        lastX = x; lastY = y;
+        const p = getCoords(e, canvas);
+        lastX = p.x; lastY = p.y;
     }
 
     function move(e) {
         if (!drawing) return;
         e.preventDefault();
-        const rect = canvas.getBoundingClientRect();
-        const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
-        const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+        const p = getCoords(e, canvas);
         ctx.beginPath();
         ctx.moveTo(lastX, lastY);
-        ctx.lineTo(x, y);
+        ctx.lineTo(p.x, p.y);
         ctx.stroke();
-        lastX = x; lastY = y;
+        lastX = p.x; lastY = p.y;
     }
 
     function end() { drawing = false; }
 
     canvas.addEventListener('mousedown', start);
-    canvas.addEventListener('touchstart', start);
+    canvas.addEventListener('touchstart', start, { passive: false });
     canvas.addEventListener('mousemove', move);
-    canvas.addEventListener('touchmove', move);
+    canvas.addEventListener('touchmove', move, { passive: false });
     canvas.addEventListener('mouseup', end);
     canvas.addEventListener('mouseout', end);
     canvas.addEventListener('touchend', end);
@@ -273,9 +281,9 @@ document.addEventListener('DOMContentLoaded', function(){
         modalCtx = modalCanvas.getContext('2d');
         resizeModalCanvas();
         modalCanvas.addEventListener('mousedown', modalStart);
-        modalCanvas.addEventListener('touchstart', modalStart);
+        modalCanvas.addEventListener('touchstart', modalStart, { passive: false });
         modalCanvas.addEventListener('mousemove', modalMove);
-        modalCanvas.addEventListener('touchmove', modalMove);
+        modalCanvas.addEventListener('touchmove', modalMove, { passive: false });
         modalCanvas.addEventListener('mouseup', modalEnd);
         modalCanvas.addEventListener('mouseout', modalEnd);
         modalCanvas.addEventListener('touchend', modalEnd);
@@ -289,24 +297,29 @@ document.addEventListener('DOMContentLoaded', function(){
         modalCanvas.width = w;
         modalCanvas.height = h;
     }
+    function getModalCoords(e) {
+        const rect = modalCanvas.getBoundingClientRect();
+        const clientX = (e.touches ? e.touches[0].clientX : e.clientX);
+        const clientY = (e.touches ? e.touches[0].clientY : e.clientY);
+        const scaleX = modalCanvas.width / rect.width;
+        const scaleY = modalCanvas.height / rect.height;
+        return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+    }
+
     function modalStart(e){
         modalDrawing = true;
-        const rect = modalCanvas.getBoundingClientRect();
-        const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
-        const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
-        modalLastX = x; modalLastY = y;
+        const p = getModalCoords(e);
+        modalLastX = p.x; modalLastY = p.y;
     }
     function modalMove(e){
         if (!modalDrawing) return;
         e.preventDefault();
-        const rect = modalCanvas.getBoundingClientRect();
-        const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
-        const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+        const p = getModalCoords(e);
         modalCtx.beginPath();
         modalCtx.moveTo(modalLastX, modalLastY);
-        modalCtx.lineTo(x, y);
+        modalCtx.lineTo(p.x, p.y);
         modalCtx.stroke();
-        modalLastX = x; modalLastY = y;
+        modalLastX = p.x; modalLastY = p.y;
     }
     function modalEnd(){ modalDrawing=false; }
 
@@ -368,6 +381,9 @@ document.addEventListener('DOMContentLoaded', function(){
             alert('Por favor preencha Nome do Responsável, Estado e Cidade (campos obrigatórios).');
             return false;
         }
+        // garantir que administracao seja gravada como "MT - Cidade"
+        const adminField = document.getElementById('administracao');
+        if (cidade && adminField.value.indexOf(' - ') === -1) { adminField.value = cidade; }
         const dataResp = document.getElementById('canvas_responsavel').toDataURL('image/png');
         function isCanvasBlank(c) {
             const blank = document.createElement('canvas');
@@ -386,18 +402,13 @@ document.addEventListener('DOMContentLoaded', function(){
         try{
             const res = await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados');
             const estados = await res.json();
-            estados.sort((a,b)=>a.nome.localeCompare(b.nome));
+            // encontrar MT apenas
+            const mt = estados.find(s => s.sigla === 'MT');
+            if(!mt){ sel.innerHTML = '<option value="">MT não encontrado</option>'; return; }
             sel.innerHTML = '<option value="">Selecione o estado</option>';
-            estados.forEach(st => {
-                const opt = document.createElement('option');
-                opt.value = st.sigla + '|' + st.id; // armazenar sigla|id
-                opt.text = st.nome + ' (' + st.sigla + ')';
-                sel.appendChild(opt);
-            });
+            const opt = document.createElement('option'); opt.value = mt.sigla + '|' + mt.id; opt.text = mt.nome + ' ('+mt.sigla+')'; sel.appendChild(opt);
             const pre = {$pre_administracao};
-            if (pre) {
-                for(const o of sel.options) if (o.value.startsWith(pre+'|') || o.value===pre) { o.selected=true; break; }
-            }
+            // seleção de cidade ocorrerá após carregamento de cidades
         } catch(err){
             sel.innerHTML = '<option value="">Erro ao carregar estados</option>';
             console.error(err);
@@ -412,10 +423,13 @@ document.addEventListener('DOMContentLoaded', function(){
             const cidades = await res.json();
             cidades.sort((a,b)=>a.nome.localeCompare(b.nome));
             cidadeSel.innerHTML = '<option value="">Selecione a cidade</option>';
+            // criar opções no formato 'MT - Cidade'
+            const adSel = document.getElementById('administracao');
+            const sigla = (adSel.value && adSel.value.indexOf('|')>-1) ? adSel.value.split('|')[0] : 'MT';
             cidades.forEach(ct => {
                 const opt = document.createElement('option');
-                opt.value = ct.nome;
-                opt.text = ct.nome;
+                opt.value = sigla + ' - ' + ct.nome;
+                opt.text = sigla + ' - ' + ct.nome;
                 cidadeSel.appendChild(opt);
             });
             cidadeSel.disabled = false;
@@ -441,7 +455,21 @@ document.addEventListener('DOMContentLoaded', function(){
         loadCidades(estadoId);
     });
 
-    loadEstados();
+    // inicialização com pré-seleção (se necessário)
+    (async function(){
+        await loadEstados();
+        const adminSel = document.getElementById('administracao');
+        if(adminSel.options.length>1){
+            const parts = adminSel.options[1].value.split('|');
+            const mtId = parts[1];
+            await loadCidades(mtId);
+            const preC = {$pre_cidade};
+            const preA = {$pre_administracao};
+            const citySel = document.getElementById('cidade');
+            if(preA){ for(const o of citySel.options) if(o.value===preA){ o.selected=true; break; } }
+            if(preC){ for(const o of citySel.options) if(o.value===preC){ o.selected=true; break; } }
+        }
+    })();
 });
 
 // helper to draw dataURL into canvas (used earlier)

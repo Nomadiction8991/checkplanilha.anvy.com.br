@@ -205,47 +205,142 @@ $contentHtml = ob_get_clean();
 
 // Script para captura de assinaturas e carregar assinaturas existentes
 // Reutiliza a mesma lógica do importar-planilha para modal, estados e cidades
-$script = file_get_contents(__DIR__ . '/importar-planilha.php');
-// Não usamos o conteúdo inteiro; em vez disso vamos injetar um script semelhante ao de importação
+// Pre-encode any server values used by the script to avoid parsing issues
+$pre_administracao = json_encode($planilha['administracao'] ?? '');
+$pre_cidade = json_encode($planilha['cidade'] ?? '');
+
 $script = <<<HTML
 <script>
-// copiar funções do importar-planilha
-function initSignature(canvasId) {
-    const canvas = document.getElementById(canvasId);
-    const ctx = canvas.getContext('2d');
-    ctx.lineWidth = 2; ctx.lineCap = 'round'; let drawing=false,lastX=0,lastY=0;
-    function start(e){drawing=true;const rect=canvas.getBoundingClientRect();const x=(e.touches?e.touches[0].clientX:e.clientX)-rect.left;const y=(e.touches?e.touches[0].clientY:e.clientY)-rect.top;lastX=x;lastY=y}
-    function move(e){if(!drawing) return; e.preventDefault(); const rect=canvas.getBoundingClientRect(); const x=(e.touches?e.touches[0].clientX:e.clientX)-rect.left; const y=(e.touches?e.touches[0].clientY:e.clientY)-rect.top; ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(x,y); ctx.stroke(); lastX=x; lastY=y}
-    function end(){drawing=false}
-    canvas.addEventListener('mousedown',start);canvas.addEventListener('touchstart',start);canvas.addEventListener('mousemove',move);canvas.addEventListener('touchmove',move);canvas.addEventListener('mouseup',end);canvas.addEventListener('mouseout',end);canvas.addEventListener('touchend',end);
-    return canvas;
-}
-function clearCanvas(id){const c=document.getElementById(id);const ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height); if(id==='canvas_responsavel') document.getElementById('assinatura_responsavel').value='';}
-function downloadCanvas(id){const c=document.getElementById(id);const a=document.createElement('a');a.href=c.toDataURL('image/png');a.download=id+'.png';a.click();}
-function drawImageOnCanvas(canvasId,dataUrl){if(!dataUrl) return; const c=document.getElementById(canvasId); const ctx=c.getContext('2d'); const img=new Image(); img.onload=function(){ctx.clearRect(0,0,c.width,c.height); const scale=Math.min(c.width/img.width,c.height/img.height); const w=img.width*scale, h=img.height*scale, x=(c.width-w)/2, y=(c.height-h)/2; ctx.drawImage(img,x,y,w,h);} ; img.src=dataUrl}
 document.addEventListener('DOMContentLoaded', function(){
+    // Signature canvas (small preview)
+    function initSignature(canvasId) {
+        const canvas = document.getElementById(canvasId);
+        const ctx = canvas.getContext('2d');
+        ctx.lineWidth = 2; ctx.lineCap = 'round';
+        let drawing=false, lastX=0, lastY=0;
+        function getCoords(e, el){ const rect=el.getBoundingClientRect(); const clientX = (e.touches?e.touches[0].clientX:e.clientX); const clientY = (e.touches?e.touches[0].clientY:e.clientY); const scaleX = el.width/rect.width; const scaleY = el.height/rect.height; return {x:(clientX-rect.left)*scaleX, y:(clientY-rect.top)*scaleY}; }
+        function start(e){ drawing=true; const p=getCoords(e,canvas); lastX=p.x; lastY=p.y; }
+        function move(e){ if(!drawing) return; e.preventDefault(); const p=getCoords(e,canvas); ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(p.x,p.y); ctx.stroke(); lastX=p.x; lastY=p.y; }
+        function end(){ drawing=false; }
+        canvas.addEventListener('mousedown', start);
+        canvas.addEventListener('touchstart', start, { passive: false });
+        canvas.addEventListener('mousemove', move);
+        canvas.addEventListener('touchmove', move, { passive: false });
+        canvas.addEventListener('mouseup', end);
+        canvas.addEventListener('mouseout', end);
+        canvas.addEventListener('touchend', end);
+        return canvas;
+    }
+
+    function clearCanvas(id){ const c=document.getElementById(id); const ctx=c.getContext('2d'); ctx.clearRect(0,0,c.width,c.height); if(id==='canvas_responsavel') document.getElementById('assinatura_responsavel').value=''; }
+    function downloadCanvas(id){ const c=document.getElementById(id); const a=document.createElement('a'); a.href=c.toDataURL('image/png'); a.download=id+'.png'; a.click(); }
+    function drawImageOnCanvas(canvasId,dataUrl){ if(!dataUrl) return; const c=document.getElementById(canvasId); const ctx=c.getContext('2d'); const img=new Image(); img.onload=function(){ ctx.clearRect(0,0,c.width,c.height); const scale=Math.min(c.width/img.width, c.height/img.height); const w=img.width*scale, h=img.height*scale, x=(c.width-w)/2, y=(c.height-h)/2; ctx.drawImage(img,x,y,w,h); }; img.src=dataUrl; }
+
+    // Initialize small canvas preview
     const cResp = initSignature('canvas_responsavel');
     const existingResp = document.getElementById('assinatura_responsavel').value;
     if(existingResp) drawImageOnCanvas('canvas_responsavel', existingResp);
-    // modal logic
+
+    // Modal full-screen canvas
     let modalCanvas, modalCtx, modalDrawing=false, modalLastX=0, modalLastY=0;
-    function initModalCanvas(){ modalCanvas = document.getElementById('modal_canvas'); modalCtx = modalCanvas.getContext('2d'); resizeModalCanvas(); modalCanvas.addEventListener('mousedown',modalStart); modalCanvas.addEventListener('touchstart',modalStart); modalCanvas.addEventListener('mousemove',modalMove); modalCanvas.addEventListener('touchmove',modalMove); modalCanvas.addEventListener('mouseup',modalEnd); modalCanvas.addEventListener('mouseout',modalEnd); modalCanvas.addEventListener('touchend',modalEnd); modalCtx.lineWidth=2; modalCtx.lineCap='round';}
     function resizeModalCanvas(){ if(!modalCanvas) return; const w=Math.max(800, window.innerWidth*0.92); const h=Math.max(360, window.innerHeight*0.72); modalCanvas.width=w; modalCanvas.height=h; }
-    function modalStart(e){ modalDrawing=true; const rect=modalCanvas.getBoundingClientRect(); const x=(e.touches?e.touches[0].clientX:e.clientX)-rect.left; const y=(e.touches?e.touches[0].clientY:e.clientY)-rect.top; modalLastX=x; modalLastY=y; }
-    function modalMove(e){ if(!modalDrawing) return; e.preventDefault(); const rect=modalCanvas.getBoundingClientRect(); const x=(e.touches?e.touches[0].clientX:e.clientX)-rect.left; const y=(e.touches?e.touches[0].clientY:e.clientY)-rect.top; modalCtx.beginPath(); modalCtx.moveTo(modalLastX,modalLastY); modalCtx.lineTo(x,y); modalCtx.stroke(); modalLastX=x; modalLastY=y; }
+    function initModalCanvas(){ modalCanvas = document.getElementById('modal_canvas'); modalCtx = modalCanvas.getContext('2d'); resizeModalCanvas(); modalCanvas.addEventListener('mousedown', modalStart); modalCanvas.addEventListener('touchstart', modalStart, { passive: false }); modalCanvas.addEventListener('mousemove', modalMove); modalCanvas.addEventListener('touchmove', modalMove, { passive: false }); modalCanvas.addEventListener('mouseup', modalEnd); modalCanvas.addEventListener('mouseout', modalEnd); modalCanvas.addEventListener('touchend', modalEnd); modalCtx.lineWidth = 2; modalCtx.lineCap = 'round'; }
+    function getModalCoords(e){ const rect = modalCanvas.getBoundingClientRect(); const clientX = (e.touches?e.touches[0].clientX:e.clientX); const clientY = (e.touches?e.touches[0].clientY:e.clientY); const scaleX = modalCanvas.width / rect.width; const scaleY = modalCanvas.height / rect.height; return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY }; }
+    function modalStart(e){ modalDrawing=true; const p=getModalCoords(e); modalLastX=p.x; modalLastY=p.y; }
+    function modalMove(e){ if(!modalDrawing) return; e.preventDefault(); const p=getModalCoords(e); modalCtx.beginPath(); modalCtx.moveTo(modalLastX, modalLastY); modalCtx.lineTo(p.x, p.y); modalCtx.stroke(); modalLastX=p.x; modalLastY=p.y; }
     function modalEnd(){ modalDrawing=false; }
-    window.openSignatureModal = function(){ document.getElementById('signatureModal').style.display='block'; if(!modalCanvas) initModalCanvas(); resizeModalCanvas(); const preview=document.getElementById('canvas_responsavel'); const data=preview.toDataURL('image/png'); const img=new Image(); img.onload=function(){ modalCtx.clearRect(0,0,modalCanvas.width, modalCanvas.height); const scale=Math.min(modalCanvas.width/img.width, modalCanvas.height/img.height); const w=img.width*scale, h=img.height*scale, x=(modalCanvas.width-w)/2, y=(modalCanvas.height-h)/2; modalCtx.drawImage(img,x,y,w,h);} ; img.src=data };
+
+    window.openSignatureModal = function(){ document.getElementById('signatureModal').style.display='block'; if(!modalCanvas) initModalCanvas(); resizeModalCanvas(); const preview=document.getElementById('canvas_responsavel'); const data=preview.toDataURL('image/png'); const img=new Image(); img.onload=function(){ modalCtx.clearRect(0,0,modalCanvas.width, modalCanvas.height); const scale=Math.min(modalCanvas.width/img.width, modalCanvas.height/img.height); const w=img.width*scale, h=img.height*scale, x=(modalCanvas.width-w)/2, y=(modalCanvas.height-h)/2; modalCtx.drawImage(img,x,y,w,h); }; img.src=data; };
     window.closeSignatureModal = function(){ document.getElementById('signatureModal').style.display='none'; };
-    window.applyModalSignature = function(){ const data = modalCanvas.toDataURL('image/png'); const preview=document.getElementById('canvas_responsavel'); const pCtx=preview.getContext('2d'); const img=new Image(); img.onload=function(){ pCtx.clearRect(0,0,preview.width,preview.height); const scale=Math.min(preview.width/img.width, preview.height/img.height); const w=img.width*scale, h=img.height*scale, x=(preview.width-w)/2, y=(preview.height-h)/2; pCtx.drawImage(img,x,y,w,h); document.getElementById('assinatura_responsavel').value=data; closeSignatureModal(); } ; img.src=data };
+    window.applyModalSignature = function(){ const data = modalCanvas.toDataURL('image/png'); const preview=document.getElementById('canvas_responsavel'); const pCtx=preview.getContext('2d'); const img=new Image(); img.onload=function(){ pCtx.clearRect(0,0,preview.width,preview.height); const scale=Math.min(preview.width/img.width, preview.height/img.height); const w=img.width*scale, h=img.height*scale, x=(preview.width-w)/2, y=(preview.height-h)/2; pCtx.drawImage(img,x,y,w,h); document.getElementById('assinatura_responsavel').value=data; closeSignatureModal(); }; img.src=data; };
     window.toggleRotateModal = function(){ if(!modalCanvas) return; const temp = modalCanvas.width; modalCanvas.width = modalCanvas.height; modalCanvas.height = temp; };
-    // submit validation and serialization
+
+    // Estados / Cidades (popula cidades de MT e armazena valores no formato "MT - Cidade")
+    const preAdministracao = $pre_administracao;
+    const preCidade = $pre_cidade;
+
+    async function loadEstados(){
+        const sel = document.getElementById('administracao');
+        sel.innerHTML = '<option value="">Carregando estados...</option>';
+        try{
+            const res = await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados');
+            const estados = await res.json();
+            // encontrar MT
+            const mt = estados.find(s => s.sigla === 'MT');
+            if(!mt){ sel.innerHTML='<option value="">MT não encontrado</option>'; return; }
+            sel.innerHTML = '<option value="">Selecione o estado</option>';
+            const opt = document.createElement('option'); opt.value = mt.sigla+'|'+mt.id; opt.text = mt.nome + ' ('+mt.sigla+')'; sel.appendChild(opt);
+            // se havia valor pré-existente que contenha MT - Cidade, tentaremos selecionar a cidade depois
+            if(preAdministracao){
+                // nada a fazer aqui, a seleção real será feita após carregar cidades
+            }
+        }catch(err){ sel.innerHTML='<option value="">Erro ao carregar estados</option>'; console.error(err); }
+    }
+
+    async function loadCidades(estadoId){
+        const cidadeSel = document.getElementById('cidade');
+        cidadeSel.innerHTML = '<option value="">Carregando cidades...</option>';
+        cidadeSel.disabled = true;
+        try{
+            const res = await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados/'+estadoId+'/municipios');
+            const cidades = await res.json();
+            cidades.sort((a,b)=>a.nome.localeCompare(b.nome));
+            cidadeSel.innerHTML = '<option value="">Selecione a cidade</option>';
+            // extrair sigla do estado selecionado
+            const adSel = document.getElementById('administracao');
+            const sigla = (adSel.value && adSel.value.indexOf('|')>-1) ? adSel.value.split('|')[0] : 'MT';
+            cidades.forEach(ct=>{
+                const opt = document.createElement('option');
+                opt.value = sigla + ' - ' + ct.nome;
+                opt.text = sigla + ' - ' + ct.nome;
+                cidadeSel.appendChild(opt);
+            });
+            cidadeSel.disabled = false;
+            if(preCidade){
+                for(const o of cidadeSel.options) if(o.value===preCidade){ o.selected=true; break; }
+            }
+            // se foi pré informada administracao no formato "MT - Cidade", selecionar a cidade correspondente
+            if(preAdministracao && preAdministracao.includes(' - ')){
+                for(const o of cidadeSel.options) if(o.value===preAdministracao){ o.selected=true; break; }
+            }
+        }catch(err){ cidadeSel.innerHTML='<option value="">Erro ao carregar cidades</option>'; console.error(err); }
+    }
+
+    document.getElementById('administracao').addEventListener('change', function(){ const val=this.value; if(!val){ document.getElementById('cidade').innerHTML='<option value="">Selecione o estado primeiro</option>'; document.getElementById('cidade').disabled=true; return; } const parts = val.split('|'); const estadoId = parts[1]; loadCidades(estadoId); });
+    // quando a cidade muda, também ajustamos o valor do campo administracao para o mesmo formato "MT - Cidade"
+    document.getElementById('cidade').addEventListener('change', function(){ const cv = this.value; if(cv){ const admin = document.getElementById('administracao'); admin.value = admin.value; /* keep selection */ } });
+
+    // Antes de submeter, garantir que administracao e cidade estejam no formato "MT - Cidade"
     const form = document.querySelector('form');
-    form.addEventListener('submit', function(e){ const nome = document.getElementById('nome_responsavel').value.trim(); const estado = document.getElementById('administracao').value; const cidade = document.getElementById('cidade').value; if(!nome||!estado||!cidade){ e.preventDefault(); alert('Por favor preencha Nome do Responsável, Estado e Cidade (campos obrigatórios).'); return false;} const dataResp = document.getElementById('canvas_responsavel').toDataURL('image/png'); function isCanvasBlank(c){ const blank=document.createElement('canvas'); blank.width=c.width; blank.height=c.height; return c.toDataURL()===blank.toDataURL(); } if(!isCanvasBlank(document.getElementById('canvas_responsavel'))){ document.getElementById('assinatura_responsavel').value = dataResp; } });
-    // estados/cidades
-    async function loadEstados(){ const sel = document.getElementById('administracao'); sel.innerHTML='<option value="">Carregando estados...</option>'; try{ const res = await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados'); const estados = await res.json(); estados.sort((a,b)=>a.nome.localeCompare(b.nome)); sel.innerHTML='<option value="">Selecione o estado</option>'; estados.forEach(st=>{ const opt=document.createElement('option'); opt.value=st.sigla+'|'+st.id; opt.text=st.nome+' ('+st.sigla+')'; sel.appendChild(opt); }); const pre = '<?php echo addslashes($planilha['administracao'] ?? ''); ?>'; if(pre){ for(const o of sel.options) if(o.value.startsWith(pre+'|')||o.value===pre){ o.selected=true; break;} } }catch(err){ sel.innerHTML='<option value="">Erro ao carregar estados</option>'; console.error(err);} }
-    async function loadCidades(estadoId){ const cidadeSel=document.getElementById('cidade'); cidadeSel.innerHTML='<option value="">Carregando cidades...</option>'; cidadeSel.disabled=true; try{ const res=await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados/'+estadoId+'/municipios'); const cidades=await res.json(); cidades.sort((a,b)=>a.nome.localeCompare(b.nome)); cidadeSel.innerHTML='<option value="">Selecione a cidade</option>'; cidades.forEach(ct=>{ const opt=document.createElement('option'); opt.value=ct.nome; opt.text=ct.nome; cidadeSel.appendChild(opt); }); cidadeSel.disabled=false; const pre = '<?php echo addslashes($planilha['cidade'] ?? ''); ?>'; if(pre){ for(const o of cidadeSel.options) if(o.value===pre){ o.selected=true; break;} } }catch(err){ cidadeSel.innerHTML='<option value="">Erro ao carregar cidades</option>'; console.error(err);} }
-    document.getElementById('administracao').addEventListener('change', function(){ const val=this.value; if(!val){ document.getElementById('cidade').innerHTML='<option value="">Selecione o estado primeiro</option>'; document.getElementById('cidade').disabled=true; return;} const parts=val.split('|'); const estadoId=parts[1]; loadCidades(estadoId); });
-    loadEstados();
+    form.addEventListener('submit', function(e){ const nome = document.getElementById('nome_responsavel').value.trim(); const estado = document.getElementById('administracao').value; const cidadeVal = document.getElementById('cidade').value; if(!nome || !estado || !cidadeVal){ e.preventDefault(); alert('Por favor preencha Nome do Responsável, Estado e Cidade (campos obrigatórios).'); return false; }
+        // garantir que administracao seja gravada como "MT - Cidade"
+        const adminField = document.getElementById('administracao');
+        if(cidadeVal && adminField.value.indexOf(' - ')===-1){ adminField.value = cidadeVal; }
+        // assinatura
+        function isCanvasBlank(c){ const blank=document.createElement('canvas'); blank.width=c.width; blank.height=c.height; return c.toDataURL()===blank.toDataURL(); }
+        if(!isCanvasBlank(document.getElementById('canvas_responsavel'))){ document.getElementById('assinatura_responsavel').value = document.getElementById('canvas_responsavel').toDataURL('image/png'); }
+    });
+
+    // inicialização: carregar estados, depois cidades e aplicar seleção pré-existente se houver
+    (async function(){
+        await loadEstados();
+        const adminSel = document.getElementById('administracao');
+        // encontrar opção MT
+        if(adminSel.options.length>1){
+            const parts = adminSel.options[1].value.split('|');
+            const mtId = parts[1];
+            await loadCidades(mtId);
+            // tentar selecionar valores pré-carregados
+            if(preAdministracao){
+                const citySel = document.getElementById('cidade');
+                for(const o of citySel.options) if(o.value===preAdministracao){ o.selected=true; break; }
+            }
+            if(preCidade){
+                const citySel = document.getElementById('cidade');
+                for(const o of citySel.options) if(o.value===preCidade){ o.selected=true; break; }
+            }
+        }
+    })();
 });
 </script>
 HTML;
