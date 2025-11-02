@@ -152,9 +152,8 @@ ob_start();
                             </div>
                         </div>
                         <div style="white-space:nowrap;">
-                            <div class="btn-group-vertical">
-                                <button type="button" class="btn btn-secondary btn-sm" onclick="clearCanvas('canvas_responsavel')">Limpar</button>
-                                <button type="button" class="btn btn-primary btn-sm" onclick="openSignatureModal()">Fazer Assinatura</button>
+                            <div style="margin-top:8px;">
+                                <button type="button" class="btn btn-primary btn-sm w-100" onclick="openSignatureModal()">Fazer Assinatura</button>
                             </div>
                         </div>
                     </div>
@@ -169,13 +168,13 @@ ob_start();
         <div style="position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
             <div style="background:#fff; width:100%; height:100%; padding:12px; box-sizing:border-box; position:relative;">
                 <div class="d-flex justify-content-between mb-2">
-                    <div>
-                        <button type="button" class="btn btn-secondary btn-sm" onclick="toggleRotateModal()" id="btnRotate">Girar</button>
-                    </div>
-                    <div>
-                        <button type="button" class="btn btn-success btn-sm" onclick="applyModalSignature()">Salvar</button>
-                        <button type="button" class="btn btn-danger btn-sm" onclick="closeSignatureModal()">Fechar</button>
-                    </div>
+                        <div>
+                            <button type="button" class="btn btn-warning btn-sm" onclick="clearModalSignature()">Limpar</button>
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-success btn-sm" onclick="applyModalSignature()">Salvar</button>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="closeSignatureModal()">Fechar</button>
+                        </div>
                 </div>
                 <div style="width:100%; height:calc(100% - 48px); display:flex; align-items:center; justify-content:center;">
                     <canvas id="modal_canvas" style="background:#fff; border:1px solid #ddd; max-width:100%; max-height:100%;"></canvas>
@@ -236,6 +235,15 @@ document.addEventListener('DOMContentLoaded', function(){
         modalCanvas = document.getElementById('modal_canvas');
         modalCtx = modalCanvas.getContext('2d');
         resizeModalCanvas();
+        // Do not attach manual pointer listeners here. We will enable them only
+        // when SignaturePad is not available to avoid duplicate drawing handlers.
+        modalCtx.lineWidth = 2;
+        modalCtx.lineCap = 'round';
+    }
+    // Manual drawing handlers (fallback when SignaturePad is not present)
+    let manualListenersEnabled = false;
+    function enableManualDrawing(){
+        if(!modalCanvas || manualListenersEnabled) return;
         modalCanvas.addEventListener('mousedown', modalStart);
         modalCanvas.addEventListener('touchstart', modalStart, { passive: false });
         modalCanvas.addEventListener('mousemove', modalMove);
@@ -243,8 +251,18 @@ document.addEventListener('DOMContentLoaded', function(){
         modalCanvas.addEventListener('mouseup', modalEnd);
         modalCanvas.addEventListener('mouseout', modalEnd);
         modalCanvas.addEventListener('touchend', modalEnd);
-        modalCtx.lineWidth = 2;
-        modalCtx.lineCap = 'round';
+        manualListenersEnabled = true;
+    }
+    function disableManualDrawing(){
+        if(!modalCanvas || !manualListenersEnabled) return;
+        modalCanvas.removeEventListener('mousedown', modalStart);
+        modalCanvas.removeEventListener('touchstart', modalStart);
+        modalCanvas.removeEventListener('mousemove', modalMove);
+        modalCanvas.removeEventListener('touchmove', modalMove);
+        modalCanvas.removeEventListener('mouseup', modalEnd);
+        modalCanvas.removeEventListener('mouseout', modalEnd);
+        modalCanvas.removeEventListener('touchend', modalEnd);
+        manualListenersEnabled = false;
     }
     function resizeModalCanvas() {
         if (!modalCanvas) return;
@@ -318,15 +336,22 @@ document.addEventListener('DOMContentLoaded', function(){
     // SignaturePad integration
     let signaturePad = null;
 
-    function startSignaturePad(){
+    function startSignaturePad(keepExisting=false){
         if (!modalCanvas) initModalCanvas();
-        // clear canvas and init SignaturePad
-        try { modalCtx.clearRect(0,0,modalCanvas.width, modalCanvas.height); } catch(e){}
+        // clear canvas only when we're starting fresh
+        if (!keepExisting) {
+            try { modalCtx.clearRect(0,0,modalCanvas.width, modalCanvas.height); } catch(e){}
+        }
         if (typeof SignaturePad !== 'undefined') {
+            // disable manual handlers to avoid double-draw
+            disableManualDrawing();
             signaturePad = new SignaturePad(modalCanvas, { backgroundColor: 'rgb(255,255,255)', penColor: 'black' });
-            signaturePad.clear();
+            // do not clear here if caller wants to keep existing drawing
+            if (!keepExisting) signaturePad.clear();
         } else {
             signaturePad = null;
+            // enable manual fallback listeners
+            enableManualDrawing();
         }
     }
 
@@ -345,14 +370,32 @@ document.addEventListener('DOMContentLoaded', function(){
         document.getElementById('signatureModal').style.display = 'block';
         setModalLandscape();
         // carregar SignaturePad se necessário
+        const existing = document.getElementById('assinatura_responsavel').value;
         if (typeof SignaturePad === 'undefined'){
             const s = document.createElement('script');
             s.src = 'https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js';
-            s.onload = function(){ startSignaturePad(); enterFullscreenAndLock(); };
-            s.onerror = function(){ startSignaturePad(); enterFullscreenAndLock(); };
+            s.onload = function(){
+                // start and keep existing image if any
+                startSignaturePad(!!existing);
+                // if there is existing signature, draw it into modal so user can edit/overwrite
+                if (existing) {
+                    const img = new Image();
+                    img.onload = function(){
+                        try { modalCtx.drawImage(img, 0, 0, modalCanvas.width, modalCanvas.height); } catch(e){}
+                    };
+                    img.src = existing;
+                }
+                enterFullscreenAndLock();
+            };
+            s.onerror = function(){ startSignaturePad(!!existing); enterFullscreenAndLock(); };
             document.head.appendChild(s);
         } else {
-            startSignaturePad();
+            startSignaturePad(!!existing);
+            if (existing) {
+                const img = new Image();
+                img.onload = function(){ try { modalCtx.drawImage(img, 0, 0, modalCanvas.width, modalCanvas.height); } catch(e){} };
+                img.src = existing;
+            }
             enterFullscreenAndLock();
         }
     };
@@ -397,20 +440,13 @@ document.addEventListener('DOMContentLoaded', function(){
             closeSignatureModal();
         }
     };
-
-    window.toggleRotateModal = function(){
-        if (!modalCanvas) initModalCanvas();
-        // try to use Screen Orientation API
-        if (screen && screen.orientation && screen.orientation.lock) {
-            const current = (screen.orientation.type || '') + '';
-            const target = current.includes('landscape') ? 'portrait' : 'landscape';
-            screen.orientation.lock(target).catch(()=>{
-                // fallback to resizing canvas
-                if (modalCanvas.width > modalCanvas.height) setModalPortrait(); else setModalLandscape();
-            });
-        } else {
-            if (modalCanvas.width > modalCanvas.height) setModalPortrait(); else setModalLandscape();
+    // Clear modal signature (button inside modal)
+    window.clearModalSignature = function(){
+        if (!modalCanvas) return;
+        if (signaturePad) {
+            signaturePad.clear();
         }
+        try { modalCtx.clearRect(0,0,modalCanvas.width, modalCanvas.height); } catch(e){}
     };
 
     // Antes do submit, serializar o preview canvas para o hidden input e validar campos obrigatórios
