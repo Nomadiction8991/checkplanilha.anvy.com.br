@@ -15,6 +15,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Novo campo: nome e assinatura do responsável (Administrador/Acessor)
     $nome_responsavel = trim($_POST['nome_responsavel'] ?? null);
     $assinatura_responsavel = $_POST['assinatura_responsavel'] ?? null; // data URL base64
+    // Administração (estado) e cidade (obrigatórios)
+    $administracao = trim($_POST['administracao'] ?? null); // formato SIGLA|ID
+    $cidade = trim($_POST['cidade'] ?? null);
     
     // Mapeamento simplificado
     $mapeamento = [
@@ -100,17 +103,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
+        // Validações adicionais (campos obrigatórios)
+        if (empty($nome_responsavel)) {
+            throw new Exception('O campo Nome do Responsável é obrigatório.');
+        }
+        if (empty($administracao)) {
+            throw new Exception('O campo Estado (Administração) é obrigatório.');
+        }
+        if (empty($cidade)) {
+            throw new Exception('O campo Cidade é obrigatório.');
+        }
+
         // Iniciar transação
         $conexao->beginTransaction();
 
     // Inserir a planilha na tabela planilhas com os valores obtidos do CSV
-    $sql_planilha = "INSERT INTO planilhas (comum, data_posicao, endereco, cnpj, nome_responsavel, assinatura_responsavel) VALUES (:comum, :data_posicao, :endereco, :cnpj, :nome_responsavel, :assinatura_responsavel)";
+    $sql_planilha = "INSERT INTO planilhas (comum, data_posicao, endereco, cnpj, nome_responsavel, administracao, cidade, assinatura_responsavel) VALUES (:comum, :data_posicao, :endereco, :cnpj, :nome_responsavel, :administracao, :cidade, :assinatura_responsavel)";
     $stmt_planilha = $conexao->prepare($sql_planilha);
     $stmt_planilha->bindValue(':comum', $valor_comum);
     $stmt_planilha->bindValue(':data_posicao', $data_mysql);
     $stmt_planilha->bindValue(':endereco', $valor_endereco);
     $stmt_planilha->bindValue(':cnpj', $cnpj_somente_numeros);
     $stmt_planilha->bindValue(':nome_responsavel', $nome_responsavel);
+    $stmt_planilha->bindValue(':administracao', $administracao);
+    $stmt_planilha->bindValue(':cidade', $cidade);
     $stmt_planilha->bindValue(':assinatura_responsavel', $assinatura_responsavel);
         $stmt_planilha->execute();
         $id_planilha = $conexao->lastInsertId();
