@@ -134,7 +134,11 @@ CREATE TABLE `planilhas` (
   `endereco` varchar(255) NOT NULL,
   `status` enum('Pendente','Em Execução','Concluído') NOT NULL DEFAULT 'Pendente',
   `data_posicao` date DEFAULT NULL,
-  `ativo` tinyint(1) NOT NULL DEFAULT '1'
+  `ativo` tinyint(1) NOT NULL DEFAULT '1',
+  `nome_responsavel` varchar(255) DEFAULT NULL,
+  `administracao` varchar(255) DEFAULT NULL,
+  `cidade` varchar(255) DEFAULT NULL,
+  `assinatura_responsavel` longtext DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
