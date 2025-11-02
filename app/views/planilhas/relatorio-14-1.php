@@ -91,6 +91,19 @@ if (!function_exists('r141_fillFieldById')) {
             return $replacedLabel;
         }
 
+        // 4) Fallback geral: se ainda não foi possível inserir, procurar a primeira
+        // ocorrência do texto bruto ($text) dentro do corpo (entre tags) e substituí-la
+        // por um <textarea id="..." readonly>valor</textarea> — apenas no srcdoc.
+        if ($text !== '') {
+            $p = preg_quote($text, '/');
+            // procurar o texto entre tags: > ...texto... <
+            $patternTextNode = '/(>\s*)(' . $p . ')(\s*<)/usU';
+            $replacedTextNode = preg_replace($patternTextNode, '$1<textarea id="' . $id . '" rows="2" readonly>' . $escaped . '</textarea>$3', $html, 1);
+            if ($replacedTextNode !== null && $replacedTextNode !== $html) {
+                return $replacedTextNode;
+            }
+        }
+
         // Não modificar o template se textarea/input não existir
         return $html;
     }
