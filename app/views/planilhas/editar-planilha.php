@@ -95,7 +95,7 @@ ob_start();
                         <canvas id="canvas_responsavel" width="800" height="160" style="touch-action: none; background:#fff; border:1px solid #ddd; width:100%; height:auto;"></canvas>
                     </div>
                     <div>
-                        <button type="button" class="btn btn-primary btn-lg w-100 mt-2" onclick="openSignatureModal()">Fazer Assinatura</button>
+                        <button type="button" class="btn btn-primary btn-lg w-100 mt-2" onclick="openSignaturePage()">Fazer Assinatura</button>
                     </div>
                     <input type="hidden" name="assinatura_responsavel" id="assinatura_responsavel" value="<?php echo htmlspecialchars($planilha['assinatura_responsavel'] ?? ''); ?>">
                     <?php if (!empty($planilha['assinatura_responsavel'])): ?>
@@ -329,20 +329,8 @@ document.addEventListener('DOMContentLoaded', function(){
     }
 
     window.openSignatureModal = function(){
-        document.getElementById('signatureModal').style.display='block';
-        setModalLandscape();
-        const existing = document.getElementById('assinatura_responsavel').value;
-        if (typeof SignaturePad === 'undefined'){
-            const s = document.createElement('script');
-            s.src = 'https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js';
-            s.onload = function(){
-                startSignaturePad(!!existing);
-                if (existing) { const img=new Image(); img.onload=function(){ try{ const dpr = window.devicePixelRatio || 1; modalCtx.drawImage(img, 0, 0, modalCanvas.width / dpr, modalCanvas.height / dpr); }catch(e){} }; img.src=existing; }
-                enterFullscreenAndLock();
-            };
-            s.onerror = function(){ startSignaturePad(!!existing); enterFullscreenAndLock(); };
-            document.head.appendChild(s);
-    } else { startSignaturePad(!!existing); if (existing) { const img=new Image(); img.onload=function(){ try{ const dpr = window.devicePixelRatio || 1; modalCtx.drawImage(img, 0, 0, modalCanvas.width / dpr, modalCanvas.height / dpr); }catch(e){} }; img.src=existing; } enterFullscreenAndLock(); }
+        // navigate to dedicated signature page
+        window.location.href = 'assinatura.php';
     };
 
     window.closeSignatureModal = async function(){
@@ -420,7 +408,17 @@ document.addEventListener('DOMContentLoaded', function(){
     });
 
     // inicialização: carregar estados, depois cidades e aplicar seleção pré-existente se houver
-    (async function(){ await loadEstados(); })();
+    (async function(){
+        await loadEstados();
+        try{
+            const tmp = localStorage.getItem('signature_temp');
+            if (tmp) {
+                drawImageOnCanvas('canvas_responsavel', tmp);
+                document.getElementById('assinatura_responsavel').value = tmp;
+                localStorage.removeItem('signature_temp');
+            }
+        }catch(e){}
+    })();
 });
 </script>
 HTML;

@@ -149,7 +149,7 @@ ob_start();
                         <canvas id="canvas_responsavel" width="800" height="160" style="touch-action: none; background:#fff; border:1px solid #ddd; width:100%; height:auto;"></canvas>
                     </div>
                     <div>
-                        <button type="button" class="btn btn-primary btn-lg w-100 mt-2" onclick="openSignatureModal()">Fazer Assinatura</button>
+                        <button type="button" class="btn btn-primary btn-lg w-100 mt-2" onclick="openSignaturePage()">Fazer Assinatura</button>
                     </div>
                     <input type="hidden" name="assinatura_responsavel" id="assinatura_responsavel">
                 </div>
@@ -384,54 +384,18 @@ document.addEventListener('DOMContentLoaded', function(){
     }
 
     // Abrir modal: em branco e em landscape; carregar SignaturePad via CDN se necessário
-    window.openSignatureModal = function(){
-        document.getElementById('signatureModal').style.display = 'block';
-        setModalLandscape();
-        // carregar SignaturePad se necessário
-        const existing = document.getElementById('assinatura_responsavel').value;
-        if (typeof SignaturePad === 'undefined'){
-            const s = document.createElement('script');
-            s.src = 'https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js';
-            s.onload = function(){
-                // start and keep existing image if any
-                startSignaturePad(!!existing);
-                // if there is existing signature, draw it into modal so user can edit/overwrite
-                    if (existing) {
-                    const img = new Image();
-                    img.onload = function(){
-                        try { 
-                            const dpr = window.devicePixelRatio || 1;
-                            // draw using CSS pixel dimensions (internal buffer is scaled)
-                            modalCtx.drawImage(img, 0, 0, modalCanvas.width / dpr, modalCanvas.height / dpr);
-                        } catch(e){}
-                    };
-                    img.src = existing;
-                }
-                enterFullscreenAndLock();
-            };
-            s.onerror = function(){ startSignaturePad(!!existing); enterFullscreenAndLock(); };
-            document.head.appendChild(s);
-        } else {
-            startSignaturePad(!!existing);
-            if (existing) {
-                const img = new Image();
-                img.onload = function(){ try { const dpr = window.devicePixelRatio || 1; modalCtx.drawImage(img, 0, 0, modalCanvas.width / dpr, modalCanvas.height / dpr); } catch(e){} };
-                img.src = existing;
-            }
-            enterFullscreenAndLock();
-        }
+    // Open dedicated signature page instead of modal. This will navigate to a
+    // full-page signature screen which stores the result in localStorage.
+    window.openSignaturePage = function(){
+        // navigate to signature page; when user saves, that page will call history.back()
+        // and this page will check localStorage.signature_temp on load to pick it up.
+        window.location.href = 'assinatura.php';
     };
 
     // fechar modal: sair do fullscreen e liberar lock se aplicável
+    // No longer used (modal removed for page flow) but keep a stub for compatibility.
     window.closeSignatureModal = async function(){
-        document.getElementById('signatureModal').style.display = 'none';
-        try{
-            if (document.fullscreenElement && document.exitFullscreen) await document.exitFullscreen();
-            if (screen && screen.orientation && screen.orientation.unlock) {
-                try{ screen.orientation.unlock(); } catch(e){}
-            }
-        }catch(err){ console.warn('exit fullscreen/orientation unlock failed', err); }
-        // optionally destroy signaturePad
+        try{ if (document.fullscreenElement && document.exitFullscreen) await document.exitFullscreen(); }catch(e){}
         if (signaturePad) { try{ signaturePad.off && signaturePad.off(); } catch(e){} signaturePad = null; }
     };
 
@@ -549,6 +513,16 @@ document.addEventListener('DOMContentLoaded', function(){
     // inicialização com pré-seleção (se necessário)
     (async function(){
         await loadEstados();
+        // Se vier da página de assinatura, pegar assinatura temporária do localStorage
+        try{
+            const tmp = localStorage.getItem('signature_temp');
+            if (tmp) {
+                // desenhar no preview e limpar a chave
+                drawImageOnCanvas('canvas_responsavel', tmp);
+                document.getElementById('assinatura_responsavel').value = tmp;
+                localStorage.removeItem('signature_temp');
+            }
+        }catch(e){}
     })();
 });
 
