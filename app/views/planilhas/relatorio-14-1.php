@@ -463,6 +463,15 @@ ob_start();
                             $srcdoc = '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
                                 . '<style>html,body{margin:0;padding:0;background:#fff;} ' . $styleInline . '</style>'
                                 . '</head><body>' . $htmlIsolado . '</body></html>';
+                            // Debug: gravar o srcdoc do primeiro item para inspeção local (reversível)
+                            if ((int)$index === 0) {
+                                // gravar debug dentro do workspace para fácil inspeção via editor
+                                $debugDir = __DIR__ . '/../../tmp';
+                                if (!is_dir($debugDir)) {
+                                    @mkdir($debugDir, 0755, true);
+                                }
+                                @file_put_contents($debugDir . '/relatorio14_debug_1.html', $srcdoc);
+                            }
                             // Gerar iframe de preview (Visualizar removido — iframe permanece como miniatura)
                             $title = 'Visualização da página ' . ($index + 1);
                             // adicionar allow-modals no sandbox para permitir que o iframe dispare dialogs/print em alguns navegadores
