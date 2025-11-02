@@ -337,7 +337,10 @@ if (!function_exists('r141_fillFieldById')) {
         // Sanitização forte: remover blocos <style>, tags HTML e limitar tamanho
         // Remover blocos <style>
         $text = preg_replace('/<style\b[^>]*>.*?<\/style>/is', '', $text);
-        // Remover qualquer tag HTML
+        // Decodificar entidades e remover tags de tabela (evitar que valores tragam <td>/<tr>)
+        $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $text = preg_replace('/<\/?(?:table|tr|td)[^>]*>/i', '', $text);
+        // Remover qualquer tag HTML restante
         $text = strip_tags($text);
         // Trim e limitar comprimento para evitar injeção excessiva
         $text = trim($text);
@@ -346,7 +349,7 @@ if (!function_exists('r141_fillFieldById')) {
             $text = mb_substr($text, 0, $maxLen, 'UTF-8');
         }
 
-        // Escape seguro para inserção em textarea ou valor de input
+        // Escape seguro para inserção em textarea
         $escaped = htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 
         // 1) Tenta preencher <textarea id="...">conteúdo</textarea>
@@ -356,24 +359,30 @@ if (!function_exists('r141_fillFieldById')) {
             return $replaced;
         }
 
-        // 2) Fallback para <input ... id="..." ...>
-        // Usar callback para não duplicar atributos value e preservar outros atributos existentes
-        $patternInput = '/<input\b[^>]*\bid=["\']' . preg_quote($id, '/') . '["\'][^>]*>/i';
-        $replaced = preg_replace_callback($patternInput, function($m) use ($escaped) {
-            $tag = $m[0];
-            // Se já existe atributo value, substituí-lo
-            if (preg_match('/\bvalue\s*=\s*(?:"[^"]*"|\'[^\']*\')/i', $tag)) {
-                return preg_replace('/\bvalue\s*=\s*(?:"[^"]*"|\'[^\']*\')/i', 'value="' . $escaped . '"', $tag, 1);
-            }
-            // Inserir value antes do fechamento do tag
-            // lidar com possíveis terminações '/>' ou '>'
-            if (substr($tag, -2) === '/>') {
-                return substr($tag, 0, -2) . ' value="' . $escaped . '"/>';
-            }
-            return substr($tag, 0, -1) . ' value="' . $escaped . '">';
+        // 2) Se não existe textarea, garantir que exista um <textarea id="..."> dentro do elemento que contém o id
+        // Ex.: <td id="input5">valor</td> -> <td> <textarea id="input5"></textarea> </td>
+        $patternContainerWithId = '/<([a-z0-9]+)\b([^>]*)\bid=["\']' . preg_quote($id, '/') . '["\']([^>]*)>(.*?)<\/\1>/is';
+        $htmlWithEnsured = preg_replace_callback($patternContainerWithId, function($m) use ($id) {
+            $tag = $m[1];
+            $attrsBefore = $m[2] ?? '';
+            $attrsAfter = $m[3] ?? '';
+            // recompor atributos sem o id (remover id do elemento externo)
+            $combined = trim($attrsBefore . ' ' . $attrsAfter);
+            // remover qualquer id="..." remanescente por segurança
+            $combined = preg_replace('/\b(id)\s*=\s*(?:"[^"]*"|\'[^\']*\')/i', '', $combined);
+            $combined = $combined ? ' ' . trim($combined) : '';
+            // inserir textarea com o id dentro do container
+            return '<' . $tag . $combined . '><textarea id="' . $id . '"></textarea></' . $tag . '>';
         }, $html, 1);
 
-        return $replaced ?? $html;
+        // depois de garantir textarea, tentar preencher novamente
+        $replaced2 = preg_replace($patternTextarea, '$1' . $escaped . '$3', $htmlWithEnsured, 1);
+        if ($replaced2 !== null && $replaced2 !== $htmlWithEnsured) {
+            return $replaced2;
+        }
+
+        // se tudo falhar, retorna o HTML original sem alterações
+        return $html;
     }
 }
 
