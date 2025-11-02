@@ -170,7 +170,7 @@ ob_start();
                             <button type="button" class="btn btn-danger btn-sm" onclick="closeSignatureModal()">Fechar</button>
                         </div>
                 </div>
-                <div style="width:100%; height:calc(100% - 48px); display:flex; align-items:center; justify-content:center;">
+                <div style="width:100%; height:calc(100% - 48px); overflow:auto; -webkit-overflow-scrolling:touch; display:flex; align-items:center; justify-content:center;">
                     <canvas id="modal_canvas" style="background:#fff; border:1px solid #ddd; width:auto; height:auto; display:block;"></canvas>
                 </div>
             </div>
@@ -316,8 +316,9 @@ document.addEventListener('DOMContentLoaded', function(){
         // Force a wide, long canvas using a fixed aspect ratio (5:1) to make
         // signing with the finger easier and avoid square/distorção.
         const vw = window.innerWidth;
-        // Limit the canvas width to viewport width minus small margin
-        const cssW = Math.max(600, Math.floor(vw * 0.95));
+    // Make the canvas wider than the viewport so users can write long names
+    // even when the device is held vertically. The wrapper is scrollable.
+    const cssW = Math.max(1200, Math.floor(vw * 1.2));
     // Maintain a longer width:height ratio (8:1) so people who write full
     // names have more horizontal space without increasing vertical size.
     const cssH = Math.max(90, Math.floor(cssW / 8));
@@ -361,14 +362,10 @@ document.addEventListener('DOMContentLoaded', function(){
         }
     }
 
+    // No-op: removed automatic fullscreen/orientation lock. Users may rotate their
+    // device manually if they prefer. Keeping a noop function to preserve calls.
     async function enterFullscreenAndLock(){
-        const modalEl = document.getElementById('signatureModal');
-        try{
-            if (modalEl.requestFullscreen) await modalEl.requestFullscreen();
-            if (screen && screen.orientation && screen.orientation.lock) {
-                try{ await screen.orientation.lock('landscape'); } catch(e){ /* ignore */ }
-            }
-        }catch(err){ console.warn('fullscreen/orientation failed', err); }
+        return; // intentionally do nothing
     }
 
     // Abrir modal: em branco e em landscape; carregar SignaturePad via CDN se necessário
