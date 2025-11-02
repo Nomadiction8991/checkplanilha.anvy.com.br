@@ -362,47 +362,39 @@ document.addEventListener('DOMContentLoaded', function(){
             // encontrar MT
             const mt = estados.find(s => s.sigla === 'MT');
             if(!mt){ sel.innerHTML='<option value="">MT não encontrado</option>'; return; }
-            sel.innerHTML = '<option value="">Selecione o estado</option>';
-            const opt = document.createElement('option'); opt.value = mt.sigla+'|'+mt.id; opt.text = mt.nome + ' ('+mt.sigla+')'; sel.appendChild(opt);
-            // se havia valor pré-existente que contenha MT - Cidade, tentaremos selecionar a cidade depois
-            if(preAdministracao){
-                // nada a fazer aqui, a seleção real será feita após carregar cidades
-            }
+            sel.innerHTML = '<option value="">Carregando cidades de MT...</option>';
+            await loadCidades(mt.id);
         }catch(err){ sel.innerHTML='<option value="">Erro ao carregar estados</option>'; console.error(err); }
     }
 
     async function loadCidades(estadoId){
         const cidadeSel = document.getElementById('cidade');
+        const adminSel = document.getElementById('administracao');
         cidadeSel.innerHTML = '<option value="">Carregando cidades...</option>';
         cidadeSel.disabled = true;
+        adminSel.innerHTML = '<option value="">Carregando cidades...</option>';
+        adminSel.disabled = true;
         try{
             const res = await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados/'+estadoId+'/municipios');
             const cidades = await res.json();
             cidades.sort((a,b)=>a.nome.localeCompare(b.nome));
             cidadeSel.innerHTML = '<option value="">Selecione a cidade</option>';
-            // extrair sigla do estado selecionado
-            const adSel = document.getElementById('administracao');
-            const sigla = (adSel.value && adSel.value.indexOf('|')>-1) ? adSel.value.split('|')[0] : 'MT';
+            adminSel.innerHTML = '<option value="">Selecione a cidade</option>';
+            const sigla = 'MT';
             cidades.forEach(ct=>{
-                const opt = document.createElement('option');
-                opt.value = sigla + ' - ' + ct.nome;
-                opt.text = sigla + ' - ' + ct.nome;
-                cidadeSel.appendChild(opt);
+                const val = sigla + ' - ' + ct.nome;
+                const opt = document.createElement('option'); opt.value = val; opt.text = val; cidadeSel.appendChild(opt);
+                const opt2 = document.createElement('option'); opt2.value = val; opt2.text = val; adminSel.appendChild(opt2);
             });
-            cidadeSel.disabled = false;
-            if(preCidade){
-                for(const o of cidadeSel.options) if(o.value===preCidade){ o.selected=true; break; }
-            }
-            // se foi pré informada administracao no formato "MT - Cidade", selecionar a cidade correspondente
-            if(preAdministracao && preAdministracao.includes(' - ')){
-                for(const o of cidadeSel.options) if(o.value===preAdministracao){ o.selected=true; break; }
-            }
+            cidadeSel.disabled = false; adminSel.disabled = false;
+            if(preCidade){ for(const o of cidadeSel.options) if(o.value===preCidade){ o.selected=true; break; } }
+            if(preAdministracao){ for(const o of adminSel.options) if(o.value===preAdministracao){ o.selected=true; break; } }
         }catch(err){ cidadeSel.innerHTML='<option value="">Erro ao carregar cidades</option>'; console.error(err); }
     }
 
-    document.getElementById('administracao').addEventListener('change', function(){ const val=this.value; if(!val){ document.getElementById('cidade').innerHTML='<option value="">Selecione o estado primeiro</option>'; document.getElementById('cidade').disabled=true; return; } const parts = val.split('|'); const estadoId = parts[1]; loadCidades(estadoId); });
-    // quando a cidade muda, também ajustamos o valor do campo administracao para o mesmo formato "MT - Cidade"
-    document.getElementById('cidade').addEventListener('change', function(){ const cv = this.value; if(cv){ const admin = document.getElementById('administracao'); admin.value = admin.value; /* keep selection */ } });
+    // Sincronizar selects: ambos terão as mesmas opções. Quando um mudar, atualizamos o outro.
+    document.getElementById('administracao').addEventListener('change', function(){ const val=this.value; const citySel=document.getElementById('cidade'); if(!val){ citySel.selectedIndex=0; return;} for(const o of citySel.options) if(o.value===val){ o.selected=true; break; } });
+    document.getElementById('cidade').addEventListener('change', function(){ const val=this.value; const adminSel=document.getElementById('administracao'); if(!val){ adminSel.selectedIndex=0; return;} for(const o of adminSel.options) if(o.value===val){ o.selected=true; break; } });
 
     // Antes de submeter, garantir que administracao e cidade estejam no formato "MT - Cidade"
     const form = document.querySelector('form');
@@ -416,25 +408,7 @@ document.addEventListener('DOMContentLoaded', function(){
     });
 
     // inicialização: carregar estados, depois cidades e aplicar seleção pré-existente se houver
-    (async function(){
-        await loadEstados();
-        const adminSel = document.getElementById('administracao');
-        // encontrar opção MT
-        if(adminSel.options.length>1){
-            const parts = adminSel.options[1].value.split('|');
-            const mtId = parts[1];
-            await loadCidades(mtId);
-            // tentar selecionar valores pré-carregados
-            if(preAdministracao){
-                const citySel = document.getElementById('cidade');
-                for(const o of citySel.options) if(o.value===preAdministracao){ o.selected=true; break; }
-            }
-            if(preCidade){
-                const citySel = document.getElementById('cidade');
-                for(const o of citySel.options) if(o.value===preCidade){ o.selected=true; break; }
-            }
-        }
-    })();
+    (async function(){ await loadEstados(); })();
 });
 </script>
 HTML;
