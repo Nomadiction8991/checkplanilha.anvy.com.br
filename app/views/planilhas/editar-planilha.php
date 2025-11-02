@@ -87,22 +87,7 @@ ob_start();
                 </div>
             </div>
 
-            <h6 class="mt-4 mb-3">Mapeamento de Colunas</h6>
-            <div class="row g-3 mt-3">
-                <div class="col-12">
-                    <label class="form-label">Assinatura do Responsável</label>
-                    <div class="border p-2 mb-2" style="overflow:hidden;">
-                        <canvas id="canvas_responsavel" width="800" height="160" style="touch-action: none; background:#fff; border:1px solid #ddd; width:100%; height:auto;"></canvas>
-                    </div>
-                    <div>
-                        <button type="button" class="btn btn-primary btn-lg w-100 mt-2" onclick="openSignatureModal()">Fazer Assinatura</button>
-                    </div>
-                    <input type="hidden" name="assinatura_responsavel" id="assinatura_responsavel" value="<?php echo htmlspecialchars($planilha['assinatura_responsavel'] ?? ''); ?>">
-                    <?php if (!empty($planilha['assinatura_responsavel'])): ?>
-                        <div class="mt-2 small text-muted">Assinatura existente (pode redesenhar para substituir)</div>
-                    <?php endif; ?>
-                </div>
-            </div>
+            
         <div class="card-header">
             <i class="bi bi-arrow-repeat me-2"></i>
             Atualizar Dados
