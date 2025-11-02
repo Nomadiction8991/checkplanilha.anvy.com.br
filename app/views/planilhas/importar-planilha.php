@@ -194,6 +194,9 @@ ob_start();
 <?php
 $contentHtml = ob_get_clean();
 // Injetar script para captura de assinaturas (desenho em canvas -> hidden input)
+$pre_administracao = json_encode($_POST['administracao'] ?? '');
+$pre_cidade = json_encode($_POST['cidade'] ?? '');
+
 $script = <<<HTML
 <script>
 function initSignature(canvasId) {
@@ -391,7 +394,7 @@ document.addEventListener('DOMContentLoaded', function(){
                 opt.text = st.nome + ' (' + st.sigla + ')';
                 sel.appendChild(opt);
             });
-            const pre = '<?php echo addslashes($_POST['administracao'] ?? ''); ?>';
+            const pre = {$pre_administracao};
             if (pre) {
                 for(const o of sel.options) if (o.value.startsWith(pre+'|') || o.value===pre) { o.selected=true; break; }
             }
@@ -416,7 +419,7 @@ document.addEventListener('DOMContentLoaded', function(){
                 cidadeSel.appendChild(opt);
             });
             cidadeSel.disabled = false;
-            const pre = '<?php echo addslashes($_POST['cidade'] ?? ''); ?>';
+            const pre = {$pre_cidade};
             if (pre) {
                 for(const o of cidadeSel.options) if (o.value===pre) { o.selected=true; break; }
             }
