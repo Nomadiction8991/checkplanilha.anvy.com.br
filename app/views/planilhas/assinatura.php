@@ -114,6 +114,10 @@ ob_start();
 </script>
 
 <?php
-$content = ob_get_clean();
+$contentHtml = ob_get_clean();
+$tempFile = __DIR__ . '/../../../temp_assinatura_' . uniqid() . '.php';
+file_put_contents($tempFile, $contentHtml);
+$contentFile = $tempFile;
 include __DIR__ . '/../layouts/app-wrapper.php';
+unlink($tempFile);
 ?>
