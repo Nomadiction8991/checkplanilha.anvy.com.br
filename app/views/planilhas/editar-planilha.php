@@ -278,8 +278,9 @@ document.addEventListener('DOMContentLoaded', function(){
         const vw = window.innerWidth;
         // Limit the canvas width to viewport width minus small margin
         const cssW = Math.max(600, Math.floor(vw * 0.95));
-        // Maintain a 5:1 width:height ratio (e.g., 800x160)
-        const cssH = Math.max(120, Math.floor(cssW / 5));
+    // Maintain a longer width:height ratio (8:1) so people who write full
+    // names have more horizontal space without increasing vertical size.
+    const cssH = Math.max(90, Math.floor(cssW / 8));
         modalCanvas.style.width = Math.floor(cssW) + 'px';
         modalCanvas.style.height = Math.floor(cssH) + 'px';
         resizeModalCanvas();
