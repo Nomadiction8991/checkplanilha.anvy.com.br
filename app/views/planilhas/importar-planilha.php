@@ -149,7 +149,7 @@ ob_start();
                         <canvas id="canvas_responsavel" width="800" height="160" style="touch-action: none; background:#fff; border:1px solid #ddd; width:100%; height:auto;"></canvas>
                     </div>
                     <div>
-                        <button type="button" class="btn btn-primary btn-lg w-100 mt-2" onclick="openSignaturePage()">Fazer Assinatura</button>
+                        <button type="button" class="btn btn-primary btn-lg w-100 mt-2" onclick="openSignatureModal()">Fazer Assinatura</button>
                     </div>
                     <input type="hidden" name="assinatura_responsavel" id="assinatura_responsavel">
                 </div>
@@ -166,7 +166,6 @@ ob_start();
                             <button type="button" class="btn btn-warning btn-sm" onclick="clearModalSignature()">Limpar</button>
                         </div>
                         <div>
-                            <button type="button" class="btn btn-secondary btn-sm me-1" onclick="expandModalWidth()">Expandir</button>
                             <button type="button" class="btn btn-success btn-sm" onclick="applyModalSignature()">Salvar</button>
                             <button type="button" class="btn btn-danger btn-sm" onclick="closeSignatureModal()">Fechar</button>
                         </div>
@@ -384,25 +383,55 @@ document.addEventListener('DOMContentLoaded', function(){
     }
 
     // Abrir modal: em branco e em landscape; carregar SignaturePad via CDN se necessário
-    // Open dedicated signature page: try to enter fullscreen + lock landscape
-    // in the same user gesture, then navigate. Browsers often allow fullscreen
-    // and orientation.lock only when invoked from a user gesture.
-    window.openSignaturePage = async function(){
+    // This opens the inline modal (attempts fullscreen + orientation lock when allowed)
+    window.openSignatureModal = async function(){
+        const modal = document.getElementById('signatureModal');
+        modal.style.display = 'block';
         try{
-            if (document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
+            // Prefer requesting fullscreen on the modal itself when available
+            if (modal.requestFullscreen) await modal.requestFullscreen();
+            else if (document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
             if (screen && screen.orientation && screen.orientation.lock) {
                 try{ await screen.orientation.lock('landscape'); } catch(e){}
             }
         }catch(err){ /* ignore */ }
-        // Navigate to signature page which will present the large canvas
-        window.location.href = 'assinatura.php';
+        // initialize canvas and signature tools
+        if (!modalCanvas) initModalCanvas();
+        setModalLandscape();
+        // load existing signature into the modal if present
+        const existing = document.getElementById('assinatura_responsavel').value;
+        startSignaturePad(true);
+        if (existing) {
+            const img = new Image();
+            img.onload = function(){
+                try{
+                    // draw centered into CSS-space (modalCtx is scaled to CSS pixels)
+                    const rect = modalCanvas.getBoundingClientRect();
+                    const cssW = rect.width; const cssH = rect.height;
+                    modalCtx.clearRect(0,0,cssW,cssH);
+                    const scale = Math.min(cssW / img.width, cssH / img.height);
+                    const w = img.width * scale; const h = img.height * scale;
+                    modalCtx.drawImage(img, (cssW - w)/2, (cssH - h)/2, w, h);
+                }catch(e){}
+            };
+            img.src = existing;
+        }
+        // ensure canvas resizes when device rotates or viewport changes
+        window.addEventListener('resize', resizeModalIfVisible);
+        window.addEventListener('orientationchange', resizeModalIfVisible);
     };
 
-    // fechar modal: sair do fullscreen e liberar lock se aplicável
-    // No longer used (modal removed for page flow) but keep a stub for compatibility.
+    function resizeModalIfVisible(){ try{ const m=document.getElementById('signatureModal'); if (m && m.style.display !== 'none') { resizeModalCanvas(); } }catch(e){} }
+
+    // fechar modal: esconder o modal, sair do fullscreen e liberar lock se aplicável
     window.closeSignatureModal = async function(){
-        try{ if (document.fullscreenElement && document.exitFullscreen) await document.exitFullscreen(); }catch(e){}
+        document.getElementById('signatureModal').style.display='none';
+        try{ if (document.fullscreenElement && document.exitFullscreen) await document.exitFullscreen(); if (screen && screen.orientation && screen.orientation.unlock) { try{ screen.orientation.unlock(); } catch(e){} } }catch(err){}
         if (signaturePad) { try{ signaturePad.off && signaturePad.off(); } catch(e){} signaturePad = null; }
+        // disable pointer fallback listeners
+        disablePointerDrawing();
+        // remove temporary listeners
+        try{ window.removeEventListener('resize', resizeModalIfVisible); window.removeEventListener('orientationchange', resizeModalIfVisible); }catch(e){}
     };
 
     window.applyModalSignature = function(){

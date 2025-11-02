@@ -95,7 +95,7 @@ ob_start();
                         <canvas id="canvas_responsavel" width="800" height="160" style="touch-action: none; background:#fff; border:1px solid #ddd; width:100%; height:auto;"></canvas>
                     </div>
                     <div>
-                        <button type="button" class="btn btn-primary btn-lg w-100 mt-2" onclick="openSignaturePage()">Fazer Assinatura</button>
+                        <button type="button" class="btn btn-primary btn-lg w-100 mt-2" onclick="openSignatureModal()">Fazer Assinatura</button>
                     </div>
                     <input type="hidden" name="assinatura_responsavel" id="assinatura_responsavel" value="<?php echo htmlspecialchars($planilha['assinatura_responsavel'] ?? ''); ?>">
                     <?php if (!empty($planilha['assinatura_responsavel'])): ?>
@@ -161,16 +161,15 @@ ob_start();
             <div id="signatureModal" class="modal" tabindex="-1" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1050;">
                 <div style="position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
                     <div style="background:#fff; width:100%; height:100%; padding:12px; box-sizing:border-box; position:relative;">
-                        <div class="d-flex justify-content-between mb-2">
-                            <div>
-                                <button type="button" class="btn btn-warning btn-sm" onclick="clearModalSignature()">Limpar</button>
+                                <div class="d-flex justify-content-between mb-2">
+                                <div>
+                                    <button type="button" class="btn btn-warning btn-sm" onclick="clearModalSignature()">Limpar</button>
+                                </div>
+                                <div>
+                                    <button type="button" class="btn btn-success btn-sm" onclick="applyModalSignature()">Salvar</button>
+                                    <button type="button" class="btn btn-danger btn-sm" onclick="closeSignatureModal()">Fechar</button>
+                                </div>
                             </div>
-                            <div>
-                                <button type="button" class="btn btn-secondary btn-sm me-1" onclick="expandModalWidth()">Expandir</button>
-                                <button type="button" class="btn btn-success btn-sm" onclick="applyModalSignature()">Salvar</button>
-                                <button type="button" class="btn btn-danger btn-sm" onclick="closeSignatureModal()">Fechar</button>
-                            </div>
-                        </div>
                         <div style="width:100%; height:calc(100% - 48px); overflow:auto; -webkit-overflow-scrolling:touch; display:flex; align-items:center; justify-content:center;">
                             <canvas id="modal_canvas" style="background:#fff; border:1px solid #ddd; width:auto; height:auto; display:block;"></canvas>
                         </div>
@@ -328,19 +327,41 @@ document.addEventListener('DOMContentLoaded', function(){
         return; // intentionally do nothing
     }
 
-    window.openSignatureModal = function(){
-        // try to enter fullscreen + lock landscape in the same user gesture,
-        // then navigate to the dedicated signature page
-        (async function(){
-            try{
-                if (document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
-                if (screen && screen.orientation && screen.orientation.lock) {
-                    try{ await screen.orientation.lock('landscape'); } catch(e){}
-                }
-            }catch(err){ /* ignore */ }
-            window.location.href = 'assinatura.php';
-        })();
+
+    window.openSignatureModal = async function(){
+        const modal = document.getElementById('signatureModal');
+        modal.style.display = 'block';
+        try{
+            if (modal.requestFullscreen) await modal.requestFullscreen();
+            else if (document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
+            if (screen && screen.orientation && screen.orientation.lock) {
+                try{ await screen.orientation.lock('landscape'); } catch(e){}
+            }
+        }catch(err){ /* ignore */ }
+        if (!modalCanvas) initModalCanvas();
+        setModalLandscape();
+        // load existing signature into modal (if any)
+        const existing = document.getElementById('assinatura_responsavel').value;
+        startSignaturePad(true);
+        if (existing) {
+            const img = new Image();
+            img.onload = function(){
+                try{
+                    const rect = modalCanvas.getBoundingClientRect();
+                    const cssW = rect.width; const cssH = rect.height;
+                    modalCtx.clearRect(0,0,cssW,cssH);
+                    const scale = Math.min(cssW / img.width, cssH / img.height);
+                    const w = img.width * scale; const h = img.height * scale;
+                    modalCtx.drawImage(img, (cssW - w)/2, (cssH - h)/2, w, h);
+                }catch(e){}
+            };
+            img.src = existing;
+        }
+        window.addEventListener('resize', resizeModalIfVisible);
+        window.addEventListener('orientationchange', resizeModalIfVisible);
     };
+
+    function resizeModalIfVisible(){ try{ const m=document.getElementById('signatureModal'); if (m && m.style.display !== 'none') { resizeModalCanvas(); } }catch(e){} }
 
     window.closeSignatureModal = async function(){
         document.getElementById('signatureModal').style.display='none';
