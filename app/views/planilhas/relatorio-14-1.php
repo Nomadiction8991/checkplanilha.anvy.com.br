@@ -460,7 +460,7 @@ ob_start();
                             }
                             // Montar srcdoc isolado com CSS do template
                             $styleInline = !empty($styleContent) ? $styleContent : '';
-                            $srcdoc = '<!DOCTYPE html><html><head><meta charset="utf-8">'
+                            $srcdoc = '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
                                 . '<style>html,body{margin:0;padding:0;background:#fff;} ' . $styleInline . '</style>'
                                 . '</head><body>' . $htmlIsolado . '</body></html>';
 
