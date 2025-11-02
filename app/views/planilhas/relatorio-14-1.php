@@ -39,72 +39,59 @@ if (file_exists($customCssPath)) {
 // Helper para preencher campos no template (suporta textarea e input)
 if (!function_exists('r141_fillFieldById')) {
     function r141_fillFieldById(string $html, string $id, string $text): string {
-        // Comportamento mínimo solicitado pelo usuário:
-        // - NÃO alterar estrutura do template
-        // - NÃO remover/alterar textareas
-        // - Apenas inserir o valor vindo do banco dentro do <textarea> existente (ou em input value, se houver)
+        // Versão segura usando DOMDocument (substitui manipulação por regex)
+        // - Não altera arquivos no disco
+        // - Preenche <textarea id="..."> ou <input id="..."> quando existir
+        // - Não faz fallbacks agressivos por padrão (mantém o template intacto em caso de ausência)
 
-        // Trim e limitar comprimento para evitar injeção excessiva
         $text = trim((string)$text);
-        $maxLen = 10000; // 10 KB por campo
+        $maxLen = 10000;
         if (mb_strlen($text, 'UTF-8') > $maxLen) {
             $text = mb_substr($text, 0, $maxLen, 'UTF-8');
         }
 
-        // Escape seguro para inserção em textarea ou value
-        $escaped = htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $prev = libxml_use_internal_errors(true);
+        $doc = new \DOMDocument('1.0', 'UTF-8');
+        // Wrap para garantir parse correto
+        $wrapped = '<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/></head><body>' . $html . '</body></html>';
+        // Carregar o fragmento (suprimir warnings de HTML imperfeito)
+        $doc->loadHTML($wrapped, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        $xpath = new \DOMXPath($doc);
 
-        // 1) Preencher apenas se existir <textarea id="...">conteúdo</textarea>
-        $patternTextarea = '/(<textarea\b[^>]*\bid=["\']' . preg_quote($id, '/') . '["\'][^>]*>)(.*?)(<\/textarea>)/si';
-        $replaced = preg_replace($patternTextarea, '$1' . $escaped . '$3', $html, 1);
-        if ($replaced !== null && $replaced !== $html) {
-            return $replaced;
+        // 1) Procurar textarea com o id e preencher seu conteúdo
+        $textarea = $xpath->query('//textarea[@id="' . $id . '"]')->item(0);
+        if ($textarea) {
+            // limpar nós filhos e inserir texto seguro
+            while ($textarea->firstChild) { $textarea->removeChild($textarea->firstChild); }
+            $textarea->appendChild($doc->createTextNode($text));
+            libxml_clear_errors();
+            libxml_use_internal_errors($prev);
+            return r141_inner_html($doc->getElementsByTagName('body')->item(0));
         }
 
-        // 2) Se não existir textarea, tentar preencher atributo value de um <input id="..."> (caso raro)
-        $patternInput = '/(<input\b[^>]*\bid=["\']' . preg_quote($id, '/') . '["\'][^>]*)(>)/i';
-        $replacedInput = preg_replace_callback($patternInput, function($m) use ($escaped) {
-            $prefix = $m[1];
-            $suffix = $m[2];
-            // se já existe value, substitui
-            if (preg_match('/\bvalue\s*=\s*(?:"[^"]*"|\'[^\']*\')/i', $prefix)) {
-                return preg_replace('/\bvalue\s*=\s*(?:"[^"]*"|\'[^\']*\')/i', 'value="' . $escaped . '"', $prefix, 1) . $suffix;
-            }
-            // inserir value antes do fechamento
-            return $prefix . ' value="' . $escaped . '"' . $suffix;
-        }, $html, 1);
-        if ($replacedInput !== null && $replacedInput !== $html) {
-            return $replacedInput;
+        // 2) Procurar input com o id e definir atributo value
+        $input = $xpath->query('//input[@id="' . $id . '"]')->item(0);
+        if ($input) {
+            $input->setAttribute('value', $text);
+            libxml_clear_errors();
+            libxml_use_internal_errors($prev);
+            return r141_inner_html($doc->getElementsByTagName('body')->item(0));
         }
 
-        // 3) Fallback de preview (não altera o template no disco):
-        // Se existir um <label for="id">...<\/label> seguido de texto (valor exibido no template),
-        // vamos inserir um <textarea id="id" readonly>com o valor</textarea> logo após o label.
-        // Isso corrige visualização quando o template em produção não possui <textarea> mas mostra o valor em texto.
-        $patternLabel = '/(<label\b[^>]*\bfor=["\']' . preg_quote($id, '/') . '["\'][^>]*>.*?<\/label>\s*)(?:<br\s*\/?>\s*)?([^<\n][^<]*)/si';
-        $replacedLabel = preg_replace_callback($patternLabel, function($m) use ($escaped, $id) {
-            $prefix = $m[1];
-            // Substitui o texto visível pelo textarea readonly com o valor escapado
-            return $prefix . '<br><textarea id="' . $id . '" rows="2" readonly>' . $escaped . '</textarea>';
-        }, $html, 1);
-        if ($replacedLabel !== null && $replacedLabel !== $html) {
-            return $replacedLabel;
-        }
+        // 3) Não modificar se não encontrou elementos alvo
+        libxml_clear_errors();
+        libxml_use_internal_errors($prev);
+        return $html;
+    }
+}
 
-        // 4) Fallback geral: se ainda não foi possível inserir, procurar a primeira
-        // ocorrência do texto bruto ($text) dentro do corpo (entre tags) e substituí-la
-        // por um <textarea id="..." readonly>valor</textarea> — apenas no srcdoc.
-        if ($text !== '') {
-            $p = preg_quote($text, '/');
-            // procurar o texto entre tags: > ...texto... <
-            $patternTextNode = '/(>\s*)(' . $p . ')(\s*<)/usU';
-            $replacedTextNode = preg_replace($patternTextNode, '$1<textarea id="' . $id . '" rows="2" readonly>' . $escaped . '</textarea>$3', $html, 1);
-            if ($replacedTextNode !== null && $replacedTextNode !== $html) {
-                return $replacedTextNode;
-            }
+// helper: extrai innerHTML de um nó DOM
+if (!function_exists('r141_inner_html')) {
+    function r141_inner_html(\DOMNode $element): string {
+        $html = '';
+        foreach ($element->childNodes as $child) {
+            $html .= $element->ownerDocument->saveHTML($child);
         }
-
-        // Não modificar o template se textarea/input não existir
         return $html;
     }
 }
