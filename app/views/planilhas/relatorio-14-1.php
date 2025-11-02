@@ -149,6 +149,7 @@ ob_start();
                         // Preencher dados do produto no template
                         $htmlPreenchido = $a4Block;
                         if (!empty($htmlPreenchido)) {
+                            // Preencher Data Emissão automaticamente com a data atual
                             $dataEmissao = date('d/m/Y');
                             $descricaoBem = $row['descricao_completa'];
 
@@ -159,11 +160,13 @@ ob_start();
                                 if (count($partesComum) >= 1) { $administracao_auto = $partesComum[0]; }
                             }
                             $setor_auto = isset($row['dependencia_descricao']) ? trim((string)$row['dependencia_descricao']) : '';
-                            $local_data_auto = trim(($comum_planilha ?? '') . ' ' . $dataEmissao);
+                            // Não incluir data automática no campo de local/data — ficará apenas o valor comum da planilha
+                            $local_data_auto = trim(($comum_planilha ?? ''));
 
                             // Injetar valores nos campos por ID (textarea/input)
+                            // Preencher campo de Data Emissão com a data atual
                             $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input1', $dataEmissao);
-                            if (!empty($setor_auto)) { $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input4', $setor_auto); }
+                            // NÃO preencher automaticamente o setor (input4) por solicitação do usuário
                             $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input5', $cnpj_planilha ?? '');
                             $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input6', $numero_relatorio_auto ?? '');
                             $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input7', $casa_oracao_auto ?? '');
