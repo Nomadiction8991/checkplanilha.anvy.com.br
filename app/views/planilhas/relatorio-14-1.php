@@ -334,15 +334,45 @@ $customCss = '
 // Helper para preencher campos no template (suporta textarea e input)
 if (!function_exists('r141_fillFieldById')) {
     function r141_fillFieldById(string $html, string $id, string $text): string {
-        // Tenta preencher <textarea id="...">conteúdo</textarea>
+        // Sanitização forte: remover blocos <style>, tags HTML e limitar tamanho
+        // Remover blocos <style>
+        $text = preg_replace('/<style\b[^>]*>.*?<\/style>/is', '', $text);
+        // Remover qualquer tag HTML
+        $text = strip_tags($text);
+        // Trim e limitar comprimento para evitar injeção excessiva
+        $text = trim($text);
+        $maxLen = 10000; // 10 KB por campo
+        if (mb_strlen($text, 'UTF-8') > $maxLen) {
+            $text = mb_substr($text, 0, $maxLen, 'UTF-8');
+        }
+
+        // Escape seguro para inserção em textarea ou valor de input
+        $escaped = htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+
+        // 1) Tenta preencher <textarea id="...">conteúdo</textarea>
         $patternTextarea = '/(<textarea\b[^>]*\bid=["\']' . preg_quote($id, '/') . '["\'][^>]*>)(.*?)(<\/textarea>)/si';
-        $replaced = preg_replace($patternTextarea, '$1' . htmlspecialchars($text) . '$3', $html, 1);
+        $replaced = preg_replace($patternTextarea, '$1' . $escaped . '$3', $html, 1);
         if ($replaced !== null && $replaced !== $html) {
             return $replaced;
         }
-        // Fallback: preencher <input id="..." ... value="...">
-        $patternInput = '/(<input\b[^>]*\bid=["\']' . preg_quote($id, '/') . '["\'][^>]*)(>)/i';
-        $replaced = preg_replace($patternInput, '$1 value="' . htmlspecialchars($text, ENT_QUOTES) . '"$2', $html, 1);
+
+        // 2) Fallback para <input ... id="..." ...>
+        // Usar callback para não duplicar atributos value e preservar outros atributos existentes
+        $patternInput = '/<input\b[^>]*\bid=["\']' . preg_quote($id, '/') . '["\'][^>]*>/i';
+        $replaced = preg_replace_callback($patternInput, function($m) use ($escaped) {
+            $tag = $m[0];
+            // Se já existe atributo value, substituí-lo
+            if (preg_match('/\bvalue\s*=\s*(?:"[^"]*"|\'[^\']*\')/i', $tag)) {
+                return preg_replace('/\bvalue\s*=\s*(?:"[^"]*"|\'[^\']*\')/i', 'value="' . $escaped . '"', $tag, 1);
+            }
+            // Inserir value antes do fechamento do tag
+            // lidar com possíveis terminações '/>' ou '>'
+            if (substr($tag, -2) === '/>') {
+                return substr($tag, 0, -2) . ' value="' . $escaped . '"/>';
+            }
+            return substr($tag, 0, -1) . ' value="' . $escaped . '">';
+        }, $html, 1);
+
         return $replaced ?? $html;
     }
 }
