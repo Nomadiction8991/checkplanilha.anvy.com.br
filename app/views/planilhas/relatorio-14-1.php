@@ -167,6 +167,28 @@ ob_start();
                                 . '<style>html,body{margin:0;padding:0;background:#fff;} ' . $styleInline . '</style>'
                                 . '</head><body>' . $htmlIsolado . '</body></html>';
 
+                            // --- DEBUG: gravar srcdoc e valores brutos para inspeção (apenas primeira página)
+                            // Isso ajuda a identificar por que alguns campos aparecem como texto em <td>
+                            try {
+                                $tmpDir = __DIR__ . '/../../../app/tmp';
+                                if (!is_dir($tmpDir)) { @mkdir($tmpDir, 0777, true); }
+                                if ($index === 0 && is_dir($tmpDir) && is_writable($tmpDir)) {
+                                    @file_put_contents($tmpDir . '/relatorio14_debug_1.html', $srcdoc);
+                                    $dbgValues = [
+                                        'input1' => $dataEmissao,
+                                        'input4' => $setor_auto,
+                                        'input5' => ($cnpj_planilha ?? ''),
+                                        'input6' => ($numero_relatorio_auto ?? ''),
+                                        'input7' => ($casa_oracao_auto ?? ''),
+                                        'input8' => ($descricaoBem ?? ''),
+                                        'input16' => ($local_data_auto ?? ''),
+                                    ];
+                                    @file_put_contents($tmpDir . '/relatorio14_values_1.json', json_encode($dbgValues, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+                                }
+                            } catch (\Throwable $e) {
+                                // não bloquear renderização se não for possível gravar
+                            }
+
                             // Gerar iframe de preview (Visualizar removido — iframe permanece como miniatura)
                             $title = 'Visualização da página ' . ($index + 1);
                             // adicionar allow-modals no sandbox para permitir que o iframe dispare dialogs/print em alguns navegadores
