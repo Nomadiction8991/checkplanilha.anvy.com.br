@@ -329,8 +329,17 @@ document.addEventListener('DOMContentLoaded', function(){
     }
 
     window.openSignatureModal = function(){
-        // navigate to dedicated signature page
-        window.location.href = 'assinatura.php';
+        // try to enter fullscreen + lock landscape in the same user gesture,
+        // then navigate to the dedicated signature page
+        (async function(){
+            try{
+                if (document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
+                if (screen && screen.orientation && screen.orientation.lock) {
+                    try{ await screen.orientation.lock('landscape'); } catch(e){}
+                }
+            }catch(err){ /* ignore */ }
+            window.location.href = 'assinatura.php';
+        })();
     };
 
     window.closeSignatureModal = async function(){

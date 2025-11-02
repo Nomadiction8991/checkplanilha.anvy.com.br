@@ -384,11 +384,17 @@ document.addEventListener('DOMContentLoaded', function(){
     }
 
     // Abrir modal: em branco e em landscape; carregar SignaturePad via CDN se necessário
-    // Open dedicated signature page instead of modal. This will navigate to a
-    // full-page signature screen which stores the result in localStorage.
-    window.openSignaturePage = function(){
-        // navigate to signature page; when user saves, that page will call history.back()
-        // and this page will check localStorage.signature_temp on load to pick it up.
+    // Open dedicated signature page: try to enter fullscreen + lock landscape
+    // in the same user gesture, then navigate. Browsers often allow fullscreen
+    // and orientation.lock only when invoked from a user gesture.
+    window.openSignaturePage = async function(){
+        try{
+            if (document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
+            if (screen && screen.orientation && screen.orientation.lock) {
+                try{ await screen.orientation.lock('landscape'); } catch(e){}
+            }
+        }catch(err){ /* ignore */ }
+        // Navigate to signature page which will present the large canvas
         window.location.href = 'assinatura.php';
     };
 
