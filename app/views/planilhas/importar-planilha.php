@@ -315,42 +315,101 @@ document.addEventListener('DOMContentLoaded', function(){
         modalCtx.strokeStyle = '#000000';
     }
 
-    // Abrir modal: abrir em branco já em orientação paisagem (landscape)
+    // SignaturePad integration
+    let signaturePad = null;
+
+    function startSignaturePad(){
+        if (!modalCanvas) initModalCanvas();
+        // clear canvas and init SignaturePad
+        try { modalCtx.clearRect(0,0,modalCanvas.width, modalCanvas.height); } catch(e){}
+        if (typeof SignaturePad !== 'undefined') {
+            signaturePad = new SignaturePad(modalCanvas, { backgroundColor: 'rgb(255,255,255)', penColor: 'black' });
+            signaturePad.clear();
+        } else {
+            signaturePad = null;
+        }
+    }
+
+    async function enterFullscreenAndLock(){
+        const modalEl = document.getElementById('signatureModal');
+        try{
+            if (modalEl.requestFullscreen) await modalEl.requestFullscreen();
+            if (screen && screen.orientation && screen.orientation.lock) {
+                try{ await screen.orientation.lock('landscape'); } catch(e){ /* ignore */ }
+            }
+        }catch(err){ console.warn('fullscreen/orientation failed', err); }
+    }
+
+    // Abrir modal: em branco e em landscape; carregar SignaturePad via CDN se necessário
     window.openSignatureModal = function(){
         document.getElementById('signatureModal').style.display = 'block';
         setModalLandscape();
+        // carregar SignaturePad se necessário
+        if (typeof SignaturePad === 'undefined'){
+            const s = document.createElement('script');
+            s.src = 'https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js';
+            s.onload = function(){ startSignaturePad(); enterFullscreenAndLock(); };
+            s.onerror = function(){ startSignaturePad(); enterFullscreenAndLock(); };
+            document.head.appendChild(s);
+        } else {
+            startSignaturePad();
+            enterFullscreenAndLock();
+        }
     };
 
-    window.closeSignatureModal = function(){
+    // fechar modal: sair do fullscreen e liberar lock se aplicável
+    window.closeSignatureModal = async function(){
         document.getElementById('signatureModal').style.display = 'none';
+        try{
+            if (document.fullscreenElement && document.exitFullscreen) await document.exitFullscreen();
+            if (screen && screen.orientation && screen.orientation.unlock) {
+                try{ screen.orientation.unlock(); } catch(e){}
+            }
+        }catch(err){ console.warn('exit fullscreen/orientation unlock failed', err); }
+        // optionally destroy signaturePad
+        if (signaturePad) { try{ signaturePad.off && signaturePad.off(); } catch(e){} signaturePad = null; }
     };
 
     window.applyModalSignature = function(){
-        const data = modalCanvas.toDataURL('image/png');
+        let data = null;
+        if (signaturePad) {
+            if (signaturePad.isEmpty()) data = null; else data = signaturePad.toDataURL('image/png');
+        } else {
+            data = modalCanvas.toDataURL('image/png');
+        }
         const preview = document.getElementById('canvas_responsavel');
         const pCtx = preview.getContext('2d');
-        const img = new Image();
-        img.onload = function(){
+        if (data) {
+            const img = new Image();
+            img.onload = function(){
+                pCtx.clearRect(0,0,preview.width, preview.height);
+                const scale = Math.min(preview.width / img.width, preview.height / img.height);
+                const w = img.width * scale; const h = img.height * scale;
+                const x = (preview.width - w)/2; const y = (preview.height - h)/2;
+                pCtx.drawImage(img, x, y, w, h);
+                document.getElementById('assinatura_responsavel').value = data;
+                closeSignatureModal();
+            };
+            img.src = data;
+        } else {
             pCtx.clearRect(0,0,preview.width, preview.height);
-            const scale = Math.min(preview.width / img.width, preview.height / img.height);
-            const w = img.width * scale; const h = img.height * scale;
-            const x = (preview.width - w)/2; const y = (preview.height - h)/2;
-            pCtx.drawImage(img, x, y, w, h);
-            document.getElementById('assinatura_responsavel').value = data;
+            document.getElementById('assinatura_responsavel').value = '';
             closeSignatureModal();
-        };
-        img.src = data;
+        }
     };
 
     window.toggleRotateModal = function(){
         if (!modalCanvas) initModalCanvas();
-        // alterna entre paisagem e retrato
-        if (modalCanvas.width > modalCanvas.height) {
-            // atualmente paisagem -> mudar para retrato
-            setModalPortrait();
+        // try to use Screen Orientation API
+        if (screen && screen.orientation && screen.orientation.lock) {
+            const current = (screen.orientation.type || '') + '';
+            const target = current.includes('landscape') ? 'portrait' : 'landscape';
+            screen.orientation.lock(target).catch(()=>{
+                // fallback to resizing canvas
+                if (modalCanvas.width > modalCanvas.height) setModalPortrait(); else setModalLandscape();
+            });
         } else {
-            // atualmente retrato -> mudar para paisagem
-            setModalLandscape();
+            if (modalCanvas.width > modalCanvas.height) setModalPortrait(); else setModalLandscape();
         }
     };
 
