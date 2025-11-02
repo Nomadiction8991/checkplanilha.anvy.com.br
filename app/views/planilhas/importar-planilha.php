@@ -312,17 +312,12 @@ document.addEventListener('DOMContentLoaded', function(){
     // Abrir modal: abrir em branco já girado (pronto para assinar)
     function setModalLandscape() {
         if (!modalCanvas) initModalCanvas();
-        // Force a wide, long canvas using a fixed aspect ratio (5:1) to make
-        // signing with the finger easier and avoid square/distorção.
-        const vw = window.innerWidth;
-    // Make the canvas wider than the viewport so users can write long names
-    // even when the device is held vertically. The wrapper is scrollable.
-    const cssW = Math.max(1200, Math.floor(vw * 1.2));
-    // Maintain a longer width:height ratio (8:1) so people who write full
-    // names have more horizontal space without increasing vertical size.
-    const cssH = Math.max(90, Math.floor(cssW / 8));
-        modalCanvas.style.width = Math.floor(cssW) + 'px';
-        modalCanvas.style.height = Math.floor(cssH) + 'px';
+        // Use most of the viewport so the canvas becomes large after rotation.
+        // Target ~95% width and ~85% height to leave room for controls.
+        const cssW = Math.floor(window.innerWidth * 0.95);
+        const cssH = Math.floor(window.innerHeight * 0.85);
+        modalCanvas.style.width = cssW + 'px';
+        modalCanvas.style.height = cssH + 'px';
         resizeModalCanvas();
         try { modalCtx.strokeStyle = '#000000'; } catch(e){}
     }
@@ -421,7 +416,13 @@ document.addEventListener('DOMContentLoaded', function(){
         window.addEventListener('orientationchange', resizeModalIfVisible);
     };
 
-    function resizeModalIfVisible(){ try{ const m=document.getElementById('signatureModal'); if (m && m.style.display !== 'none') { resizeModalCanvas(); } }catch(e){} }
+    function resizeModalIfVisible(){ try{ const m=document.getElementById('signatureModal'); if (m && m.style.display !== 'none') {
+            // ensure the modal canvas uses most of the viewport after rotation
+            if (!modalCanvas) initModalCanvas();
+            modalCanvas.style.width = Math.floor(window.innerWidth * 0.95) + 'px';
+            modalCanvas.style.height = Math.floor(window.innerHeight * 0.85) + 'px';
+            resizeModalCanvas();
+        } }catch(e){} }
 
     // fechar modal: esconder o modal, sair do fullscreen e liberar lock se aplicável
     window.closeSignatureModal = async function(){
