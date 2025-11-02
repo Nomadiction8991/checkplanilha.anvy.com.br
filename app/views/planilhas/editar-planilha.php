@@ -385,16 +385,13 @@ document.addEventListener('DOMContentLoaded', function(){
         }catch(err){ cidadeSel.innerHTML='<option value="">Erro ao carregar cidades</option>'; console.error(err); }
     }
 
-    // Sincronizar selects: ambos terão as mesmas opções. Quando um mudar, atualizamos o outro.
-    document.getElementById('administracao').addEventListener('change', function(){ const val=this.value; const citySel=document.getElementById('cidade'); if(!val){ citySel.selectedIndex=0; return;} for(const o of citySel.options) if(o.value===val){ o.selected=true; break; } });
-    document.getElementById('cidade').addEventListener('change', function(){ const val=this.value; const adminSel=document.getElementById('administracao'); if(!val){ adminSel.selectedIndex=0; return;} for(const o of adminSel.options) if(o.value===val){ o.selected=true; break; } });
+    // Os selects `administracao` e `cidade` foram preenchidos com a mesma lista de
+    // cidades de MT, mas são independentes — não há escuta de sincronização entre eles.
 
     // Antes de submeter, garantir que administracao e cidade estejam no formato "MT - Cidade"
     const form = document.querySelector('form');
     form.addEventListener('submit', function(e){ const nome = document.getElementById('nome_responsavel').value.trim(); const estado = document.getElementById('administracao').value; const cidadeVal = document.getElementById('cidade').value; if(!nome || !estado || !cidadeVal){ e.preventDefault(); alert('Por favor preencha Nome do Responsável, Estado e Cidade (campos obrigatórios).'); return false; }
-        // garantir que administracao seja gravada como "MT - Cidade"
-        const adminField = document.getElementById('administracao');
-        if(cidadeVal && adminField.value.indexOf(' - ')===-1){ adminField.value = cidadeVal; }
+    // Os selects são independentes — não sobrescrevemos automaticamente o campo 'administracao'.
         // assinatura
         function isCanvasBlank(c){ const blank=document.createElement('canvas'); blank.width=c.width; blank.height=c.height; return c.toDataURL()===blank.toDataURL(); }
         if(!isCanvasBlank(document.getElementById('canvas_responsavel'))){ document.getElementById('assinatura_responsavel').value = document.getElementById('canvas_responsavel').toDataURL('image/png'); }

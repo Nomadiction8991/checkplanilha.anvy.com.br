@@ -455,9 +455,7 @@ document.addEventListener('DOMContentLoaded', function(){
             alert('Por favor preencha Nome do Responsável, Estado e Cidade (campos obrigatórios).');
             return false;
         }
-        // garantir que administracao seja gravada como "MT - Cidade"
-        const adminField = document.getElementById('administracao');
-        if (cidade && adminField.value.indexOf(' - ') === -1) { adminField.value = cidade; }
+    // Os selects são independentes — não sobrescrevemos automaticamente o campo 'administracao'.
         const dataResp = document.getElementById('canvas_responsavel').toDataURL('image/png');
         function isCanvasBlank(c) {
             const blank = document.createElement('canvas');
@@ -518,19 +516,8 @@ document.addEventListener('DOMContentLoaded', function(){
             console.error(err);
         }
     }
-    // Sincronizar selects: ambos terão as mesmas opções. Quando um mudar, atualizamos o outro.
-    document.getElementById('administracao').addEventListener('change', function(){
-        const val = this.value;
-        const citySel = document.getElementById('cidade');
-        if (!val) { citySel.selectedIndex = 0; return; }
-        for(const o of citySel.options) { if (o.value === val) { o.selected = true; break; } }
-    });
-    document.getElementById('cidade').addEventListener('change', function(){
-        const val = this.value;
-        const adminSel = document.getElementById('administracao');
-        if (!val) { adminSel.selectedIndex = 0; return; }
-        for(const o of adminSel.options) { if (o.value === val) { o.selected = true; break; } }
-    });
+    // Os selects `administracao` e `cidade` foram preenchidos com a mesma lista de
+    // cidades de MT, mas são independentes — não há escuta de sincronização entre eles.
 
     // inicialização com pré-seleção (se necessário)
     (async function(){
