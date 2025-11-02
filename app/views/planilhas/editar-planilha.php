@@ -237,23 +237,50 @@ document.addEventListener('DOMContentLoaded', function(){
     function modalMove(e){ if(!modalDrawing) return; e.preventDefault(); const p=getModalCoords(e); modalCtx.beginPath(); modalCtx.moveTo(modalLastX, modalLastY); modalCtx.lineTo(p.x, p.y); modalCtx.stroke(); modalLastX=p.x; modalLastY=p.y; }
     function modalEnd(){ modalDrawing=false; }
 
-    // abrir modal em branco já girado, pronto para assinar
-    window.openSignatureModal = function(){
-        document.getElementById('signatureModal').style.display='block';
-        if(!modalCanvas) initModalCanvas();
-        const w = Math.max(800, window.innerWidth*0.92);
-        const h = Math.max(360, window.innerHeight*0.72);
-        modalCanvas.width = h;
-        modalCanvas.height = w;
+    function setModalLandscape() {
+        if (!modalCanvas) initModalCanvas();
+        const vw = window.innerWidth, vh = window.innerHeight;
+        let width = Math.max(800, Math.max(vw, vh) * 0.92);
+        let height = Math.max(360, Math.min(vw, vh) * 0.6);
+        if (width <= height) { width = height + 200; }
+        modalCanvas.width = Math.floor(width);
+        modalCanvas.height = Math.floor(height);
         modalCtx = modalCanvas.getContext('2d');
         modalCtx.lineWidth = 2; modalCtx.lineCap = 'round';
         modalCtx.fillStyle = '#ffffff';
         modalCtx.fillRect(0,0,modalCanvas.width, modalCanvas.height);
         modalCtx.strokeStyle = '#000000';
+    }
+
+    function setModalPortrait() {
+        if (!modalCanvas) initModalCanvas();
+        const vw = window.innerWidth, vh = window.innerHeight;
+        let width = Math.max(360, Math.min(vw, vh) * 0.6);
+        let height = Math.max(800, Math.max(vw, vh) * 0.92);
+        if (width >= height) { height = width + 200; }
+        modalCanvas.width = Math.floor(width);
+        modalCanvas.height = Math.floor(height);
+        modalCtx = modalCanvas.getContext('2d');
+        modalCtx.lineWidth = 2; modalCtx.lineCap = 'round';
+        modalCtx.fillStyle = '#ffffff';
+        modalCtx.fillRect(0,0,modalCanvas.width, modalCanvas.height);
+        modalCtx.strokeStyle = '#000000';
+    }
+
+    window.openSignatureModal = function(){
+        document.getElementById('signatureModal').style.display='block';
+        setModalLandscape();
     };
     window.closeSignatureModal = function(){ document.getElementById('signatureModal').style.display='none'; };
     window.applyModalSignature = function(){ const data = modalCanvas.toDataURL('image/png'); const preview=document.getElementById('canvas_responsavel'); const pCtx=preview.getContext('2d'); const img=new Image(); img.onload=function(){ pCtx.clearRect(0,0,preview.width,preview.height); const scale=Math.min(preview.width/img.width, preview.height/img.height); const w=img.width*scale, h=img.height*scale, x=(preview.width-w)/2, y=(preview.height-h)/2; pCtx.drawImage(img,x,y,w,h); document.getElementById('assinatura_responsavel').value=data; closeSignatureModal(); }; img.src=data; };
-    window.toggleRotateModal = function(){ if(!modalCanvas) return; const temp = modalCanvas.width; modalCanvas.width = modalCanvas.height; modalCanvas.height = temp; };
+    window.toggleRotateModal = function(){
+        if (!modalCanvas) initModalCanvas();
+        if (modalCanvas.width > modalCanvas.height) {
+            setModalPortrait();
+        } else {
+            setModalLandscape();
+        }
+    };
 
     // Estados / Cidades (popula cidades de MT e armazena valores no formato "MT - Cidade")
     const preAdministracao = $pre_administracao;

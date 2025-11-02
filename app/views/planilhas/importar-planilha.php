@@ -280,21 +280,45 @@ document.addEventListener('DOMContentLoaded', function(){
     function modalEnd(){ modalDrawing=false; }
 
     // Abrir modal: abrir em branco já girado (pronto para assinar)
-    window.openSignatureModal = function(){
-        document.getElementById('signatureModal').style.display = 'block';
+    function setModalLandscape() {
         if (!modalCanvas) initModalCanvas();
-        // calcular dimensões e forçar orientação girada (swap)
-        const w = Math.max(800, window.innerWidth * 0.92);
-        const h = Math.max(360, window.innerHeight * 0.72);
-        // forçar canvas com orientação trocada (portrait-like)
-        modalCanvas.width = h;
-        modalCanvas.height = w;
+        const vw = window.innerWidth, vh = window.innerHeight;
+        // preferir largura maior que altura
+        let width = Math.max(800, Math.max(vw, vh) * 0.92);
+        let height = Math.max(360, Math.min(vw, vh) * 0.6);
+        if (width <= height) {
+            width = height + 200;
+        }
+        modalCanvas.width = Math.floor(width);
+        modalCanvas.height = Math.floor(height);
         modalCtx = modalCanvas.getContext('2d');
         modalCtx.lineWidth = 2; modalCtx.lineCap = 'round';
-        // limpar e deixar fundo branco
         modalCtx.fillStyle = '#ffffff';
         modalCtx.fillRect(0,0,modalCanvas.width, modalCanvas.height);
         modalCtx.strokeStyle = '#000000';
+    }
+
+    function setModalPortrait() {
+        if (!modalCanvas) initModalCanvas();
+        const vw = window.innerWidth, vh = window.innerHeight;
+        let width = Math.max(360, Math.min(vw, vh) * 0.6);
+        let height = Math.max(800, Math.max(vw, vh) * 0.92);
+        if (width >= height) {
+            height = width + 200;
+        }
+        modalCanvas.width = Math.floor(width);
+        modalCanvas.height = Math.floor(height);
+        modalCtx = modalCanvas.getContext('2d');
+        modalCtx.lineWidth = 2; modalCtx.lineCap = 'round';
+        modalCtx.fillStyle = '#ffffff';
+        modalCtx.fillRect(0,0,modalCanvas.width, modalCanvas.height);
+        modalCtx.strokeStyle = '#000000';
+    }
+
+    // Abrir modal: abrir em branco já em orientação paisagem (landscape)
+    window.openSignatureModal = function(){
+        document.getElementById('signatureModal').style.display = 'block';
+        setModalLandscape();
     };
 
     window.closeSignatureModal = function(){
@@ -319,11 +343,15 @@ document.addEventListener('DOMContentLoaded', function(){
     };
 
     window.toggleRotateModal = function(){
-        if (!modalCanvas) return;
-        // trocar w/h para simular giro
-        const temp = modalCanvas.width;
-        modalCanvas.width = modalCanvas.height;
-        modalCanvas.height = temp;
+        if (!modalCanvas) initModalCanvas();
+        // alterna entre paisagem e retrato
+        if (modalCanvas.width > modalCanvas.height) {
+            // atualmente paisagem -> mudar para retrato
+            setModalPortrait();
+        } else {
+            // atualmente retrato -> mudar para paisagem
+            setModalLandscape();
+        }
     };
 
     // Antes do submit, serializar o preview canvas para o hidden input e validar campos obrigatórios
