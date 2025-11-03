@@ -140,6 +140,27 @@ ob_start();
 
 <?php if (count($produtos) > 0): ?>
 <?php
+    // Pré-carregar assinaturas para todos os produtos desta planilha em um único SELECT
+    $assinaturasByProduto = [];
+    try {
+        $idsProdutos = array_column($produtos, 'id');
+        if (!empty($idsProdutos)) {
+            $placeholders = implode(',', array_fill(0, count($idsProdutos), '?'));
+            $sqlAss = "SELECT * FROM assinaturas_14_1 WHERE id_planilha = ? AND id_produto IN ($placeholders)";
+            $stmtAss = $conexao->prepare($sqlAss);
+            // bind id_planilha + ids
+            $bindIdx = 1;
+            $stmtAss->bindValue($bindIdx++, $id_planilha, PDO::PARAM_INT);
+            foreach ($idsProdutos as $pid) { $stmtAss->bindValue($bindIdx++, $pid, PDO::PARAM_INT); }
+            $stmtAss->execute();
+            $assinaturas = $stmtAss->fetchAll();
+            foreach ($assinaturas as $ass) {
+                $assinaturasByProduto[$ass['id_produto']] = $ass;
+            }
+        }
+    } catch (Exception $e) {
+        // mantém vazio em caso de erro
+    }
     // Descobrir imagem de fundo, se existir
     $bgCandidates = [
         '/relatorios/relatorio-14-1-bg.png',
@@ -216,6 +237,53 @@ ob_start();
                             // Preencher input16 com o valor comum da planilha seguido do placeholder de data
                             $local_data_with_placeholder = trim(($local_data_auto ?? '') . ' ' . '___/___/_____');
                             $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input16', $local_data_with_placeholder);
+
+                            // Preencher campos do doador/cônjuge/administrador a partir de assinaturas_14_1 (se existir)
+                            $ass = $assinaturasByProduto[$row['id']] ?? null;
+                            if ($ass) {
+                                // Doador
+                                $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input17', (string)($ass['nome_doador'] ?? ''));
+                                $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input19', (string)($ass['endereco_doador'] ?? ''));
+                                $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input21', (string)($ass['cpf_doador'] ?? ''));
+                                $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input23', (string)($ass['rg_doador'] ?? ''));
+                                // Cônjuge
+                                $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input18', (string)($ass['nome_conjuge'] ?? ''));
+                                $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input20', (string)($ass['endereco_conjuge'] ?? ''));
+                                $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input22', (string)($ass['cpf_conjuge'] ?? ''));
+                                $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input24', (string)($ass['rg_conjuge'] ?? ''));
+                                // Administrador (termo de aceite)
+                                $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input27', (string)($ass['nome_administrador'] ?? ''));
+                                // Repetir nome do doador no termo
+                                $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input29', (string)($ass['nome_doador'] ?? ''));
+
+                                // Assinaturas: substituir textareas por imagens quando disponíveis
+                                $sigAdmin   = (string)($ass['assinatura_administrador'] ?? '');
+                                $sigDoador  = (string)($ass['assinatura_doador'] ?? '');
+                                $sigConjuge = (string)($ass['assinatura_conjuge'] ?? '');
+                                // Prefixar data URL se necessário
+                                $ensureDataUrl = function($s){
+                                    $s = trim((string)$s);
+                                    if ($s === '') return $s;
+                                    if (stripos($s, 'data:image') === 0) return $s;
+                                    return 'data:image/png;base64,' . $s;
+                                };
+                                $sigAdmin   = $ensureDataUrl($sigAdmin);
+                                $sigDoador  = $ensureDataUrl($sigDoador);
+                                $sigConjuge = $ensureDataUrl($sigConjuge);
+
+                                if (!empty($sigAdmin)) {
+                                    $htmlPreenchido = r141_insertSignatureImage($htmlPreenchido, 'input28', $sigAdmin);
+                                }
+                                if (!empty($sigDoador)) {
+                                    // Campo de assinatura do doador na seção C
+                                    $htmlPreenchido = r141_insertSignatureImage($htmlPreenchido, 'input25', $sigDoador);
+                                    // Campo de assinatura do doador no termo de aceite
+                                    $htmlPreenchido = r141_insertSignatureImage($htmlPreenchido, 'input30', $sigDoador);
+                                }
+                                if (!empty($sigConjuge)) {
+                                    $htmlPreenchido = r141_insertSignatureImage($htmlPreenchido, 'input26', $sigConjuge);
+                                }
+                            }
 
                             // Opcional: injetar imagem de fundo se detectada
                             $htmlIsolado = $htmlPreenchido;
