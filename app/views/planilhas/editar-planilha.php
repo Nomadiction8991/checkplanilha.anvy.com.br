@@ -86,8 +86,11 @@ ob_start();
                            value="<?php echo htmlspecialchars($config['data_posicao'] ?? 'D13'); ?>" required>
                 </div>
             </div>
+        </div>
+    </div>
 
-            
+    <!-- Atualizar Dados -->
+    <div class="card mb-3">
         <div class="card-header">
             <i class="bi bi-arrow-repeat me-2"></i>
             Atualizar Dados
