@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $localizacao_comum = trim($_POST['localizacao_comum'] ?? 'D16');
     $localizacao_data_posicao = trim($_POST['localizacao_data_posicao'] ?? 'D13');
     $localizacao_endereco = trim($_POST['localizacao_endereco'] ?? 'A4');
-    $localizacao_cnpj = trim($_POST['localizacao_cnpj'] ?? 'U8');
+    $localizacao_cnpj = trim($_POST['localizacao_cnpj'] ?? 'U5');
     // Novo campo: nome e assinatura do responsável (Administrador/Acessor)
     $nome_responsavel = trim($_POST['nome_responsavel'] ?? null);
     $assinatura_responsavel = $_POST['assinatura_responsavel'] ?? null; // data URL base64
@@ -50,6 +50,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (!isset($_FILES['arquivo']) || $_FILES['arquivo']['error'] !== UPLOAD_ERR_OK) {
             throw new Exception('Selecione um arquivo CSV válido.');
+        }
+
+        // Validar mapeamentos obrigatórios (1 a 2 letras A-Z)
+        foreach ([
+            'codigo' => 'Código',
+            'nome' => 'Nome',
+            'dependencia' => 'Dependência',
+        ] as $k => $rotulo) {
+            $val = $mapeamento[$k] ?? '';
+            if (empty($val)) {
+                throw new Exception("O mapeamento da coluna {$rotulo} é obrigatório.");
+            }
+            if (!preg_match('/^[A-Z]{1,2}$/', $val)) {
+                throw new Exception("O mapeamento da coluna {$rotulo} deve ser 1 ou 2 letras de A a Z.");
+            }
         }
 
         $arquivo_tmp = $_FILES['arquivo']['tmp_name'];
