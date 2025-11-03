@@ -56,9 +56,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $localizacao_data_posicao = trim($_POST['localizacao_data_posicao'] ?? 'D13');
     $localizacao_endereco = trim($_POST['localizacao_endereco'] ?? 'A4');
     $localizacao_cnpj = trim($_POST['localizacao_cnpj'] ?? 'U8');
-    // Novo campo: nome e assinatura do responsável (Administrador/Acessor)
-    $nome_responsavel = trim($_POST['nome_responsavel'] ?? null);
-    $assinatura_responsavel = $_POST['assinatura_responsavel'] ?? null;
     // administracao (estado) e cidade
     $administracao = trim($_POST['administracao'] ?? null);
     $cidade = trim($_POST['cidade'] ?? null);
@@ -95,9 +92,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $novo_valor_data_posicao = $planilha['data_posicao']; // Manter o valor atual por padrão
     $novo_valor_endereco = $planilha['endereco']; // Manter o valor atual por padrão
     $novo_valor_cnpj = $planilha['cnpj']; // Manter o valor atual por padrão
-    // Novo campo por padrão mantém o existente
-    $novo_nome_responsavel = $planilha['nome_responsavel'] ?? null;
-    $novo_assinatura_responsavel = $planilha['assinatura_responsavel'] ?? null;
     $novo_administracao = $planilha['administracao'] ?? null;
     $novo_cidade = $planilha['cidade'] ?? null;
         
@@ -258,9 +252,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Validações de campos obrigatórios enviados pelo form
-        if (isset($_POST['nome_responsavel']) && trim($_POST['nome_responsavel']) === '') {
-            throw new Exception('O campo Nome do Administrador/Acessor é obrigatório.');
-        }
         if (isset($_POST['administracao']) && trim($_POST['administracao']) === '') {
             throw new Exception('O campo Administração é obrigatório.');
         }
@@ -268,13 +259,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception('O campo Cidade é obrigatório.');
         }
 
-        // Se o usuário submeteu nomes/assinaturas via POST, sobrescrever as variáveis de update
-        if (!empty($nome_responsavel) || $nome_responsavel === "") {
-            $novo_nome_responsavel = $nome_responsavel;
-        }
-        if (!empty($assinatura_responsavel) || $assinatura_responsavel === "") {
-            $novo_assinatura_responsavel = $assinatura_responsavel;
-        }
+        // Se o usuário submeteu administracao/cidade via POST, sobrescrever as variáveis de update
         if (!empty($administracao) || $administracao === "") {
             $novo_administracao = $administracao;
         }
@@ -283,17 +268,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Atualizar dados da planilha com os novos valores (se aplicável)
-    $sql_update_planilha = "UPDATE planilhas SET ativo = :ativo, comum = :comum, data_posicao = :data_posicao, endereco = :endereco, cnpj = :cnpj, nome_responsavel = :nome_responsavel, administracao = :administracao, cidade = :cidade, assinatura_responsavel = :assinatura_responsavel WHERE id = :id";
+    $sql_update_planilha = "UPDATE planilhas SET ativo = :ativo, comum = :comum, data_posicao = :data_posicao, endereco = :endereco, cnpj = :cnpj, administracao = :administracao, cidade = :cidade WHERE id = :id";
         $stmt_update_planilha = $conexao->prepare($sql_update_planilha);
         $stmt_update_planilha->bindValue(':ativo', $ativo);
         $stmt_update_planilha->bindValue(':comum', $novo_valor_comum);
         $stmt_update_planilha->bindValue(':data_posicao', $novo_valor_data_posicao);
         $stmt_update_planilha->bindValue(':endereco', $novo_valor_endereco);
         $stmt_update_planilha->bindValue(':cnpj', $novo_valor_cnpj);
-    $stmt_update_planilha->bindValue(':nome_responsavel', $novo_nome_responsavel);
     $stmt_update_planilha->bindValue(':administracao', $novo_administracao);
     $stmt_update_planilha->bindValue(':cidade', $novo_cidade);
-    $stmt_update_planilha->bindValue(':assinatura_responsavel', $novo_assinatura_responsavel);
         $stmt_update_planilha->bindValue(':id', $id_planilha);
         $stmt_update_planilha->execute();
 

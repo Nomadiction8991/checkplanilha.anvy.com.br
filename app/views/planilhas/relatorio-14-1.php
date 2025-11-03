@@ -216,15 +216,6 @@ ob_start();
                             // Preencher input16 com o valor comum da planilha seguido do placeholder de data
                             $local_data_with_placeholder = trim(($local_data_auto ?? '') . ' ' . '___/___/_____');
                             $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input16', $local_data_with_placeholder);
-                            // Preencher nome e assinatura do administrador/acessor (input27 e input28)
-                            $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input27', $nome_responsavel_planilha ?? '');
-                            // Para assinatura, criar tag img se houver dados base64
-                            if (!empty($assinatura_responsavel_planilha)) {
-                                // Inserir imagem da assinatura no textarea input28
-                                $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input28', '');
-                                // Inserir imagem após o textarea usando DOMDocument
-                                $htmlPreenchido = r141_insertSignatureImage($htmlPreenchido, 'input28', $assinatura_responsavel_planilha);
-                            }
 
                             // Opcional: injetar imagem de fundo se detectada
                             $htmlIsolado = $htmlPreenchido;

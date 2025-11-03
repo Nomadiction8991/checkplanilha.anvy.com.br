@@ -6,7 +6,7 @@ require_once __DIR__ . '/../conexao.php';
 $id_planilha = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
 // Buscar dados da planilha para obter os valores das colunas necessárias
-$sql_planilha = "SELECT comum, cnpj, administracao, cidade, nome_responsavel, assinatura_responsavel FROM planilhas WHERE id = :id_planilha";
+$sql_planilha = "SELECT comum, cnpj, administracao, cidade FROM planilhas WHERE id = :id_planilha";
 $stmt_planilha = $conexao->prepare($sql_planilha);
 $stmt_planilha->bindValue(':id_planilha', $id_planilha);
 $stmt_planilha->execute();
@@ -16,8 +16,6 @@ $comum_planilha = $planilha ? ($planilha['comum'] ?? '') : '';
 $cnpj_planilha = $planilha ? ($planilha['cnpj'] ?? '') : '';
 $administracao_planilha = $planilha ? ($planilha['administracao'] ?? '') : '';
 $cidade_planilha = $planilha ? ($planilha['cidade'] ?? '') : '';
-$nome_responsavel_planilha = $planilha ? ($planilha['nome_responsavel'] ?? '') : '';
-$assinatura_responsavel_planilha = $planilha ? ($planilha['assinatura_responsavel'] ?? '') : '';
 
 // Derivar número do relatório e casa de oração a partir de "comum"
 // Regra: número do relatório = apenas dígitos antes do segundo '-' ; casa de oração = texto após o segundo '-'

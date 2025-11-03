@@ -126,54 +126,14 @@ ob_start();
                         <option value="">Carregando...</option>
                     </select>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-6">
                     <label for="cidade" class="form-label">Cidade <span class="text-danger">*</span></label>
                     <select id="cidade" name="cidade" class="form-select" required disabled>
                         <option value="">Carregando...</option>
                     </select>
                 </div>
-                <div class="col-md-3">
-                    <label for="nome_responsavel" class="form-label">Nome do Administrador/Acessor <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="nome_responsavel" name="nome_responsavel" 
-                           value="<?php echo htmlspecialchars($planilha['nome_responsavel'] ?? ''); ?>" maxlength="255" required>
-                </div>
-            </div>
-
-            <div class="row g-3 mt-3">
-                <div class="col-12">
-                    <label class="form-label">Assinatura do Administrador/Acessor</label>
-                    <div class="border p-2 mb-2" style="overflow:hidden;">
-                        <canvas id="canvas_responsavel" width="800" height="160" style="touch-action: none; background:#fff; border:1px solid #ddd; width:100%; height:auto;"></canvas>
-                    </div>
-                    <div>
-                        <button type="button" class="btn btn-primary btn-lg w-100 mt-2" onclick="openSignatureModal()">Fazer Assinatura</button>
-                    </div>
-                    <input type="hidden" name="assinatura_responsavel" id="assinatura_responsavel" value="<?php echo htmlspecialchars($planilha['assinatura_responsavel'] ?? ''); ?>">
-                    <?php if (!empty($planilha['assinatura_responsavel'])): ?>
-                        <div class="mt-2 small text-muted">Assinatura existente (pode redesenhar para substituir)</div>
-                    <?php endif; ?>
-                </div>
             </div>
             
-            <!-- Modal fullscreen para assinatura (reaproveitado) -->
-            <div id="signatureModal" class="modal" tabindex="-1" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1050;">
-                <div style="position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
-                    <div style="background:#fff; width:100%; height:100%; padding:12px; box-sizing:border-box; position:relative;">
-                                <div class="d-flex justify-content-between mb-2">
-                                <div>
-                                    <button type="button" class="btn btn-warning btn-sm" onclick="clearModalSignature()">Limpar</button>
-                                </div>
-                                <div>
-                                    <button type="button" class="btn btn-success btn-sm" onclick="applyModalSignature()">Salvar</button>
-                                    <button type="button" class="btn btn-danger btn-sm" onclick="closeSignatureModal()">Fechar</button>
-                                </div>
-                            </div>
-                        <div style="width:100%; height:calc(100% - 48px); overflow:auto; -webkit-overflow-scrolling:touch; display:flex; align-items:center; justify-content:center;">
-                            <canvas id="modal_canvas" style="background:#fff; border:1px solid #ddd; width:auto; height:auto; display:block;"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -195,191 +155,6 @@ $pre_cidade = json_encode($planilha['cidade'] ?? '');
 $script = <<<HTML
 <script>
 document.addEventListener('DOMContentLoaded', function(){
-    // Signature canvas (small preview)
-    function initSignature(canvasId) {
-        // Preview canvas should be non-editable: disable pointer events and return element
-        const canvas = document.getElementById(canvasId);
-        canvas.style.pointerEvents = 'none';
-        return canvas;
-    }
-
-    function clearCanvas(id){ const c=document.getElementById(id); const ctx=c.getContext('2d'); ctx.clearRect(0,0,c.width,c.height); if(id==='canvas_responsavel') document.getElementById('assinatura_responsavel').value=''; }
-    function downloadCanvas(id){ const c=document.getElementById(id); const a=document.createElement('a'); a.href=c.toDataURL('image/png'); a.download=id+'.png'; a.click(); }
-    function drawImageOnCanvas(canvasId,dataUrl){ if(!dataUrl) return; const c=document.getElementById(canvasId); const ctx=c.getContext('2d'); const img=new Image(); img.onload=function(){ ctx.clearRect(0,0,c.width,c.height); const scale=Math.min(c.width/img.width, c.height/img.height); const w=img.width*scale, h=img.height*scale, x=(c.width-w)/2, y=(c.height-h)/2; ctx.drawImage(img,x,y,w,h); }; img.src=dataUrl; }
-
-    // Initialize small canvas preview
-    const cResp = initSignature('canvas_responsavel');
-    const existingResp = document.getElementById('assinatura_responsavel').value;
-    if(existingResp) drawImageOnCanvas('canvas_responsavel', existingResp);
-
-    // Modal full-screen canvas
-    let modalCanvas, modalCtx, modalDrawing=false, modalLastX=0, modalLastY=0;
-    function initModalCanvas(){
-        modalCanvas = document.getElementById('modal_canvas');
-        modalCtx = modalCanvas.getContext('2d');
-        // actual pixel buffer configured in resizeModalCanvas()
-        // Prevent default touch gestures on modal canvas to avoid page scrolling/zooming
-        try {
-            modalCanvas.style.touchAction = 'none';
-            modalCanvas.style.webkitUserSelect = 'none';
-        } catch(e){}
-    }
-    function resizeModalCanvas(){
-        if(!modalCanvas) return;
-        const rect = modalCanvas.getBoundingClientRect();
-        const dpr = window.devicePixelRatio || 1;
-        const cssW = Math.max(300, Math.floor(rect.width));
-        const cssH = Math.max(150, Math.floor(rect.height));
-        modalCanvas.style.width = cssW + 'px';
-        modalCanvas.style.height = cssH + 'px';
-        modalCanvas.width = Math.floor(cssW * dpr);
-        modalCanvas.height = Math.floor(cssH * dpr);
-        modalCtx = modalCanvas.getContext('2d');
-        try{ modalCtx.setTransform(1,0,0,1,0,0); } catch(e){}
-        modalCtx.scale(dpr, dpr);
-        modalCtx.lineWidth = 2; modalCtx.lineCap = 'round';
-        try{ modalCtx.fillStyle = '#ffffff'; modalCtx.fillRect(0,0,cssW,cssH); } catch(e){}
-    }
-    // Pointer-based drawing handlers (preferred) as fallback when SignaturePad is not present
-    let pointerListenersEnabled = false;
-    function enablePointerDrawing(){
-        if (!modalCanvas || pointerListenersEnabled) return;
-        modalCanvas.addEventListener('pointerdown', modalPointerDown);
-        modalCanvas.addEventListener('pointermove', modalPointerMove);
-        modalCanvas.addEventListener('pointerup', modalPointerUp);
-        modalCanvas.addEventListener('pointercancel', modalPointerUp);
-        pointerListenersEnabled = true;
-    }
-    function disablePointerDrawing(){
-        if (!modalCanvas || !pointerListenersEnabled) return;
-        modalCanvas.removeEventListener('pointerdown', modalPointerDown);
-        modalCanvas.removeEventListener('pointermove', modalPointerMove);
-        modalCanvas.removeEventListener('pointerup', modalPointerUp);
-        modalCanvas.removeEventListener('pointercancel', modalPointerUp);
-        pointerListenersEnabled = false;
-    }
-    function getModalCoords(e){ const rect = modalCanvas.getBoundingClientRect(); const clientX = (e.clientX !== undefined ? e.clientX : (e.touches ? e.touches[0].clientX : 0)); const clientY = (e.clientY !== undefined ? e.clientY : (e.touches ? e.touches[0].clientY : 0)); return { x: clientX - rect.left, y: clientY - rect.top }; }
-    function modalPointerDown(e){ try{ if (e && e.preventDefault) e.preventDefault(); }catch(err){} if (!modalCanvas) return; try{ modalCanvas.setPointerCapture(e.pointerId); }catch(err){} modalDrawing=true; const p=getModalCoords(e); modalLastX=p.x; modalLastY=p.y; try{ modalCtx.beginPath(); modalCtx.moveTo(modalLastX, modalLastY); }catch(err){} }
-    function modalPointerMove(e){ if(!modalDrawing) return; try{ if (e && e.preventDefault) e.preventDefault(); }catch(err){} const p=getModalCoords(e); try{ modalCtx.beginPath(); modalCtx.moveTo(modalLastX, modalLastY); modalCtx.lineTo(p.x, p.y); modalCtx.stroke(); }catch(err){} modalLastX=p.x; modalLastY=p.y; }
-    function modalPointerUp(e){ try{ if (modalCanvas && e && e.pointerId) modalCanvas.releasePointerCapture(e.pointerId); }catch(err){} modalDrawing=false; }
-
-    function setModalLandscape() {
-        if (!modalCanvas) initModalCanvas();
-        // Use most of the viewport so the canvas becomes large after rotation.
-        // Target ~95% width and ~40% height (matches importar view) to leave room for controls.
-        const cssW = Math.floor(window.innerWidth * 0.95);
-        const cssH = Math.floor(window.innerHeight * 0.40);
-        modalCanvas.style.width = cssW + 'px';
-        modalCanvas.style.height = cssH + 'px';
-        resizeModalCanvas();
-        try { modalCtx.strokeStyle = '#000000'; } catch(e){}
-    }
-
-    // Allow user to expand modal width for longer signature area
-    function expandModalWidth(step = 400){
-        if (!modalCanvas) initModalCanvas();
-        const parent = modalCanvas.parentElement || document.getElementById('signatureModal');
-        const rect = modalCanvas.getBoundingClientRect();
-        const currentW = Math.max(parseInt(modalCanvas.style.width) || 0, Math.floor(rect.width));
-        const newW = Math.min(3000, currentW + step);
-        const newH = Math.max(90, Math.floor(newW / 8));
-        modalCanvas.style.width = newW + 'px';
-        modalCanvas.style.height = newH + 'px';
-        resizeModalCanvas();
-        try{ if (parent && parent.scrollLeft !== undefined) parent.scrollLeft = Math.max(0, (newW - parent.clientWidth)/2); } catch(e){}
-    }
-
-    function setModalPortrait() {
-        if (!modalCanvas) initModalCanvas();
-        const vw = window.innerWidth, vh = window.innerHeight;
-        let cssW = Math.max(360, Math.min(vw, vh) * 0.6);
-        let cssH = Math.max(800, Math.max(vw, vh) * 0.92);
-        if (cssW >= cssH) cssH = cssW + 200;
-        modalCanvas.style.width = Math.floor(cssW) + 'px';
-        modalCanvas.style.height = Math.floor(cssH) + 'px';
-        resizeModalCanvas();
-        modalCtx.strokeStyle = '#000000';
-    }
-
-    // SignaturePad integration for edit view
-    let signaturePad = null;
-
-    function startSignaturePad(keepExisting=false){
-        if (!modalCanvas) initModalCanvas();
-        if (!keepExisting) { try { modalCtx.clearRect(0,0,modalCanvas.width, modalCanvas.height); } catch(e){} }
-        if (typeof SignaturePad !== 'undefined'){
-            disablePointerDrawing();
-            signaturePad = new SignaturePad(modalCanvas, { backgroundColor: 'rgb(255,255,255)', penColor: 'black' });
-            if (!keepExisting) signaturePad.clear();
-        } else { signaturePad = null; enablePointerDrawing(); }
-    }
-
-    // No-op: removed automatic fullscreen/orientation lock. Users may rotate their
-    // device manually if they prefer. Keeping a noop function to preserve calls.
-    async function enterFullscreenAndLock(){
-        return; // intentionally do nothing
-    }
-
-
-    window.openSignatureModal = async function(){
-        const modal = document.getElementById('signatureModal');
-        modal.style.display = 'block';
-        try{
-            if (modal.requestFullscreen) await modal.requestFullscreen();
-            else if (document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
-            if (screen && screen.orientation && screen.orientation.lock) {
-                try{ await screen.orientation.lock('landscape'); } catch(e){}
-            }
-        }catch(err){ /* ignore */ }
-        if (!modalCanvas) initModalCanvas();
-        setModalLandscape();
-        // load existing signature into modal (if any)
-        const existing = document.getElementById('assinatura_responsavel').value;
-        startSignaturePad(true);
-        if (existing) {
-            const img = new Image();
-            img.onload = function(){
-                try{
-                    const rect = modalCanvas.getBoundingClientRect();
-                    const cssW = rect.width; const cssH = rect.height;
-                    modalCtx.clearRect(0,0,cssW,cssH);
-                    const scale = Math.min(cssW / img.width, cssH / img.height);
-                    const w = img.width * scale; const h = img.height * scale;
-                    modalCtx.drawImage(img, (cssW - w)/2, (cssH - h)/2, w, h);
-                }catch(e){}
-            };
-            img.src = existing;
-        }
-        window.addEventListener('resize', resizeModalIfVisible);
-        window.addEventListener('orientationchange', resizeModalIfVisible);
-    };
-
-    function resizeModalIfVisible(){ try{ const m=document.getElementById('signatureModal'); if (m && m.style.display !== 'none') {
-            if (!modalCanvas) initModalCanvas();
-            modalCanvas.style.width = Math.floor(window.innerWidth * 0.95) + 'px';
-            modalCanvas.style.height = Math.floor(window.innerHeight * 0.40) + 'px';
-            resizeModalCanvas();
-        } }catch(e){} }
-
-    window.closeSignatureModal = async function(){
-        document.getElementById('signatureModal').style.display='none';
-        try{ if (document.fullscreenElement && document.exitFullscreen) await document.exitFullscreen(); if (screen && screen.orientation && screen.orientation.unlock) { try{ screen.orientation.unlock(); } catch(e){} } }catch(err){ console.warn('exit fullscreen failed', err); }
-        if (signaturePad) { try{ signaturePad.off && signaturePad.off(); } catch(e){} signaturePad = null; }
-    };
-
-    window.applyModalSignature = function(){
-        let data = null;
-        if (signaturePad) { if (signaturePad.isEmpty()) data = null; else data = signaturePad.toDataURL('image/png'); }
-        else { data = modalCanvas.toDataURL('image/png'); }
-        const preview = document.getElementById('canvas_responsavel');
-        const pCtx = preview.getContext('2d');
-        if (data){ const img=new Image(); img.onload=function(){ pCtx.clearRect(0,0,preview.width,preview.height); const scale=Math.min(preview.width/img.width, preview.height/img.height); const w=img.width*scale, h=img.height*scale, x=(preview.width-w)/2, y=(preview.height-h)/2; pCtx.drawImage(img,x,y,w,h); document.getElementById('assinatura_responsavel').value=data; closeSignatureModal(); }; img.src=data; }
-        else { pCtx.clearRect(0,0,preview.width,preview.height); document.getElementById('assinatura_responsavel').value=''; closeSignatureModal(); }
-    };
-
-    // Clear modal signature (button inside modal)
-    window.clearModalSignature = function(){ if (!modalCanvas) return; if (signaturePad) { signaturePad.clear(); } try { modalCtx.clearRect(0,0,modalCanvas.width, modalCanvas.height); } catch(e){} };
-
     // Estados / Cidades (popula cidades de MT e armazena valores no formato "MT - Cidade")
     const preAdministracao = $pre_administracao;
     const preCidade = $pre_cidade;
@@ -423,30 +198,20 @@ document.addEventListener('DOMContentLoaded', function(){
         }catch(err){ cidadeSel.innerHTML='<option value="">Erro ao carregar cidades</option>'; console.error(err); }
     }
 
-    // Os selects `administracao` e `cidade` foram preenchidos com a mesma lista de
-    // cidades de MT, mas são independentes — não há escuta de sincronização entre eles.
-
-    // Antes de submeter, garantir que administracao e cidade estejam no formato "MT - Cidade"
+    // Validação do formulário
     const form = document.querySelector('form');
-    form.addEventListener('submit', function(e){ const nome = document.getElementById('nome_responsavel').value.trim(); const estado = document.getElementById('administracao').value; const cidadeVal = document.getElementById('cidade').value; if(!nome || !estado || !cidadeVal){ e.preventDefault(); alert('Por favor preencha Administração, Cidade e Nome do Administrador/Acessor (campos obrigatórios).'); return false; }
-    // Os selects são independentes — não sobrescrevemos automaticamente o campo 'administracao'.
-        // assinatura
-        function isCanvasBlank(c){ const blank=document.createElement('canvas'); blank.width=c.width; blank.height=c.height; return c.toDataURL()===blank.toDataURL(); }
-        if(!isCanvasBlank(document.getElementById('canvas_responsavel'))){ document.getElementById('assinatura_responsavel').value = document.getElementById('canvas_responsavel').toDataURL('image/png'); }
+    form.addEventListener('submit', function(e){ 
+        const estado = document.getElementById('administracao').value; 
+        const cidadeVal = document.getElementById('cidade').value; 
+        if(!estado || !cidadeVal){ 
+            e.preventDefault(); 
+            alert('Por favor preencha Administração e Cidade (campos obrigatórios).'); 
+            return false; 
+        }
     });
 
-    // inicialização: carregar estados, depois cidades e aplicar seleção pré-existente se houver
-    (async function(){
-        await loadEstados();
-        try{
-            const tmp = localStorage.getItem('signature_temp');
-            if (tmp) {
-                drawImageOnCanvas('canvas_responsavel', tmp);
-                document.getElementById('assinatura_responsavel').value = tmp;
-                localStorage.removeItem('signature_temp');
-            }
-        }catch(e){}
-    })();
+    // Inicialização: carregar estados, depois cidades e aplicar seleção pré-existente se houver
+    loadEstados();
 });
 </script>
 HTML;
