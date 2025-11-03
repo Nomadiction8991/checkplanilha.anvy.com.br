@@ -252,36 +252,6 @@ ob_start();
     </div>
 <?php endif; ?>
 
-<?php if (!$acesso_publico && $url_publica): ?>
-<!-- Card com Link de Compartilhamento (apenas modo único) -->
-<div class="card mb-3">
-    <div class="card-header bg-primary text-white">
-        <i class="bi bi-share me-2"></i>
-        Link para Compartilhamento
-    </div>
-    <div class="card-body">
-        <p class="mb-3">
-            <i class="bi bi-info-circle me-1"></i>
-            Compartilhe este link com a pessoa responsável pelas assinaturas:
-        </p>
-        <div class="link-compartilhar">
-            <div class="input-group">
-                <input type="text" class="form-control link-input" id="linkCompartilhar" 
-                       value="<?php echo htmlspecialchars($url_publica); ?>" readonly>
-                <button class="btn btn-primary" type="button" onclick="copiarLink()">
-                    <i class="bi bi-clipboard me-1"></i>
-                    Copiar
-                </button>
-            </div>
-        </div>
-        <small class="text-muted d-block mt-2">
-            <i class="bi bi-shield-check me-1"></i>
-            Este link é único e seguro para este produto específico.
-        </small>
-    </div>
-</div>
-<?php endif; ?>
-
 <?php if ($modo_multiplo): ?>
 <!-- Card mostrando produtos selecionados (modo múltiplo) -->
 <div class="card mb-3">
@@ -368,20 +338,20 @@ ob_start();
                            value="<?php echo htmlspecialchars($assinatura['nome_doador'] ?? ''); ?>" required>
                 </div>
                 <div class="col-md-6">
-                    <label for="cpf_doador" class="form-label">CPF</label>
+                  <label for="cpf_doador" class="form-label">CPF <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="cpf_doador" name="cpf_doador" 
                            value="<?php echo htmlspecialchars($assinatura['cpf_doador'] ?? ''); ?>" 
-                           placeholder="000.000.000-00">
+                      placeholder="000.000.000-00" required>
                 </div>
                 <div class="col-md-6">
-                    <label for="rg_doador" class="form-label">RG</label>
+                  <label for="rg_doador" class="form-label">RG <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="rg_doador" name="rg_doador" 
-                           value="<?php echo htmlspecialchars($assinatura['rg_doador'] ?? ''); ?>">
+                      value="<?php echo htmlspecialchars($assinatura['rg_doador'] ?? ''); ?>" required>
                 </div>
                 <div class="col-md-12">
-                    <label for="endereco_doador" class="form-label">Endereço</label>
+                  <label for="endereco_doador" class="form-label">Endereço <span class="text-danger">*</span></label>
                     <textarea class="form-control" id="endereco_doador" name="endereco_doador" 
-                              rows="2"><?php echo htmlspecialchars($assinatura['endereco_doador'] ?? ''); ?></textarea>
+                      rows="2" required><?php echo htmlspecialchars($assinatura['endereco_doador'] ?? ''); ?></textarea>
                 </div>
             </div>
             
@@ -734,20 +704,6 @@ window.fecharModalAssinatura = async function(){
     }catch(e){}
     currentField = null;
 };
-
-// Copiar link
-function copiarLink() {
-    const input = document.getElementById('linkCompartilhar');
-    input.select();
-    input.setSelectionRange(0, 99999);
-    
-    navigator.clipboard.writeText(input.value).then(() => {
-        alert('Link copiado para a área de transferência!');
-    }).catch(() => {
-        document.execCommand('copy');
-        alert('Link copiado!');
-    });
-}
 
 // Validação e inicialização
 document.addEventListener('DOMContentLoaded', function(){

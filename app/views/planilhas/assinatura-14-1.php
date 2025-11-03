@@ -43,36 +43,27 @@ ob_start();
 <style>
 .produto-card {
     transition: all 0.2s;
-    border-left: 4px solid transparent;
+    border: 3px solid #dee2e6;
+    border-radius: 0.375rem;
     cursor: pointer;
 }
 
 .produto-card:hover {
-    border-left-color: #007bff;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .produto-card.status-pendente {
-    border-left-color: #ffc107;
+    border-color: #ffc107;
 }
 
 .produto-card.status-assinado {
-    border-left-color: #28a745;
-}
-
-.produto-card.status-cancelado {
-    border-left-color: #dc3545;
+    border-color: #28a745;
 }
 
 .produto-card.selected {
     background-color: #e7f3ff;
-    border-left-color: #007bff !important;
+    border-color: #007bff !important;
     box-shadow: 0 0 0 2px #007bff;
-}
-
-.badge-status {
-    font-size: 0.75rem;
-    padding: 0.35rem 0.65rem;
 }
 
 .checkbox-produto {
@@ -96,6 +87,34 @@ ob_start();
 .selection-toolbar.active {
     display: block;
 }
+ .legenda-status {
+     display: flex;
+     gap: 1.5rem;
+     flex-wrap: wrap;
+     align-items: center;
+ }
+ 
+ .legenda-item {
+     display: flex;
+     align-items: center;
+     gap: 0.5rem;
+     font-size: 0.875rem;
+ }
+ 
+ .legenda-cor {
+     width: 30px;
+     height: 20px;
+     border-radius: 3px;
+     border: 3px solid;
+ }
+ 
+ .legenda-cor.pendente {
+     border-color: #ffc107;
+ }
+ 
+ .legenda-cor.assinado {
+     border-color: #28a745;
+ }
 </style>
 
 <div class="card mb-3">
@@ -108,15 +127,16 @@ ob_start();
             <i class="bi bi-info-circle me-1"></i>
             Clique no produto para selecioná-lo. Você pode selecionar vários produtos para assinar todos de uma vez.
         </p>
-        <div class="d-flex gap-2">
-            <button type="button" class="btn btn-outline-primary btn-sm" onclick="selecionarTodos()">
-                <i class="bi bi-check-square me-1"></i>
-                Selecionar Todos
-            </button>
-            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="limparSelecao()">
-                <i class="bi bi-square me-1"></i>
-                Limpar Seleção
-            </button>
+        <!-- Legenda de Status -->
+        <div class="legenda-status">
+            <div class="legenda-item">
+                <div class="legenda-cor pendente"></div>
+                <span>Pendente</span>
+            </div>
+            <div class="legenda-item">
+                <div class="legenda-cor assinado"></div>
+                <span>Assinado</span>
+            </div>
         </div>
     </div>
 </div>
@@ -173,51 +193,6 @@ ob_start();
                                 </div>
                             </div>
                             <div class="ms-3">
-                                <?php
-                                $statusConfig = [
-                                    'pendente' => ['badge' => 'warning', 'icon' => 'clock', 'text' => 'Pendente'],
-                                    'assinado' => ['badge' => 'success', 'icon' => 'check-circle-fill', 'text' => 'Assinado'],
-                                    'cancelado' => ['badge' => 'danger', 'icon' => 'x-circle', 'text' => 'Cancelado']
-                                ];
-                                $config = $statusConfig[$produto['status_assinatura']] ?? $statusConfig['pendente'];
-                                ?>
-                                <span class="badge bg-<?php echo $config['badge']; ?> badge-status">
-                                    <i class="bi bi-<?php echo $config['icon']; ?> me-1"></i>
-                                    <?php echo $config['text']; ?>
-                                </span>
-                            </div>
-                        </div>
-                        
-                        <?php if ($produto['token']): ?>
-                            <div class="mt-3 pt-3 border-top d-flex justify-content-between align-items-center">
-                                <small class="text-muted">
-                                    <i class="bi bi-link-45deg me-1"></i>
-                                    Link de assinatura disponível
-                                </small>
-                                <a href="./assinatura-14-1-form.php?id_produto=<?php echo $produto['id']; ?>&id_planilha=<?php echo $id_planilha; ?>" 
-                                   class="btn btn-sm btn-outline-primary"
-                                   onclick="event.stopPropagation();">
-                                    <i class="bi bi-pencil me-1"></i>
-                                    Editar Individual
-                                </a>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            </div>
-        <?php endforeach; ?>
-    </div>
-<?php else: ?>
-    <div class="card">
-        <div class="card-body text-center py-5">
-            <i class="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
-            <h5 class="text-muted">Nenhum produto para assinar</h5>
-            <p class="text-muted small mb-0">
-                Certifique-se de que existem produtos marcados para impressão no relatório 14.1
-            </p>
-        </div>
-    </div>
-<?php endif; ?>
 
 <script>
 let produtosSelecionados = new Set();
