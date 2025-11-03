@@ -2,10 +2,15 @@
 require_once __DIR__ . '/../../../CRUD/conexao.php';
 
 $id_produto = $_GET['id_produto'] ?? null;
+$ids_produtos = $_GET['ids'] ?? null; // Múltiplos IDs separados por vírgula
 $id_planilha = $_GET['id_planilha'] ?? null;
 $token = $_GET['token'] ?? null;
 
-// Se tem token, busca por token (acesso público)
+// Array para armazenar produtos
+$produtos = [];
+$modo_multiplo = false;
+
+// Se tem token, busca por token (acesso público - sempre único)
 if ($token) {
     $sql = "SELECT a.*, pc.descricao_completa, p.comum
             FROM assinaturas_14_1 a
@@ -23,52 +28,88 @@ if ($token) {
     
     $id_produto = $assinatura['id_produto'];
     $id_planilha = $assinatura['id_planilha'];
+    $produtos = [$id_produto];
     $acesso_publico = true;
+    $modo_multiplo = false;
 } else {
-    // Acesso interno (admin)
-    if (!$id_produto || !$id_planilha) {
+    // Acesso interno (admin) - pode ser múltiplo
+    if ($ids_produtos) {
+        // Modo múltiplo
+        $produtos = array_map('intval', explode(',', $ids_produtos));
+        $modo_multiplo = true;
+        $id_produto = $produtos[0]; // Usar o primeiro para compatibilidade
+    } else if ($id_produto) {
+        // Modo único
+        $produtos = [intval($id_produto)];
+        $modo_multiplo = false;
+    } else {
         header('Location: assinatura-14-1.php?id=' . ($id_planilha ?? ''));
         exit;
     }
+    
+    if (!$id_planilha) {
+        header('Location: assinatura-14-1.php?id=' . ($id_planilha ?? ''));
+        exit;
+    }
+    
     $acesso_publico = false;
 }
 
-// Buscar ou criar registro de assinatura
-if (!$token) {
-    $sql = "SELECT * FROM assinaturas_14_1 WHERE id_produto = :id_produto";
+// Buscar informações dos produtos
+$produtos_info = [];
+if (count($produtos) > 0) {
+    $placeholders = implode(',', array_fill(0, count($produtos), '?'));
+    $sql = "SELECT pc.*, p.comum 
+            FROM produtos_cadastro pc
+            JOIN planilhas p ON pc.id_planilha = p.id
+            WHERE pc.id IN ($placeholders)";
     $stmt = $conexao->prepare($sql);
-    $stmt->bindValue(':id_produto', $id_produto);
-    $stmt->execute();
-    $assinatura = $stmt->fetch();
-    
-    // Se não existe, criar
-    if (!$assinatura) {
-        $token_novo = bin2hex(random_bytes(32));
-        $sql = "INSERT INTO assinaturas_14_1 (id_produto, id_planilha, token, status) 
-                VALUES (:id_produto, :id_planilha, :token, 'pendente')";
-        $stmt = $conexao->prepare($sql);
-        $stmt->bindValue(':id_produto', $id_produto);
-        $stmt->bindValue(':id_planilha', $id_planilha);
-        $stmt->bindValue(':token', $token_novo);
-        $stmt->execute();
-        
-        $assinatura = [
-            'id' => $conexao->lastInsertId(),
-            'token' => $token_novo,
-            'status' => 'pendente'
-        ];
-    }
+    $stmt->execute($produtos);
+    $produtos_info = $stmt->fetchAll();
 }
 
-// Buscar informações do produto
-$sql = "SELECT pc.*, p.comum 
-        FROM produtos_cadastro pc
-        JOIN planilhas p ON pc.id_planilha = p.id
-        WHERE pc.id = :id_produto";
-$stmt = $conexao->prepare($sql);
-$stmt->bindValue(':id_produto', $id_produto);
-$stmt->execute();
-$produto = $stmt->fetch();
+// Buscar ou criar registros de assinatura para cada produto
+$assinaturas = [];
+if (!$token) {
+    foreach ($produtos as $prod_id) {
+        $sql = "SELECT * FROM assinaturas_14_1 WHERE id_produto = :id_produto";
+        $stmt = $conexao->prepare($sql);
+        $stmt->bindValue(':id_produto', $prod_id);
+        $stmt->execute();
+        $ass = $stmt->fetch();
+        
+        // Se não existe, criar
+        if (!$ass) {
+            $token_novo = bin2hex(random_bytes(32));
+            $sql = "INSERT INTO assinaturas_14_1 (id_produto, id_planilha, token, status) 
+                    VALUES (:id_produto, :id_planilha, :token, 'pendente')";
+            $stmt = $conexao->prepare($sql);
+            $stmt->bindValue(':id_produto', $prod_id);
+            $stmt->bindValue(':id_planilha', $id_planilha);
+            $stmt->bindValue(':token', $token_novo);
+            $stmt->execute();
+            
+            $ass = [
+                'id' => $conexao->lastInsertId(),
+                'token' => $token_novo,
+                'status' => 'pendente',
+                'id_produto' => $prod_id
+            ];
+        }
+        $assinaturas[$prod_id] = $ass;
+    }
+    
+    // Usar a primeira assinatura para preencher os campos
+    $assinatura = reset($assinaturas);
+} else {
+    $assinaturas[$id_produto] = $assinatura;
+}
+
+// Buscar informações do produto (compatibilidade com código existente)
+$produto = $produtos_info[0] ?? null;
+
+// Para compatibilidade com campos do formulário, usar dados do primeiro produto
+$assinatura = count($produtos) > 0 && isset($assinaturas[$produtos[0]]) ? $assinaturas[$produtos[0]] : [];
 
 // Processar envio do formulário
 $mensagem = '';
@@ -76,49 +117,65 @@ $tipo_mensagem = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
-        $sql = "UPDATE assinaturas_14_1 SET 
-                nome_administrador = :nome_administrador,
-                assinatura_administrador = :assinatura_administrador,
-                nome_doador = :nome_doador,
-                endereco_doador = :endereco_doador,
-                cpf_doador = :cpf_doador,
-                rg_doador = :rg_doador,
-                assinatura_doador = :assinatura_doador,
-                nome_conjuge = :nome_conjuge,
-                endereco_conjuge = :endereco_conjuge,
-                cpf_conjuge = :cpf_conjuge,
-                rg_conjuge = :rg_conjuge,
-                assinatura_conjuge = :assinatura_conjuge,
-                status = 'assinado',
-                ip_assinatura = :ip
-                WHERE id = :id";
+        // Atualizar todos os produtos selecionados com os mesmos dados
+        $ids_atualizar = isset($_POST['ids_produtos']) && $_POST['ids_produtos'] ? explode(',', $_POST['ids_produtos']) : $produtos;
         
-        $stmt = $conexao->prepare($sql);
-        $stmt->bindValue(':id', $assinatura['id']);
-        $stmt->bindValue(':nome_administrador', $_POST['nome_administrador'] ?? '');
-        $stmt->bindValue(':assinatura_administrador', $_POST['assinatura_administrador'] ?? '');
-        $stmt->bindValue(':nome_doador', $_POST['nome_doador'] ?? '');
-        $stmt->bindValue(':endereco_doador', $_POST['endereco_doador'] ?? '');
-        $stmt->bindValue(':cpf_doador', $_POST['cpf_doador'] ?? '');
-        $stmt->bindValue(':rg_doador', $_POST['rg_doador'] ?? '');
-        $stmt->bindValue(':assinatura_doador', $_POST['assinatura_doador'] ?? '');
-        $stmt->bindValue(':nome_conjuge', $_POST['nome_conjuge'] ?? '');
-        $stmt->bindValue(':endereco_conjuge', $_POST['endereco_conjuge'] ?? '');
-        $stmt->bindValue(':cpf_conjuge', $_POST['cpf_conjuge'] ?? '');
-        $stmt->bindValue(':rg_conjuge', $_POST['rg_conjuge'] ?? '');
-        $stmt->bindValue(':assinatura_conjuge', $_POST['assinatura_conjuge'] ?? '');
-        $stmt->bindValue(':ip', $_SERVER['REMOTE_ADDR']);
-        $stmt->execute();
+        $total_atualizados = 0;
+        foreach ($ids_atualizar as $prod_id) {
+            $prod_id = intval($prod_id);
+            if (!isset($assinaturas[$prod_id])) continue;
+            
+            $sql = "UPDATE assinaturas_14_1 SET 
+                    nome_administrador = :nome_administrador,
+                    assinatura_administrador = :assinatura_administrador,
+                    nome_doador = :nome_doador,
+                    endereco_doador = :endereco_doador,
+                    cpf_doador = :cpf_doador,
+                    rg_doador = :rg_doador,
+                    assinatura_doador = :assinatura_doador,
+                    nome_conjuge = :nome_conjuge,
+                    endereco_conjuge = :endereco_conjuge,
+                    cpf_conjuge = :cpf_conjuge,
+                    rg_conjuge = :rg_conjuge,
+                    assinatura_conjuge = :assinatura_conjuge,
+                    status = 'assinado',
+                    ip_assinatura = :ip
+                    WHERE id = :id";
+            
+            $stmt = $conexao->prepare($sql);
+            $stmt->bindValue(':id', $assinaturas[$prod_id]['id']);
+            $stmt->bindValue(':nome_administrador', $_POST['nome_administrador'] ?? '');
+            $stmt->bindValue(':assinatura_administrador', $_POST['assinatura_administrador'] ?? '');
+            $stmt->bindValue(':nome_doador', $_POST['nome_doador'] ?? '');
+            $stmt->bindValue(':endereco_doador', $_POST['endereco_doador'] ?? '');
+            $stmt->bindValue(':cpf_doador', $_POST['cpf_doador'] ?? '');
+            $stmt->bindValue(':rg_doador', $_POST['rg_doador'] ?? '');
+            $stmt->bindValue(':assinatura_doador', $_POST['assinatura_doador'] ?? '');
+            $stmt->bindValue(':nome_conjuge', $_POST['nome_conjuge'] ?? '');
+            $stmt->bindValue(':endereco_conjuge', $_POST['endereco_conjuge'] ?? '');
+            $stmt->bindValue(':cpf_conjuge', $_POST['cpf_conjuge'] ?? '');
+            $stmt->bindValue(':rg_conjuge', $_POST['rg_conjuge'] ?? '');
+            $stmt->bindValue(':assinatura_conjuge', $_POST['assinatura_conjuge'] ?? '');
+            $stmt->bindValue(':ip', $_SERVER['REMOTE_ADDR']);
+            $stmt->execute();
+            
+            $total_atualizados++;
+        }
         
-        $mensagem = 'Assinaturas salvas com sucesso!';
+        $mensagem = $total_atualizados > 1 
+            ? "Assinaturas salvas com sucesso para $total_atualizados produtos!" 
+            : 'Assinatura salva com sucesso!';
         $tipo_mensagem = 'success';
         
-        // Recarregar dados
-        $sql = "SELECT * FROM assinaturas_14_1 WHERE id = :id";
-        $stmt = $conexao->prepare($sql);
-        $stmt->bindValue(':id', $assinatura['id']);
-        $stmt->execute();
-        $assinatura = $stmt->fetch();
+        // Recarregar dados (apenas para modo único)
+        if (!$modo_multiplo && count($produtos) === 1) {
+            $prod_id = $produtos[0];
+            $sql = "SELECT * FROM assinaturas_14_1 WHERE id_produto = :id_produto";
+            $stmt = $conexao->prepare($sql);
+            $stmt->bindValue(':id_produto', $prod_id);
+            $stmt->execute();
+            $assinaturas[$prod_id] = $stmt->fetch();
+        }
         
     } catch (Exception $e) {
         $mensagem = 'Erro ao salvar: ' . $e->getMessage();
@@ -126,14 +183,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Gerar URL pública
-$protocolo = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
-$host = $_SERVER['HTTP_HOST'];
-$url_base = $protocolo . '://' . $host;
-$caminho_arquivo = str_replace($_SERVER['DOCUMENT_ROOT'], '', __FILE__);
-$url_publica = $url_base . $caminho_arquivo . '?token=' . urlencode($assinatura['token']);
+// Gerar URL pública (apenas para modo único)
+$url_publica = null;
+if (!$modo_multiplo && count($produtos) === 1) {
+    $prod_id = $produtos[0];
+    $token_produto = $assinaturas[$prod_id]['token'] ?? null;
+    if ($token_produto) {
+        $protocolo = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
+        $host = $_SERVER['HTTP_HOST'];
+        $url_base = $protocolo . '://' . $host;
+        $caminho_arquivo = str_replace($_SERVER['DOCUMENT_ROOT'], '', __FILE__);
+        $url_publica = $url_base . $caminho_arquivo . '?token=' . urlencode($token_produto);
+    }
+}
 
-$pageTitle = $acesso_publico ? 'Assinatura Digital - 14.1' : 'Gerenciar Assinatura - 14.1';
+$pageTitle = $acesso_publico ? 'Assinatura Digital - 14.1' : ($modo_multiplo ? 'Assinar Múltiplos Produtos - 14.1' : 'Gerenciar Assinatura - 14.1');
 $backUrl = $acesso_publico ? null : 'assinatura-14-1.php?id=' . urlencode($id_planilha);
 $headerActions = '';
 
@@ -188,8 +252,8 @@ ob_start();
     </div>
 <?php endif; ?>
 
-<?php if (!$acesso_publico): ?>
-<!-- Card com Link de Compartilhamento -->
+<?php if (!$acesso_publico && $url_publica): ?>
+<!-- Card com Link de Compartilhamento (apenas modo único) -->
 <div class="card mb-3">
     <div class="card-header bg-primary text-white">
         <i class="bi bi-share me-2"></i>
@@ -218,7 +282,36 @@ ob_start();
 </div>
 <?php endif; ?>
 
-<!-- Informações do Produto -->
+<?php if ($modo_multiplo): ?>
+<!-- Card mostrando produtos selecionados (modo múltiplo) -->
+<div class="card mb-3">
+    <div class="card-header bg-info text-white">
+        <i class="bi bi-box-seam me-2"></i>
+        Produtos Selecionados para Assinatura (<?php echo count($produtos); ?>)
+    </div>
+    <div class="card-body">
+        <p class="text-muted mb-2">
+            <i class="bi bi-info-circle me-1"></i>
+            As mesmas assinaturas serão aplicadas a todos os produtos abaixo:
+        </p>
+        <div class="list-group">
+            <?php foreach ($produtos_info as $prod_info): ?>
+                <div class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <strong><?php echo htmlspecialchars($prod_info['comum']); ?></strong>
+                            <br>
+                            <small class="text-muted"><?php echo htmlspecialchars(substr($prod_info['descricao_completa'], 0, 100)); ?>...</small>
+                        </div>
+                        <span class="badge bg-primary">ID: <?php echo $prod_info['id']; ?></span>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</div>
+<?php else: ?>
+<!-- Informações do Produto (modo único) -->
 <div class="card mb-3">
     <div class="card-header">
         <i class="bi bi-box-seam me-2"></i>
@@ -229,8 +322,11 @@ ob_start();
         <p class="mb-0"><strong>Descrição:</strong> <?php echo htmlspecialchars(substr($produto['descricao_completa'], 0, 200)); ?></p>
     </div>
 </div>
+<?php endif; ?>
 
 <form method="POST" id="formAssinatura">
+    <!-- Campo hidden com IDs dos produtos -->
+    <input type="hidden" name="ids_produtos" value="<?php echo implode(',', $produtos); ?>"
     <!-- Administrador/Acessor -->
     <div class="card mb-3">
         <div class="card-header">
