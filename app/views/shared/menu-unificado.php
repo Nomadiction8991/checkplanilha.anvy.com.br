@@ -29,16 +29,8 @@ if ($contexto === 'auto') {
     }
 }
 
-// Determinar URL de retorno
-if ($origem) {
-    $backUrl = $origem;
-} elseif ($contexto === 'relatorio' && $id_planilha) {
-    $backUrl = '../planilhas/relatorio-14-1.php?id=' . urlencode($id_planilha);
-} elseif ($contexto === 'planilha' && $id_planilha) {
-    $backUrl = '../planilhas/view-planilha.php?id=' . urlencode($id_planilha);
-} else {
-    $backUrl = '../../../index.php';
-}
+// Não definir backUrl - menu não tem botão voltar
+$backUrl = null;
 
 // Configurações da página
 $pageTitle = "Menu";

@@ -87,7 +87,24 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
             flex: 1;
         }
         
-        /* Removido botão de voltar do header para simplificar navegação */
+        .btn-back {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
         
         .app-title {
             margin: 0;
@@ -150,20 +167,6 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
             padding-top: 76px; /* espaço para o header fixo */
             overflow-y: auto;
             background: #f8f9fa;
-        }
-        
-        /* Subheader com navegação e funções da página */
-        .subheader {
-            margin-top: -6px;
-            margin-bottom: 12px;
-        }
-        .nav-pills-compact .btn {
-            padding: 6px 10px;
-            font-size: 12px;
-        }
-        .page-functions {
-            font-size: 12px;
-            color: #495057;
         }
         
         /* Cards Bootstrap personalizados */
@@ -361,6 +364,11 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
             <!-- Header -->
             <header class="app-header">
                 <div class="header-left">
+                    <?php if (isset($backUrl)): ?>
+                        <a href="<?php echo $backUrl; ?>" class="btn-back">
+                            <i class="bi bi-arrow-left fs-5"></i>
+                        </a>
+                    <?php endif; ?>
                     <h1 class="app-title"><?php echo $pageTitle ?? 'Anvy'; ?></h1>
                 </div>
                 <div class="header-actions">
@@ -372,55 +380,6 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
             
             <!-- Content -->
             <main class="app-content fade-in">
-                <?php
-                // Construir navegação padrão (sempre visível)
-                $id_planilha_ctx = null;
-                if (isset($id_planilha) && $id_planilha) {
-                    $id_planilha_ctx = $id_planilha;
-                } elseif (!empty($_GET['id'])) {
-                    $id_planilha_ctx = (int)$_GET['id'];
-                }
-                
-                $link_menu = $id_planilha_ctx ? ('/app/views/shared/menu-unificado.php?id=' . urlencode($id_planilha_ctx) . '&contexto=relatorio') : '/app/views/shared/menu-principal.php';
-                $link_relatorio141 = $id_planilha_ctx ? ('/app/views/planilhas/relatorio-14-1.php?id=' . urlencode($id_planilha_ctx)) : '/app/views/planilhas/relatorio-14-1.php';
-                $link_assinar = $id_planilha_ctx ? ('/app/views/planilhas/assinatura-14-1.php?id=' . urlencode($id_planilha_ctx)) : '/app/views/planilhas/assinatura-14-1.php';
-                $link_importar = '/index.php';
-                
-                // Determinar "Funções da página"
-                $func_label = $pageContextName ?? '';
-                if ($func_label === '' || $func_label === null) {
-                    $script = $_SERVER['SCRIPT_NAME'] ?? '';
-                    if (strpos($script, 'relatorio-14-1.php') !== false) {
-                        $func_label = 'Assinar Documentos';
-                    } elseif (strpos($script, 'index.php') !== false) {
-                        $func_label = 'Importar Planilha';
-                    } elseif (isset($pageTitle) && stripos($pageTitle, 'Assinatura') !== false) {
-                        $func_label = 'Assinar Documentos';
-                    } else {
-                        $func_label = $pageTitle ?? 'Funções';
-                    }
-                }
-                ?>
-                <div class="subheader">
-                    <div class="d-flex flex-wrap gap-2 align-items-center nav-pills-compact mb-1">
-                        <a class="btn btn-light btn-sm shadow-sm-custom" href="<?php echo $link_menu; ?>" title="Menu">
-                            <i class="bi bi-list"></i> Navegação
-                        </a>
-                        <a class="btn btn-outline-primary btn-sm" href="<?php echo $link_assinar; ?>" title="Assinar Documentos">
-                            <i class="bi bi-pencil-square"></i> Assinar Documentos
-                        </a>
-                        <a class="btn btn-outline-secondary btn-sm" href="<?php echo $link_relatorio141; ?>" title="Relatório 14.1">
-                            <i class="bi bi-file-earmark-text"></i> Relatório 14.1
-                        </a>
-                        <a class="btn btn-outline-dark btn-sm" href="<?php echo $link_importar; ?>" title="Importar Planilha">
-                            <i class="bi bi-upload"></i> Importar Planilha
-                        </a>
-                    </div>
-                    <div class="page-functions">
-                        <i class="bi bi-lightning-charge me-1"></i>
-                        Funções da página: <strong><?php echo htmlspecialchars($func_label, ENT_QUOTES); ?></strong>
-                    </div>
-                </div>
                 <?php if (isset($contentFile)): ?>
                     <?php include $contentFile; ?>
                 <?php else: ?>
