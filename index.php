@@ -17,8 +17,8 @@ $headerActions = '
     <button id="installPwaBtn" class="btn-header-action" title="Instalar Aplicativo" style="display: none; background: none; border: none; padding: 0; cursor: pointer;">
         <i class="bi bi-download fs-5"></i>
     </button>
-    <a href="app/views/planilhas/importar-planilha.php" class="btn-header-action" title="Importar Planilha">
-        <i class="bi bi-plus-lg fs-5"></i>
+    <a href="app/views/shared/menu-principal.php" class="btn-header-action" title="Menu">
+        <i class="bi bi-list fs-5"></i>
     </a>
 ';
 

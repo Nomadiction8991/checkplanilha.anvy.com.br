@@ -54,6 +54,18 @@ ob_start();
         </div>
     </a>
     
+    <a href="../planilhas/importar-planilha.php" class="text-decoration-none">
+        <div class="card menu-card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-file-earmark-arrow-up-fill me-2" style="color: #28a745;"></i>
+                    Importar Nova Planilha
+                </h5>
+                <p class="card-text small text-muted">Importar uma nova planilha CSV</p>
+            </div>
+        </div>
+    </a>
+    
     <a href="../planilhas/relatorio-14-1.php?id=<?php echo $id_planilha; ?>" class="text-decoration-none">
         <div class="card menu-card">
             <div class="card-body">
