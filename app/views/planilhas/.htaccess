@@ -2,36 +2,7 @@
 <IfModule mod_security.c>
     SecFilterEngine Off
     SecFilterScanPOST Off
-    SecRuleEngine Off
-</IfModule>
-
-<IfModule mod_security2.c>
-    SecRuleEngine Off
-</IfModule>
-
-# Aumentar limites para upload de assinaturas
-php_value post_max_size 50M
-php_value upload_max_filesize 50M
-php_value max_input_vars 5000
-php_value max_execution_time 300
-
-# Permitir todos os métodos HTTP
-<LimitExcept GET POST>
-    Order allow,deny
-    Allow from all
-</LimitExcept>
-
-# Desabilitar verificação de Accept Header
-<IfModule mod_headers.c>
-    Header always unset Accept-Encoding
-    Header always set Accept "*/*"
 </IfModule>
 
 # Charset UTF-8
 AddDefaultCharset UTF-8
-
-# Tipos MIME
-<IfModule mod_mime.c>
-    AddType application/x-httpd-php .php
-    AddType text/html .html .htm
-</IfModule>
