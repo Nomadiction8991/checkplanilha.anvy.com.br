@@ -29,8 +29,17 @@ if ($contexto === 'auto') {
     }
 }
 
-// Não definir backUrl - menu não tem botão voltar
-$backUrl = null;
+// Determinar URL de retorno
+// Menu principal: sem voltar
+// Menu de contexto (planilha/relatório): voltar para view-planilha
+if ($origem) {
+    $backUrl = $origem;
+} elseif (($contexto === 'planilha' || $contexto === 'relatorio') && $id_planilha) {
+    $backUrl = '../planilhas/view-planilha.php?id=' . urlencode($id_planilha);
+} else {
+    // Contexto principal: sem botão voltar
+    $backUrl = null;
+}
 
 // Configurações da página
 $pageTitle = "Menu";
