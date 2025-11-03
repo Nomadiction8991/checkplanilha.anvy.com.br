@@ -1,5 +1,5 @@
 // Service Worker - Check Planilha PWA
-const CACHE_NAME = 'checkplanilha-v1';
+const CACHE_NAME = 'checkplanilha-v2';
 const urlsToCache = [
   '/',
   '/index.php',

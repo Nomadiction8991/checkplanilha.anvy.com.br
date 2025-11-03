@@ -43,6 +43,10 @@ $host = $_SERVER['HTTP_HOST'] ?? '';
 $uri  = $_SERVER['REQUEST_URI'] ?? ('/app/views/planilhas/assinatura-14-1.php?id=' . urlencode($id_planilha));
 $url_compartilhar = $scheme . '://' . $host . $uri;
 
+// URL base para formulário
+$base_url = $scheme . '://' . $host;
+$form_url = $base_url . '/app/views/planilhas/assinatura-14-1-form.php';
+
 ob_start();
 ?>
 
@@ -314,7 +318,7 @@ function assinarSelecionados() {
     }
     
     const ids = Array.from(produtosSelecionados).join(',');
-    window.location.href = './assinatura-14-1-form.php?ids=' + ids + '&id_planilha=<?php echo $id_planilha; ?>';
+    window.location.href = '<?php echo $form_url; ?>?ids=' + ids + '&id_planilha=<?php echo $id_planilha; ?>';
 }
 
 // Listener nos checkboxes para sincronizar com a seleção
