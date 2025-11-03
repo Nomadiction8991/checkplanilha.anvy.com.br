@@ -262,7 +262,7 @@ let produtosSelecionados = new Set();
 
 function toggleProduto(id) {
     const checkbox = document.getElementById('produto_' + id);
-    const card = document.querySelector(\`[data-produto-id="\${id}"]\`);
+    const card = document.querySelector('[data-produto-id="' + id + '"]');
     
     if (checkbox.checked) {
         checkbox.checked = false;
@@ -282,12 +282,17 @@ function atualizarToolbar() {
     const counter = document.getElementById('countSelected');
     const count = produtosSelecionados.size;
     
+    console.log('Produtos selecionados:', count);
     counter.textContent = count;
     
     if (count > 0) {
         toolbar.classList.add('active');
+        toolbar.style.display = 'block';
+        console.log('Toolbar ativada!');
     } else {
         toolbar.classList.remove('active');
+        toolbar.style.display = 'none';
+        console.log('Toolbar desativada!');
     }
 }
 
@@ -295,7 +300,7 @@ function limparSelecao() {
     const checkboxes = document.querySelectorAll('.checkbox-produto');
     checkboxes.forEach(cb => {
         cb.checked = false;
-        const card = document.querySelector(\`[data-produto-id="\${cb.value}"]\`);
+        const card = document.querySelector('[data-produto-id="' + cb.value + '"]');
         if (card) card.classList.remove('selected');
     });
     produtosSelecionados.clear();
@@ -314,11 +319,15 @@ function assinarSelecionados() {
 
 // Listener nos checkboxes para sincronizar com a seleção
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Página carregada! Buscando checkboxes...');
     const checkboxes = document.querySelectorAll('.checkbox-produto');
+    console.log('Checkboxes encontrados:', checkboxes.length);
+    
     checkboxes.forEach(cb => {
         cb.addEventListener('change', function(e) {
             const id = parseInt(this.value);
-            const card = document.querySelector(\`[data-produto-id="\${id}"]\`);
+            console.log('Checkbox clicado! ID:', id, 'Checked:', this.checked);
+            const card = document.querySelector('[data-produto-id="' + id + '"]');
             
             if (this.checked) {
                 produtosSelecionados.add(id);
