@@ -37,6 +37,12 @@ $headerActions = '
     </a>
 ';
 
+// Gerar URL de compartilhamento desta página (inclui parâmetros atuais)
+$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+$host = $_SERVER['HTTP_HOST'] ?? '';
+$uri  = $_SERVER['REQUEST_URI'] ?? ('/app/views/planilhas/assinatura-14-1.php?id=' . urlencode($id_planilha));
+$url_compartilhar = $scheme . '://' . $host . $uri;
+
 ob_start();
 ?>
 
@@ -116,6 +122,32 @@ ob_start();
      border-color: #28a745;
  }
 </style>
+
+<!-- Card com Link de Compartilhamento da Página -->
+<div class="card mb-3">
+    <div class="card-header bg-primary text-white">
+        <i class="bi bi-share me-2"></i>
+        Link para Compartilhamento desta Página
+    </div>
+    <div class="card-body">
+        <p class="mb-3">
+            <i class="bi bi-info-circle me-1"></i>
+            Envie este link para a pessoa que vai assinar os documentos desta planilha.
+        </p>
+        <div class="input-group">
+            <input type="text" class="form-control" id="linkCompartilharSelecao" value="<?php echo htmlspecialchars($url_compartilhar); ?>" readonly>
+            <button class="btn btn-primary" type="button" onclick="copiarLinkSelecao()">
+                <i class="bi bi-clipboard me-1"></i>
+                Copiar
+            </button>
+        </div>
+        <small class="text-muted d-block mt-2">
+            <i class="bi bi-shield-check me-1"></i>
+            O link abre esta página para seleção e assinatura.
+        </small>
+    </div>
+    
+</div>
 
 <div class="card mb-3">
     <div class="card-header bg-primary text-white">
@@ -281,6 +313,23 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+function copiarLinkSelecao() {
+    const input = document.getElementById('linkCompartilharSelecao');
+    input.select();
+    input.setSelectionRange(0, 99999);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(input.value).then(() => {
+            alert('Link copiado!');
+        }).catch(() => {
+            document.execCommand('copy');
+            alert('Link copiado!');
+        });
+    } else {
+        document.execCommand('copy');
+        alert('Link copiado!');
+    }
+}
 </script>
 
 <?php
