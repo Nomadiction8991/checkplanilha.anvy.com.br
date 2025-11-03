@@ -1,8 +1,18 @@
 <?php
 require_once __DIR__ . '/../../../CRUD/UPDATE/editar-planilha.php';
 
+$id_planilha = $_GET['id'] ?? null;
+
 $pageTitle = "Editar Planilha";
 $backUrl = '../../../index.php';
+$headerActions = '';
+if ($id_planilha) {
+    $headerActions = '
+        <a href="../shared/menu-unificado.php?id=' . urlencode($id_planilha) . '&contexto=planilha" class="btn-header-action" title="Menu">
+            <i class="bi bi-list fs-5"></i>
+        </a>
+    ';
+}
 
 ob_start();
 ?>

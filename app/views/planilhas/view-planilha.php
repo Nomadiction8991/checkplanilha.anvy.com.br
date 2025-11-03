@@ -6,7 +6,7 @@ require_once __DIR__ . '/../../../CRUD/READ/view-planilha.php';
 $pageTitle = htmlspecialchars($planilha['comum'] ?? 'Visualizar Planilha');
 $backUrl = '../../../index.php';
 $headerActions = '
-    <a href="../shared/menu.php?id=' . $id_planilha . '" class="btn-header-action" title="Menu">
+    <a href="../shared/menu-unificado.php?id=' . $id_planilha . '&contexto=planilha" class="btn-header-action" title="Menu">
         <i class="bi bi-list fs-5"></i>
     </a>
 ';

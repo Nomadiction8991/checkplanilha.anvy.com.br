@@ -24,8 +24,13 @@ if (file_exists($templatePath)) {
 }
 
 $pageTitle = 'Relatório 14.1';
-$backUrl = '../shared/menu.php?id=' . urlencode($id_planilha);
-$headerActions = '<button id="btnPrint" class="btn-header-action" title="Imprimir"><i class="bi bi-printer"></i></button>';
+$backUrl = '../shared/menu-unificado.php?id=' . urlencode($id_planilha) . '&contexto=relatorio';
+$headerActions = '
+    <button id="btnPrint" class="btn-header-action" title="Imprimir"><i class="bi bi-printer"></i></button>
+    <a href="../shared/menu-unificado.php?id=' . urlencode($id_planilha) . '&contexto=relatorio" class="btn-header-action" title="Menu">
+        <i class="bi bi-list fs-5"></i>
+    </a>
+';
 
 // CSS customizado para a interface da aplicação (não do formulário)
 $customCss = '';

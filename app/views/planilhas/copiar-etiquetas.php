@@ -73,7 +73,12 @@ try {
 }
 
 $pageTitle = 'Copiar Etiquetas';
-$backUrl = '../shared/menu.php?id=' . urlencode($id_planilha);
+$backUrl = '../shared/menu-unificado.php?id=' . urlencode($id_planilha) . '&contexto=planilha';
+$headerActions = '
+    <a href="../shared/menu-unificado.php?id=' . urlencode($id_planilha) . '&contexto=planilha" class="btn-header-action" title="Menu">
+        <i class="bi bi-list fs-5"></i>
+    </a>
+';
 
 ob_start();
 ?>
