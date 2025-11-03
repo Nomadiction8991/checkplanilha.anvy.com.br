@@ -49,8 +49,7 @@ ob_start();
 <style>
 .produto-card {
     transition: all 0.2s;
-    border: 1px solid #dee2e6;
-    border-left: 4px solid #dee2e6;
+    border: 3px solid #dee2e6;
     border-radius: 0.375rem;
     cursor: pointer;
 }
@@ -60,16 +59,16 @@ ob_start();
 }
 
 .produto-card.status-pendente {
-    border-left-color: #ffc107;
+    border-color: #ffc107;
 }
 
 .produto-card.status-assinado {
-    border-left-color: #28a745;
+    border-color: #28a745;
 }
 
 .produto-card.selected {
     background-color: #e7f3ff;
-    border-left-color: #007bff !important;
+    border-color: #007bff !important;
     box-shadow: 0 0 0 2px #007bff;
 }
 
@@ -94,49 +93,34 @@ ob_start();
 .selection-toolbar.active {
     display: block;
 }
-
-.selection-toolbar .d-flex {
-    flex-direction: column !important;
-    gap: 1rem;
-}
-
-.selection-toolbar .d-flex > div {
-    width: 100%;
-}
-
-.selection-toolbar button {
-    width: 100%;
-    display: block;
-}
-
-.legenda-status {
-    display: flex;
-    gap: 1.5rem;
-    flex-wrap: wrap;
-    align-items: center;
-}
-
-.legenda-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.875rem;
-}
-
-.legenda-cor {
-    width: 30px;
-    height: 20px;
-    border-radius: 3px;
-    border-left: 4px solid;
-}
-
-.legenda-cor.pendente {
-    border-left-color: #ffc107;
-}
-
-.legenda-cor.assinado {
-    border-left-color: #28a745;
-}
+ .legenda-status {
+     display: flex;
+     gap: 1.5rem;
+     flex-wrap: wrap;
+     align-items: center;
+ }
+ 
+ .legenda-item {
+     display: flex;
+     align-items: center;
+     gap: 0.5rem;
+     font-size: 0.875rem;
+ }
+ 
+ .legenda-cor {
+     width: 30px;
+     height: 20px;
+     border-radius: 3px;
+     border: 3px solid;
+ }
+ 
+ .legenda-cor.pendente {
+     border-color: #ffc107;
+ }
+ 
+ .legenda-cor.assinado {
+     border-color: #28a745;
+ }
 </style>
 
 <!-- Card com Link de Compartilhamento da Página -->
@@ -162,6 +146,7 @@ ob_start();
             O link abre esta página para seleção e assinatura.
         </small>
     </div>
+    
 </div>
 
 <div class="card mb-3">
@@ -239,30 +224,14 @@ ob_start();
                                     </p>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        <?php endforeach; ?>
-    </div>
-<?php else: ?>
-    <div class="card">
-        <div class="card-body text-center py-5">
-            <i class="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
-            <h5 class="text-muted">Nenhum produto para assinar</h5>
-            <p class="text-muted small mb-0">
-                Certifique-se de que existem produtos marcados para impressão no relatório 14.1
-            </p>
-        </div>
-    </div>
-<?php endif; ?>
+                            <div class="ms-3">
 
 <script>
 let produtosSelecionados = new Set();
 
 function toggleProduto(id) {
     const checkbox = document.getElementById('produto_' + id);
-    const card = document.querySelector(\`[data-produto-id="\${id}"]\`);
+    const card = document.querySelector(`[data-produto-id="${id}"]`);
     
     if (checkbox.checked) {
         checkbox.checked = false;
@@ -291,11 +260,23 @@ function atualizarToolbar() {
     }
 }
 
+function selecionarTodos() {
+    const checkboxes = document.querySelectorAll('.checkbox-produto');
+    checkboxes.forEach(cb => {
+        const id = parseInt(cb.value);
+        cb.checked = true;
+        produtosSelecionados.add(id);
+        const card = document.querySelector(`[data-produto-id="${id}"]`);
+        if (card) card.classList.add('selected');
+    });
+    atualizarToolbar();
+}
+
 function limparSelecao() {
     const checkboxes = document.querySelectorAll('.checkbox-produto');
     checkboxes.forEach(cb => {
         cb.checked = false;
-        const card = document.querySelector(\`[data-produto-id="\${cb.value}"]\`);
+        const card = document.querySelector(`[data-produto-id="${cb.value}"]`);
         if (card) card.classList.remove('selected');
     });
     produtosSelecionados.clear();
@@ -318,7 +299,7 @@ document.addEventListener('DOMContentLoaded', function() {
     checkboxes.forEach(cb => {
         cb.addEventListener('change', function(e) {
             const id = parseInt(this.value);
-            const card = document.querySelector(\`[data-produto-id="\${id}"]\`);
+            const card = document.querySelector(`[data-produto-id="${id}"]`);
             
             if (this.checked) {
                 produtosSelecionados.add(id);
