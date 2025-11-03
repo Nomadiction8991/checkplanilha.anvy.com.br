@@ -96,6 +96,40 @@ if (!function_exists('r141_inner_html')) {
     }
 }
 
+// helper: insere imagem de assinatura no lugar de um textarea
+if (!function_exists('r141_insertSignatureImage')) {
+    function r141_insertSignatureImage(string $html, string $textareaId, string $base64Image): string {
+        if (empty($base64Image)) return $html;
+        
+        $prev = libxml_use_internal_errors(true);
+        $doc = new \DOMDocument('1.0', 'UTF-8');
+        $wrapped = '<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/></head><body>' . $html . '</body></html>';
+        $doc->loadHTML($wrapped, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        $xpath = new \DOMXPath($doc);
+        
+        // Encontrar o textarea
+        $textarea = $xpath->query('//textarea[@id="' . $textareaId . '"]')->item(0);
+        if ($textarea) {
+            // Criar elemento img
+            $img = $doc->createElement('img');
+            $img->setAttribute('src', $base64Image);
+            $img->setAttribute('alt', 'Assinatura');
+            $img->setAttribute('style', 'max-width: 100%; height: auto; display: block;');
+            
+            // Substituir textarea pela imagem
+            $textarea->parentNode->replaceChild($img, $textarea);
+            
+            libxml_clear_errors();
+            libxml_use_internal_errors($prev);
+            return r141_inner_html($doc->getElementsByTagName('body')->item(0));
+        }
+        
+        libxml_clear_errors();
+        libxml_use_internal_errors($prev);
+        return $html;
+    }
+}
+
 ob_start();
 ?>
 
@@ -166,6 +200,9 @@ ob_start();
                             // Injetar valores nos campos por ID (textarea/input)
                             // Preencher campo de Data Emissão com a data atual
                             $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input1', $dataEmissao);
+                            // Preencher Administração e Cidade dos novos campos da planilha
+                            $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input2', $administracao_planilha ?? '');
+                            $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input3', $cidade_planilha ?? '');
                             // NÃO preencher automaticamente o setor (input4) por solicitação do usuário
                             $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input5', $cnpj_planilha ?? '');
                             $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input6', $numero_relatorio_auto ?? '');
@@ -174,6 +211,15 @@ ob_start();
                             // Preencher input16 com o valor comum da planilha seguido do placeholder de data
                             $local_data_with_placeholder = trim(($local_data_auto ?? '') . ' ' . '___/___/_____');
                             $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input16', $local_data_with_placeholder);
+                            // Preencher nome e assinatura do administrador/acessor (input27 e input28)
+                            $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input27', $nome_responsavel_planilha ?? '');
+                            // Para assinatura, criar tag img se houver dados base64
+                            if (!empty($assinatura_responsavel_planilha)) {
+                                // Inserir imagem da assinatura no textarea input28
+                                $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input28', '');
+                                // Inserir imagem após o textarea usando DOMDocument
+                                $htmlPreenchido = r141_insertSignatureImage($htmlPreenchido, 'input28', $assinatura_responsavel_planilha);
+                            }
 
                             // Opcional: injetar imagem de fundo se detectada
                             $htmlIsolado = $htmlPreenchido;
