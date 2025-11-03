@@ -206,6 +206,24 @@ ob_start();
             </div>
         </a>
         
+        <!-- Seção: Assinaturas -->
+        <div class="menu-section-title">
+            <i class="bi bi-pen me-1"></i>
+            Assinaturas Digitais
+        </div>
+        
+        <a href="../planilhas/assinatura-14-1.php?id=<?php echo $id_planilha; ?>" class="text-decoration-none">
+            <div class="card menu-card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-pen-fill me-2" style="color: #6610f2;"></i>
+                        Assinar Documentos
+                    </h5>
+                    <p class="card-text small text-muted">Gerenciar assinaturas do relatório 14.1</p>
+                </div>
+            </div>
+        </a>
+        
         <!-- Seção: Produtos -->
         <div class="menu-section-title">
             <i class="bi bi-box-seam me-1"></i>
