@@ -213,22 +213,22 @@ ob_start();
 ?>
 
 <style>
-.signature-canvas-container {
-    border: 2px dashed #dee2e6;
+.signature-preview-container {
+    border: 2px solid #dee2e6;
     border-radius: 0.375rem;
     background: #f8f9fa;
-    padding: 1rem;
+    padding: 0.5rem;
     margin-bottom: 1rem;
+    overflow: hidden;
 }
 
-.signature-canvas {
-    border: 1px solid #dee2e6;
+.signature-preview-canvas {
+    border: 1px solid #ddd;
     background: white;
-    cursor: crosshair;
-    touch-action: none;
     width: 100%;
-    height: 200px;
-    border-radius: 0.25rem;
+    height: auto;
+    display: block;
+    pointer-events: none;
 }
 
 .link-compartilhar {
@@ -342,17 +342,12 @@ ob_start();
             
             <div>
                 <label class="form-label">Assinatura <span class="text-danger">*</span></label>
-                <div class="signature-canvas-container">
-                    <canvas class="signature-canvas" id="canvas_administrador" width="800" height="200"></canvas>
-                    <div class="mt-2 d-flex gap-2">
-                        <button type="button" class="btn btn-sm btn-warning" onclick="limparAssinatura('administrador')">
-                            <i class="bi bi-eraser me-1"></i> Limpar
-                        </button>
-                        <button type="button" class="btn btn-sm btn-primary" onclick="abrirModalAssinatura('administrador')">
-                            <i class="bi bi-pencil me-1"></i> Assinar em Tela Cheia
-                        </button>
-                    </div>
+                <div class="signature-preview-container">
+                    <canvas id="canvas_administrador" width="800" height="160" class="signature-preview-canvas"></canvas>
                 </div>
+                <button type="button" class="btn btn-primary btn-lg w-100" onclick="abrirModalAssinatura('administrador')">
+                    <i class="bi bi-pencil-square me-2"></i> Fazer Assinatura
+                </button>
                 <input type="hidden" name="assinatura_administrador" id="assinatura_administrador" 
                        value="<?php echo htmlspecialchars($assinatura['assinatura_administrador'] ?? ''); ?>">
             </div>
@@ -392,17 +387,12 @@ ob_start();
             
             <div class="mt-3">
                 <label class="form-label">Assinatura <span class="text-danger">*</span></label>
-                <div class="signature-canvas-container">
-                    <canvas class="signature-canvas" id="canvas_doador" width="800" height="200"></canvas>
-                    <div class="mt-2 d-flex gap-2">
-                        <button type="button" class="btn btn-sm btn-warning" onclick="limparAssinatura('doador')">
-                            <i class="bi bi-eraser me-1"></i> Limpar
-                        </button>
-                        <button type="button" class="btn btn-sm btn-primary" onclick="abrirModalAssinatura('doador')">
-                            <i class="bi bi-pencil me-1"></i> Assinar em Tela Cheia
-                        </button>
-                    </div>
+                <div class="signature-preview-container">
+                    <canvas id="canvas_doador" width="800" height="160" class="signature-preview-canvas"></canvas>
                 </div>
+                <button type="button" class="btn btn-primary btn-lg w-100" onclick="abrirModalAssinatura('doador')">
+                    <i class="bi bi-pencil-square me-2"></i> Fazer Assinatura
+                </button>
                 <input type="hidden" name="assinatura_doador" id="assinatura_doador" 
                        value="<?php echo htmlspecialchars($assinatura['assinatura_doador'] ?? ''); ?>">
             </div>
@@ -442,17 +432,12 @@ ob_start();
             
             <div class="mt-3">
                 <label class="form-label">Assinatura</label>
-                <div class="signature-canvas-container">
-                    <canvas class="signature-canvas" id="canvas_conjuge" width="800" height="200"></canvas>
-                    <div class="mt-2 d-flex gap-2">
-                        <button type="button" class="btn btn-sm btn-warning" onclick="limparAssinatura('conjuge')">
-                            <i class="bi bi-eraser me-1"></i> Limpar
-                        </button>
-                        <button type="button" class="btn btn-sm btn-primary" onclick="abrirModalAssinatura('conjuge')">
-                            <i class="bi bi-pencil me-1"></i> Assinar em Tela Cheia
-                        </button>
-                    </div>
+                <div class="signature-preview-container">
+                    <canvas id="canvas_conjuge" width="800" height="160" class="signature-preview-canvas"></canvas>
                 </div>
+                <button type="button" class="btn btn-primary btn-lg w-100" onclick="abrirModalAssinatura('conjuge')">
+                    <i class="bi bi-pencil-square me-2"></i> Fazer Assinatura
+                </button>
                 <input type="hidden" name="assinatura_conjuge" id="assinatura_conjuge" 
                        value="<?php echo htmlspecialchars($assinatura['assinatura_conjuge'] ?? ''); ?>">
             </div>
@@ -465,135 +450,292 @@ ob_start();
     </button>
 </form>
 
-<!-- Modal para assinatura em tela cheia -->
-<div id="modalAssinatura" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:9999;">
-    <div style="position:relative; width:100%; height:100%; display:flex; flex-direction:column; padding:12px;">
-        <div class="d-flex justify-content-between mb-2">
-            <button type="button" class="btn btn-warning" onclick="limparModalAssinatura()">
-                <i class="bi bi-eraser me-1"></i> Limpar
-            </button>
-            <div>
-                <button type="button" class="btn btn-success" onclick="salvarModalAssinatura()">
-                    <i class="bi bi-check me-1"></i> Salvar
-                </button>
-                <button type="button" class="btn btn-danger" onclick="fecharModalAssinatura()">
-                    <i class="bi bi-x me-1"></i> Fechar
-                </button>
+<!-- Modal fullscreen para assinatura -->
+<div id="signatureModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1050;">
+    <div style="position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
+        <div style="background:#fff; width:100%; height:100%; padding:12px; box-sizing:border-box; position:relative;">
+            <div class="d-flex justify-content-between mb-2">
+                <div>
+                    <button type="button" class="btn btn-warning btn-sm" onclick="limparModalAssinatura()">Limpar</button>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-success btn-sm" onclick="salvarModalAssinatura()">Salvar</button>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="fecharModalAssinatura()">Fechar</button>
+                </div>
             </div>
-        </div>
-        <div style="flex:1; display:flex; align-items:center; justify-content:center; overflow:auto;">
-            <canvas id="modal_canvas" style="background:#fff; border:1px solid #ddd; max-width:95%; max-height:95%;"></canvas>
+            <div style="width:100%; height:calc(100% - 48px); overflow:auto; -webkit-overflow-scrolling:touch; display:flex; align-items:center; justify-content:center;">
+                <canvas id="modal_canvas" style="background:#fff; border:1px solid #ddd; width:auto; height:auto; display:block;"></canvas>
+            </div>
         </div>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
 <script>
-// Inicializar signature pads
-const signaturePads = {};
-let currentModal = null;
-let modalSignaturePad = null;
+// Variáveis globais
+let currentField = null; // 'administrador', 'doador' ou 'conjuge'
+let modalCanvas, modalCtx, modalDrawing=false, modalLastX=0, modalLastY=0;
+let signaturePad = null;
+let pointerListenersEnabled = false;
 
-function initCanvas(id) {
-    const canvas = document.getElementById('canvas_' + id);
-    const signaturePad = new SignaturePad(canvas, {
-        backgroundColor: 'rgb(255, 255, 255)',
-        penColor: 'rgb(0, 0, 0)'
-    });
-    signaturePads[id] = signaturePad;
-    
-    // Carregar assinatura existente
-    const hidden = document.getElementById('assinatura_' + id);
-    if (hidden.value) {
-        const img = new Image();
-        img.onload = function() {
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        };
-        img.src = hidden.value;
-    }
-    
-    // Redimensionar canvas
-    resizeCanvas(canvas);
+// Inicializar canvas de preview (somente leitura)
+function initPreviewCanvas(canvasId) {
+    const canvas = document.getElementById(canvasId);
+    canvas.style.pointerEvents = 'none';
+    return canvas;
 }
 
-function resizeCanvas(canvas) {
-    const ratio = Math.max(window.devicePixelRatio || 1, 1);
-    const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width * ratio;
-    canvas.height = rect.height * ratio;
-    const ctx = canvas.getContext('2d');
-    ctx.scale(ratio, ratio);
+// Desenhar imagem dataURL em canvas de preview
+function drawImageOnCanvas(canvasId, dataUrl) {
+    if (!dataUrl) return;
+    const c = document.getElementById(canvasId);
+    const ctx = c.getContext('2d');
+    const img = new Image();
+    img.onload = function() {
+        ctx.clearRect(0,0,c.width,c.height);
+        const scale = Math.min(c.width / img.width, c.height / img.height);
+        const w = img.width * scale;
+        const h = img.height * scale;
+        const x = (c.width - w)/2;
+        const y = (c.height - h)/2;
+        ctx.drawImage(img, x, y, w, h);
+    };
+    img.src = dataUrl;
 }
 
-function limparAssinatura(id) {
-    signaturePads[id].clear();
+// Limpar canvas de preview
+function clearPreviewCanvas(id) {
+    const c = document.getElementById('canvas_' + id);
+    const ctx = c.getContext('2d');
+    ctx.clearRect(0,0,c.width,c.height);
     document.getElementById('assinatura_' + id).value = '';
 }
 
-function abrirModalAssinatura(id) {
-    currentModal = id;
-    const modal = document.getElementById('modalAssinatura');
-    modal.style.display = 'flex';
+// Inicializar modal canvas
+function initModalCanvas() {
+    modalCanvas = document.getElementById('modal_canvas');
+    modalCtx = modalCanvas.getContext('2d');
+    try {
+        modalCanvas.style.touchAction = 'none';
+        modalCanvas.style.webkitUserSelect = 'none';
+        modalCanvas.style.userSelect = 'none';
+    } catch(e){}
+}
+
+// Redimensionar modal canvas com devicePixelRatio
+function resizeModalCanvas() {
+    if (!modalCanvas) return;
+    const rect = modalCanvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    modalCanvas.width = Math.floor(rect.width * dpr);
+    modalCanvas.height = Math.floor(rect.height * dpr);
+    modalCtx.setTransform(1,0,0,1,0,0);
+    modalCtx.scale(dpr, dpr);
+    modalCtx.lineWidth = 2;
+    modalCtx.lineCap = 'round';
+    modalCtx.strokeStyle = '#000000';
+}
+
+// Configurar modal para landscape (95% width, 40% height)
+function setModalLandscape() {
+    if (!modalCanvas) initModalCanvas();
+    const cssW = Math.floor(window.innerWidth * 0.95);
+    const cssH = Math.floor(window.innerHeight * 0.40);
+    modalCanvas.style.width = cssW + 'px';
+    modalCanvas.style.height = cssH + 'px';
+    resizeModalCanvas();
+    try { modalCtx.strokeStyle = '#000000'; } catch(e){}
+}
+
+// Iniciar SignaturePad
+function startSignaturePad(keepExisting=false){
+    if (!modalCanvas) initModalCanvas();
+    if (!keepExisting) {
+        try { modalCtx.clearRect(0,0,modalCanvas.width, modalCanvas.height); } catch(e){}
+    }
+    if (typeof SignaturePad !== 'undefined') {
+        disablePointerDrawing();
+        signaturePad = new SignaturePad(modalCanvas, { backgroundColor: 'rgb(255,255,255)', penColor: 'black' });
+        if (!keepExisting) signaturePad.clear();
+    } else {
+        signaturePad = null;
+        enablePointerDrawing();
+    }
+}
+
+// Handlers para desenho manual (fallback)
+function getModalCoords(e){
+    if (!modalCanvas) return {x:0,y:0};
+    const rect = modalCanvas.getBoundingClientRect();
+    const clientX = (e.clientX !== undefined ? e.clientX : (e.touches ? e.touches[0].clientX : 0));
+    const clientY = (e.clientY !== undefined ? e.clientY : (e.touches ? e.touches[0].clientY : 0));
+    return { x: clientX - rect.left, y: clientY - rect.top };
+}
+
+function modalPointerDown(e){
+    try { e.preventDefault(); } catch(err){}
+    if (!modalCanvas) return;
+    try { modalCanvas.setPointerCapture(e.pointerId); } catch(err){}
+    modalDrawing = true;
+    const p = getModalCoords(e);
+    modalLastX = p.x; modalLastY = p.y;
+    try { modalCtx.beginPath(); modalCtx.moveTo(modalLastX, modalLastY); } catch(err){}
+}
+
+function modalPointerMove(e){
+    if (!modalDrawing) return;
+    try { e.preventDefault(); } catch(err){}
+    const p = getModalCoords(e);
+    try {
+        modalCtx.beginPath();
+        modalCtx.moveTo(modalLastX, modalLastY);
+        modalCtx.lineTo(p.x, p.y);
+        modalCtx.stroke();
+    } catch(err){}
+    modalLastX = p.x; modalLastY = p.y;
+}
+
+function modalPointerUp(e){
+    try { if (modalCanvas && e && e.pointerId) modalCanvas.releasePointerCapture(e.pointerId); } catch(err){}
+    modalDrawing = false;
+}
+
+function enablePointerDrawing(){
+    if (!modalCanvas || pointerListenersEnabled) return;
+    modalCanvas.addEventListener('pointerdown', modalPointerDown);
+    modalCanvas.addEventListener('pointermove', modalPointerMove);
+    modalCanvas.addEventListener('pointerup', modalPointerUp);
+    modalCanvas.addEventListener('pointercancel', modalPointerUp);
+    pointerListenersEnabled = true;
+}
+
+function disablePointerDrawing(){
+    if (!modalCanvas || !pointerListenersEnabled) return;
+    modalCanvas.removeEventListener('pointerdown', modalPointerDown);
+    modalCanvas.removeEventListener('pointermove', modalPointerMove);
+    modalCanvas.removeEventListener('pointerup', modalPointerUp);
+    modalCanvas.removeEventListener('pointercancel', modalPointerUp);
+    pointerListenersEnabled = false;
+}
+
+function resizeModalIfVisible(){ 
+    try{ 
+        const m=document.getElementById('signatureModal'); 
+        if (m && m.style.display !== 'none') {
+            if (!modalCanvas) initModalCanvas();
+            modalCanvas.style.width = Math.floor(window.innerWidth * 0.95) + 'px';
+            modalCanvas.style.height = Math.floor(window.innerHeight * 0.40) + 'px';
+            resizeModalCanvas();
+        } 
+    }catch(e){} 
+}
+
+// Abrir modal para um campo específico
+window.abrirModalAssinatura = async function(fieldId){
+    currentField = fieldId;
+    const modal = document.getElementById('signatureModal');
+    modal.style.display = 'block';
     
-    const canvas = document.getElementById('modal_canvas');
-    canvas.width = window.innerWidth * 0.9;
-    canvas.height = window.innerHeight * 0.7;
+    // Tentar fullscreen e landscape
+    try{
+        if (modal.requestFullscreen) await modal.requestFullscreen();
+        else if (document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
+        if (screen && screen.orientation && screen.orientation.lock) {
+            try{ await screen.orientation.lock('landscape'); } catch(e){}
+        }
+    }catch(err){ /* ignore */ }
     
-    modalSignaturePad = new SignaturePad(canvas, {
-        backgroundColor: 'rgb(255, 255, 255)',
-        penColor: 'rgb(0, 0, 0)'
-    });
+    // Inicializar canvas
+    if (!modalCanvas) initModalCanvas();
+    setModalLandscape();
     
-    // Carregar assinatura atual
-    const hidden = document.getElementById('assinatura_' + id);
-    if (hidden.value) {
+    // Carregar assinatura existente se houver
+    const existing = document.getElementById('assinatura_' + fieldId).value;
+    startSignaturePad(true);
+    if (existing) {
         const img = new Image();
-        img.onload = function() {
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        img.onload = function(){
+            try{
+                const rect = modalCanvas.getBoundingClientRect();
+                const cssW = rect.width; const cssH = rect.height;
+                modalCtx.clearRect(0,0,cssW,cssH);
+                const scale = Math.min(cssW / img.width, cssH / img.height);
+                const w = img.width * scale; const h = img.height * scale;
+                modalCtx.drawImage(img, (cssW - w)/2, (cssH - h)/2, w, h);
+            }catch(e){}
         };
-        img.src = hidden.value;
-    }
-}
-
-function limparModalAssinatura() {
-    if (modalSignaturePad) modalSignaturePad.clear();
-}
-
-function salvarModalAssinatura() {
-    if (!modalSignaturePad || modalSignaturePad.isEmpty()) {
-        alert('Por favor, faça uma assinatura antes de salvar.');
-        return;
+        img.src = existing;
     }
     
-    const dataURL = modalSignaturePad.toDataURL();
-    
-    // Salvar no canvas pequeno
-    const smallCanvas = document.getElementById('canvas_' + currentModal);
-    const ctx = smallCanvas.getContext('2d');
-    const img = new Image();
-    img.onload = function() {
-        ctx.clearRect(0, 0, smallCanvas.width, smallCanvas.height);
-        ctx.drawImage(img, 0, 0, smallCanvas.width, smallCanvas.height);
-    };
-    img.src = dataURL;
-    
-    // Salvar no campo hidden
-    document.getElementById('assinatura_' + currentModal).value = dataURL;
-    
-    fecharModalAssinatura();
-}
+    // Event listeners para resize
+    window.addEventListener('resize', resizeModalIfVisible);
+    window.addEventListener('orientationchange', resizeModalIfVisible);
+};
 
-function fecharModalAssinatura() {
-    document.getElementById('modalAssinatura').style.display = 'none';
-    if (modalSignaturePad) {
-        modalSignaturePad.off();
-        modalSignaturePad = null;
+// Limpar modal
+window.limparModalAssinatura = function(){
+    if (!modalCanvas) return;
+    if (signaturePad) {
+        signaturePad.clear();
     }
-    currentModal = null;
-}
+    try { modalCtx.clearRect(0,0,modalCanvas.width, modalCanvas.height); } catch(e){}
+};
 
+// Salvar assinatura do modal
+window.salvarModalAssinatura = function(){
+    let data = null;
+    if (signaturePad) {
+        if (signaturePad.isEmpty()) data = null; 
+        else data = signaturePad.toDataURL('image/png');
+    } else {
+        data = modalCanvas.toDataURL('image/png');
+    }
+    
+    const preview = document.getElementById('canvas_' + currentField);
+    const pCtx = preview.getContext('2d');
+    if (data) {
+        const img = new Image();
+        img.onload = function(){
+            pCtx.clearRect(0,0,preview.width, preview.height);
+            const scale = Math.min(preview.width / img.width, preview.height / img.height);
+            const w = img.width * scale; 
+            const h = img.height * scale;
+            const x = (preview.width - w)/2; 
+            const y = (preview.height - h)/2;
+            pCtx.drawImage(img, x, y, w, h);
+            document.getElementById('assinatura_' + currentField).value = data;
+            fecharModalAssinatura();
+        };
+        img.src = data;
+    } else {
+        pCtx.clearRect(0,0,preview.width, preview.height);
+        document.getElementById('assinatura_' + currentField).value = '';
+        fecharModalAssinatura();
+    }
+};
+
+// Fechar modal
+window.fecharModalAssinatura = async function(){
+    document.getElementById('signatureModal').style.display='none';
+    try{ 
+        if (document.fullscreenElement && document.exitFullscreen) await document.exitFullscreen(); 
+        if (screen && screen.orientation && screen.orientation.unlock) { 
+            try{ screen.orientation.unlock(); } catch(e){} 
+        } 
+    }catch(err){}
+    if (signaturePad) { 
+        try{ signaturePad.off && signaturePad.off(); } catch(e){} 
+        signaturePad = null; 
+    }
+    disablePointerDrawing();
+    try{ 
+        window.removeEventListener('resize', resizeModalIfVisible); 
+        window.removeEventListener('orientationchange', resizeModalIfVisible); 
+    }catch(e){}
+    currentField = null;
+};
+
+// Copiar link
 function copiarLink() {
     const input = document.getElementById('linkCompartilhar');
     input.select();
@@ -607,34 +749,34 @@ function copiarLink() {
     });
 }
 
-// Validação do formulário
-document.getElementById('formAssinatura').addEventListener('submit', function(e) {
-    // Salvar assinaturas nos campos hidden
+// Validação e inicialização
+document.addEventListener('DOMContentLoaded', function(){
+    // Inicializar canvas de preview
+    initPreviewCanvas('canvas_administrador');
+    initPreviewCanvas('canvas_doador');
+    initPreviewCanvas('canvas_conjuge');
+    
+    // Carregar assinaturas existentes
     ['administrador', 'doador', 'conjuge'].forEach(id => {
-        if (!signaturePads[id].isEmpty()) {
-            document.getElementById('assinatura_' + id).value = signaturePads[id].toDataURL();
-        }
+        const existing = document.getElementById('assinatura_' + id).value;
+        if (existing) drawImageOnCanvas('canvas_' + id, existing);
     });
     
-    // Validar assinaturas obrigatórias
-    if (!document.getElementById('assinatura_administrador').value) {
-        e.preventDefault();
-        alert('A assinatura do Administrador/Acessor é obrigatória!');
-        return false;
-    }
-    
-    if (!document.getElementById('assinatura_doador').value) {
-        e.preventDefault();
-        alert('A assinatura do Doador é obrigatória!');
-        return false;
-    }
-});
-
-// Inicializar ao carregar
-document.addEventListener('DOMContentLoaded', function() {
-    initCanvas('administrador');
-    initCanvas('doador');
-    initCanvas('conjuge');
+    // Validação do formulário
+    const form = document.getElementById('formAssinatura');
+    form.addEventListener('submit', function(e){
+        if (!document.getElementById('assinatura_administrador').value) {
+            e.preventDefault();
+            alert('A assinatura do Administrador/Acessor é obrigatória!');
+            return false;
+        }
+        
+        if (!document.getElementById('assinatura_doador').value) {
+            e.preventDefault();
+            alert('A assinatura do Doador é obrigatória!');
+            return false;
+        }
+    });
 });
 </script>
 
