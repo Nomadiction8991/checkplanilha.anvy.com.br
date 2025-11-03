@@ -93,35 +93,34 @@ ob_start();
 .selection-toolbar.active {
     display: block;
 }
-
-.legenda-status {
-    display: flex;
-    gap: 1.5rem;
-    flex-wrap: wrap;
-    align-items: center;
-}
-
-.legenda-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.875rem;
-}
-
-.legenda-cor {
-    width: 30px;
-    height: 20px;
-    border-radius: 3px;
-    border: 3px solid;
-}
-
-.legenda-cor.pendente {
-    border-color: #ffc107;
-}
-
-.legenda-cor.assinado {
-    border-color: #28a745;
-}
+ .legenda-status {
+     display: flex;
+     gap: 1.5rem;
+     flex-wrap: wrap;
+     align-items: center;
+ }
+ 
+ .legenda-item {
+     display: flex;
+     align-items: center;
+     gap: 0.5rem;
+     font-size: 0.875rem;
+ }
+ 
+ .legenda-cor {
+     width: 30px;
+     height: 20px;
+     border-radius: 3px;
+     border: 3px solid;
+ }
+ 
+ .legenda-cor.pendente {
+     border-color: #ffc107;
+ }
+ 
+ .legenda-cor.assinado {
+     border-color: #28a745;
+ }
 </style>
 
 <!-- Card com Link de Compartilhamento da Página -->
@@ -147,6 +146,7 @@ ob_start();
             O link abre esta página para seleção e assinatura.
         </small>
     </div>
+    
 </div>
 
 <div class="card mb-3">
@@ -224,23 +224,7 @@ ob_start();
                                     </p>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        <?php endforeach; ?>
-    </div>
-<?php else: ?>
-    <div class="card">
-        <div class="card-body text-center py-5">
-            <i class="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
-            <h5 class="text-muted">Nenhum produto para assinar</h5>
-            <p class="text-muted small mb-0">
-                Certifique-se de que existem produtos marcados para impressão no relatório 14.1
-            </p>
-        </div>
-    </div>
-<?php endif; ?>
+                            <div class="ms-3">
 
 <script>
 let produtosSelecionados = new Set();
@@ -274,6 +258,18 @@ function atualizarToolbar() {
     } else {
         toolbar.classList.remove('active');
     }
+}
+
+function selecionarTodos() {
+    const checkboxes = document.querySelectorAll('.checkbox-produto');
+    checkboxes.forEach(cb => {
+        const id = parseInt(cb.value);
+        cb.checked = true;
+        produtosSelecionados.add(id);
+        const card = document.querySelector(`[data-produto-id="${id}"]`);
+        if (card) card.classList.add('selected');
+    });
+    atualizarToolbar();
 }
 
 function limparSelecao() {
