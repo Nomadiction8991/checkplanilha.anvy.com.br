@@ -1,5 +1,7 @@
 <?php
 require_once __DIR__ . '/../../../CRUD/conexao.php';
+// Config central de URL base
+require_once __DIR__ . '/../../../config.php';
 
 $id_planilha = $_GET['id'] ?? null;
 
@@ -37,15 +39,11 @@ $headerActions = '
     </a>
 ';
 
-// Gerar URL de compartilhamento desta página (inclui parâmetros atuais)
-$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-$host = $_SERVER['HTTP_HOST'] ?? '';
-$uri  = $_SERVER['REQUEST_URI'] ?? ('/app/views/planilhas/assinatura-14-1.php?id=' . urlencode($id_planilha));
-$url_compartilhar = $scheme . '://' . $host . $uri;
+// URL para compartilhamento (usar a URL atual)
+$url_compartilhar = current_url();
 
-// URL base para formulário
-$base_url = $scheme . '://' . $host;
-$form_url = $base_url . '/app/views/planilhas/assinatura-14-1-form.php';
+// URL absoluta do formulário respeitando dev/prod
+$form_url = base_url('app/views/planilhas/assinatura-14-1-form.php');
 
 ob_start();
 ?>

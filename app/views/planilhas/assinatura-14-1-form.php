@@ -5,6 +5,8 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 
 require_once __DIR__ . '/../../../CRUD/conexao.php';
+// Config central de URL base
+require_once __DIR__ . '/../../../config.php';
 
 $id_produto = $_GET['id_produto'] ?? null;
 $ids_produtos = $_GET['ids'] ?? null; // Múltiplos IDs separados por vírgula
