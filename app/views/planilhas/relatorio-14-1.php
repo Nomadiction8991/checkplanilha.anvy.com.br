@@ -119,7 +119,8 @@ if (!function_exists('r141_insertSignatureImage')) {
             $img = $doc->createElement('img');
             $img->setAttribute('src', $base64Image);
             $img->setAttribute('alt', 'Assinatura');
-            $img->setAttribute('style', 'max-width: 100%; height: auto; display: block;');
+            // Altura aproximada de 2 linhas de textarea; ajuste fino se necessário
+            $img->setAttribute('style', 'max-width: 100%; height: auto; display: block; max-height: 9mm;');
             
             // Substituir textarea pela imagem
             $textarea->parentNode->replaceChild($img, $textarea);
