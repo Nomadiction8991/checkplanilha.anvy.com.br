@@ -106,9 +106,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Validações adicionais (campos obrigatórios)
-        if (empty($nome_responsavel)) {
-            throw new Exception('O campo Nome do Administrador/Acessor é obrigatório.');
-        }
         if (empty($administracao)) {
             throw new Exception('O campo Administração é obrigatório.');
         }
