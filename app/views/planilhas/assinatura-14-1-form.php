@@ -174,8 +174,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             : 'Assinatura salva com sucesso!';
         $tipo_mensagem = 'success';
         
-        // Recarregar dados (apenas para modo único)
-        if (!$modo_multiplo && count($produtos) === 1) {
+        // Redirect para página de seleção após salvar
+        if (!$acesso_publico) {
+            header('Location: assinatura-14-1.php?id=' . urlencode($id_planilha));
+            exit;
+        }
+        
+        // Recarregar dados (apenas para modo único em acesso público)
+        if ($acesso_publico && !$modo_multiplo && count($produtos) === 1) {
             $prod_id = $produtos[0];
             $sql = "SELECT * FROM assinaturas_14_1 WHERE id_produto = :id_produto";
             $stmt = $conexao->prepare($sql);
@@ -663,9 +669,9 @@ window.salvarModalAssinatura = function(){
     let data = null;
     if (signaturePad) {
         if (signaturePad.isEmpty()) data = null; 
-        else data = signaturePad.toDataURL('image/png');
+        else data = signaturePad.toDataURL('image/png', 0.8); // Compressão em 80%
     } else {
-        data = modalCanvas.toDataURL('image/png');
+        data = modalCanvas.toDataURL('image/png', 0.8); // Compressão em 80%
     }
     
     const preview = document.getElementById('canvas_' + currentField);
