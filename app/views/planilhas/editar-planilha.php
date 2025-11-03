@@ -126,11 +126,16 @@ ob_start();
                         <option value="">Carregando...</option>
                     </select>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-3">
                     <label for="cidade" class="form-label">Cidade <span class="text-danger">*</span></label>
                     <select id="cidade" name="cidade" class="form-select" required disabled>
                         <option value="">Carregando...</option>
                     </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="setor" class="form-label">Setor</label>
+                    <input type="number" class="form-control" id="setor" name="setor" 
+                           value="<?php echo htmlspecialchars($planilha['setor'] ?? ''); ?>" min="0" step="1">
                 </div>
             </div>
             

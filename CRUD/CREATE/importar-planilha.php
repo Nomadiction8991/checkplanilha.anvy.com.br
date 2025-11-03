@@ -18,6 +18,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Administração (estado) e cidade (obrigatórios)
     $administracao = trim($_POST['administracao'] ?? null); // formato SIGLA|ID
     $cidade = trim($_POST['cidade'] ?? null);
+    // Setor (opcional, numérico)
+    $setor = !empty($_POST['setor']) ? (int)$_POST['setor'] : null;
     
     // Mapeamento simplificado
     $mapeamento = [
@@ -118,7 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $conexao->beginTransaction();
 
     // Inserir a planilha na tabela planilhas com os valores obtidos do CSV
-    $sql_planilha = "INSERT INTO planilhas (comum, data_posicao, endereco, cnpj, nome_responsavel, administracao, cidade, assinatura_responsavel) VALUES (:comum, :data_posicao, :endereco, :cnpj, :nome_responsavel, :administracao, :cidade, :assinatura_responsavel)";
+    $sql_planilha = "INSERT INTO planilhas (comum, data_posicao, endereco, cnpj, nome_responsavel, administracao, cidade, assinatura_responsavel, setor) VALUES (:comum, :data_posicao, :endereco, :cnpj, :nome_responsavel, :administracao, :cidade, :assinatura_responsavel, :setor)";
     $stmt_planilha = $conexao->prepare($sql_planilha);
     $stmt_planilha->bindValue(':comum', $valor_comum);
     $stmt_planilha->bindValue(':data_posicao', $data_mysql);
@@ -128,6 +130,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt_planilha->bindValue(':administracao', $administracao);
     $stmt_planilha->bindValue(':cidade', $cidade);
     $stmt_planilha->bindValue(':assinatura_responsavel', $assinatura_responsavel);
+    $stmt_planilha->bindValue(':setor', $setor, PDO::PARAM_INT);
         $stmt_planilha->execute();
         $id_planilha = $conexao->lastInsertId();
 

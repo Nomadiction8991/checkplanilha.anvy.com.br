@@ -59,6 +59,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // administracao (estado) e cidade
     $administracao = trim($_POST['administracao'] ?? null);
     $cidade = trim($_POST['cidade'] ?? null);
+    // Setor (opcional, numérico)
+    $setor = !empty($_POST['setor']) ? (int)$_POST['setor'] : null;
     
     // Mapeamento simplificado
     $mapeamento = [
@@ -266,9 +268,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!empty($cidade) || $cidade === "") {
             $novo_cidade = $cidade;
         }
+        
+        // Atualizar setor se foi fornecido
+        $novo_setor = $planilha['setor'] ?? null;
+        if (isset($_POST['setor'])) {
+            $novo_setor = $setor;
+        }
 
         // Atualizar dados da planilha com os novos valores (se aplicável)
-    $sql_update_planilha = "UPDATE planilhas SET ativo = :ativo, comum = :comum, data_posicao = :data_posicao, endereco = :endereco, cnpj = :cnpj, administracao = :administracao, cidade = :cidade WHERE id = :id";
+    $sql_update_planilha = "UPDATE planilhas SET ativo = :ativo, comum = :comum, data_posicao = :data_posicao, endereco = :endereco, cnpj = :cnpj, administracao = :administracao, cidade = :cidade, setor = :setor WHERE id = :id";
         $stmt_update_planilha = $conexao->prepare($sql_update_planilha);
         $stmt_update_planilha->bindValue(':ativo', $ativo);
         $stmt_update_planilha->bindValue(':comum', $novo_valor_comum);
@@ -277,6 +285,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt_update_planilha->bindValue(':cnpj', $novo_valor_cnpj);
     $stmt_update_planilha->bindValue(':administracao', $novo_administracao);
     $stmt_update_planilha->bindValue(':cidade', $novo_cidade);
+    $stmt_update_planilha->bindValue(':setor', $novo_setor, PDO::PARAM_INT);
         $stmt_update_planilha->bindValue(':id', $id_planilha);
         $stmt_update_planilha->execute();
 

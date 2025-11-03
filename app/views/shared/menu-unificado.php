@@ -30,15 +30,16 @@ if ($contexto === 'auto') {
 }
 
 // Determinar URL de retorno
-// Menu principal: sem voltar
-// Menu de contexto (planilha/relatório): voltar para view-planilha
+// - Se origem informada, usa origem
+// - Se contexto de planilha/relatório, voltar para view-planilha
+// - Se contexto principal (menu do index), voltar para index
 if ($origem) {
     $backUrl = $origem;
 } elseif (($contexto === 'planilha' || $contexto === 'relatorio') && $id_planilha) {
     $backUrl = '../planilhas/view-planilha.php?id=' . urlencode($id_planilha);
 } else {
-    // Contexto principal: sem botão voltar
-    $backUrl = null;
+    // Menu principal
+    $backUrl = '../../../index.php';
 }
 
 // Configurações da página
@@ -275,21 +276,7 @@ ob_start();
     <?php endif; ?>
     
     <?php if ($contexto === 'principal'): ?>
-        <!-- Seção: Sistema -->
-        <div class="menu-section-title">
-            <i class="bi bi-gear me-1"></i>
-            Sistema
-        </div>
-        
-        <div class="card menu-card disabled">
-            <div class="card-body">
-                <h5 class="card-title">
-                    <i class="bi bi-gear-fill me-2" style="color: #6c757d;"></i>
-                    Configurações
-                </h5>
-                <p class="card-text small text-muted">Funcionalidade em breve</p>
-            </div>
-        </div>
+        <!-- Seção Sistema removida conforme solicitação -->
     <?php endif; ?>
     
     <?php if (($contexto === 'planilha' || $contexto === 'relatorio') && !$id_planilha): ?>

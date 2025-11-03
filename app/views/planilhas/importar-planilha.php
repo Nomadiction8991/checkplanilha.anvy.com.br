@@ -140,6 +140,11 @@ ob_start();
                     <input type="text" class="form-control" id="nome_responsavel" name="nome_responsavel" 
                            value="<?php echo htmlspecialchars($_POST['nome_responsavel'] ?? ''); ?>" maxlength="255" required>
                 </div>
+                <div class="col-md-3">
+                    <label for="setor" class="form-label">Setor</label>
+                    <input type="number" class="form-control" id="setor" name="setor" 
+                           value="<?php echo htmlspecialchars($_POST['setor'] ?? ''); ?>" min="0" step="1">
+                </div>
             </div>
 
             <div class="row g-3 mt-3">
