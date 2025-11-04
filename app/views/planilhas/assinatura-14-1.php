@@ -17,7 +17,6 @@ $sql = "SELECT
             pc.tipo_ben,
             tb.descricao as tipo_descricao,
             COALESCE(a.status, 'pendente') as status_assinatura,
-            a.token,
             a.id as id_assinatura
         FROM produtos_cadastro pc
         LEFT JOIN tipos_bens tb ON pc.id_tipo_ben = tb.id

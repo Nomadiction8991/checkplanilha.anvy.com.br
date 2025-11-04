@@ -7,54 +7,32 @@ ini_set('display_startup_errors', 1);
 require_once __DIR__ . '/../../../CRUD/conexao.php';
 
 // Parâmetros de entrada
-$token = $_GET['token'] ?? null;
 $id_planilha = isset($_GET['id']) ? intval($_GET['id']) : null;
 $id_produto = isset($_GET['produto']) ? intval($_GET['produto']) : null;
 $ids_produtos = $_GET['ids'] ?? null;
 
 $produtos = [];
 $modo_multiplo = false;
-$acesso_publico = false;
 $assinaturas = [];
 
-if ($token) {
-    // Acesso público por token
-    $sql = "SELECT a.*, pc.descricao_completa, p.comum
-            FROM assinaturas_14_1 a
-            JOIN produtos_cadastro pc ON a.id_produto = pc.id
-            JOIN planilhas p ON a.id_planilha = p.id
-            WHERE a.token = :token";
-    $stmt = $conexao->prepare($sql);
-    $stmt->bindValue(':token', $token);
-    $stmt->execute();
-    $assinatura = $stmt->fetch();
-    if (!$assinatura) {
-        die('Link inválido ou expirado.');
+// Acesso interno
+if ($ids_produtos) {
+    $produtos = array_values(array_filter(array_map('intval', explode(',', $ids_produtos))));
+    $modo_multiplo = count($produtos) > 1;
+    if (!$id_planilha && !empty($produtos)) {
+        // Buscar planilha do primeiro produto
+        $stmt = $conexao->prepare('SELECT id_planilha FROM produtos_cadastro WHERE id = ?');
+        $stmt->execute([$produtos[0]]);
+        $row = $stmt->fetch();
+        $id_planilha = $row ? intval($row['id_planilha']) : null;
     }
-    $id_produto = intval($assinatura['id_produto']);
-    $id_planilha = intval($assinatura['id_planilha']);
-    $produtos = [$id_produto];
-    $acesso_publico = true;
-} else {
-    // Acesso interno
-    if ($ids_produtos) {
-        $produtos = array_values(array_filter(array_map('intval', explode(',', $ids_produtos))));
-        $modo_multiplo = count($produtos) > 1;
-        if (!$id_planilha && !empty($produtos)) {
-            // Buscar planilha do primeiro produto
-            $stmt = $conexao->prepare('SELECT id_planilha FROM produtos_cadastro WHERE id = ?');
-            $stmt->execute([$produtos[0]]);
-            $row = $stmt->fetch();
-            $id_planilha = $row ? intval($row['id_planilha']) : null;
-        }
-    } elseif ($id_produto) {
-        $produtos = [intval($id_produto)];
-        $modo_multiplo = false;
-    }
-    if (!$id_planilha || empty($produtos)) {
-        header('Location: assinatura-14-1.php?id=' . urlencode($id_planilha ?? ''));
-        exit;
-    }
+} elseif ($id_produto) {
+    $produtos = [intval($id_produto)];
+    $modo_multiplo = false;
+}
+if (!$id_planilha || empty($produtos)) {
+    header('Location: assinatura-14-1.php?id=' . urlencode($id_planilha ?? ''));
+    exit;
 }
 
 // Buscar informações dos produtos
@@ -77,11 +55,9 @@ foreach ($produtos as $pid) {
     $stmt->execute();
     $row = $stmt->fetch();
     if (!$row) {
-        $token_novo = bin2hex(random_bytes(32));
-        $ins = $conexao->prepare("INSERT INTO assinaturas_14_1 (id_produto, id_planilha, token, status) VALUES (:id_produto, :id_planilha, :token, 'pendente')");
+        $ins = $conexao->prepare("INSERT INTO assinaturas_14_1 (id_produto, id_planilha, status) VALUES (:id_produto, :id_planilha, 'pendente')");
         $ins->bindValue(':id_produto', $pid);
         $ins->bindValue(':id_planilha', $id_planilha);
-        $ins->bindValue(':token', $token_novo);
         $ins->execute();
         $stmt->execute();
         $row = $stmt->fetch();
@@ -187,26 +163,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $mensagem = $total_atualizados > 1 ? ("Dados salvos para $total_atualizados produtos.") : 'Dados salvos com sucesso!';
         $tipo_mensagem = 'success';
 
-        if (!$acesso_publico) {
-            // Recarregar a mesma página do formulário com os produtos atuais
-            $produtos_param = implode(',', $produtos);
-            if ($modo_multiplo) {
-                header('Location: assinatura-14-1-form.php?id=' . urlencode($id_planilha) . '&produtos=' . urlencode($produtos_param) . '&saved=1');
-            } else {
-                header('Location: assinatura-14-1-form.php?id=' . urlencode($id_planilha) . '&produto=' . urlencode($produtos[0]) . '&saved=1');
-            }
-            exit;
+        // Recarregar a mesma página do formulário com os produtos atuais
+        $produtos_param = implode(',', $produtos);
+        if ($modo_multiplo) {
+            header('Location: assinatura-14-1-form.php?id=' . urlencode($id_planilha) . '&produtos=' . urlencode($produtos_param) . '&saved=1');
+        } else {
+            header('Location: assinatura-14-1-form.php?id=' . urlencode($id_planilha) . '&produto=' . urlencode($produtos[0]) . '&saved=1');
         }
-
-        // Recarregar dados em modo público
-        if ($acesso_publico && !$modo_multiplo && count($produtos) === 1) {
-            $pid = $produtos[0];
-            $stmt = $conexao->prepare('SELECT * FROM assinaturas_14_1 WHERE id_produto = :id_produto');
-            $stmt->bindValue(':id_produto', $pid);
-            $stmt->execute();
-            $assinaturas[$pid] = $stmt->fetch();
-            $assinatura = $assinaturas[$pid];
-        }
+        exit;
     } catch (Exception $e) {
         $mensagem = 'Erro ao salvar: ' . $e->getMessage();
         $tipo_mensagem = 'danger';
@@ -219,22 +183,8 @@ if (isset($_GET['saved']) && $_GET['saved'] == '1' && !isset($mensagem)) {
     $tipo_mensagem = 'success';
 }
 
-// URL pública (modo único)
-$url_publica = null;
-if (!$modo_multiplo && count($produtos) === 1) {
-    $pid = $produtos[0];
-    $token_prod = $assinaturas[$pid]['token'] ?? null;
-    if ($token_prod) {
-        $protocolo = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https' : 'http';
-        $host = $_SERVER['HTTP_HOST'];
-        $url_base = $protocolo . '://' . $host;
-        $caminho_arquivo = str_replace($_SERVER['DOCUMENT_ROOT'], '', __FILE__);
-        $url_publica = $url_base . $caminho_arquivo . '?token=' . urlencode($token_prod);
-    }
-}
-
-$pageTitle = $acesso_publico ? 'Assinatura Digital - 14.1' : ($modo_multiplo ? 'Assinar Múltiplos Produtos - 14.1' : 'Gerenciar Assinatura - 14.1');
-$backUrl = $acesso_publico ? null : 'assinatura-14-1.php?id=' . urlencode($id_planilha);
+$pageTitle = $modo_multiplo ? 'Assinar Múltiplos Produtos - 14.1' : 'Gerenciar Assinatura - 14.1';
+$backUrl = 'assinatura-14-1.php?id=' . urlencode($id_planilha);
 $headerActions = '';
 
 ob_start();
