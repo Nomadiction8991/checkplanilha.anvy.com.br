@@ -24,11 +24,11 @@ if (file_exists($templatePath)) {
 }
 
 $pageTitle = 'Relatório 14.1';
-$backUrl = '../shared/menu-unificado.php?id=' . urlencode($id_planilha) . '&contexto=relatorio';
+$backUrl = 'assinatura-14-1.php?id=' . urlencode($id_planilha);
 $headerActions = '
     <button id="btnPrint" class="btn-header-action" title="Imprimir"><i class="bi bi-printer"></i></button>
-    <a href="../shared/menu-unificado.php?id=' . urlencode($id_planilha) . '&contexto=relatorio" class="btn-header-action" title="Menu">
-        <i class="bi bi-list fs-5"></i>
+    <a href="assinatura-14-1.php?id=' . urlencode($id_planilha) . '" class="btn-header-action" title="Assinaturas">
+        <i class="bi bi-pen"></i>
     </a>
 ';
 
