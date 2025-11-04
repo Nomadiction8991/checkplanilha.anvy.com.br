@@ -324,7 +324,10 @@ ob_start();
 
 // Preparar dados dos produtos para JavaScript
 $produtosDataJS = json_encode(array_map(function($p){ 
-    return ['id' => $p['id'], 'condicao_141' => $p['condicao_141'] ?? null]; 
+    return [
+        'id' => (int)$p['id'],
+        'condicao_141' => isset($p['condicao_141']) ? (int)$p['condicao_141'] : 0
+    ]; 
 }, $produtos));
 
 $script = <<<JS
@@ -390,9 +393,15 @@ $script = <<<JS
                 const check2 = iframeDoc.getElementById('input14'); // >5 anos sem nota
                 const check3 = iframeDoc.getElementById('input15'); // <=5 anos com nota
                 
-                if(check1) check1.checked = (condicao === 1);
-                if(check2) check2.checked = (condicao === 2);
-                if(check3) check3.checked = (condicao === 3);
+                // Reset
+                if(check1){ check1.checked = false; check1.removeAttribute('checked'); }
+                if(check2){ check2.checked = false; check2.removeAttribute('checked'); }
+                if(check3){ check3.checked = false; check3.removeAttribute('checked'); }
+
+                // Set conforme condição
+                if(condicao === 1 && check1){ check1.checked = true; check1.setAttribute('checked','checked'); }
+                if(condicao === 2 && check2){ check2.checked = true; check2.setAttribute('checked','checked'); }
+                if(condicao === 3 && check3){ check3.checked = true; check3.setAttribute('checked','checked'); }
             } catch(err) {
                 console.error('Erro ao marcar checkboxes:', err);
             }
