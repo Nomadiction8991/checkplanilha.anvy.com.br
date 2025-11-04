@@ -164,7 +164,8 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
         .app-content {
             flex: 1;
             padding: 20px;
-            padding-top: 76px; /* espaço para o header fixo */
+            /* Espaço dinâmico para o header fixo (altura calculada via JS) */
+            padding-top: calc(var(--header-height, 76px) + 8px);
             overflow-y: auto;
             background: #f8f9fa;
         }
@@ -403,6 +404,30 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
     
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Ajuste dinâmico do espaçamento do conteúdo baseado na altura do header -->
+    <script>
+        (function() {
+            function setHeaderHeightVar() {
+                var header = document.querySelector('.app-header');
+                if (!header) return;
+                var h = header.getBoundingClientRect().height;
+                document.documentElement.style.setProperty('--header-height', h + 'px');
+            }
+
+            // Definir ao carregar e ao redimensionar
+            window.addEventListener('load', setHeaderHeightVar);
+            window.addEventListener('resize', setHeaderHeightVar);
+
+            // Pequeno debounce para mudanças de layout dinâmicas
+            var ro;
+            if ('ResizeObserver' in window) {
+                ro = new ResizeObserver(setHeaderHeightVar);
+                var header = document.querySelector('.app-header');
+                if (header) ro.observe(header);
+            }
+        })();
+    </script>
     
     <!-- Bloqueio de zoom global (pinch/double-tap) fora do viewer do relatório -->
     <script>
