@@ -6,7 +6,7 @@ $mensagem = '';
 $tipo_mensagem = '';
 
 if (!$id) {
-    header('Location: ../../app/views/usuarios/read-usuario.php');
+    header('Location: ./read-usuario.php');
     exit;
 }
 
@@ -83,14 +83,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bindValue(':id', $id);
         $stmt->execute();
 
-        $mensagem = 'Usuário atualizado com sucesso!';
-        $tipo_mensagem = 'success';
-
-        // Recarregar dados
-        $stmt = $conexao->prepare('SELECT * FROM usuarios WHERE id = :id');
-        $stmt->bindValue(':id', $id);
-        $stmt->execute();
-        $usuario = $stmt->fetch();
+        // Redirecionar para listagem com mensagem de sucesso
+        header('Location: ./read-usuario.php?updated=1');
+        exit;
 
     } catch (Exception $e) {
         $mensagem = 'Erro: ' . $e->getMessage();
