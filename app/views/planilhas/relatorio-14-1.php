@@ -121,7 +121,8 @@ if (!function_exists('r141_insertSignatureImage')) {
             $img->setAttribute('src', $base64Image);
             $img->setAttribute('alt', 'Assinatura');
             // Altura aproximada de 2 linhas de textarea; ajuste fino se necessário
-            $img->setAttribute('style', 'max-width: 100%; height: auto; display: block; max-height: 9mm;');
+            // Centraliza a assinatura horizontalmente
+            $img->setAttribute('style', 'max-width: 100%; height: auto; display: block; max-height: 9mm; margin: 0 auto; object-fit: contain;');
             
             // Substituir textarea pela imagem
             $textarea->parentNode->replaceChild($img, $textarea);
@@ -294,6 +295,10 @@ ob_start();
                             }
                             // Montar srcdoc isolado com CSS do template
                             $styleInline = !empty($styleContent) ? $styleContent : '';
+                            // CSS adicional: bloquear interação do usuário nos campos
+                            $styleInline .= '\n.r141-root textarea, .r141-root input{pointer-events:none; -webkit-user-select:none; user-select:none; cursor: default;}';
+                            $styleInline .= '\n.r141-root textarea{background:transparent; border:none; outline:none;}';
+                            $styleInline .= '\n.r141-root input[disabled]{opacity:1; filter:none;}';
                             $srcdoc = '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
                                 . '<style>html,body{margin:0;padding:0;background:#fff;} ' . $styleInline . '</style>'
                                 . '</head><body>' . $htmlIsolado . '</body></html>';
@@ -402,6 +407,18 @@ $script = <<<JS
                 if(condicao === 1 && check1){ check1.checked = true; check1.setAttribute('checked','checked'); }
                 if(condicao === 2 && check2){ check2.checked = true; check2.setAttribute('checked','checked'); }
                 if(condicao === 3 && check3){ check3.checked = true; check3.setAttribute('checked','checked'); }
+
+                // Desabilitar interação nos campos dentro do iframe (inputs/textarea)
+                Array.from(iframeDoc.querySelectorAll('textarea')).forEach(t => { try{ t.readOnly = true; t.setAttribute('readonly','readonly'); }catch(e){} });
+                Array.from(iframeDoc.querySelectorAll('input')).forEach(inp => {
+                    try{
+                        if((inp.type||'').toLowerCase() === 'checkbox'){
+                            inp.disabled = true; inp.setAttribute('disabled','disabled');
+                        } else {
+                            inp.readOnly = true; inp.setAttribute('readonly','readonly');
+                        }
+                    }catch(e){}
+                });
             } catch(err) {
                 console.error('Erro ao marcar checkboxes:', err);
             }
