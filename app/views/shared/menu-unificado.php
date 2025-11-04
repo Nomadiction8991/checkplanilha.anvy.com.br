@@ -12,6 +12,7 @@ require_once __DIR__ . '/../../../auth.php'; // Autenticação
 $id_planilha = $_GET['id'] ?? null;
 $contexto = $_GET['contexto'] ?? 'auto';
 $origem = $_GET['origem'] ?? null;
+$modo_publico = !empty($_SESSION['public_acesso']);
 
 // Auto-detectar contexto baseado no referer se não foi especificado
 if ($contexto === 'auto') {
@@ -37,15 +38,24 @@ if ($contexto === 'auto') {
 if ($origem) {
     $backUrl = $origem;
 } elseif (($contexto === 'planilha' || $contexto === 'relatorio') && $id_planilha) {
-    $backUrl = '../planilhas/view-planilha.php?id=' . urlencode($id_planilha);
+    // Em modo público, voltar para a seleção pública
+    if ($modo_publico) {
+        $backUrl = '../../../public/assinar.php';
+    } else {
+        $backUrl = '../planilhas/view-planilha.php?id=' . urlencode($id_planilha);
+    }
 } else {
     // Menu principal
-    $backUrl = '../../../index.php';
+    $backUrl = $modo_publico ? '../../../public/assinar.php' : '../../../index.php';
 }
 
 // Configurações da página
 $pageTitle = "Menu";
 $headerActions = '';
+if ($modo_publico) {
+    // Mostrar botão de sair do modo público
+    $headerActions = '<a href="../../../public/sair.php" class="btn-header-action" title="Sair acesso público"><i class="bi bi-box-arrow-right fs-5"></i></a>';
+}
 
 // Iniciar buffer para capturar o conteúdo
 ob_start();
@@ -134,22 +144,24 @@ ob_start();
     
     <?php if ($contexto === 'planilha' && $id_planilha): ?>
         <!-- Seção: Produtos -->
-        <div class="menu-section-title">
-            <i class="bi bi-box-seam me-1"></i>
-            Produtos
-        </div>
-        
-        <a href="../produtos/read-produto.php?id=<?php echo $id_planilha; ?>" class="text-decoration-none">
-            <div class="card menu-card">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="bi bi-list-ul me-2" style="color: #007bff;"></i>
-                        Listagem de Produtos
-                    </h5>
-                    <p class="card-text small text-muted">Visualizar e cadastrar produtos da planilha</p>
-                </div>
+        <?php if (!$modo_publico): ?>
+            <div class="menu-section-title">
+                <i class="bi bi-box-seam me-1"></i>
+                Produtos
             </div>
-        </a>
+            
+            <a href="../produtos/read-produto.php?id=<?php echo $id_planilha; ?>" class="text-decoration-none">
+                <div class="card menu-card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bi bi-list-ul me-2" style="color: #007bff;"></i>
+                            Listagem de Produtos
+                        </h5>
+                        <p class="card-text small text-muted">Visualizar e cadastrar produtos da planilha</p>
+                    </div>
+                </div>
+            </a>
+        <?php endif; ?>
         
         <!-- Seção: Relatórios -->
         <div class="menu-section-title">
@@ -181,23 +193,25 @@ ob_start();
             </div>
         </a>
         
-        <!-- Seção: Outros -->
-        <div class="menu-section-title">
-            <i class="bi bi-three-dots me-1"></i>
-            Outros
-        </div>
-        
-        <a href="../planilhas/copiar-etiquetas.php?id=<?php echo $id_planilha; ?>" class="text-decoration-none">
-            <div class="card menu-card">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="bi bi-tags-fill me-2" style="color: #ff9800;"></i>
-                        Copiar Etiquetas
-                    </h5>
-                    <p class="card-text small text-muted">Copiar etiquetas selecionadas</p>
-                </div>
+        <?php if (!$modo_publico): ?>
+            <!-- Seção: Outros -->
+            <div class="menu-section-title">
+                <i class="bi bi-three-dots me-1"></i>
+                Outros
             </div>
-        </a>
+            
+            <a href="../planilhas/copiar-etiquetas.php?id=<?php echo $id_planilha; ?>" class="text-decoration-none">
+                <div class="card menu-card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bi bi-tags-fill me-2" style="color: #ff9800;"></i>
+                            Copiar Etiquetas
+                        </h5>
+                        <p class="card-text small text-muted">Copiar etiquetas selecionadas</p>
+                    </div>
+                </div>
+            </a>
+        <?php endif; ?>
     <?php endif; ?>
     
     <?php if ($contexto === 'relatorio' && $id_planilha): ?>
@@ -249,42 +263,46 @@ ob_start();
             </div>
         </a>
         
-        <!-- Seção: Produtos -->
-        <div class="menu-section-title">
-            <i class="bi bi-box-seam me-1"></i>
-            Produtos
-        </div>
-        
-        <a href="../produtos/read-produto.php?id=<?php echo $id_planilha; ?>" class="text-decoration-none">
-            <div class="card menu-card">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="bi bi-plus-circle-fill me-2" style="color: #28a745;"></i>
-                        Cadastrar Produto
-                    </h5>
-                    <p class="card-text small text-muted">Adicionar novo produto manualmente</p>
-                </div>
+        <?php if (!$modo_publico): ?>
+            <!-- Seção: Produtos -->
+            <div class="menu-section-title">
+                <i class="bi bi-box-seam me-1"></i>
+                Produtos
             </div>
-        </a>
-        
-        <!-- Seção: Outras Impressões -->
-        <div class="menu-section-title">
-            <i class="bi bi-printer me-1"></i>
-            Outras Impressões
-        </div>
-        
-        <a href="../planilhas/copiar-etiquetas.php?id=<?php echo $id_planilha; ?>" class="text-decoration-none">
-            <div class="card menu-card">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="bi bi-tags-fill me-2" style="color: #ff9800;"></i>
-                        Copiar Etiquetas
-                    </h5>
-                    <p class="card-text small text-muted">Copiar etiquetas selecionadas</p>
+            
+            <a href="../produtos/read-produto.php?id=<?php echo $id_planilha; ?>" class="text-decoration-none">
+                <div class="card menu-card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bi bi-plus-circle-fill me-2" style="color: #28a745;"></i>
+                            Cadastrar Produto
+                        </h5>
+                        <p class="card-text small text-muted">Adicionar novo produto manualmente</p>
+                    </div>
                 </div>
-            </div>
-        </a>
+            </a>
+        <?php endif; ?>
         
+        <?php if (!$modo_publico): ?>
+            <!-- Seção: Outras Impressões -->
+            <div class="menu-section-title">
+                <i class="bi bi-printer me-1"></i>
+                Outras Impressões
+            </div>
+            
+            <a href="../planilhas/copiar-etiquetas.php?id=<?php echo $id_planilha; ?>" class="text-decoration-none">
+                <div class="card menu-card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bi bi-tags-fill me-2" style="color: #ff9800;"></i>
+                            Copiar Etiquetas
+                        </h5>
+                        <p class="card-text small text-muted">Copiar etiquetas selecionadas</p>
+                    </div>
+                </div>
+            </a>
+        <?php endif; ?>
+
         <a href="../planilhas/imprimir-alteracao.php?id=<?php echo $id_planilha; ?>" class="text-decoration-none">
             <div class="card menu-card">
                 <div class="card-body">

@@ -147,6 +147,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
         
         <div class="text-center mt-3">
+            <a href="public/assinar.php" class="btn btn-light w-100 mb-2">
+                <i class="bi bi-pen me-2"></i>
+                Assinar documentos sem login
+            </a>
             <small class="text-white">
                 <i class="bi bi-shield-check me-1"></i>
                 Acesso seguro e criptografado
