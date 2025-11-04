@@ -55,7 +55,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $localizacao_comum = trim($_POST['localizacao_comum'] ?? 'D16');
     $localizacao_data_posicao = trim($_POST['localizacao_data_posicao'] ?? 'D13');
     $localizacao_endereco = trim($_POST['localizacao_endereco'] ?? 'A4');
-    $localizacao_cnpj = trim($_POST['localizacao_cnpj'] ?? 'U8');
+    $localizacao_cnpj = trim($_POST['localizacao_cnpj'] ?? 'U5');
+    $endereco_post = trim($_POST['endereco'] ?? '');
     // administracao (estado) e cidade
     $administracao = trim($_POST['administracao'] ?? null);
     $cidade = trim($_POST['cidade'] ?? null);
@@ -84,6 +85,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (empty($localizacao_cnpj)) {
             throw new Exception('A localização da célula CNPJ é obrigatória.');
+        }
+
+        // Endereço obrigatório (agora editável pelo usuário)
+        if ($endereco_post === '') {
+            throw new Exception('O campo Endereço é obrigatório.');
         }
 
         // Iniciar transação
@@ -273,6 +279,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $novo_setor = $planilha['setor'] ?? null;
         if (isset($_POST['setor'])) {
             $novo_setor = $setor;
+        }
+
+        // Priorizar valor informado manualmente para Endereço
+        if ($endereco_post !== '') {
+            $novo_valor_endereco = $endereco_post;
         }
 
         // Atualizar dados da planilha com os novos valores (se aplicável)

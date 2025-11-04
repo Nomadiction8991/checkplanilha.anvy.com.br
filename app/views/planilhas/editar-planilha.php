@@ -42,8 +42,9 @@ ob_start();
                     <input type="text" class="form-control" value="<?php echo htmlspecialchars($planilha['comum'] ?? ''); ?>" disabled>
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label">Endereço</label>
-                    <input type="text" class="form-control" value="<?php echo htmlspecialchars($planilha['endereco'] ?? ''); ?>" disabled>
+                    <label for="endereco" class="form-label">Endereço <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="endereco" name="endereco" 
+                           value="<?php echo htmlspecialchars($planilha['endereco'] ?? ''); ?>" required>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Data Posição</label>
@@ -69,29 +70,29 @@ ob_start();
         </div>
         <div class="card-body">
             <div class="mb-3">
-                <label for="linhas_pular" class="form-label">Linhas Iniciais a Pular</label>
+                <label for="linhas_pular" class="form-label">Linhas Iniciais a Pular <span class="text-danger">*</span></label>
                 <input type="number" class="form-control" id="linhas_pular" name="linhas_pular" 
                        value="<?php echo $config['pulo_linhas'] ?? 25; ?>" min="0" required>
             </div>
 
             <div class="row g-3">
                 <div class="col-md-6">
-                    <label for="localizacao_cnpj" class="form-label">CNPJ</label>
+                    <label for="localizacao_cnpj" class="form-label">CNPJ <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="localizacao_cnpj" name="localizacao_cnpj" 
                            value="<?php echo htmlspecialchars($config['cnpj'] ?? 'U5'); ?>" required>
                 </div>
                 <div class="col-md-6">
-                    <label for="localizacao_comum" class="form-label">Comum</label>
+                    <label for="localizacao_comum" class="form-label">Comum <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="localizacao_comum" name="localizacao_comum" 
                            value="<?php echo htmlspecialchars($config['comum'] ?? 'D16'); ?>" required>
                 </div>
                 <div class="col-md-6">
-                    <label for="localizacao_endereco" class="form-label">Endereço</label>
+                    <label for="localizacao_endereco" class="form-label">Endereço <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="localizacao_endereco" name="localizacao_endereco" 
                            value="<?php echo htmlspecialchars($config['endereco'] ?? 'A4'); ?>" required>
                 </div>
                 <div class="col-md-6">
-                    <label for="localizacao_data_posicao" class="form-label">Data Posição</label>
+                    <label for="localizacao_data_posicao" class="form-label">Data Posição <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="localizacao_data_posicao" name="localizacao_data_posicao" 
                            value="<?php echo htmlspecialchars($config['data_posicao'] ?? 'D13'); ?>" required>
                 </div>
