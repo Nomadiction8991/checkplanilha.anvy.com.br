@@ -120,56 +120,32 @@ ob_start();
             Produtos
         </div>
         
-        <a href="../planilhas/view-planilha.php?id=<?php echo $id_planilha; ?>" class="text-decoration-none">
+        <a href="../produtos/read-produto.php?id=<?php echo $id_planilha; ?>" class="text-decoration-none">
             <div class="card menu-card">
                 <div class="card-body">
                     <h5 class="card-title">
                         <i class="bi bi-list-ul me-2" style="color: #007bff;"></i>
                         Listagem de Produtos
                     </h5>
-                    <p class="card-text small text-muted">Visualizar todos os produtos da planilha</p>
+                    <p class="card-text small text-muted">Visualizar e cadastrar produtos da planilha</p>
                 </div>
             </div>
         </a>
         
-        <a href="../produtos/read-produto.php?id=<?php echo $id_planilha; ?>" class="text-decoration-none">
-            <div class="card menu-card">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="bi bi-plus-circle-fill me-2" style="color: #28a745;"></i>
-                        Cadastrar Produto
-                    </h5>
-                    <p class="card-text small text-muted">Adicionar novo produto manualmente</p>
-                </div>
-            </div>
-        </a>
-        
-        <!-- Seção: Relatórios e Impressões -->
+        <!-- Seção: Relatórios -->
         <div class="menu-section-title">
-            <i class="bi bi-printer me-1"></i>
-            Relatórios e Impressões
+            <i class="bi bi-file-earmark-text me-1"></i>
+            Relatórios
         </div>
         
         <a href="../planilhas/relatorio-14-1.php?id=<?php echo $id_planilha; ?>" class="text-decoration-none">
             <div class="card menu-card">
                 <div class="card-body">
                     <h5 class="card-title">
-                        <i class="bi bi-printer-fill me-2" style="color: #17a2b8;"></i>
-                        Imprimir 14.1
+                        <i class="bi bi-file-earmark-pdf-fill me-2" style="color: #17a2b8;"></i>
+                        Relatório 14.1
                     </h5>
                     <p class="card-text small text-muted">Gerar relatório 14.1</p>
-                </div>
-            </div>
-        </a>
-        
-        <a href="../planilhas/copiar-etiquetas.php?id=<?php echo $id_planilha; ?>" class="text-decoration-none">
-            <div class="card menu-card">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="bi bi-tags-fill me-2" style="color: #ff9800;"></i>
-                        Copiar Etiquetas
-                    </h5>
-                    <p class="card-text small text-muted">Copiar etiquetas selecionadas</p>
                 </div>
             </div>
         </a>
@@ -179,9 +155,27 @@ ob_start();
                 <div class="card-body">
                     <h5 class="card-title">
                         <i class="bi bi-file-earmark-diff-fill me-2" style="color: #9c27b0;"></i>
-                        Imprimir Alterações
+                        Relatório de Alterações
                     </h5>
                     <p class="card-text small text-muted">Relatório de alterações realizadas</p>
+                </div>
+            </div>
+        </a>
+        
+        <!-- Seção: Outros -->
+        <div class="menu-section-title">
+            <i class="bi bi-three-dots me-1"></i>
+            Outros
+        </div>
+        
+        <a href="../planilhas/copiar-etiquetas.php?id=<?php echo $id_planilha; ?>" class="text-decoration-none">
+            <div class="card menu-card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-tags-fill me-2" style="color: #ff9800;"></i>
+                        Copiar Etiquetas
+                    </h5>
+                    <p class="card-text small text-muted">Copiar etiquetas selecionadas</p>
                 </div>
             </div>
         </a>
