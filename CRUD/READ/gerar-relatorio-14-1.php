@@ -1,5 +1,5 @@
 <?php
-require_once '../../auth.php'; // Autenticação
+require_once __DIR__ . '/../../auth.php'; // Autenticação
 /**
  * Página para gerar Relatório 14.1 automaticamente
  * 

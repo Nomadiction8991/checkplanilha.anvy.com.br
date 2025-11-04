@@ -1,5 +1,5 @@
 <?php
-require_once '../../auth.php'; // Autenticação
+require_once __DIR__ . '/../../auth.php'; // Autenticação
 require_once __DIR__ . '/../conexao.php';
 
 $id_planilha = $_GET['id'] ?? null;

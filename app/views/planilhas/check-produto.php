@@ -1,5 +1,5 @@
 <?php
-require_once '../../../auth.php'; // Autenticação
+require_once __DIR__ . '/../../../auth.php'; // Autenticação
 // Endpoint público para processar o check do produto
 // Inclui a lógica do CRUD e ajusta os redirecionamentos para o contexto correto
 

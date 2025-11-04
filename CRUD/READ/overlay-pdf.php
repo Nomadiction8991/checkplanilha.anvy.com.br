@@ -1,5 +1,5 @@
 <?php
-require_once '../../auth.php'; // Autenticação
+require_once __DIR__ . '/../../auth.php'; // Autenticação
 /**
  * Sobrepõe textos em um PDF existente usando FPDI (100% via Composer)
  *

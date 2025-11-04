@@ -1,5 +1,5 @@
 <?php
-require_once 'auth.php'; // Verificar autenticação
+require_once __DIR__ . '/auth.php'; // Verificar autenticação
 require_once 'CRUD/READ/index.php';
 
 // Detectar ambiente (produção ou desenvolvimento)

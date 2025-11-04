@@ -1,5 +1,5 @@
 <?php
-require_once '../../../auth.php'; // Autenticação
+require_once __DIR__ . '/../../../auth.php'; // Autenticação
 require_once __DIR__ . '/../../../CRUD/READ/relatorio-14-1.php';
 
 // Carregar template completo com CSS inline

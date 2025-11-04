@@ -1,5 +1,5 @@
 <?php
-require_once '../../auth.php'; // Autenticação
+require_once __DIR__ . '/../../auth.php'; // Autenticação
 /**
  * Gera o Relatório 14.1 em PDF 100% via Composer (mPDF), sem depender de pdftk
  * 

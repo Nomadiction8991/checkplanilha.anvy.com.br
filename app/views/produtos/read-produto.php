@@ -1,5 +1,5 @@
 <?php
-require_once '../../../auth.php'; // Autenticação
+require_once __DIR__ . '/../../../auth.php'; // Autenticação
 include __DIR__ . '/../../../CRUD/READ/produto.php';
 
 $pageTitle = 'Visualizar Produtos';
