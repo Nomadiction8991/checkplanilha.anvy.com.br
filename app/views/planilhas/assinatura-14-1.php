@@ -197,7 +197,7 @@ ob_start();
                                 <div class="flex-grow-1">
                                     <h6 class="card-title mb-2">
                                         <i class="bi bi-box-seam me-1"></i>
-                                        Produto #<?php echo $produto['id']; ?>
+                                        Produto
                                     </h6>
                                     <p class="card-text small mb-2">
                                         <strong>Tipo:</strong> 
