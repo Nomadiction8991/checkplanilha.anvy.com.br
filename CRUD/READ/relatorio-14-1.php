@@ -1,4 +1,5 @@
 <?php
+require_once '../../auth.php'; // Autenticação
 // Incluir arquivo de conexão
 require_once __DIR__ . '/../conexao.php';
 

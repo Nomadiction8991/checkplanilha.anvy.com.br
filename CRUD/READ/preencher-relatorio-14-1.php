@@ -1,4 +1,5 @@
 <?php
+require_once '../../auth.php'; // Autenticação
 // Preenche o PDF relatorios/relatorio-14-1.pdf (ou variações) com o campo de formulário "dataemissao"
 // Modos de uso:
 // - Via GET:  preencher-relatorio-14-1.php?dataemissao=26/10/2025

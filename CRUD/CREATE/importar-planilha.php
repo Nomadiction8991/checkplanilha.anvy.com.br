@@ -1,4 +1,5 @@
 <?php
+require_once '../../auth.php'; // Autenticação
 require_once __DIR__ . '/../conexao.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
 

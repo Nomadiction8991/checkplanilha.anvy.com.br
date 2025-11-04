@@ -1,4 +1,5 @@
 <?php
+require_once 'auth.php'; // Verificar autenticação
 require_once 'CRUD/READ/index.php';
 
 // Detectar ambiente (produção ou desenvolvimento)
@@ -19,6 +20,9 @@ $headerActions = '
     </button>
     <a href="app/views/shared/menu-unificado.php?contexto=principal" class="btn-header-action" title="Menu">
         <i class="bi bi-list fs-5"></i>
+    </a>
+    <a href="logout.php" class="btn-header-action" title="Sair" onclick="return confirm(\'Deseja realmente sair?\')">
+        <i class="bi bi-box-arrow-right fs-5"></i>
     </a>
 ';
 

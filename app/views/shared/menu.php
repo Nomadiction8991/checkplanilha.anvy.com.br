@@ -1,4 +1,5 @@
 <?php
+require_once '../../../auth.php'; // Autenticação
 $id_planilha = $_GET['id'] ?? null;
 
 if (!$id_planilha) {

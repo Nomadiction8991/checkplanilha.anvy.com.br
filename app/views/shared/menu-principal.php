@@ -1,4 +1,5 @@
 <?php
+require_once '../../../auth.php'; // Autenticação
 // Menu principal (sem necessidade de ID de planilha)
 
 // Configurações da página

@@ -1,4 +1,5 @@
 <?php
+require_once '../../../auth.php'; // Autenticação
 /**
  * Menu Unificado - Mostra opções baseadas no contexto
  * 

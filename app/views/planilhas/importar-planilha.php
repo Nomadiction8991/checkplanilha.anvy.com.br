@@ -1,4 +1,5 @@
 <?php
+require_once '../../../auth.php'; // Autenticação
 require_once __DIR__ . '/../../../CRUD/CREATE/importar-planilha.php';
 
 // Configurações da página

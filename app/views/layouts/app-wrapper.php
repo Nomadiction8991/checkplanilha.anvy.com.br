@@ -369,7 +369,15 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
                             <i class="bi bi-arrow-left fs-5"></i>
                         </a>
                     <?php endif; ?>
-                    <h1 class="app-title"><?php echo $pageTitle ?? 'Anvy'; ?></h1>
+                    <div>
+                        <h1 class="app-title"><?php echo $pageTitle ?? 'Anvy'; ?></h1>
+                        <?php if (isset($_SESSION['usuario_nome'])): ?>
+                            <small style="font-size: 11px; opacity: 0.8;">
+                                <i class="bi bi-person-circle me-1"></i>
+                                <?php echo htmlspecialchars($_SESSION['usuario_nome']); ?>
+                            </small>
+                        <?php endif; ?>
+                    </div>
                 </div>
                 <div class="header-actions">
                     <?php if (isset($headerActions)): ?>

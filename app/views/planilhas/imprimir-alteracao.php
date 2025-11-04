@@ -1,4 +1,5 @@
 <?php
+require_once '../../../auth.php'; // Autenticação
 // Agora: página integrada ao layout app-wrapper (Bootstrap 5, 400px)
 require_once __DIR__ . '/../../../CRUD/conexao.php';
 

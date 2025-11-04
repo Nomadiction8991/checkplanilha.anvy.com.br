@@ -24,6 +24,7 @@
 -->
 
 <?php
+require_once '../../../auth.php'; // Autenticação
 // Se $produtos não foi definido, usar array vazio
 $produtos = $produtos ?? [];
 $cnpj = $cnpj ?? '{{CNPJ}}';

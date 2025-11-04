@@ -1,4 +1,5 @@
 <?php
+require_once '../../../auth.php'; // Autenticação
 // Habilitar exibição de erros para debug
 error_reporting(E_ALL);
 ini_set('display_errors', 1);

@@ -1,4 +1,5 @@
 <?php
+require_once '../../../auth.php'; // Autenticação
 require_once __DIR__ . '/../../../CRUD/UPDATE/editar-produto.php';
 
 $pageTitle = "Editar Produto";

@@ -1,4 +1,5 @@
 <?php
+require_once '../../../auth.php'; // Autenticação
 include __DIR__ . '/../../../CRUD/CREATE/produto.php';
 
 $pageTitle = 'Cadastrar Produto';

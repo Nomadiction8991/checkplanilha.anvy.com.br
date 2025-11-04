@@ -1,4 +1,5 @@
 <?php
+require_once '../../../auth.php'; // Autenticação
 require_once __DIR__ . '/../../../CRUD/conexao.php';
 // Config central de URL base
 require_once __DIR__ . '/../../../config.php';
