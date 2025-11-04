@@ -234,7 +234,7 @@ if (!$modo_multiplo && count($produtos) === 1) {
 }
 
 $pageTitle = $acesso_publico ? 'Assinatura Digital - 14.1' : ($modo_multiplo ? 'Assinar Múltiplos Produtos - 14.1' : 'Gerenciar Assinatura - 14.1');
-$backUrl = $acesso_publico ? null : 'relatorio-14-1.php?id=' . urlencode($id_planilha);
+$backUrl = $acesso_publico ? null : 'assinatura-14-1.php?id=' . urlencode($id_planilha);
 $headerActions = '';
 
 ob_start();
