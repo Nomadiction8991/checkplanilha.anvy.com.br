@@ -188,7 +188,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $tipo_mensagem = 'success';
 
         if (!$acesso_publico) {
-            header('Location: assinatura-14-1.php?id=' . urlencode($id_planilha));
+            // Recarregar a mesma página do formulário com os produtos atuais
+            $produtos_param = implode(',', $produtos);
+            if ($modo_multiplo) {
+                header('Location: assinatura-14-1-form.php?id=' . urlencode($id_planilha) . '&produtos=' . urlencode($produtos_param) . '&saved=1');
+            } else {
+                header('Location: assinatura-14-1-form.php?id=' . urlencode($id_planilha) . '&produto=' . urlencode($produtos[0]) . '&saved=1');
+            }
             exit;
         }
 
@@ -205,6 +211,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $mensagem = 'Erro ao salvar: ' . $e->getMessage();
         $tipo_mensagem = 'danger';
     }
+}
+
+// Mensagem de sucesso após redirecionamento
+if (isset($_GET['saved']) && $_GET['saved'] == '1' && !isset($mensagem)) {
+    $mensagem = 'Dados salvos com sucesso!';
+    $tipo_mensagem = 'success';
 }
 
 // URL pública (modo único)
