@@ -278,6 +278,15 @@ ob_start();
                                 }
                             }
 
+                            // Preencher campos de nota fiscal e marcar checkbox baseado em condicao_141
+                            if (isset($row['condicao_141']) && ($row['condicao_141'] == 1 || $row['condicao_141'] == 3)) {
+                                // Preencher campos de nota fiscal
+                                $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input9', (string)($row['numero_nota'] ?? ''));
+                                $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input10', (string)($row['data_emissao'] ?? ''));
+                                $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input11', (string)($row['valor_nota'] ?? ''));
+                                $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input12', (string)($row['fornecedor_nota'] ?? ''));
+                            }
+
                             // Opcional: injetar imagem de fundo se detectada
                             $htmlIsolado = $htmlPreenchido;
                             if (!empty($bgUrl)) {
@@ -312,6 +321,12 @@ ob_start();
     Nenhum produto encontrado para impressão do relatório 14.1.
 </div>
 <?php endif;
+
+// Preparar dados dos produtos para JavaScript
+$produtosDataJS = json_encode(array_map(function($p){ 
+    return ['id' => $p['id'], 'condicao_141' => $p['condicao_141'] ?? null]; 
+}, $produtos));
+
 $script = <<<JS
 <script>
 (function(){
@@ -358,6 +373,38 @@ $script = <<<JS
 
     // Paginação removida - todas as páginas serão exibidas em scroll
 
+    // Marcar checkboxes 14.1 baseado em condicao_141 de cada produto
+    const produtosData = PRODUTOS_DATA_PLACEHOLDER;
+    
+    function marcarCheckboxes(){
+        document.querySelectorAll('iframe.a4-frame').forEach((iframe, idx) => {
+            try {
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                if(!iframeDoc) return;
+                
+                const condicao = produtosData[idx]?.condicao_141;
+                if(!condicao) return;
+                
+                // IDs dos checkboxes no template: input13, input14, input15
+                const check1 = iframeDoc.getElementById('input13'); // >5 anos com nota
+                const check2 = iframeDoc.getElementById('input14'); // >5 anos sem nota
+                const check3 = iframeDoc.getElementById('input15'); // <=5 anos com nota
+                
+                if(check1) check1.checked = (condicao === 1);
+                if(check2) check2.checked = (condicao === 2);
+                if(check3) check3.checked = (condicao === 3);
+            } catch(err) {
+                console.error('Erro ao marcar checkboxes:', err);
+            }
+        });
+    }
+    
+    // Executar após os iframes carregarem
+    document.querySelectorAll('iframe.a4-frame').forEach(iframe => {
+        iframe.addEventListener('load', marcarCheckboxes);
+    });
+    setTimeout(marcarCheckboxes, 500); // fallback
+
 
     // Função global de impressão simplificada: apenas chama o print do navegador
     window.validarEImprimir = function(){
@@ -367,6 +414,9 @@ $script = <<<JS
 })();
 </script>
 JS;
+
+// Substituir o placeholder pelos dados reais
+$script = str_replace('PRODUTOS_DATA_PLACEHOLDER', $produtosDataJS, $script);
 
 // Garantir que o botão de imprimir chame a função (listener delegado, mais robusto)
 echo "<script>document.addEventListener('click', function(e){ var btn = e.target && e.target.closest && e.target.closest('#btnPrint'); if(btn){ e.preventDefault(); try{ console && console.log && console.log('print button clicked'); if(typeof window.validarEImprimir==='function'){ window.validarEImprimir(); } else { window.print(); } }catch(err){ console && console.error && console.error('print handler error', err); window.print(); } } });</script>\n";
