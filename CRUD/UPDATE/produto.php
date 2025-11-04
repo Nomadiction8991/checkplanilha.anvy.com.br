@@ -49,13 +49,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $quantidade = $_POST['quantidade'] ?? 1;
     $condicao_141 = isset($_POST['condicao_141']) && in_array($_POST['condicao_141'], ['1','2','3'], true) ? (int)$_POST['condicao_141'] : null;
     
-    // Campos de nota: apenas aceitar quando condicao_141 = 3
+    // Campos de nota: aceitar quando condicao_141 = 1 ou 3 (ambas exigem nota fiscal anexa)
     $numero_nota = null;
     $data_emissao = null;
     $valor_nota = null;
     $fornecedor_nota = null;
     
-    if ($condicao_141 === 3) {
+    if ($condicao_141 === 1 || $condicao_141 === 3) {
         $numero_nota = $_POST['numero_nota'] ?? null;
         $data_emissao = $_POST['data_emissao'] ?? null;
         $valor_nota = $_POST['valor_nota'] ?? null;
@@ -87,8 +87,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $erros[] = "A quantidade deve ser pelo menos 1";
     }
     
-    // Validações da nota quando condicao_141 = 3
-    if ($condicao_141 === 3) {
+    // Validações da nota quando condicao_141 = 1 ou 3 (ambas exigem nota fiscal anexa)
+    if ($condicao_141 === 1 || $condicao_141 === 3) {
         if (empty($numero_nota)) {
             $erros[] = "O número da nota é obrigatório para a condição selecionada";
         }

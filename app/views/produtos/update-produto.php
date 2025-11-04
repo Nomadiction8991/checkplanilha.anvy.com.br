@@ -201,12 +201,14 @@ ob_start();
     const forms = document.querySelectorAll('.needs-validation');
     Array.from(forms).forEach(form => {
       form.addEventListener('submit', event => {
-        // Aplicar required dinamicamente quando condicao_141 = 3
+        // Aplicar required dinamicamente quando condicao_141 = 1 ou 3 (ambas exigem nota)
+        const cond1 = document.getElementById('condicao_141_1');
         const cond3 = document.getElementById('condicao_141_3');
         const reqFields = ['numero_nota', 'data_emissao', 'valor_nota', 'fornecedor_nota'];
+        const mostrarNota = (cond1 && cond1.checked) || (cond3 && cond3.checked);
         reqFields.forEach(id => {
           const el = document.getElementById(id);
-          if (el) el.required = !!(cond3 && cond3.checked);
+          if (el) el.required = mostrarNota;
         });
 
         if (!form.checkValidity()) {
@@ -218,15 +220,16 @@ ob_start();
     });
   })();
 
-  // Exibir/ocultar campos da nota conforme seleção da condição 3
+  // Exibir/ocultar campos da nota conforme seleção da condição 1 ou 3
   (function(){
     const radios = document.querySelectorAll('input[name="condicao_141"]');
+    const cond1 = document.getElementById('condicao_141_1');
     const cond3 = document.getElementById('condicao_141_3');
     const box = document.getElementById('camposNota');
     const reqFields = ['numero_nota', 'data_emissao', 'valor_nota', 'fornecedor_nota'];
     
     function toggleNota(){
-      const show = cond3 && cond3.checked;
+      const show = (cond1 && cond1.checked) || (cond3 && cond3.checked);
       box.style.display = show ? '' : 'none';
       reqFields.forEach(id => {
         const el = document.getElementById(id);

@@ -69,8 +69,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $erros[] = "A quantidade deve ser pelo menos 1";
     }
     
-    // Validações da nota quando condicao_141 = 3
-    if ($condicao_141 === 3) {
+    // Validações da nota quando condicao_141 = 1 ou 3 (ambas exigem nota fiscal anexa)
+    if ($condicao_141 === 1 || $condicao_141 === 3) {
         if (empty($numero_nota)) {
             $erros[] = "O número da nota é obrigatório para a condição selecionada";
         }
