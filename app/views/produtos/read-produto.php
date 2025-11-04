@@ -145,7 +145,7 @@ ob_start();
                     <?php if (!empty($produto['codigo'])): ?>
                       <span class="badge bg-info text-dark"><?php echo htmlspecialchars($produto['codigo']); ?></span>
                     <?php endif; ?>
-                    <?php if ($produto['possui_nota'] == 1): ?>
+                    <?php if (isset($produto['condicao_141']) && ($produto['condicao_141'] == 1 || $produto['condicao_141'] == 3)): ?>
                       <span class="badge bg-warning text-dark">Nota</span>
                     <?php endif; ?>
                     <?php if ($produto['imprimir_14_1'] == 1): ?>

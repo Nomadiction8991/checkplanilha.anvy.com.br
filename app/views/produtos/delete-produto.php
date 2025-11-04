@@ -53,7 +53,7 @@ ob_start();
       <div class="mb-2">
         <label class="form-label">Status</label>
         <div class="d-flex gap-2">
-          <span class="badge bg-<?php echo ($produto['possui_nota'] == 1) ? 'warning text-dark' : 'secondary'; ?>">Nota</span>
+          <span class="badge bg-<?php echo (isset($produto['condicao_141']) && ($produto['condicao_141'] == 1 || $produto['condicao_141'] == 3)) ? 'warning text-dark' : 'secondary'; ?>">Nota</span>
           <span class="badge bg-<?php echo ($produto['imprimir_14_1'] == 1) ? 'primary' : 'secondary'; ?>">14.1</span>
         </div>
       </div>

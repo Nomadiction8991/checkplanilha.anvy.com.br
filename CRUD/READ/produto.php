@@ -30,7 +30,7 @@ $sql = "SELECT
             pc.quantidade,
             pc.tipo_ben,
             pc.complemento,
-            pc.possui_nota,
+            pc.condicao_141,
             pc.imprimir_14_1,
             d.descricao as dependencia_descricao
         FROM produtos_cadastro pc
@@ -120,11 +120,11 @@ if (!empty($filtro_dependencia)) {
 
 if (!empty($filtro_status)) {
     if ($filtro_status === 'com_nota') {
-        $condicoes[] = "pc.possui_nota = 1";
-    } elseif ($filtro_status === 'com_14_1') {  // MUDADO AQUI
-        $condicoes[] = "pc.imprimir_14_1 = 1";  // MUDADO AQUI
+        $condicoes[] = "(pc.condicao_141 = 1 OR pc.condicao_141 = 3)";
+    } elseif ($filtro_status === 'com_14_1') {
+        $condicoes[] = "pc.imprimir_14_1 = 1";
     } elseif ($filtro_status === 'sem_status') {
-        $condicoes[] = "pc.possui_nota = 0 AND pc.imprimir_14_1 = 0";  // MUDADO AQUI
+        $condicoes[] = "(pc.condicao_141 IS NULL OR pc.condicao_141 = 2) AND pc.imprimir_14_1 = 0";
     }
 }
 
