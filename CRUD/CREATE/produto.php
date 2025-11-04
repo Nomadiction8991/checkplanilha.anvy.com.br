@@ -30,6 +30,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id_dependencia = $_POST['id_dependencia'] ?? '';
     $quantidade = $_POST['quantidade'] ?? 1;
     $possui_nota = isset($_POST['possui_nota']) ? 1 : 0;
+    $numero_nota = $_POST['numero_nota'] ?? null;
+    $data_emissao = $_POST['data_emissao'] ?? null;
+    $valor_nota = $_POST['valor_nota'] ?? null;
+    $fornecedor_nota = $_POST['fornecedor_nota'] ?? null;
     $imprimir_14_1 = isset($_POST['imprimir_14_1']) ? 1 : 0;
     
     // Validações básicas
@@ -55,6 +59,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $erros[] = "A quantidade deve ser pelo menos 1";
     }
     
+    // Validações da nota quando marcado
+    if ($possui_nota) {
+        if (empty($numero_nota)) {
+            $erros[] = "O número da nota é obrigatório";
+        }
+        if (empty($data_emissao)) {
+            $erros[] = "A data de emissão é obrigatória";
+        } else {
+            // validação simples de data YYYY-MM-DD
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $data_emissao)) {
+                $erros[] = "Data de emissão inválida";
+            }
+        }
+        if ($valor_nota === null || $valor_nota === '' || !is_numeric($valor_nota)) {
+            $erros[] = "O valor da nota é obrigatório e deve ser numérico";
+        }
+        if (empty($fornecedor_nota)) {
+            $erros[] = "O fornecedor é obrigatório";
+        }
+    } else {
+        // limpar campos quando não possui nota
+        $numero_nota = null;
+        $data_emissao = null;
+        $valor_nota = null;
+        $fornecedor_nota = null;
+    }
+
     // Se não há erros, inserir no banco
     if (empty($erros)) {
         try {
@@ -75,9 +106,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $descricao_completa = $quantidade . "x [" . $tipo_bem['codigo'] . " - " . $tipo_bem['descricao'] . "] " . $tipo_ben . " - " . $complemento . " - (" . $dependencia['descricao'] . ")";
             
             $sql_inserir = "INSERT INTO produtos_cadastro 
-                           (id_planilha, codigo, id_tipo_ben, tipo_ben, complemento, id_dependencia, quantidade, descricao_completa, possui_nota, imprimir_14_1) 
+                           (id_planilha, codigo, id_tipo_ben, tipo_ben, complemento, id_dependencia, quantidade, descricao_completa, possui_nota, numero_nota, data_emissao, valor_nota, fornecedor_nota, imprimir_14_1) 
                            VALUES 
-                           (:id_planilha, :codigo, :id_tipo_ben, :tipo_ben, :complemento, :id_dependencia, :quantidade, :descricao_completa, :possui_nota, :imprimir_14_1)";
+                           (:id_planilha, :codigo, :id_tipo_ben, :tipo_ben, :complemento, :id_dependencia, :quantidade, :descricao_completa, :possui_nota, :numero_nota, :data_emissao, :valor_nota, :fornecedor_nota, :imprimir_14_1)";
             
             $stmt_inserir = $conexao->prepare($sql_inserir);
             $stmt_inserir->bindValue(':id_planilha', $id_planilha);
@@ -89,6 +120,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt_inserir->bindValue(':quantidade', $quantidade);
             $stmt_inserir->bindValue(':descricao_completa', $descricao_completa);
             $stmt_inserir->bindValue(':possui_nota', $possui_nota);
+            $stmt_inserir->bindValue(':numero_nota', $numero_nota);
+            $stmt_inserir->bindValue(':data_emissao', $data_emissao);
+            $stmt_inserir->bindValue(':valor_nota', $valor_nota);
+            $stmt_inserir->bindValue(':fornecedor_nota', $fornecedor_nota);
             $stmt_inserir->bindValue(':imprimir_14_1', $imprimir_14_1);
             
             $stmt_inserir->execute();            // Gerar parâmetros de retorno para manter os filtros
