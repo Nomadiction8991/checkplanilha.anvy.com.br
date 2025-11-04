@@ -33,10 +33,14 @@ $headerActions = '
 ';
 
 // CSS customizado para a interface da aplicação (não do formulário)
-$customCss = '';
+$customCss = '
+.a4-page:first-child {
+    margin-top: 100px;
+}
+';
 $customCssPath = __DIR__ . '/style/relatorio-14-1.css';
 if (file_exists($customCssPath)) {
-    $customCss = file_get_contents($customCssPath);
+    $customCss .= file_get_contents($customCssPath);
 }
 
 // (removed previous @media print rules - printing will open a clean window with the A4 content)
