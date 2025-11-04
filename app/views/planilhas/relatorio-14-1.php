@@ -24,7 +24,7 @@ if (file_exists($templatePath)) {
 }
 
 $pageTitle = 'Relatório 14.1';
-$backUrl = 'assinatura-14-1.php?id=' . urlencode($id_planilha);
+$backUrl = '../shared/menu-unificado.php?id=' . urlencode($id_planilha) . '&contexto=planilha';
 $headerActions = '
     <button id="btnPrint" class="btn-header-action" title="Imprimir"><i class="bi bi-printer"></i></button>
     <a href="assinatura-14-1.php?id=' . urlencode($id_planilha) . '" class="btn-header-action" title="Assinaturas">

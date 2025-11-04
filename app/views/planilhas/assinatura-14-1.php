@@ -32,12 +32,8 @@ $stmt->execute();
 $produtos = $stmt->fetchAll();
 
 $pageTitle = 'Assinar Documentos 14.1';
-$backUrl = '../shared/menu-unificado.php?id=' . urlencode($id_planilha) . '&contexto=relatorio';
-$headerActions = '
-    <a href="../shared/menu-unificado.php?id=' . urlencode($id_planilha) . '&contexto=relatorio" class="btn-header-action" title="Menu">
-        <i class="bi bi-list fs-5"></i>
-    </a>
-';
+$backUrl = 'relatorio-14-1.php?id=' . urlencode($id_planilha);
+$headerActions = '';
 
 // URL para compartilhamento (usar a URL atual)
 $url_compartilhar = current_url();

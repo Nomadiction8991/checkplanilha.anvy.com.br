@@ -222,11 +222,8 @@ if (!$modo_multiplo && count($produtos) === 1) {
 }
 
 $pageTitle = $acesso_publico ? 'Assinatura Digital - 14.1' : ($modo_multiplo ? 'Assinar Múltiplos Produtos - 14.1' : 'Gerenciar Assinatura - 14.1');
-$backUrl = $acesso_publico ? null : 'assinatura-14-1.php?id=' . urlencode($id_planilha);
+$backUrl = $acesso_publico ? null : 'relatorio-14-1.php?id=' . urlencode($id_planilha);
 $headerActions = '';
-if (!$acesso_publico) {
-    $headerActions = '<a href="../shared/menu-unificado.php?id=' . urlencode($id_planilha) . '&contexto=relatorio" class="btn-header-action" title="Menu"><i class="bi bi-list fs-5"></i></a>';
-}
 
 ob_start();
 ?>
