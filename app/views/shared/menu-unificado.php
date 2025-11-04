@@ -111,6 +111,24 @@ ob_start();
                 </div>
             </div>
         </a>
+        
+        <!-- Seção: Usuários -->
+        <div class="menu-section-title">
+            <i class="bi bi-people me-1"></i>
+            Administração
+        </div>
+        
+        <a href="../usuarios/read-usuario.php" class="text-decoration-none">
+            <div class="card menu-card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-people-fill me-2" style="color: #6610f2;"></i>
+                        Listagem de Usuários
+                    </h5>
+                    <p class="card-text small text-muted">Gerenciar usuários do sistema</p>
+                </div>
+            </div>
+        </a>
     <?php endif; ?>
     
     <?php if ($contexto === 'planilha' && $id_planilha): ?>
