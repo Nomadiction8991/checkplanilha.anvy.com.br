@@ -93,14 +93,12 @@ ob_start();
 
 <div class="menu-grid">
     
-    <?php if ($contexto === 'principal' || $contexto === 'planilha'): ?>
+    <?php if ($contexto === 'principal'): ?>
         <!-- Seção: Planilhas -->
-        <?php if ($contexto === 'principal'): ?>
-            <div class="menu-section-title">
-                <i class="bi bi-file-earmark-spreadsheet me-1"></i>
-                Planilhas
-            </div>
-        <?php endif; ?>
+        <div class="menu-section-title">
+            <i class="bi bi-file-earmark-spreadsheet me-1"></i>
+            Planilhas
+        </div>
         
         <a href="../planilhas/importar-planilha.php" class="text-decoration-none">
             <div class="card menu-card">
@@ -121,6 +119,18 @@ ob_start();
             <i class="bi bi-box-seam me-1"></i>
             Produtos
         </div>
+        
+        <a href="../planilhas/view-planilha.php?id=<?php echo $id_planilha; ?>" class="text-decoration-none">
+            <div class="card menu-card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-list-ul me-2" style="color: #007bff;"></i>
+                        Listagem de Produtos
+                    </h5>
+                    <p class="card-text small text-muted">Visualizar todos os produtos da planilha</p>
+                </div>
+            </div>
+        </a>
         
         <a href="../produtos/read-produto.php?id=<?php echo $id_planilha; ?>" class="text-decoration-none">
             <div class="card menu-card">
