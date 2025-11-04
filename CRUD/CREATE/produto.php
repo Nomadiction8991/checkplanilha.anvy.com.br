@@ -35,6 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $valor_nota = $_POST['valor_nota'] ?? null;
     $fornecedor_nota = $_POST['fornecedor_nota'] ?? null;
     $imprimir_14_1 = isset($_POST['imprimir_14_1']) ? 1 : 0;
+    $condicao_141 = isset($_POST['condicao_141']) && in_array($_POST['condicao_141'], ['1','2','3'], true) ? (int)$_POST['condicao_141'] : null;
     
     // Validações básicas
     $erros = [];
@@ -106,9 +107,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $descricao_completa = $quantidade . "x [" . $tipo_bem['codigo'] . " - " . $tipo_bem['descricao'] . "] " . $tipo_ben . " - " . $complemento . " - (" . $dependencia['descricao'] . ")";
             
             $sql_inserir = "INSERT INTO produtos_cadastro 
-                           (id_planilha, codigo, id_tipo_ben, tipo_ben, complemento, id_dependencia, quantidade, descricao_completa, possui_nota, numero_nota, data_emissao, valor_nota, fornecedor_nota, imprimir_14_1) 
+                           (id_planilha, codigo, id_tipo_ben, tipo_ben, complemento, id_dependencia, quantidade, descricao_completa, possui_nota, numero_nota, data_emissao, valor_nota, fornecedor_nota, imprimir_14_1, condicao_141) 
                            VALUES 
-                           (:id_planilha, :codigo, :id_tipo_ben, :tipo_ben, :complemento, :id_dependencia, :quantidade, :descricao_completa, :possui_nota, :numero_nota, :data_emissao, :valor_nota, :fornecedor_nota, :imprimir_14_1)";
+                           (:id_planilha, :codigo, :id_tipo_ben, :tipo_ben, :complemento, :id_dependencia, :quantidade, :descricao_completa, :possui_nota, :numero_nota, :data_emissao, :valor_nota, :fornecedor_nota, :imprimir_14_1, :condicao_141)";
             
             $stmt_inserir = $conexao->prepare($sql_inserir);
             $stmt_inserir->bindValue(':id_planilha', $id_planilha);
@@ -125,6 +126,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt_inserir->bindValue(':valor_nota', $valor_nota);
             $stmt_inserir->bindValue(':fornecedor_nota', $fornecedor_nota);
             $stmt_inserir->bindValue(':imprimir_14_1', $imprimir_14_1);
+            $stmt_inserir->bindValue(':condicao_141', $condicao_141, PDO::PARAM_INT);
             
             $stmt_inserir->execute();            // Gerar parâmetros de retorno para manter os filtros
             $parametros_retorno = gerarParametrosFiltro();

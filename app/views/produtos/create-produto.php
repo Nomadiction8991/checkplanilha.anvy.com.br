@@ -115,6 +115,29 @@ ob_start();
           </div>
         </div>
       </div>
+
+      <!-- Condição 14.1 (apenas uma opção) -->
+      <div class="mt-3">
+        <label class="form-label d-block">Condição (Relatório 14.1) <small class="text-muted">(escolha uma)</small></label>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="condicao_141" id="condicao_141_1" value="1" <?php echo (($_POST['condicao_141'] ?? '')==='1') ? 'checked' : ''; ?>>
+          <label class="form-check-label" for="condicao_141_1">
+            O bem tem mais de cinco anos de uso e o documento fiscal de aquisição está anexo.
+          </label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="condicao_141" id="condicao_141_2" value="2" <?php echo (($_POST['condicao_141'] ?? '')==='2') ? 'checked' : ''; ?>>
+          <label class="form-check-label" for="condicao_141_2">
+            O bem tem mais de cinco anos de uso, porém o documento fiscal de aquisição foi extraviado.
+          </label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="condicao_141" id="condicao_141_3" value="3" <?php echo (($_POST['condicao_141'] ?? '')==='3') ? 'checked' : ''; ?>>
+          <label class="form-check-label" for="condicao_141_3">
+            O bem tem até cinco anos de uso e o documento fiscal de aquisição está anexo.
+          </label>
+        </div>
+      </div>
     </div>
   </div>
 
