@@ -28,7 +28,7 @@ ob_start();
 <div class="card mb-3">
     <div class="card-body">
         <div class="row g-3">
-            <div class="col-md-6">
+            <div class="col-md-8">
                 <label for="filtroNome" class="form-label">
                     <i class="bi bi-search me-1"></i>
                     Buscar por nome
@@ -46,12 +46,6 @@ ob_start();
                     <option value="0">Inativos</option>
                 </select>
             </div>
-            <div class="col-md-2 d-flex align-items-end">
-                <button type="button" class="btn btn-secondary w-100" onclick="limparFiltros()">
-                    <i class="bi bi-x-lg me-1"></i>
-                    Limpar
-                </button>
-            </div>
         </div>
     </div>
 </div>
@@ -62,7 +56,7 @@ ob_start();
             <i class="bi bi-people me-2"></i>
             Lista de Usuários
         </div>
-        <small class="text-muted">
+        <small class="text-white">
             <span id="totalUsuarios"><?php echo count($usuarios); ?></span> 
             <span id="usuariosTexto">usuário(s)</span>
         </small>
@@ -78,7 +72,6 @@ ob_start();
                 <table class="table table-hover mb-0" id="tabelaUsuarios">
                     <thead>
                         <tr>
-                            <th style="width: 80px;">ID</th>
                             <th>Nome</th>
                             <th style="width: 150px;" class="text-end">Ações</th>
                         </tr>
@@ -87,15 +80,7 @@ ob_start();
                         <?php foreach ($usuarios as $usuario): ?>
                             <tr data-nome="<?php echo strtolower(htmlspecialchars($usuario['nome'])); ?>" 
                                 data-status="<?php echo $usuario['ativo']; ?>">
-                                <td><?php echo $usuario['id']; ?></td>
-                                <td>
-                                    <?php echo htmlspecialchars($usuario['nome']); ?>
-                                    <?php if ($usuario['ativo']): ?>
-                                        <span class="badge bg-success ms-2">Ativo</span>
-                                    <?php else: ?>
-                                        <span class="badge bg-secondary ms-2">Inativo</span>
-                                    <?php endif; ?>
-                                </td>
+                                <td><?php echo htmlspecialchars($usuario['nome']); ?></td>
                                 <td class="text-end">
                                     <div class="btn-group" role="group">
                                         <a href="./editar-usuario.php?id=<?php echo $usuario['id']; ?>" 
@@ -156,12 +141,6 @@ function aplicarFiltros() {
 
     // Atualizar contador
     document.getElementById('totalUsuarios').textContent = totalVisiveis;
-}
-
-function limparFiltros() {
-    document.getElementById('filtroNome').value = '';
-    document.getElementById('filtroStatus').value = '';
-    aplicarFiltros();
 }
 
 function excluirUsuario(id, nome) {

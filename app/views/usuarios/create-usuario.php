@@ -59,10 +59,6 @@ ob_start();
     </div>
 
     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-        <a href="./read-usuario.php" class="btn btn-secondary">
-            <i class="bi bi-x-lg me-1"></i>
-            Cancelar
-        </a>
         <button type="submit" class="btn btn-primary">
             <i class="bi bi-check-lg me-1"></i>
             Cadastrar
