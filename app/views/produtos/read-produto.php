@@ -5,9 +5,6 @@ $pageTitle = 'Visualizar Produtos';
 $backUrl = '../shared/menu-unificado.php?id=' . urlencode($id_planilha) . '&contexto=planilha';
 $headerActions = '
     <a href="./create-produto.php?id=' . urlencode($id_planilha) . '&' . gerarParametrosFiltro(true) . '" class="btn-header-action" title="Novo Produto"><i class="bi bi-plus-lg"></i></a>
-    <a href="../shared/menu-unificado.php?id=' . urlencode($id_planilha) . '&contexto=planilha" class="btn-header-action" title="Menu">
-        <i class="bi bi-list fs-5"></i>
-    </a>
 ';
 
 // CSS customizado para garantir exibição dos botões
