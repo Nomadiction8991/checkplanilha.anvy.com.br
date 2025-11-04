@@ -90,12 +90,61 @@ ob_start();
       <div class="mb-2">
         <label class="form-label">Status</label>
         <div class="form-check">
-          <input class="form-check-input" type="checkbox" id="possui_nota" name="possui_nota" value="1" <?php echo ($produto['possui_nota'] == 1) ? 'checked' : ''; ?>>
-          <label class="form-check-label" for="possui_nota">Possui Nota</label>
-        </div>
-        <div class="form-check">
           <input class="form-check-input" type="checkbox" id="imprimir_14_1" name="imprimir_14_1" value="1" <?php echo ($produto['imprimir_14_1'] == 1) ? 'checked' : ''; ?>>
           <label class="form-check-label" for="imprimir_14_1">Imprimir 14.1</label>
+        </div>
+      </div>
+
+      <!-- Condição 14.1 (apenas uma opção) -->
+      <div class="mt-3">
+        <label class="form-label d-block">Condição (Relatório 14.1) <small class="text-muted">(escolha uma)</small></label>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="condicao_141" id="condicao_141_1" value="1" <?php echo (($produto['condicao_141'] ?? null) == 1) ? 'checked' : ''; ?>>
+          <label class="form-check-label" for="condicao_141_1">
+            O bem tem mais de cinco anos de uso e o documento fiscal de aquisição está anexo.
+          </label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="condicao_141" id="condicao_141_2" value="2" <?php echo (($produto['condicao_141'] ?? null) == 2) ? 'checked' : ''; ?>>
+          <label class="form-check-label" for="condicao_141_2">
+            O bem tem mais de cinco anos de uso, porém o documento fiscal de aquisição foi extraviado.
+          </label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="condicao_141" id="condicao_141_3" value="3" <?php echo (($produto['condicao_141'] ?? null) == 3) ? 'checked' : ''; ?>>
+          <label class="form-check-label" for="condicao_141_3">
+            O bem tem até cinco anos de uso e o documento fiscal de aquisição está anexo.
+          </label>
+        </div>
+      </div>
+
+      <!-- Campos da Nota Fiscal (visíveis somente quando condicao_141 = 3) -->
+      <div id="camposNota" class="border rounded p-3 mt-3" style="display:none;">
+        <h6 class="mb-3">Dados da Nota Fiscal</h6>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label for="numero_nota" class="form-label">Número da Nota Fiscal <span class="text-danger">*</span></label>
+            <input type="text" id="numero_nota" name="numero_nota" class="form-control" value="<?php echo htmlspecialchars($produto['numero_nota'] ?? ''); ?>">
+            <div class="invalid-feedback">Informe o número da nota.</div>
+          </div>
+          <div class="col-md-6">
+            <label for="data_emissao" class="form-label">Data de Emissão <span class="text-danger">*</span></label>
+            <input type="date" id="data_emissao" name="data_emissao" class="form-control" value="<?php echo htmlspecialchars($produto['data_emissao'] ?? ''); ?>">
+            <div class="invalid-feedback">Informe a data de emissão.</div>
+          </div>
+          <div class="col-md-6">
+            <label for="valor_nota" class="form-label">Valor <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <span class="input-group-text">R$</span>
+              <input type="number" step="0.01" min="0" id="valor_nota" name="valor_nota" class="form-control" value="<?php echo htmlspecialchars($produto['valor_nota'] ?? ''); ?>">
+            </div>
+            <div class="invalid-feedback">Informe o valor da nota.</div>
+          </div>
+          <div class="col-md-6">
+            <label for="fornecedor_nota" class="form-label">Fornecedor <span class="text-danger">*</span></label>
+            <input type="text" id="fornecedor_nota" name="fornecedor_nota" class="form-control" value="<?php echo htmlspecialchars($produto['fornecedor_nota'] ?? ''); ?>">
+            <div class="invalid-feedback">Informe o fornecedor.</div>
+          </div>
         </div>
       </div>
     </div>
@@ -152,6 +201,14 @@ ob_start();
     const forms = document.querySelectorAll('.needs-validation');
     Array.from(forms).forEach(form => {
       form.addEventListener('submit', event => {
+        // Aplicar required dinamicamente quando condicao_141 = 3
+        const cond3 = document.getElementById('condicao_141_3');
+        const reqFields = ['numero_nota', 'data_emissao', 'valor_nota', 'fornecedor_nota'];
+        reqFields.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.required = !!(cond3 && cond3.checked);
+        });
+
         if (!form.checkValidity()) {
           event.preventDefault();
           event.stopPropagation();
@@ -159,6 +216,26 @@ ob_start();
         form.classList.add('was-validated');
       }, false);
     });
+  })();
+
+  // Exibir/ocultar campos da nota conforme seleção da condição 3
+  (function(){
+    const radios = document.querySelectorAll('input[name="condicao_141"]');
+    const cond3 = document.getElementById('condicao_141_3');
+    const box = document.getElementById('camposNota');
+    const reqFields = ['numero_nota', 'data_emissao', 'valor_nota', 'fornecedor_nota'];
+    
+    function toggleNota(){
+      const show = cond3 && cond3.checked;
+      box.style.display = show ? '' : 'none';
+      reqFields.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.required = show;
+      });
+    }
+    
+    radios.forEach(r => r.addEventListener('change', toggleNota));
+    document.addEventListener('DOMContentLoaded', toggleNota);
   })();
 </script>
 

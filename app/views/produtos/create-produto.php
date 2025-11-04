@@ -78,17 +78,37 @@ ob_start();
       <div class="mb-2">
         <label class="form-label">Status</label>
         <div class="form-check">
-          <input class="form-check-input" type="checkbox" id="possui_nota" name="possui_nota" value="1" <?php echo (isset($_POST['possui_nota']) && $_POST['possui_nota'] == 1) ? 'checked' : ''; ?>>
-          <label class="form-check-label" for="possui_nota">Possui Nota</label>
-        </div>
-        <div class="form-check">
           <input class="form-check-input" type="checkbox" id="imprimir_14_1" name="imprimir_14_1" value="1" <?php echo (isset($_POST['imprimir_14_1']) && $_POST['imprimir_14_1'] == 1) ? 'checked' : ''; ?>>
           <label class="form-check-label" for="imprimir_14_1">Imprimir 14.1</label>
         </div>
       </div>
 
-      <!-- Campos da Nota Fiscal (visíveis somente quando Possui Nota estiver marcado) -->
+      <!-- Condição 14.1 (apenas uma opção) -->
+      <div class="mt-3">
+        <label class="form-label d-block">Condição (Relatório 14.1) <small class="text-muted">(escolha uma)</small></label>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="condicao_141" id="condicao_141_1" value="1" <?php echo (($_POST['condicao_141'] ?? '')==='1') ? 'checked' : ''; ?>>
+          <label class="form-check-label" for="condicao_141_1">
+            O bem tem mais de cinco anos de uso e o documento fiscal de aquisição está anexo.
+          </label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="condicao_141" id="condicao_141_2" value="2" <?php echo (($_POST['condicao_141'] ?? '')==='2') ? 'checked' : ''; ?>>
+          <label class="form-check-label" for="condicao_141_2">
+            O bem tem mais de cinco anos de uso, porém o documento fiscal de aquisição foi extraviado.
+          </label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="condicao_141" id="condicao_141_3" value="3" <?php echo (($_POST['condicao_141'] ?? '')==='3') ? 'checked' : ''; ?>>
+          <label class="form-check-label" for="condicao_141_3">
+            O bem tem até cinco anos de uso e o documento fiscal de aquisição está anexo.
+          </label>
+        </div>
+      </div>
+
+      <!-- Campos da Nota Fiscal (visíveis somente quando condicao_141 = 3) -->
       <div id="camposNota" class="border rounded p-3 mt-3" style="display:none;">
+        <h6 class="mb-3">Dados da Nota Fiscal</h6>
         <div class="row g-3">
           <div class="col-md-6">
             <label for="numero_nota" class="form-label">Número da Nota Fiscal <span class="text-danger">*</span></label>
@@ -113,29 +133,6 @@ ob_start();
             <input type="text" id="fornecedor_nota" name="fornecedor_nota" class="form-control" value="<?php echo htmlspecialchars($_POST['fornecedor_nota'] ?? ''); ?>">
             <div class="invalid-feedback">Informe o fornecedor.</div>
           </div>
-        </div>
-      </div>
-
-      <!-- Condição 14.1 (apenas uma opção) -->
-      <div class="mt-3">
-        <label class="form-label d-block">Condição (Relatório 14.1) <small class="text-muted">(escolha uma)</small></label>
-        <div class="form-check">
-          <input class="form-check-input" type="radio" name="condicao_141" id="condicao_141_1" value="1" <?php echo (($_POST['condicao_141'] ?? '')==='1') ? 'checked' : ''; ?>>
-          <label class="form-check-label" for="condicao_141_1">
-            O bem tem mais de cinco anos de uso e o documento fiscal de aquisição está anexo.
-          </label>
-        </div>
-        <div class="form-check">
-          <input class="form-check-input" type="radio" name="condicao_141" id="condicao_141_2" value="2" <?php echo (($_POST['condicao_141'] ?? '')==='2') ? 'checked' : ''; ?>>
-          <label class="form-check-label" for="condicao_141_2">
-            O bem tem mais de cinco anos de uso, porém o documento fiscal de aquisição foi extraviado.
-          </label>
-        </div>
-        <div class="form-check">
-          <input class="form-check-input" type="radio" name="condicao_141" id="condicao_141_3" value="3" <?php echo (($_POST['condicao_141'] ?? '')==='3') ? 'checked' : ''; ?>>
-          <label class="form-check-label" for="condicao_141_3">
-            O bem tem até cinco anos de uso e o documento fiscal de aquisição está anexo.
-          </label>
         </div>
       </div>
     </div>
@@ -196,12 +193,14 @@ ob_start();
     const forms = document.querySelectorAll('.needs-validation');
     Array.from(forms).forEach(form => {
       form.addEventListener('submit', event => {
-        // Aplicar required dinamicamente quando possui_nota estiver marcado
-        const chk = document.getElementById('possui_nota');
+        // Aplicar required dinamicamente quando condicao_141 = 1 ou 3 (ambas exigem nota)
+        const cond1 = document.getElementById('condicao_141_1');
+        const cond3 = document.getElementById('condicao_141_3');
         const reqFields = ['numero_nota', 'data_emissao', 'valor_nota', 'fornecedor_nota'];
+        const mostrarNota = (cond1 && cond1.checked) || (cond3 && cond3.checked);
         reqFields.forEach(id => {
           const el = document.getElementById(id);
-          if (el) el.required = !!chk.checked;
+          if (el) el.required = mostrarNota;
         });
 
         if (!form.checkValidity()) {
@@ -213,20 +212,24 @@ ob_start();
     });
   })();
 
-  // Exibir/ocultar campos da nota conforme checkbox
+  // Exibir/ocultar campos da nota conforme seleção da condição 1 ou 3
   (function(){
-    const chk = document.getElementById('possui_nota');
+    const radios = document.querySelectorAll('input[name="condicao_141"]');
+    const cond1 = document.getElementById('condicao_141_1');
+    const cond3 = document.getElementById('condicao_141_3');
     const box = document.getElementById('camposNota');
     const reqFields = ['numero_nota', 'data_emissao', 'valor_nota', 'fornecedor_nota'];
+    
     function toggleNota(){
-      const show = chk.checked;
+      const show = (cond1 && cond1.checked) || (cond3 && cond3.checked);
       box.style.display = show ? '' : 'none';
       reqFields.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.required = show;
       });
     }
-    chk.addEventListener('change', toggleNota);
+    
+    radios.forEach(r => r.addEventListener('change', toggleNota));
     document.addEventListener('DOMContentLoaded', toggleNota);
   })();
 </script>
