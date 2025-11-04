@@ -33,11 +33,7 @@ $headerActions = '
 ';
 
 // CSS customizado para a interface da aplicação (não do formulário)
-$customCss = '
-.a4-page:first-child {
-    margin-top: 100px;
-}
-';
+$customCss = '';
 $customCssPath = __DIR__ . '/style/relatorio-14-1.css';
 if (file_exists($customCssPath)) {
     $customCss .= file_get_contents($customCssPath);
@@ -185,15 +181,6 @@ ob_start();
 ?>
 
 <!-- valores-comuns removido conforme solicitado -->
-
-<!-- Barra de navegação por páginas -->
-<div class="page-toolbar">
-    <button id="btnFirstPage" class="toolbar-btn" type="button" title="Primeira página"><i class="bi bi-skip-backward-fill"></i></button>
-    <button id="btnPrevPage" class="toolbar-btn" type="button" title="Anterior"><i class="bi bi-chevron-left"></i></button>
-    <span class="toolbar-counter"><span id="contadorPaginaAtual">1</span> / <span id="contadorTotalPaginas"><?php echo count($produtos); ?></span></span>
-    <button id="btnNextPage" class="toolbar-btn" type="button" title="Próxima"><i class="bi bi-chevron-right"></i></button>
-    <button id="btnLastPage" class="toolbar-btn" type="button" title="Última página"><i class="bi bi-skip-forward-fill"></i></button>
-</div>
 
 <!-- Container de páginas -->
 <div class="paginas-container">
@@ -368,34 +355,7 @@ $script = <<<JS
     window.addEventListener('load', fitAll);
     document.addEventListener('DOMContentLoaded', fitAll);
 
-    // --- paginação simples para navegar entre .pagina-card ---
-    function setupPagination(){
-        const pages = Array.from(document.querySelectorAll('.pagina-card'));
-        if(pages.length === 0) return;
-        let current = 0;
-        const totalEl = document.getElementById('contadorTotalPaginas');
-        const curEl = document.getElementById('contadorPaginaAtual');
-        if(totalEl) totalEl.textContent = pages.length;
-        function showPage(i){
-            i = Math.max(0, Math.min(pages.length-1, i));
-            current = i;
-            if(curEl) curEl.textContent = (current+1);
-            // rola suavemente para o topo do card
-            pages[current].scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-        const first = document.getElementById('btnFirstPage');
-        const prev  = document.getElementById('btnPrevPage');
-        const next  = document.getElementById('btnNextPage');
-        const last  = document.getElementById('btnLastPage');
-        if(first) first.addEventListener('click', ()=> showPage(0));
-        if(prev)  prev.addEventListener('click', ()=> showPage(current-1));
-        if(next)  next.addEventListener('click', ()=> showPage(current+1));
-        if(last)  last.addEventListener('click', ()=> showPage(pages.length-1));
-        // inicializa na primeira
-        showPage(0);
-    }
-
-    document.addEventListener('DOMContentLoaded', setupPagination);
+    // Paginação removida - todas as páginas serão exibidas em scroll
 
 
     // Função global de impressão simplificada: apenas chama o print do navegador
