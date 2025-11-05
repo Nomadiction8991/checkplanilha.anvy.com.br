@@ -56,8 +56,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $localizacao_comum = trim($_POST['localizacao_comum'] ?? 'D16');
     $localizacao_data_posicao = trim($_POST['localizacao_data_posicao'] ?? 'D13');
     $localizacao_endereco = trim($_POST['localizacao_endereco'] ?? 'A4');
+    if ($localizacao_endereco === '') {
+        $localizacao_endereco = 'A4';
+    }
     $localizacao_cnpj = trim($_POST['localizacao_cnpj'] ?? 'U5');
-    $endereco_post = trim($_POST['endereco'] ?? '');
+    $endereco_post = isset($_POST['endereco']) ? trim($_POST['endereco']) : null;
     // administracao (estado) e cidade
     $administracao = trim($_POST['administracao'] ?? null);
     $cidade = trim($_POST['cidade'] ?? null);
@@ -80,17 +83,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception('A localização da célula data_posicao é obrigatória.');
         }
 
-        if (empty($localizacao_endereco)) {
-            throw new Exception('A localização da célula endereço é obrigatória.');
-        }
-
         if (empty($localizacao_cnpj)) {
             throw new Exception('A localização da célula CNPJ é obrigatória.');
-        }
-
-        // Endereço obrigatório (agora editável pelo usuário)
-        if ($endereco_post === '') {
-            throw new Exception('O campo Endereço é obrigatório.');
         }
 
         // Iniciar transação
@@ -283,7 +277,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Priorizar valor informado manualmente para Endereço
-        if ($endereco_post !== '') {
+        if ($endereco_post !== null && $endereco_post !== '') {
             $novo_valor_endereco = $endereco_post;
         }
 

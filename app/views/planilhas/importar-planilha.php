@@ -67,11 +67,13 @@ ob_start();
 
             <div class="row g-3 mt-2">
                 <div class="col-md-6">
-                    <label for="localizacao_endereco" class="form-label">Célula Endereço <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="localizacao_endereco" name="localizacao_endereco" 
-                           value="<?php echo htmlspecialchars($_POST['localizacao_endereco'] ?? 'A4'); ?>" 
-                           required placeholder="Ex: A4">
-                    <div class="form-text">Ex: A4</div>
+                    <?php $localizacaoEndereco = htmlspecialchars($_POST['localizacao_endereco'] ?? 'A4'); ?>
+                    <label for="localizacao_endereco" class="form-label">Célula Endereço</label>
+                    <input type="hidden" name="localizacao_endereco" value="<?php echo $localizacaoEndereco; ?>">
+                    <input type="text" class="form-control" id="localizacao_endereco" 
+                           value="<?php echo $localizacaoEndereco; ?>" 
+                           placeholder="Ex: A4" disabled>
+                    <div class="form-text">Valor utilizado automaticamente a partir da planilha</div>
                 </div>
 
                 <div class="col-md-6">

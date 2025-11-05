@@ -35,9 +35,10 @@ ob_start();
                     <input type="text" class="form-control" value="<?php echo htmlspecialchars($planilha['comum'] ?? ''); ?>" disabled>
                 </div>
                 <div class="col-md-6">
-                    <label for="endereco" class="form-label">Endereço <span class="text-danger">*</span></label>
+                    <label for="endereco" class="form-label">Endereço</label>
                     <input type="text" class="form-control" id="endereco" name="endereco" 
-                           value="<?php echo htmlspecialchars($planilha['endereco'] ?? ''); ?>" required>
+                           value="<?php echo htmlspecialchars($planilha['endereco'] ?? ''); ?>" disabled>
+                    <div class="form-text">Valor carregado automaticamente a partir da planilha importada</div>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Data Posição</label>
@@ -80,9 +81,12 @@ ob_start();
                            value="<?php echo htmlspecialchars($config['comum'] ?? 'D16'); ?>" required>
                 </div>
                 <div class="col-md-6">
-                    <label for="localizacao_endereco" class="form-label">Endereço <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="localizacao_endereco" name="localizacao_endereco" 
-                           value="<?php echo htmlspecialchars($config['endereco'] ?? 'A4'); ?>" required>
+                    <?php $localizacaoEndereco = htmlspecialchars($config['endereco'] ?? 'A4'); ?>
+                    <label for="localizacao_endereco" class="form-label">Endereço</label>
+              <input type="hidden" name="localizacao_endereco" value="<?php echo $localizacaoEndereco; ?>">
+              <input type="text" class="form-control" id="localizacao_endereco" 
+                  value="<?php echo $localizacaoEndereco; ?>" disabled>
+              <div class="form-text">Localização utilizada automaticamente (padrão: A4)</div>
                 </div>
                 <div class="col-md-6">
                     <label for="localizacao_data_posicao" class="form-label">Data Posição <span class="text-danger">*</span></label>

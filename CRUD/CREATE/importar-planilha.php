@@ -12,6 +12,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $localizacao_comum = trim($_POST['localizacao_comum'] ?? 'D16');
     $localizacao_data_posicao = trim($_POST['localizacao_data_posicao'] ?? 'D13');
     $localizacao_endereco = trim($_POST['localizacao_endereco'] ?? 'A4');
+    if ($localizacao_endereco === '') {
+        $localizacao_endereco = 'A4';
+    }
     $localizacao_cnpj = trim($_POST['localizacao_cnpj'] ?? 'U5');
     // Novo campo: nome e assinatura do responsável (Administrador/Acessor)
     $nome_responsavel = trim($_POST['nome_responsavel'] ?? null);
@@ -39,10 +42,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (empty($localizacao_data_posicao)) {
             throw new Exception('A localização da célula data_posicao é obrigatória.');
-        }
-
-        if (empty($localizacao_endereco)) {
-            throw new Exception('A localização da célula endereço é obrigatória.');
         }
 
         if (empty($localizacao_cnpj)) {
