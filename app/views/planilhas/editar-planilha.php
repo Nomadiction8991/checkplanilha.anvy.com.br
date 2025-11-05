@@ -38,7 +38,6 @@ ob_start();
                     <label for="endereco" class="form-label">Endereço</label>
                     <input type="text" class="form-control" id="endereco" name="endereco" 
                            value="<?php echo htmlspecialchars($planilha['endereco'] ?? ''); ?>" disabled>
-                    <div class="form-text">Valor carregado automaticamente a partir da planilha importada</div>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Data Posição</label>
