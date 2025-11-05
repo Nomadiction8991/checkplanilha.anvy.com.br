@@ -287,6 +287,24 @@ foreach ($produtos as $produto):
 
 <!-- CSS de impressão -->
 <style>
+/* Estilos para checkboxes */
+input[type="checkbox"] {
+    width: 14px !important;
+    height: 14px !important;
+    margin-right: 5px;
+    cursor: pointer;
+    border: 2px solid #333 !important;
+    background-color: #fff !important;
+    accent-color: #000 !important;
+}
+input[type="checkbox"]:checked {
+    background-color: #000 !important;
+    accent-color: #000 !important;
+}
+input[type="checkbox"]:focus {
+    outline: none;
+}
+
 @media print {
     body { margin: 0; padding: 0; }
     .a4 { page-break-after: always; }
