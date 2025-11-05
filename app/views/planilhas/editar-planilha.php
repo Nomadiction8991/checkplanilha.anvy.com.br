@@ -80,12 +80,9 @@ ob_start();
                            value="<?php echo htmlspecialchars($config['comum'] ?? 'D16'); ?>" required>
                 </div>
                 <div class="col-md-6">
-                    <?php $localizacaoEndereco = htmlspecialchars($config['endereco'] ?? 'A4'); ?>
-                    <label for="localizacao_endereco" class="form-label">Endereço</label>
-              <input type="hidden" name="localizacao_endereco" value="<?php echo $localizacaoEndereco; ?>">
-              <input type="text" class="form-control" id="localizacao_endereco" 
-                  value="<?php echo $localizacaoEndereco; ?>" disabled>
-              <div class="form-text">Localização utilizada automaticamente (padrão: A4)</div>
+                    <label for="localizacao_endereco" class="form-label">Endereço <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="localizacao_endereco" name="localizacao_endereco" 
+                           value="<?php echo htmlspecialchars($config['endereco'] ?? 'A4'); ?>" required>
                 </div>
                 <div class="col-md-6">
                     <label for="localizacao_data_posicao" class="form-label">Data Posição <span class="text-danger">*</span></label>
@@ -105,7 +102,6 @@ ob_start();
         <div class="card-body">
             <label for="arquivo" class="form-label">Novo Arquivo CSV (opcional)</label>
             <input type="file" class="form-control" id="arquivo" name="arquivo" accept=".csv">
-            <div class="form-text">Selecione apenas se desejar substituir os dados atuais</div>
         </div>
     </div>
 

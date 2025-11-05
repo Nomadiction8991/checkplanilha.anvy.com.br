@@ -56,9 +56,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $localizacao_comum = trim($_POST['localizacao_comum'] ?? 'D16');
     $localizacao_data_posicao = trim($_POST['localizacao_data_posicao'] ?? 'D13');
     $localizacao_endereco = trim($_POST['localizacao_endereco'] ?? 'A4');
-    if ($localizacao_endereco === '') {
-        $localizacao_endereco = 'A4';
-    }
     $localizacao_cnpj = trim($_POST['localizacao_cnpj'] ?? 'U5');
     $endereco_post = isset($_POST['endereco']) ? trim($_POST['endereco']) : null;
     // administracao (estado) e cidade
@@ -77,10 +74,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         if (empty($localizacao_comum)) {
             throw new Exception('A localização da célula comum é obrigatória.');
-        }
-
-        if (empty($localizacao_data_posicao)) {
-            throw new Exception('A localização da célula data_posicao é obrigatória.');
         }
 
         if (empty($localizacao_cnpj)) {

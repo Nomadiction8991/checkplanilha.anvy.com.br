@@ -24,12 +24,9 @@ ob_start();
             <i class="bi bi-file-earmark-arrow-up me-2"></i>
             Arquivo
         </div>
-        <div class="card-body">
-            <div class="mb-3">
-                <label for="arquivo" class="form-label">Arquivo CSV *</label>
-                <input type="file" class="form-control" id="arquivo" name="arquivo" accept=".csv" required>
-                <div class="form-text">Selecione o arquivo CSV para importação</div>
-            </div>
+                <div class="card-body">
+            <label for="arquivo" class="form-label">Novo Arquivo CSV (opcional)</label>
+            <input type="file" class="form-control" id="arquivo" name="arquivo" accept=".csv">
         </div>
     </div>
 
@@ -44,7 +41,6 @@ ob_start();
                 <label for="linhas_pular" class="form-label">Linhas iniciais a pular <span class="text-danger">*</span></label>
                 <input type="number" class="form-control" id="linhas_pular" name="linhas_pular" 
                        value="<?php echo $_POST['linhas_pular'] ?? 25; ?>" min="0" required>
-                <div class="form-text">Número de linhas do cabeçalho que devem ser ignoradas</div>
             </div>
 
             <div class="row g-3">
@@ -53,7 +49,6 @@ ob_start();
                     <input type="text" class="form-control" id="localizacao_comum" name="localizacao_comum" 
                            value="<?php echo htmlspecialchars($_POST['localizacao_comum'] ?? 'D16'); ?>" 
                            required placeholder="Ex: D16">
-                    <div class="form-text">Ex: D16</div>
                 </div>
 
                 <div class="col-md-6">
@@ -61,19 +56,15 @@ ob_start();
                     <input type="text" class="form-control" id="localizacao_data_posicao" name="localizacao_data_posicao" 
                            value="<?php echo htmlspecialchars($_POST['localizacao_data_posicao'] ?? 'D13'); ?>" 
                            required placeholder="Ex: D13">
-                    <div class="form-text">Ex: D13</div>
                 </div>
             </div>
 
             <div class="row g-3 mt-2">
                 <div class="col-md-6">
-                    <?php $localizacaoEndereco = htmlspecialchars($_POST['localizacao_endereco'] ?? 'A4'); ?>
-                    <label for="localizacao_endereco" class="form-label">Célula Endereço</label>
-                    <input type="hidden" name="localizacao_endereco" value="<?php echo $localizacaoEndereco; ?>">
-                    <input type="text" class="form-control" id="localizacao_endereco" 
-                           value="<?php echo $localizacaoEndereco; ?>" 
-                           placeholder="Ex: A4" disabled>
-                    <div class="form-text">Valor utilizado automaticamente a partir da planilha</div>
+                    <label for="localizacao_endereco" class="form-label">Célula Endereço <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="localizacao_endereco" name="localizacao_endereco" 
+                           value="<?php echo htmlspecialchars($_POST['localizacao_endereco'] ?? 'A4'); ?>" 
+                           required placeholder="Ex: A4">
                 </div>
 
                 <div class="col-md-6">
@@ -81,7 +72,6 @@ ob_start();
                     <input type="text" class="form-control" id="localizacao_cnpj" name="localizacao_cnpj" 
                            value="<?php echo htmlspecialchars($_POST['localizacao_cnpj'] ?? 'U5'); ?>" 
                            required placeholder="Ex: U5">
-                    <div class="form-text">Ex: U5</div>
                 </div>
             </div>
         </div>
