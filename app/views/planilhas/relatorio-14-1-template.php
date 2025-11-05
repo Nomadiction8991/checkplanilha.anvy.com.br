@@ -285,7 +285,7 @@ foreach ($produtos as $produto):
 
 <?php endforeach; ?>
 
-<!-- CSS de impressão -->
+<!-- CSS de impressão e edição -->
 <style>
 /* Estilos para checkboxes */
 input[type="checkbox"] {
@@ -305,6 +305,30 @@ input[type="checkbox"]:focus {
     outline: none;
 }
 
+/* Estilos para campos editáveis */
+.a4 input[type="text"],
+.a4 textarea {
+    border: 1px dotted #ccc;
+    padding: 2px 4px;
+    font-family: Arial, sans-serif;
+    font-size: 10pt;
+}
+
+.a4 input[type="text"]:focus,
+.a4 textarea:focus {
+    outline: none;
+    border: 1px solid #667eea;
+    background-color: #f0f4ff;
+    box-shadow: 0 0 3px rgba(102, 126, 234, 0.3);
+}
+
+.a4 input[type="text"].editado,
+.a4 textarea.editado {
+    background-color: #fff3cd;
+    border: 1px solid #ffc107;
+    color: #000;
+}
+
 @media print {
     body { margin: 0; padding: 0; }
     .a4 { page-break-after: always; }
@@ -314,8 +338,49 @@ input[type="checkbox"]:focus {
         size: A4 portrait;
         margin: 0;
     }
+    
+    /* Remove estilos de foco e edição na impressão */
+    .a4 input[type="text"],
+    .a4 textarea {
+        border: none;
+        background-color: transparent;
+        padding: 0;
+    }
+    
+    .a4 input[type="text"].editado,
+    .a4 textarea.editado {
+        background-color: transparent;
+        border: none;
+    }
 }
 </style>
+
+<!-- Script para permitir edição dos campos -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Permitir edição visual dos campos
+    const campos = document.querySelectorAll('.a4 input[type="text"], .a4 textarea, .a4 input[type="checkbox"]');
+    
+    campos.forEach(campo => {
+        // Quando o campo for editado, marcar como editado
+        campo.addEventListener('input', function() {
+            this.classList.add('editado');
+        });
+        
+        campo.addEventListener('change', function() {
+            this.classList.add('editado');
+        });
+    });
+    
+    // Permitir edição de checkbox
+    const checkboxes = document.querySelectorAll('.a4 input[type="checkbox"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            this.classList.add('editado');
+        });
+    });
+});
+</script>
 
 </body>
 </html>
