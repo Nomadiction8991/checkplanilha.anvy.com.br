@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $tipo_ben = $_POST['tipo_ben'] ?? '';
     $complemento = $_POST['complemento'] ?? '';
     $id_dependencia = $_POST['id_dependencia'] ?? '';
-    $quantidade = $_POST['quantidade'] ?? 1;
+    $multiplicador = $_POST['multiplicador'] ?? 1;
     $condicao_141 = isset($_POST['condicao_141']) && in_array($_POST['condicao_141'], ['1','2','3'], true) ? (int)$_POST['condicao_141'] : null;
     
     // Campos de nota: aceitar quando condicao_141 = 1 ou 3 (ambas exigem nota fiscal anexa)
@@ -65,8 +65,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $erros[] = "A dependência é obrigatória";
     }
     
-    if (empty($quantidade) || $quantidade < 1) {
-        $erros[] = "A quantidade deve ser pelo menos 1";
+    if (empty($multiplicador) || $multiplicador < 1) {
+        $erros[] = "O multiplicador deve ser pelo menos 1";
     }
     
     // Validações da nota quando condicao_141 = 1 ou 3 (ambas exigem nota fiscal anexa)
@@ -106,31 +106,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt_dep->execute();
             $dependencia = $stmt_dep->fetch();
             
-            // Montar descrição completa
-            $descricao_completa = $quantidade . "x [" . $tipo_bem['codigo'] . " - " . $tipo_bem['descricao'] . "] " . $tipo_ben . " - " . $complemento . " - (" . $dependencia['descricao'] . ")";
+            // Converter multiplicador para inteiro
+            $multiplicador = (int)$multiplicador;
             
+            // Inserir múltiplos produtos conforme o multiplicador
             $sql_inserir = "INSERT INTO produtos_cadastro 
                            (id_planilha, codigo, id_tipo_ben, tipo_ben, complemento, id_dependencia, quantidade, descricao_completa, numero_nota, data_emissao, valor_nota, fornecedor_nota, imprimir_14_1, condicao_141) 
                            VALUES 
                            (:id_planilha, :codigo, :id_tipo_ben, :tipo_ben, :complemento, :id_dependencia, :quantidade, :descricao_completa, :numero_nota, :data_emissao, :valor_nota, :fornecedor_nota, :imprimir_14_1, :condicao_141)";
             
             $stmt_inserir = $conexao->prepare($sql_inserir);
-            $stmt_inserir->bindValue(':id_planilha', $id_planilha);
-            $stmt_inserir->bindValue(':codigo', !empty($codigo) ? $codigo : null);
-            $stmt_inserir->bindValue(':id_tipo_ben', $id_tipo_ben);
-            $stmt_inserir->bindValue(':tipo_ben', $tipo_ben);
-            $stmt_inserir->bindValue(':complemento', $complemento);
-            $stmt_inserir->bindValue(':id_dependencia', $id_dependencia);
-            $stmt_inserir->bindValue(':quantidade', $quantidade);
-            $stmt_inserir->bindValue(':descricao_completa', $descricao_completa);
-            $stmt_inserir->bindValue(':numero_nota', $numero_nota);
-            $stmt_inserir->bindValue(':data_emissao', $data_emissao);
-            $stmt_inserir->bindValue(':valor_nota', $valor_nota);
-            $stmt_inserir->bindValue(':fornecedor_nota', $fornecedor_nota);
-            $stmt_inserir->bindValue(':imprimir_14_1', $imprimir_14_1);
-            $stmt_inserir->bindValue(':condicao_141', $condicao_141, PDO::PARAM_INT);
             
-            $stmt_inserir->execute();            // Gerar parâmetros de retorno para manter os filtros
+            // Criar cada um dos registros (quantidade de 1 unidade)
+            for ($i = 0; $i < $multiplicador; $i++) {
+                // Montar descrição completa (quantidade sempre será 1)
+                $descricao_completa = "1x [" . $tipo_bem['codigo'] . " - " . $tipo_bem['descricao'] . "] " . $tipo_ben . " - " . $complemento . " - (" . $dependencia['descricao'] . ")";
+                
+                $stmt_inserir->bindValue(':id_planilha', $id_planilha);
+                $stmt_inserir->bindValue(':codigo', !empty($codigo) ? $codigo : null);
+                $stmt_inserir->bindValue(':id_tipo_ben', $id_tipo_ben);
+                $stmt_inserir->bindValue(':tipo_ben', $tipo_ben);
+                $stmt_inserir->bindValue(':complemento', $complemento);
+                $stmt_inserir->bindValue(':id_dependencia', $id_dependencia);
+                $stmt_inserir->bindValue(':quantidade', 1);
+                $stmt_inserir->bindValue(':descricao_completa', $descricao_completa);
+                $stmt_inserir->bindValue(':numero_nota', $numero_nota);
+                $stmt_inserir->bindValue(':data_emissao', $data_emissao);
+                $stmt_inserir->bindValue(':valor_nota', $valor_nota);
+                $stmt_inserir->bindValue(':fornecedor_nota', $fornecedor_nota);
+                $stmt_inserir->bindValue(':imprimir_14_1', $imprimir_14_1);
+                $stmt_inserir->bindValue(':condicao_141', $condicao_141, PDO::PARAM_INT);
+                
+                $stmt_inserir->execute();
+            }
+            
+            // Gerar parâmetros de retorno para manter os filtros
             $parametros_retorno = gerarParametrosFiltro();
             
             // Redirecionar de volta para a lista (caminho relativo ao document root)

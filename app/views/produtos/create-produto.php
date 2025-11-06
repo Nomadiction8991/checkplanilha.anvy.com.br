@@ -29,9 +29,9 @@ ob_start();
       </div>
 
       <div class="mb-3">
-        <label for="quantidade" class="form-label">Quantidade</label>
-        <input type="number" id="quantidade" name="quantidade" class="form-control" min="1" value="<?php echo htmlspecialchars($_POST['quantidade'] ?? '1'); ?>" required>
-        <div class="invalid-feedback">Informe a quantidade.</div>
+        <label for="multiplicador" class="form-label">Multiplicador</label>
+        <input type="number" id="multiplicador" name="multiplicador" class="form-control" min="1" value="<?php echo htmlspecialchars($_POST['multiplicador'] ?? '1'); ?>" required>
+        <div class="invalid-feedback">Informe o multiplicador.</div>
       </div>
 
       <div class="mb-3">
