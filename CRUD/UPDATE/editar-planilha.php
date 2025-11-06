@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../../auth.php'; // Autenticação
 require_once __DIR__ . '/../conexao.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/../../app/functions/comum_functions.php';
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
@@ -110,6 +111,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception('A célula ' . $localizacao_comum . ' está vazia no arquivo CSV.');
             }
 
+            // Processar e obter ID do comum
+            $comum_id = processar_comum($conexao, $novo_valor_comum);
+            if (empty($comum_id)) {
+                throw new Exception('Erro ao processar comum: ' . $novo_valor_comum);
+            }
+
             // Obter o valor da célula data_posicao
             $valor_data_posicao = $aba_ativa->getCell($localizacao_data_posicao)->getCalculatedValue();
             
@@ -146,6 +153,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
             $novo_valor_data_posicao = $data_mysql;
+
+            // Iniciar transação
+            $conexao->beginTransaction();
 
             // Apagar todos os produtos existentes desta planilha
             $sql_delete_produtos = "DELETE FROM produtos WHERE id_planilha = :id_planilha";
@@ -214,17 +224,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $nome = isset($linha[colunaParaIndice($mapeamento['nome'])]) ? corrigirEncoding(trim($linha[colunaParaIndice($mapeamento['nome'])])) : '';
                     $dependencia = isset($linha[colunaParaIndice($mapeamento['dependencia'])]) ? corrigirEncoding(trim($linha[colunaParaIndice($mapeamento['dependencia'])])) : '';
 
-                    // Inserir o produto (apenas campos necessários)
+                    // Inserir o produto com comum_id
                     $sql_produto = "INSERT INTO produtos 
-                        (codigo, nome, dependencia, id_planilha) 
+                        (codigo, nome, dependencia, id_planilha, comum_id) 
                     VALUES 
-                        (:codigo, :nome, :dependencia, :id_planilha)";
+                        (:codigo, :nome, :dependencia, :id_planilha, :comum_id)";
 
                     $stmt_produto = $conexao->prepare($sql_produto);
                     $stmt_produto->bindValue(':codigo', $codigo);
                     $stmt_produto->bindValue(':nome', $nome);
                     $stmt_produto->bindValue(':dependencia', $dependencia);
                     $stmt_produto->bindValue(':id_planilha', $id_planilha);
+                    $stmt_produto->bindValue(':comum_id', $comum_id, PDO::PARAM_INT);
 
                     if ($stmt_produto->execute()) {
                         $registros_importados++;

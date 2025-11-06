@@ -1,325 +1,143 @@
 <?php
 require_once __DIR__ . '/auth.php'; // Verificar autenticação
-require_once 'CRUD/READ/index.php';
+require_once __DIR__ . '/CRUD/conexao.php';
+require_once __DIR__ . '/app/functions/comum_functions.php';
 
-// Detectar ambiente (produção ou desenvolvimento)
-$ambiente = 'produção'; // padrão
-if (strpos($_SERVER['REQUEST_URI'], '/dev/') !== false) {
-    $ambiente = 'desenvolvimento';
-} elseif (strpos($_SERVER['HTTP_HOST'], 'dev.') !== false || strpos($_SERVER['HTTP_HOST'], 'localhost') !== false) {
-    $ambiente = 'desenvolvimento';
-}
+$pageTitle = "Anvy - Seleção de Comum";
+$backUrl = null;
 
-// Configurações da página
-$pageTitle = "Anvy - Planilhas";
-$backUrl = null; // Sem botão voltar na home
-$headerActions = '
-    <!-- Botão Instalar PWA (oculto por padrão, JS controla) -->
-    <button id="installPwaBtn" class="btn-header-action" title="Instalar Aplicativo" style="display: none; background: none; border: none; padding: 0; cursor: pointer;">
-        <i class="bi bi-download fs-5"></i>
-    </button>
-    <a href="app/views/shared/menu-unificado.php?contexto=principal" class="btn-header-action" title="Menu">
-        <i class="bi bi-list fs-5"></i>
-    </a>
-    <a href="logout.php" class="btn-header-action" title="Sair" onclick="return confirm(\'Deseja realmente sair?\')">
-        <i class="bi bi-box-arrow-right fs-5"></i>
-    </a>
-';
-
-// Iniciar buffer para capturar o conteúdo
 ob_start();
 ?>
 
-<!-- Filtros -->
-<div class="card mb-3">
-    <div class="card-header">
-        <i class="bi bi-funnel me-2"></i>
-        Filtros
-    </div>
-    <div class="card-body">
-        <form method="GET" action="">
-            <!-- Campo principal -->
-            <div class="mb-3">
-                <label class="form-label" for="comum">
-                    <i class="bi bi-search me-1"></i>
-                    Pesquisar por Comum
-                </label>
-                <input type="text" class="form-control" id="comum" name="comum" 
-                       value="<?php echo htmlspecialchars($filtro_comum ?? ''); ?>" 
-                       placeholder="Digite para buscar...">
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Header -->
+            <div class="card border-0 shadow-sm mb-4 bg-primary text-white">
+                <div class="card-body text-center py-4">
+                    <i class="bi bi-building fs-1 mb-3 d-block"></i>
+                    <h1 class="card-title mb-2">Selecione um Comum</h1>
+                    <p class="card-text mb-0">Escolha uma instituição para gerenciar suas planilhas</p>
+                </div>
             </div>
 
-            <!-- Filtros Avançados recolhíveis -->
-            <div class="accordion" id="filtrosAvancados">
-                <div class="accordion-item">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFiltros">
-                            <i class="bi bi-sliders me-2"></i>
-                            Filtros Avançados
-                        </button>
-                    </h2>
-                    <div id="collapseFiltros" class="accordion-collapse collapse" data-bs-parent="#filtrosAvancados">
-                        <div class="accordion-body">
-                            <div class="mb-3">
-                                <label class="form-label" for="status">
-                                    <i class="bi bi-check-circle me-1"></i>
-                                    Status
-                                </label>
-                                <select class="form-select" id="status" name="status">
-                                    <option value="">Todos</option>
-                                    <?php foreach ($status_options as $status): ?>
-                                        <option value="<?php echo $status; ?>"
-                                            <?php echo ($filtro_status ?? '') === $status ? 'selected' : ''; ?>>
-                                            <?php echo ucfirst($status); ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label" for="ativo">
-                                    <i class="bi bi-eye me-1"></i>
-                                    Exibir
-                                </label>
-                                <select class="form-select" id="ativo" name="ativo">
-                                    <option value="1" <?php echo ($filtro_ativo ?? '1') === '1' ? 'selected' : ''; ?>>Ativos</option>
-                                    <option value="0" <?php echo ($filtro_ativo ?? '1') === '0' ? 'selected' : ''; ?>>Inativos</option>
-                                    <option value="todos" <?php echo ($filtro_ativo ?? '1') === 'todos' ? 'selected' : ''; ?>>Todos</option>
-                                </select>
-                            </div>
-
-                            <div class="mb-2">
-                                <label class="form-label" for="data_inicio">Data Início</label>
-                                <input type="date" class="form-control" id="data_inicio" name="data_inicio" 
-                                       value="<?php echo htmlspecialchars($filtro_data_inicio ?? ''); ?>">
-                            </div>
-                            <div>
-                                <label class="form-label" for="data_fim">Data Fim</label>
-                                <input type="date" class="form-control" id="data_fim" name="data_fim" 
-                                       value="<?php echo htmlspecialchars($filtro_data_fim ?? ''); ?>">
-                            </div>
-                        </div>
+            <!-- Filtro de pesquisa -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" class="form-control" id="filtro-comum" placeholder="Buscar por código, descrição ou cidade...">
                     </div>
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-primary w-100 mt-3">
-                <i class="bi bi-search me-2"></i>
-                Filtrar
-            </button>
-        </form>
-    </div>
-    <div class="card-footer text-muted small">
-        <?php echo $total_registros ?? 0; ?> registros encontrados no total
-    </div>
-</div>
-
-<!-- Legenda -->
-<div class="card mb-3">
-    <div class="card-body p-3">
-        <div class="d-flex flex-wrap gap-2 justify-content-center">
-            <span class="badge bg-secondary">Pendente</span>
-            <span class="badge bg-warning text-white">Em Execução</span>
-            <span class="badge bg-success">Concluído</span>
-            <span class="badge bg-danger">Inativo</span>
+            <!-- Lista de comuns -->
+            <div id="lista-comuns" class="row g-3">
+                <?php
+                try {
+                    $comums = obter_todos_comuns($conexao);
+                    
+                    if (empty($comums)) {
+                        echo '<div class="col-12"><div class="alert alert-info text-center py-5">
+                                <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                <p>Nenhum comum cadastrado</p>
+                              </div></div>';
+                    } else {
+                        foreach ($comums as $comum) {
+                            $planilhas_count = contar_planilhas_por_comum($conexao, $comum['id']);
+                            $produtos_count = contar_produtos_por_comum($conexao, $comum['id']);
+                            
+                            echo '<div class="col-lg-6 col-xl-4 comum-item" data-id="' . $comum['id'] . '" 
+                                      data-codigo="' . htmlspecialchars($comum['codigo']) . '" 
+                                      data-descricao="' . htmlspecialchars($comum['descricao']) . '" 
+                                      data-cidade="' . htmlspecialchars($comum['cidade']) . '">';
+                            echo '  <div class="card h-100 cursor-pointer card-hover shadow-sm" 
+                                       onclick="selecionarComum(' . $comum['id'] . ', \'' . addslashes(htmlspecialchars($comum['descricao'])) . '\')">';
+                            echo '    <div class="card-body">';
+                            echo '      <h5 class="card-title mb-2">';
+                            echo '        <span class="badge bg-primary">BR ' . str_pad($comum['codigo'], 8, '0', STR_PAD_LEFT) . '</span>';
+                            echo '      </h5>';
+                            echo '      <p class="card-text text-dark fw-bold mb-2">' . htmlspecialchars($comum['descricao']) . '</p>';
+                            echo '      <small class="text-muted d-block mb-2">';
+                            echo '        <i class="bi bi-geo-alt me-1"></i>' . htmlspecialchars($comum['cidade']);
+                            if (!empty($comum['administracao'])) {
+                                echo '<br><i class="bi bi-building me-1"></i>' . htmlspecialchars($comum['administracao']);
+                            }
+                            echo '      </small>';
+                            echo '    </div>';
+                            echo '    <div class="card-footer bg-transparent border-top">';
+                            echo '      <div class="row text-center text-sm">';
+                            echo '        <div class="col-6">';
+                            echo '          <small class="d-block text-muted">Planilhas</small>';
+                            echo '          <strong>' . $planilhas_count . '</strong>';
+                            echo '        </div>';
+                            echo '        <div class="col-6">';
+                            echo '          <small class="d-block text-muted">Produtos</small>';
+                            echo '          <strong>' . $produtos_count . '</strong>';
+                            echo '        </div>';
+                            echo '      </div>';
+                            echo '    </div>';
+                            echo '  </div>';
+                            echo '</div>';
+                        }
+                    }
+                } catch (Exception $e) {
+                    echo '<div class="col-12"><div class="alert alert-danger">Erro ao carregar comuns: ' . htmlspecialchars($e->getMessage()) . '</div></div>';
+                }
+                ?>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Listagem -->
-<div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <span>
-            <i class="bi bi-file-earmark-spreadsheet me-2"></i>
-            Planilhas
-        </span>
-        <span class="badge bg-white text-dark"><?php echo count($planilhas ?? []); ?> itens</span>
-    </div>
-    <div class="table-responsive">
-        <table class="table table-hover table-sm mb-0">
-            <thead>
-                <tr>
-                    <th style="width: 55%;">Comum</th>
-                    <th style="width: 20%;" class="text-center">Data</th>
-                    <th style="width: 25%;" class="text-center">Ações</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (isset($planilhas) && count($planilhas) > 0): ?>
-                    <?php foreach ($planilhas as $planilha): ?>
-                    <?php
-                    // Classe da linha baseada no status (em vez de coluna de status)
-                    $row_class = '';
-                    if (($planilha['ativo'] ?? 1) == 0) {
-                        $row_class = 'table-danger'; // Inativa (vermelho, compatível com a legenda)
-                    } else {
-                        switch (strtolower($planilha['status_calc'] ?? ($planilha['status'] ?? ''))) {
-                            case 'concluido':
-                            case 'concluída':
-                            case 'concluído':
-                                $row_class = 'table-success';
-                                break;
-                            case 'execucao':
-                            case 'em execução':
-                            case 'em execucao':
-                                $row_class = 'table-warning';
-                                break;
-                            case 'pendente':
-                            default:
-                                $row_class = ''; // sem cor especial
-                                break;
-                        }
-                    }
+<style>
+.card-hover {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
 
-                    // Formatar data
-                    $data_posicao = '';
-                    if (!empty($planilha['data_posicao']) && $planilha['data_posicao'] != '0000-00-00') {
-                        $data_posicao = date('d/m/Y', strtotime($planilha['data_posicao']));
-                    }
-                    ?>
-                    <tr class="<?php echo $row_class; ?>">
-                        <td>
-                            <div class="<?php echo $planilha['ativo'] == 0 ? 'text-muted' : 'fw-semibold'; ?>">
-                                <?php echo htmlspecialchars($planilha['comum']); ?>
-                            </div>
-                        </td>
-                        <td class="text-center">
-                            <small><?php echo $data_posicao; ?></small>
-                        </td>
-                        <td class="text-center">
-                            <div class="btn-group btn-group-sm">
-                                <a href="app/views/planilhas/view-planilha.php?id=<?php echo $planilha['id']; ?>" 
-                                   class="btn btn-outline-primary" title="Visualizar">
-                                    <i class="bi bi-eye"></i>
-                                </a>
-                                <a href="app/views/planilhas/editar-planilha.php?id=<?php echo $planilha['id']; ?>" 
-                                   class="btn btn-outline-secondary" title="Editar">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="4" class="text-center py-4">
-                            <i class="bi bi-inbox fs-1 text-muted d-block mb-2"></i>
-                            <span class="text-muted">Nenhuma planilha encontrada</span>
-                        </td>
-                    </tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
-    </div>
-</div>
+.card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+}
 
-<!-- Paginação -->
-<?php if (isset($total_paginas) && $total_paginas > 1): ?>
-<nav aria-label="Navegação de página" class="mt-3">
-    <ul class="pagination pagination-sm justify-content-center mb-0">
-        <?php if ($pagina > 1): ?>
-        <li class="page-item">
-            <a class="page-link" href="?pagina=<?php echo $pagina - 1; ?>&comum=<?php echo urlencode($filtro_comum ?? ''); ?>&status=<?php echo urlencode($filtro_status ?? ''); ?>&ativo=<?php echo $filtro_ativo ?? '1'; ?>&data_inicio=<?php echo urlencode($filtro_data_inicio ?? ''); ?>&data_fim=<?php echo urlencode($filtro_data_fim ?? ''); ?>">
-                <i class="bi bi-chevron-left"></i>
-            </a>
-        </li>
-        <?php endif; ?>
+.cursor-pointer {
+    cursor: pointer;
+}
+</style>
+
+<script>
+function selecionarComum(id, descricao) {
+    // Redirecionar para página de planilhas do comum
+    window.location.href = 'app/views/comuns/listar-planilhas.php?comum_id=' + id;
+}
+
+// Filtro de pesquisa
+document.getElementById('filtro-comum').addEventListener('keyup', function(e) {
+    const termo = this.value.toLowerCase();
+    const items = document.querySelectorAll('.comum-item');
+    
+    items.forEach(item => {
+        const codigo = item.dataset.codigo.toLowerCase();
+        const descricao = item.dataset.descricao.toLowerCase();
+        const cidade = item.dataset.cidade.toLowerCase();
         
-        <?php for ($i = 1; $i <= $total_paginas; $i++): ?>
-        <li class="page-item <?php echo $i == $pagina ? 'active' : ''; ?>">
-            <a class="page-link" href="?pagina=<?php echo $i; ?>&comum=<?php echo urlencode($filtro_comum ?? ''); ?>&status=<?php echo urlencode($filtro_status ?? ''); ?>&ativo=<?php echo $filtro_ativo ?? '1'; ?>&data_inicio=<?php echo urlencode($filtro_data_inicio ?? ''); ?>&data_fim=<?php echo urlencode($filtro_data_fim ?? ''); ?>">
-                <?php echo $i; ?>
-            </a>
-        </li>
-        <?php endfor; ?>
-        
-        <?php if ($pagina < $total_paginas): ?>
-        <li class="page-item">
-            <a class="page-link" href="?pagina=<?php echo $pagina + 1; ?>&comum=<?php echo urlencode($filtro_comum ?? ''); ?>&status=<?php echo urlencode($filtro_status ?? ''); ?>&ativo=<?php echo $filtro_ativo ?? '1'; ?>&data_inicio=<?php echo urlencode($filtro_data_inicio ?? ''); ?>&data_fim=<?php echo urlencode($filtro_data_fim ?? ''); ?>">
-                <i class="bi bi-chevron-right"></i>
-            </a>
-        </li>
-        <?php endif; ?>
-    </ul>
-</nav>
-<?php endif; ?>
+        const visivel = codigo.includes(termo) || descricao.includes(termo) || cidade.includes(termo);
+        item.style.display = visivel ? '' : 'none';
+    });
+});
+</script>
 
 <?php
-// Capturar o conteúdo
 $contentHtml = ob_get_clean();
-
-// Criar arquivo temporário com o conteúdo
-file_put_contents(__DIR__ . '/temp_index_content.php', $contentHtml);
 $contentFile = __DIR__ . '/temp_index_content.php';
+file_put_contents($contentFile, $contentHtml);
 
-// JavaScript customizado para controle do botão PWA
-$customJs = "
-let deferredPrompt;
-const installBtn = document.getElementById('installPwaBtn');
-const ambiente = '" . $ambiente . "';
-
-// Mostrar botão APENAS em produção
-if (ambiente !== 'produção') {
-    console.log('Instalação PWA disponível apenas em produção');
-    if (installBtn) installBtn.style.display = 'none';
-} else {
-    // Detectar se já está instalado (modo standalone)
-    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
-        console.log('PWA já instalado - botão oculto');
-        if (installBtn) installBtn.style.display = 'none';
-    } else {
-        // Detectar evento de instalação disponível
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            
-            // Mostrar botão
-            if (installBtn) {
-                installBtn.style.display = 'inline-block';
-                console.log('Botão de instalação exibido - Ambiente:', ambiente);
-            }
-        });
-        
-        // Evento de clique no botão
-        if (installBtn) {
-            installBtn.addEventListener('click', async () => {
-                if (!deferredPrompt) {
-                    alert('Instalação não disponível no momento.');
-                    return;
-                }
-                
-                // Mostrar prompt
-                deferredPrompt.prompt();
-                
-                // Aguardar resposta do usuário
-                const { outcome } = await deferredPrompt.userChoice;
-                console.log('Resultado da instalação:', outcome);
-                
-                if (outcome === 'accepted') {
-                    console.log('Usuário aceitou instalar o app - Ambiente:', ambiente);
-                } else {
-                    console.log('Usuário recusou instalar o app');
-                }
-                
-                // Limpar o prompt
-                deferredPrompt = null;
-                installBtn.style.display = 'none';
-            });
-        }
-        
-        // Detectar quando foi instalado
-        window.addEventListener('appinstalled', () => {
-            console.log('PWA instalado com sucesso! - Ambiente:', ambiente);
-            if (installBtn) installBtn.style.display = 'none';
-            deferredPrompt = null;
-        });
-    }
-}
-";
-
-// Renderizar o layout
-include __DIR__ . '/app/views/layouts/app-wrapper.php';
+// Incluir layout principal
+require_once 'app/views/layouts/main-layout.php';
 
 // Limpar arquivo temporário
-unlink(__DIR__ . '/temp_index_content.php');
+@unlink($contentFile);
 ?>
