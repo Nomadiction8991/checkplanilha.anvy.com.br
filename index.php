@@ -51,6 +51,13 @@ function formatar_codigo_comum($codigo) {
 ob_start();
 ?>
 
+<?php if (!empty($_SESSION['mensagem'])): ?>
+    <div class="alert alert-<?php echo ($_SESSION['tipo_mensagem'] ?? 'info') === 'success' ? 'success' : (($_SESSION['tipo_mensagem'] ?? 'info') === 'danger' ? 'danger' : 'info'); ?> alert-dismissible fade show" role="alert">
+        <?php echo htmlspecialchars($_SESSION['mensagem']); unset($_SESSION['mensagem'], $_SESSION['tipo_mensagem']); ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+<?php endif; ?>
+
 <div class="card mb-3">
     <div class="card-header">
         <i class="bi bi-search me-2"></i>Pesquisar Comum
@@ -91,6 +98,7 @@ ob_start();
                     <tr>
                         <th style="width: 40%">Código</th>
                         <th>Descrição</th>
+                        <th style="width: 110px">Ação</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -109,6 +117,11 @@ ob_start();
                                 </td>
                                 <td>
                                     <?php echo htmlspecialchars($comum['descricao']); ?>
+                                </td>
+                                <td>
+                                    <a class="btn btn-sm btn-primary" href="app/views/comuns/listar-planilhas.php?comum_id=<?php echo (int) $comum['id']; ?>" title="Abrir">
+                                        <i class="bi bi-arrow-right"></i>
+                                    </a>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

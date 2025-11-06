@@ -218,13 +218,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         error_log("ERRO IMPORTACAO: " . $e->getMessage());
     }
 
-    // Redirecionar com mensagem
-    if ($sucesso && !empty($comum_processado_id)) {
+    // Redirecionar com mensagem (sempre voltar para listagem de Comuns)
+    if ($sucesso) {
         $_SESSION['mensagem'] = $mensagem;
         $_SESSION['tipo_mensagem'] = 'success';
-        header('Location: ../../app/views/comuns/listar-planilhas.php?comum_id=' . (int)$comum_processado_id);
-        exit;
+    } else {
+        $_SESSION['mensagem'] = $mensagem ?: 'Não foi possível concluir a importação.';
+        $_SESSION['tipo_mensagem'] = 'danger';
     }
+    header('Location: ../../index.php');
+    exit;
 }
 
 // Se for GET, redirecionar de volta
