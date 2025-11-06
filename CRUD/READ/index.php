@@ -16,11 +16,8 @@ $filtro_data_fim = isset($_GET['data_fim']) ? $_GET['data_fim'] : '';
 
 // Construir a query base
 $sql = "SELECT p.*, 
-    (SELECT COUNT(*) FROM produtos pr WHERE pr.id_planilha = p.id) AS total_produtos,
-    (SELECT COUNT(*) FROM produtos pr 
-       LEFT JOIN produtos_check ck ON pr.id = ck.produto_id 
-       WHERE pr.id_planilha = p.id AND ck.produto_id IS NULL) AS total_pendentes,
-    (SELECT COUNT(*) FROM produtos_cadastro nc WHERE nc.id_planilha = p.id) AS total_novos
+    (SELECT COUNT(*) FROM produtos pr WHERE pr.planilha_id = p.id) AS total_produtos,
+    (SELECT COUNT(*) FROM produtos pr WHERE pr.planilha_id = p.id AND COALESCE(pr.checado, 0) = 0) AS total_pendentes
     FROM planilhas p WHERE 1=1";
 $params = [];
 
@@ -83,8 +80,7 @@ $status_options = ['Pendente', 'Em Execução', 'Concluído'];
 foreach ($planilhas as &$pl) {
     $total_produtos = (int)($pl['total_produtos'] ?? 0);
     $total_pendentes = (int)($pl['total_pendentes'] ?? 0);
-    $total_novos = (int)($pl['total_novos'] ?? 0);
-    if ($total_produtos > 0 && $total_pendentes === $total_produtos && $total_novos === 0) {
+    if ($total_produtos > 0 && $total_pendentes === $total_produtos) {
         $pl['status_calc'] = 'Pendente';
     } elseif ($total_produtos > 0 && $total_pendentes === 0) {
         $pl['status_calc'] = 'Concluído';

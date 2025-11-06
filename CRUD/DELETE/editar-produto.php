@@ -29,24 +29,20 @@ if (!$id_produto || !$id_planilha) {
 }
 
 try {
-    // Verificar se existe registro na tabela produtos_check
-    $sql_verificar = "SELECT COUNT(*) as total FROM produtos_check WHERE produto_id = :produto_id";
-    $stmt_verificar = $conexao->prepare($sql_verificar);
-    $stmt_verificar->bindValue(':produto_id', $id_produto);
-    $stmt_verificar->execute();
-    $existe_registro = $stmt_verificar->fetch()['total'] > 0;
-
-    if ($existe_registro) {
-        // Atualizar o registro, limpando os campos e definindo editado = 0
-        $sql_update = "UPDATE produtos_check SET nome = NULL, dependencia = NULL, imprimir = 0, editado = 0 WHERE produto_id = :produto_id";
-        $stmt_update = $conexao->prepare($sql_update);
-        $stmt_update->bindValue(':produto_id', $id_produto);
-        $stmt_update->execute();
-        
-        $sucesso = 'Edições limpas com sucesso!';
-    } else {
-        $sucesso = 'Nenhuma edição encontrada para limpar.';
-    }
+    // Limpar as edições diretamente na tabela produtos
+    $sql_update = "UPDATE produtos 
+                   SET nome_editado = NULL, 
+                       dependencia_editada = NULL, 
+                       imprimir = 0, 
+                       editado = 0 
+                   WHERE id = :produto_id";
+    $stmt_update = $conexao->prepare($sql_update);
+    $stmt_update->bindValue(':produto_id', $id_produto, PDO::PARAM_INT);
+    $stmt_update->execute();
+    
+    $sucesso = $stmt_update->rowCount() > 0 
+        ? 'Edições limpas com sucesso!' 
+        : 'Nenhuma edição encontrada para limpar.';
 
     // Redirecionar de volta para a view-planilha
     $query_string = http_build_query([
