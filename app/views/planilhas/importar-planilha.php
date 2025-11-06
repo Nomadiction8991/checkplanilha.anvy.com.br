@@ -1,39 +1,15 @@
 <?php
 require_once __DIR__ . '/../../../auth.php'; // Autenticação
-require_once __DIR__ . '/../../../CRUD/conexao.php';
-require_once __DIR__ . '/../../../app/functions/comum_functions.php';
 
 // Configurações da página
 $pageTitle = 'Importar Planilha';
 $backUrl = '../../../index.php';
-
-// Carregar comuns para seleção
-$comuns = obter_todos_comuns($conexao);
 
 // Iniciar buffer
 ob_start();
 ?>
 
 <form action="../../../CRUD/CREATE/importar-planilha.php" method="POST" enctype="multipart/form-data">
-    <!-- Selecionar Comum -->
-    <div class="card mb-3">
-        <div class="card-header">
-            <i class="bi bi-building me-2"></i>
-            Selecionar Comum
-        </div>
-        <div class="card-body">
-            <label for="comum_id" class="form-label">Comum <span class="text-danger">*</span></label>
-            <select id="comum_id" name="comum_id" class="form-select" required>
-                <option value="">Selecione…</option>
-                <?php foreach ($comuns as $c): ?>
-                    <option value="<?php echo (int)$c['id']; ?>">
-                        <?php echo htmlspecialchars('BR ' . substr(str_pad($c['codigo'], 6, '0', STR_PAD_LEFT), 0, 2) . '-' . substr(str_pad($c['codigo'], 6, '0', STR_PAD_LEFT), 2) . ' - ' . $c['descricao']); ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-    </div>
-
     <!-- Arquivo CSV -->
     <div class="card mb-3">
         <div class="card-header">
@@ -87,8 +63,8 @@ ob_start();
                     <input type="text" class="form-control text-center fw-bold" id="mapeamento_codigo" name="mapeamento_codigo" value="A" maxlength="2" required>
                 </div>
                 <div class="col-md-4">
-                    <label for="mapeamento_nome" class="form-label">Nome <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control text-center fw-bold" id="mapeamento_nome" name="mapeamento_nome" value="D" maxlength="2" required>
+                    <label for="mapeamento_complemento" class="form-label">Complemento <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control text-center fw-bold" id="mapeamento_complemento" name="mapeamento_complemento" value="D" maxlength="2" required>
                 </div>
                 <div class="col-md-4">
                     <label for="mapeamento_dependencia" class="form-label">Dependência <span class="text-danger">*</span></label>

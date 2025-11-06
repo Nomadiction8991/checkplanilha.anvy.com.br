@@ -8,14 +8,13 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 
 // Redirecionamento após sucesso
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $comum_id = (int)($_POST['comum_id'] ?? 0);
     $arquivo_csv = $_FILES['arquivo_csv'] ?? null;
     $posicao_comum = trim($_POST['posicao_comum'] ?? 'D16');
     $posicao_data = trim($_POST['posicao_data'] ?? 'D13');
     $posicao_cnpj = trim($_POST['posicao_cnpj'] ?? 'U5');
     $pulo_linhas = (int)($_POST['pulo_linhas'] ?? 25);
     $mapeamento_codigo = strtoupper(trim($_POST['mapeamento_codigo'] ?? 'A'));
-    $mapeamento_nome = strtoupper(trim($_POST['mapeamento_nome'] ?? 'D'));
+    $mapeamento_complemento = strtoupper(trim($_POST['mapeamento_complemento'] ?? 'D'));
     $mapeamento_dependencia = strtoupper(trim($_POST['mapeamento_dependencia'] ?? 'P'));
 
     $mensagem = '';
@@ -24,10 +23,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         // Validações
-        if (!$comum_id) {
-            throw new Exception('Comum inválido.');
-        }
-
         if (!$arquivo_csv || $arquivo_csv['error'] !== UPLOAD_ERR_OK) {
             throw new Exception('Selecione um arquivo CSV válido.');
         }
@@ -82,12 +77,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $sql_planilha = "INSERT INTO planilhas (comum_id, posicao_cnpj, posicao_comum, posicao_data, pulo_linhas, mapeamento_colunas, data_posicao, ativo) 
                         VALUES (:comum_id, :posicao_cnpj, :posicao_comum, :posicao_data, :pulo_linhas, :mapeamento_colunas, :data_posicao, 1)";
         $stmt = $conexao->prepare($sql_planilha);
-        $stmt->bindValue(':comum_id', $comum_id, PDO::PARAM_INT);
+        $stmt->bindValue(':comum_id', $comum_processado_id, PDO::PARAM_INT);
         $stmt->bindValue(':posicao_cnpj', $posicao_cnpj);
         $stmt->bindValue(':posicao_comum', $posicao_comum);
         $stmt->bindValue(':posicao_data', $posicao_data);
-        $stmt->bindValue(':pulo_linhas', $pulo_linhas);
-        $stmt->bindValue(':mapeamento_colunas', "codigo=$mapeamento_codigo;nome=$mapeamento_nome;dependencia=$mapeamento_dependencia");
+    $stmt->bindValue(':pulo_linhas', $pulo_linhas);
+    $stmt->bindValue(':mapeamento_colunas', "codigo=$mapeamento_codigo;complemento=$mapeamento_complemento;dependencia=$mapeamento_dependencia");
         $stmt->bindValue(':data_posicao', $data_mysql);
         $stmt->execute();
         $id_planilha = $conexao->lastInsertId();
@@ -109,7 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $idx_codigo = colunaParaIndice($mapeamento_codigo);
-        $idx_nome = colunaParaIndice($mapeamento_nome);
+    $idx_complemento = colunaParaIndice($mapeamento_complemento);
         $idx_dependencia = colunaParaIndice($mapeamento_dependencia);
 
         foreach ($linhas as $linha) {
@@ -129,7 +124,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     continue;
                 }
 
-                $nome = isset($linha[$idx_nome]) ? trim($linha[$idx_nome]) : '';
+                $complemento = isset($linha[$idx_complemento]) ? trim($linha[$idx_complemento]) : '';
                 $dependencia = isset($linha[$idx_dependencia]) ? trim($linha[$idx_dependencia]) : '';
 
                 $sql_produto = "INSERT INTO produtos (planilha_id, codigo, descricao_completa, editado_descricao_completa, tipo_ben_id, editado_tipo_ben_id, ben, editado_ben, complemento, editado_complemento, dependencia_id, editado_dependencia_id, chacado, editado, imprimir_etiqueta, imprimir_14_1, observacao, ativo) 
@@ -137,7 +132,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt_prod = $conexao->prepare($sql_produto);
                 $stmt_prod->bindValue(':planilha_id', $id_planilha, PDO::PARAM_INT);
                 $stmt_prod->bindValue(':codigo', $codigo);
-                $stmt_prod->bindValue(':complemento', $nome . ' - ' . $dependencia);
+                $stmt_prod->bindValue(':complemento', $complemento);
                 if ($stmt_prod->execute()) {
                     $registros_importados++;
                 } else {
@@ -168,10 +163,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Redirecionar com mensagem
-    if ($sucesso && $comum_id) {
+    if ($sucesso && !empty($comum_processado_id)) {
         $_SESSION['mensagem'] = $mensagem;
         $_SESSION['tipo_mensagem'] = 'success';
-        header('Location: ../../app/views/comuns/listar-planilhas.php?comum_id=' . $comum_id);
+        header('Location: ../../app/views/comuns/listar-planilhas.php?comum_id=' . (int)$comum_processado_id);
         exit;
     }
 }
