@@ -75,15 +75,16 @@ try {
 try {
     // Buscar dependências originais + dependências editadas
     $sql_dependencias = "
-        SELECT DISTINCT dependencia FROM produtos WHERE id_planilha = :id_planilha
+        SELECT DISTINCT dependencia FROM produtos WHERE id_planilha = :id_planilha1
         UNION
         SELECT DISTINCT pc.dependencia FROM produtos_check pc
         INNER JOIN produtos p ON pc.produto_id = p.id
-        WHERE p.id_planilha = :id_planilha AND pc.editado = 1 AND pc.dependencia IS NOT NULL
+        WHERE p.id_planilha = :id_planilha2 AND pc.editado = 1 AND pc.dependencia IS NOT NULL
         ORDER BY dependencia
     ";
     $stmt_dependencias = $conexao->prepare($sql_dependencias);
-    $stmt_dependencias->bindValue(':id_planilha', $id_planilha);
+    $stmt_dependencias->bindValue(':id_planilha1', $id_planilha);
+    $stmt_dependencias->bindValue(':id_planilha2', $id_planilha);
     $stmt_dependencias->execute();
     $dependencia_options = $stmt_dependencias->fetchAll(PDO::FETCH_COLUMN);
 } catch (Exception $e) { $dependencia_options = []; }
