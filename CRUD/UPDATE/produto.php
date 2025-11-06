@@ -46,7 +46,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $tipo_ben = $_POST['tipo_ben'] ?? '';
     $complemento = $_POST['complemento'] ?? '';
     $id_dependencia = $_POST['id_dependencia'] ?? '';
-    $quantidade = $_POST['quantidade'] ?? 1;
     $condicao_141 = isset($_POST['condicao_141']) && in_array($_POST['condicao_141'], ['1','2','3'], true) ? (int)$_POST['condicao_141'] : null;
     
     // Campos de nota: aceitar quando condicao_141 = 1 ou 3 (ambas exigem nota fiscal anexa)
@@ -81,10 +80,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     if (empty($id_dependencia)) {
         $erros[] = "A dependência é obrigatória";
-    }
-    
-    if (empty($quantidade) || $quantidade < 1) {
-        $erros[] = "A quantidade deve ser pelo menos 1";
     }
     
     // Validações da nota quando condicao_141 = 1 ou 3 (ambas exigem nota fiscal anexa)
@@ -124,8 +119,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt_dep->execute();
             $dependencia = $stmt_dep->fetch();
             
-            // Montar descrição completa
-            $descricao_completa = $quantidade . "x [" . $tipo_bem['codigo'] . " - " . $tipo_bem['descricao'] . "] " . $tipo_ben . " - " . $complemento . " - (" . $dependencia['descricao'] . ")";
+            // Montar descrição completa (mantendo quantidade = 1)
+            $descricao_completa = "1x [" . $tipo_bem['codigo'] . " - " . $tipo_bem['descricao'] . "] " . $tipo_ben . " - " . $complemento . " - (" . $dependencia['descricao'] . ")";
             
             $sql_atualizar = "UPDATE produtos_cadastro 
                              SET codigo = :codigo,
@@ -133,7 +128,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                  tipo_ben = :tipo_ben,
                                  complemento = :complemento,
                                  id_dependencia = :id_dependencia,
-                                 quantidade = :quantidade,
                                  descricao_completa = :descricao_completa,
                                  numero_nota = :numero_nota,
                                  data_emissao = :data_emissao,
@@ -149,7 +143,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt_atualizar->bindValue(':tipo_ben', $tipo_ben);
             $stmt_atualizar->bindValue(':complemento', $complemento);
             $stmt_atualizar->bindValue(':id_dependencia', $id_dependencia);
-            $stmt_atualizar->bindValue(':quantidade', $quantidade);
             $stmt_atualizar->bindValue(':descricao_completa', $descricao_completa);
             $stmt_atualizar->bindValue(':numero_nota', $numero_nota);
             $stmt_atualizar->bindValue(':data_emissao', $data_emissao);

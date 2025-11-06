@@ -41,12 +41,6 @@ ob_start();
       </div>
 
       <div class="mb-3">
-        <label for="quantidade" class="form-label">Quantidade</label>
-        <input type="number" id="quantidade" name="quantidade" class="form-control" min="1" value="<?php echo htmlspecialchars($produto['quantidade'] ?? '1'); ?>" required>
-        <div class="invalid-feedback">Informe a quantidade.</div>
-      </div>
-
-      <div class="mb-3">
         <label for="id_tipo_ben" class="form-label">Tipos de Bens</label>
         <select id="id_tipo_ben" name="id_tipo_ben" class="form-select" required>
           <option value="">Selecione um tipo de bem</option>
