@@ -267,21 +267,89 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 // 3) Extrair BEN e COMPLEMENTO do restante
-                // Estratégia: separar sempre por " - "
-                // BEN = parte antes do primeiro " - "
-                // COMPLEMENTO = parte depois do primeiro " - "
+                // Estratégia inteligente:
+                // 1. Se tem " - ", separa: antes = BEN, depois = COMPLEMENTO
+                // 2. Se não tem " - ", procura qual alias do tipo aparece no início (BEN) e o resto é COMPLEMENTO
                 $ben = '';
                 $complemento_limpo = '';
                 $texto_restante = trim($texto);
 
-                // Separar por " - " (padrão: BEN - COMPLEMENTO)
+                // Primeiro tenta separar por " - " (padrão: BEN - COMPLEMENTO)
                 if (preg_match('/^(.+?)\s+\-\s+(.+)$/u', $texto_restante, $match)) {
                     $ben = trim($match[1]);
                     $complemento_limpo = trim($match[2]);
                 } else {
-                    // Não tem " - ", então tudo é BEN
-                    $ben = $texto_restante;
-                    $complemento_limpo = '';
+                    // Não tem " - ", então tenta detectar BEN pelos aliases do tipo de bem
+                    $ben_detectado = false;
+                    
+                    if ($tipo_ben_id > 0) {
+                        // Procurar o tipo de bem correspondente
+                        $tipo_atual = null;
+                        foreach ($tipos_aliases as $tb) {
+                            if ((int)$tb['id'] === $tipo_ben_id) {
+                                $tipo_atual = $tb;
+                                break;
+                            }
+                        }
+
+                        if ($tipo_atual) {
+                            // Normalizar o texto restante para matching
+                            $texto_rest_norm = $normaliza($texto_restante);
+                            
+                            // Procurar o alias mais longo que casa no início
+                            $melhor_alias = null;
+                            $melhor_len_norm = 0;
+                            
+                            foreach ($tipo_atual['aliases'] as $alias_norm) {
+                                if ($alias_norm !== '' && strpos($texto_rest_norm, $alias_norm) === 0) {
+                                    $len = strlen($alias_norm);
+                                    if ($len > $melhor_len_norm) {
+                                        $melhor_len_norm = $len;
+                                        $melhor_alias = $alias_norm;
+                                    }
+                                }
+                            }
+
+                            if ($melhor_alias !== null) {
+                                // Encontrar no texto original (case-preserving)
+                                // Extrair a parte do texto original que corresponde ao alias normalizado
+                                $ben_len_original = 0;
+                                $texto_temp = $texto_restante;
+                                
+                                // Percorre caractere por caractere comparando normalizado
+                                for ($i = 0; $i < strlen($texto_temp); $i++) {
+                                    $parte = substr($texto_temp, 0, $i + 1);
+                                    $parte_norm = $normaliza($parte);
+                                    
+                                    if ($parte_norm === $melhor_alias) {
+                                        $ben_len_original = $i + 1;
+                                        break;
+                                    }
+                                    
+                                    // Se passou do tamanho, para
+                                    if (strlen($parte_norm) > strlen($melhor_alias)) {
+                                        break;
+                                    }
+                                }
+
+                                if ($ben_len_original > 0) {
+                                    $ben = trim(substr($texto_restante, 0, $ben_len_original));
+                                    $resto = trim(substr($texto_restante, $ben_len_original));
+                                    
+                                    // Remove separadores opcionais no início do resto (espaço, -, /, etc)
+                                    $resto = preg_replace('/^[\s\-–—\/]+/u', '', $resto);
+                                    $complemento_limpo = trim($resto);
+                                    $ben_detectado = true;
+                                }
+                            }
+                        }
+                    }
+
+                    // Se não detectou BEN pelos aliases, tudo vira BEN
+                    if (!$ben_detectado) {
+                        $ben = $texto_restante;
+                        $complemento_limpo = '';
+                    }
                 }
 
                 // Normalizar espaços e caixa para persistência (BEN e complemento em Maiúsculas como padrão)
