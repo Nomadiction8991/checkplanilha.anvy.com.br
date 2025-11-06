@@ -238,7 +238,6 @@ ob_start();
                                     <option value="observacao" <?php echo ($filtro_status ?? '')==='observacao'?'selected':''; ?>>Com Observação</option>
                                     <option value="etiqueta" <?php echo ($filtro_status ?? '')==='etiqueta'?'selected':''; ?>>Etiqueta para Imprimir</option>
                                     <option value="pendente" <?php echo ($filtro_status ?? '')==='pendente'?'selected':''; ?>>Pendentes</option>
-                                    <option value="dr" <?php echo ($filtro_status ?? '')==='dr'?'selected':''; ?>>No DR</option>
                                     <option value="editado" <?php echo ($filtro_status ?? '')==='editado'?'selected':''; ?>>Editados</option>
                                 </select>
                             </div>
@@ -289,13 +288,11 @@ ob_start();
                 $classe = '';
                 $tem_edicao = $p['editado'] == 1;
                 
-                if ($p['dr'] == 1) {
-                    $classe = 'linha-dr';
-                } elseif ($p['imprimir'] == 1 && $p['checado'] == 1) {
+                if ($p['imprimir'] == 1 && $p['checado'] == 1) {
                     $classe = 'linha-imprimir';
                 } elseif ($p['checado'] == 1) {
                     $classe = 'linha-checado';
-                } elseif (!empty($p['observacoes'])) {
+                } elseif (!empty($p['observacao'])) {
                     $classe = 'linha-observacao';
                 } elseif ($tem_edicao) {
                     $classe = 'linha-editado';
@@ -304,12 +301,11 @@ ob_start();
                 }
                 
                 // Determinar quais botões mostrar
-                // Regra do botão de check: NÃO mostrar quando imprimir=1, editado=1 ou dr=1; caso contrário, mostrar
-                $show_check = !($p['imprimir'] == 1 || $p['editado'] == 1 || $p['dr'] == 1);
-                $show_imprimir = ($p['checado'] == 1 && $p['dr'] == 0 && $p['editado'] == 0);
-                $show_dr = !($p['checado'] == 1 || $p['imprimir'] == 1 || $p['editado'] == 1);
-                $show_obs = ($p['dr'] == 0);
-                $show_edit = ($p['checado'] == 0 && $p['dr'] == 0);
+                // Regra do botão de check: NÃO mostrar quando imprimir=1 ou editado=1; caso contrário, mostrar
+                $show_check = !($p['imprimir'] == 1 || $p['editado'] == 1);
+                $show_imprimir = ($p['checado'] == 1 && $p['editado'] == 0);
+                $show_obs = true; // Sempre mostrar observação
+                $show_edit = ($p['checado'] == 0);
             ?>
             <div class="list-group-item <?php echo $classe; ?>">
                 <!-- Código -->
@@ -321,23 +317,23 @@ ob_start();
                 <?php if ($tem_edicao): ?>
                 <div class="edicao-pendente">
                     <strong>✍ Edição pendente:</strong><br>
-                    <?php if (!empty($p['nome_editado'])): ?>
-                        <strong>Nome:</strong> <?php echo htmlspecialchars($p['nome_editado']); ?><br>
+                    <?php if (!empty($p['editado_descricao_completa'])): ?>
+                        <strong>Nome:</strong> <?php echo htmlspecialchars($p['editado_descricao_completa']); ?><br>
                     <?php endif; ?>
-                    <?php if (!empty($p['dependencia_editada'])): ?>
-                        <strong>Dep:</strong> <?php echo htmlspecialchars($p['dependencia_editada']); ?>
+                    <?php if (!empty($p['editado_dependencia_id'])): ?>
+                        <strong>Dep ID:</strong> <?php echo htmlspecialchars($p['editado_dependencia_id']); ?>
                     <?php endif; ?>
                 </div>
                 <?php endif; ?>
                 
                 <!-- Informações -->
                 <div class="info-produto">
-                    <strong>Nome:</strong> <?php echo htmlspecialchars($p['nome']); ?><br>
-                    <?php if (!empty($p['dependencia'])): ?>
-                    <strong>Dep:</strong> <?php echo htmlspecialchars($p['dependencia']); ?><br>
+                    <strong>Nome:</strong> <?php echo htmlspecialchars($p['descricao_completa']); ?><br>
+                    <?php if (!empty($p['dependencia_id'])): ?>
+                    <strong>Dep ID:</strong> <?php echo htmlspecialchars($p['dependencia_id']); ?><br>
                     <?php endif; ?>
-                    <?php if (!empty($p['observacoes'])): ?>
-                    <strong>Obs:</strong> <?php echo htmlspecialchars($p['observacoes']); ?><br>
+                    <?php if (!empty($p['observacao'])): ?>
+                    <strong>Obs:</strong> <?php echo htmlspecialchars($p['observacao']); ?><br>
                     <?php endif; ?>
                 </div>
                 
@@ -346,7 +342,7 @@ ob_start();
                     <!-- Check -->
                     <?php if ($show_check): ?>
                     <form method="POST" action="./check-produto.php" style="display: inline;" class="check-form">
-                        <input type="hidden" name="produto_id" value="<?php echo $p['id']; ?>">
+                        <input type="hidden" name="produto_id" value="<?php echo $p['id_produto']; ?>">
                         <input type="hidden" name="id_planilha" value="<?php echo $id_planilha; ?>">
                         <input type="hidden" name="checado" value="<?php echo $p['checado'] ? '0' : '1'; ?>">
                         <input type="hidden" name="pagina" value="<?php echo $pagina ?? 1; ?>">
@@ -362,27 +358,10 @@ ob_start();
                     <!-- DEBUG: show_check é FALSE -->
                     <?php endif; ?>
                     
-                    <!-- DR -->
-                    <?php if ($show_dr): ?>
-                    <form method="POST" action="../../../CRUD/UPDATE/dr-produto.php" style="display: inline;" onsubmit="return confirmarDR(this, <?php echo $p['dr']; ?>)">
-                        <input type="hidden" name="produto_id" value="<?php echo $p['id']; ?>">
-                        <input type="hidden" name="id_planilha" value="<?php echo $id_planilha; ?>">
-                        <input type="hidden" name="dr" value="<?php echo $p['dr'] ? '0' : '1'; ?>">
-                        <input type="hidden" name="pagina" value="<?php echo $pagina ?? 1; ?>">
-                        <input type="hidden" name="nome" value="<?php echo htmlspecialchars($filtro_nome ?? ''); ?>">
-                        <input type="hidden" name="dependencia" value="<?php echo htmlspecialchars($filtro_dependencia ?? ''); ?>">
-                        <input type="hidden" name="codigo" value="<?php echo htmlspecialchars($filtro_codigo ?? ''); ?>">
-                        <input type="hidden" name="status" value="<?php echo htmlspecialchars($filtro_status ?? ''); ?>">
-                        <button type="submit" class="btn-acao btn-dr <?php echo $p['dr'] == 1 ? 'active' : ''; ?>" title="DR">
-                            <i class="bi bi-bookmark-fill" style="color: #dc3545; font-size: 24px;"></i>
-                        </button>
-                    </form>
-                    <?php endif; ?>
-                    
                     <!-- Etiqueta -->
                     <?php if ($show_imprimir): ?>
                     <form method="POST" action="../../../CRUD/UPDATE/etiqueta-produto.php" style="display: inline;" onsubmit="return confirmarImprimir(this, <?php echo $p['imprimir']; ?>)">
-                        <input type="hidden" name="produto_id" value="<?php echo $p['id']; ?>">
+                        <input type="hidden" name="produto_id" value="<?php echo $p['id_produto']; ?>">
                         <input type="hidden" name="id_planilha" value="<?php echo $id_planilha; ?>">
                         <input type="hidden" name="imprimir" value="<?php echo $p['imprimir'] ? '0' : '1'; ?>">
                         <input type="hidden" name="pagina" value="<?php echo $pagina ?? 1; ?>">
@@ -398,15 +377,15 @@ ob_start();
                     
                     <!-- Observação -->
                     <?php if ($show_obs): ?>
-                    <a href="../produtos/observacao-produto.php?id_produto=<?php echo $p['id']; ?>&id=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina ?? 1; ?>&nome=<?php echo urlencode($filtro_nome ?? ''); ?>&dependencia=<?php echo urlencode($filtro_dependencia ?? ''); ?>&filtro_codigo=<?php echo urlencode($filtro_codigo ?? ''); ?>&status=<?php echo urlencode($filtro_status ?? ''); ?>"
-                       class="btn-acao btn-observacao <?php echo !empty($p['observacoes']) ? 'active' : ''; ?>" title="Observação">
+                    <a href="../produtos/observacao-produto.php?id_produto=<?php echo $p['id_produto']; ?>&id=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina ?? 1; ?>&nome=<?php echo urlencode($filtro_nome ?? ''); ?>&dependencia=<?php echo urlencode($filtro_dependencia ?? ''); ?>&filtro_codigo=<?php echo urlencode($filtro_codigo ?? ''); ?>&status=<?php echo urlencode($filtro_status ?? ''); ?>"
+                       class="btn-acao btn-observacao <?php echo !empty($p['observacao']) ? 'active' : ''; ?>" title="Observação">
                         <i class="bi bi-chat-square-text-fill" style="color: #ff9800; font-size: 24px;"></i>
                     </a>
                     <?php endif; ?>
                     
                     <!-- Editar -->
                     <?php if ($show_edit): ?>
-                    <a href="../produtos/editar-produto.php?id_produto=<?php echo $p['id']; ?>&id=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina ?? 1; ?>&nome=<?php echo urlencode($filtro_nome ?? ''); ?>&dependencia=<?php echo urlencode($filtro_dependencia ?? ''); ?>&filtro_codigo=<?php echo urlencode($filtro_codigo ?? ''); ?>&status=<?php echo urlencode($filtro_status ?? ''); ?>"
+                    <a href="../produtos/editar-produto.php?id_produto=<?php echo $p['id_produto']; ?>&id=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina ?? 1; ?>&nome=<?php echo urlencode($filtro_nome ?? ''); ?>&dependencia=<?php echo urlencode($filtro_dependencia ?? ''); ?>&filtro_codigo=<?php echo urlencode($filtro_codigo ?? ''); ?>&status=<?php echo urlencode($filtro_status ?? ''); ?>"
                        class="btn-acao btn-editar <?php echo $tem_edicao ? 'active' : ''; ?>" title="Editar">
                         <i class="bi bi-pencil-fill" style="color: #9c27b0; font-size: 24px;"></i>
                     </a>
