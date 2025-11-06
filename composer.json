@@ -3,6 +3,7 @@
         "phpoffice/phpspreadsheet": "^5.1",
         "setasign/fpdf": "^1.8",
         "setasign/fpdi": "^2.6",
-        "voku/portable-ascii": "^2.0"
+        "voku/portable-ascii": "^2.0",
+        "symfony/string": "^6.4"
     }
 }

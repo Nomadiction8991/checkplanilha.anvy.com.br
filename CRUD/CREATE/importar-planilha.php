@@ -5,6 +5,7 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/../../app/functions/comum_functions.php';
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use Symfony\Component\String\UnicodeString;
 
 // Redirecionamento após sucesso
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -269,7 +270,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // 3) Extrair BEN e COMPLEMENTO do restante
                 // Estratégia inteligente:
                 // 1. Se tem " - ", separa: antes = BEN, depois = COMPLEMENTO
-                // 2. Se não tem " - ", procura qual alias do tipo aparece no início (BEN) e o resto é COMPLEMENTO
+                // 2. Se não tem " - ", procura qual alias individual (separados por /) do tipo aparece no início
                 $ben = '';
                 $complemento_limpo = '';
                 $texto_restante = trim($texto);
@@ -279,11 +280,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $ben = trim($match[1]);
                     $complemento_limpo = trim($match[2]);
                 } else {
-                    // Não tem " - ", então tenta detectar BEN pelos aliases do tipo de bem
+                    // Não tem " - ", tenta detectar BEN pelos aliases individuais do tipo
                     $ben_detectado = false;
                     
                     if ($tipo_ben_id > 0) {
-                        // Procurar o tipo de bem correspondente
+                        // Encontrar o tipo correspondente
                         $tipo_atual = null;
                         foreach ($tipos_aliases as $tb) {
                             if ((int)$tb['id'] === $tipo_ben_id) {
@@ -293,59 +294,85 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         }
 
                         if ($tipo_atual) {
-                            // Normalizar o texto restante para matching
                             $texto_rest_norm = $normaliza($texto_restante);
+                            $resto_trabalho = $texto_restante;
+                            $resto_trabalho_norm = $texto_rest_norm;
                             
-                            // Procurar o alias mais longo que casa no início
-                            $melhor_alias = null;
-                            $melhor_len_norm = 0;
+                            // Primeiro: identificar e guardar o BEN (primeiro alias que casa)
+                            $melhor_match_ben = null;
+                            $melhor_len_ben = 0;
                             
                             foreach ($tipo_atual['aliases'] as $alias_norm) {
-                                if ($alias_norm !== '' && strpos($texto_rest_norm, $alias_norm) === 0) {
+                                if ($alias_norm === '') continue;
+                                if (strpos($resto_trabalho_norm, $alias_norm) === 0) {
                                     $len = strlen($alias_norm);
-                                    if ($len > $melhor_len_norm) {
-                                        $melhor_len_norm = $len;
-                                        $melhor_alias = $alias_norm;
+                                    if ($len > $melhor_len_ben) {
+                                        $melhor_len_ben = $len;
+                                        $melhor_match_ben = $alias_norm;
                                     }
                                 }
                             }
 
-                            if ($melhor_alias !== null) {
-                                // Encontrar no texto original (case-preserving)
-                                // Extrair a parte do texto original que corresponde ao alias normalizado
-                                $ben_len_original = 0;
-                                $texto_temp = $texto_restante;
-                                
-                                // Percorre caractere por caractere comparando normalizado
-                                for ($i = 0; $i < strlen($texto_temp); $i++) {
-                                    $parte = substr($texto_temp, 0, $i + 1);
-                                    $parte_norm = $normaliza($parte);
-                                    
-                                    if ($parte_norm === $melhor_alias) {
-                                        $ben_len_original = $i + 1;
-                                        break;
-                                    }
-                                    
-                                    // Se passou do tamanho, para
-                                    if (strlen($parte_norm) > strlen($melhor_alias)) {
+                            if ($melhor_match_ben !== null) {
+                                // Extrair BEN do texto original preservando caixa
+                                $ben_chars = 0;
+                                for ($i = 0; $i < mb_strlen($resto_trabalho); $i++) {
+                                    $parte = mb_substr($resto_trabalho, 0, $i + 1);
+                                    if ($normaliza($parte) === $melhor_match_ben) {
+                                        $ben_chars = $i + 1;
                                         break;
                                     }
                                 }
 
-                                if ($ben_len_original > 0) {
-                                    $ben = trim(substr($texto_restante, 0, $ben_len_original));
-                                    $resto = trim(substr($texto_restante, $ben_len_original));
+                                if ($ben_chars > 0) {
+                                    $ben = trim(mb_substr($resto_trabalho, 0, $ben_chars));
+                                    $resto_trabalho = trim(mb_substr($resto_trabalho, $ben_chars));
+                                    $resto_trabalho_norm = $normaliza($resto_trabalho);
                                     
-                                    // Remove separadores opcionais no início do resto (espaço, -, /, etc)
-                                    $resto = preg_replace('/^[\s\-–—\/]+/u', '', $resto);
-                                    $complemento_limpo = trim($resto);
+                                    // Segundo: remover TODOS os outros aliases do tipo que aparecerem no início
+                                    $continua_removendo = true;
+                                    while ($continua_removendo) {
+                                        $continua_removendo = false;
+                                        
+                                        // Remove separadores opcionais
+                                        $resto_trabalho = preg_replace('/^[\s\-–—\/]+/u', '', $resto_trabalho);
+                                        $resto_trabalho_norm = $normaliza($resto_trabalho);
+                                        
+                                        // Tenta encontrar outro alias no início
+                                        foreach ($tipo_atual['aliases'] as $alias_norm) {
+                                            if ($alias_norm === '' || $alias_norm === $melhor_match_ben) continue;
+                                            
+                                            if (strpos($resto_trabalho_norm, $alias_norm) === 0) {
+                                                // Encontrou outro alias, remover
+                                                $alias_chars = 0;
+                                                for ($i = 0; $i < mb_strlen($resto_trabalho); $i++) {
+                                                    $parte = mb_substr($resto_trabalho, 0, $i + 1);
+                                                    if ($normaliza($parte) === $alias_norm) {
+                                                        $alias_chars = $i + 1;
+                                                        break;
+                                                    }
+                                                }
+                                                
+                                                if ($alias_chars > 0) {
+                                                    $resto_trabalho = trim(mb_substr($resto_trabalho, $alias_chars));
+                                                    $resto_trabalho_norm = $normaliza($resto_trabalho);
+                                                    $continua_removendo = true;
+                                                    break; // Reinicia o loop while
+                                                }
+                                            }
+                                        }
+                                    }
+                                    
+                                    // Remove separadores finais
+                                    $resto_trabalho = preg_replace('/^[\s\-–—\/]+/u', '', $resto_trabalho);
+                                    $complemento_limpo = trim($resto_trabalho);
                                     $ben_detectado = true;
                                 }
                             }
                         }
                     }
 
-                    // Se não detectou BEN pelos aliases, tudo vira BEN
+                    // Fallback: se não detectou, tudo vira BEN
                     if (!$ben_detectado) {
                         $ben = $texto_restante;
                         $complemento_limpo = '';
