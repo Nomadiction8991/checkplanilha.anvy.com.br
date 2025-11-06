@@ -2,8 +2,8 @@
 
 return [
     // 'space' = sem hifens entre partes; 'hyphen' = usa ' - ' entre BEN e COMPLEMENTO
-    'description_format' => 'space',
-    'remove_hyphens' => true,
+    'description_format' => 'hyphen',
+    'remove_hyphens' => false,
 
     // Regras por tipo: chave é a descrição do tipo (como em tipos_bens.descricao)
     'synonyms' => [

@@ -188,12 +188,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $tipo_ben_id = (int)$tipo_detectado['id'];
                 $tipo_ben_codigo = $tipo_detectado['codigo'];
                 $tipo_bem_desc = $tipo_detectado['descricao'];
-                // 3) Extrair BEN e COMPLEMENTO
-                [$ben_raw, $comp_raw] = pp_extrair_ben_complemento($texto_pos_tipo, $tipo_ben_id ? $tipo_detectado['alias_usado'] ? $tipo_detectado['alias_usado'] : $tipo_detectado['descricao'] : null);
-                // Caso acima passou aliases errados (string); precisamos passar array de aliases do tipo se existir
+                // 3) Extrair BEN e COMPLEMENTO usando aliases do tipo (se disponível)
+                $aliases_tipo_atual = null;
                 if ($tipo_ben_id) {
-                    foreach ($tipos_aliases as $tbTmp) { if ($tbTmp['id'] === $tipo_ben_id) { [$ben_raw, $comp_raw] = pp_extrair_ben_complemento($texto_pos_tipo, $tbTmp['aliases']); break; } }
+                    foreach ($tipos_aliases as $tbTmp) { if ($tbTmp['id'] === $tipo_ben_id) { $aliases_tipo_atual = $tbTmp['aliases']; break; } }
                 }
+                [$ben_raw, $comp_raw] = pp_extrair_ben_complemento($texto_pos_tipo, $aliases_tipo_atual ?: []);
                 $ben = strtoupper(preg_replace('/\s+/', ' ', $ben_raw));
                 $complemento_limpo = strtoupper(preg_replace('/\s+/', ' ', $comp_raw));
                 if ($ben === '' && $complemento_limpo === '') {
@@ -204,6 +204,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $complemento_limpo = pp_remover_ben_do_complemento($ben, $complemento_limpo);
                 // Aplicar sinônimos conforme config
                 [$ben, $complemento_limpo] = pp_aplicar_sinonimos($ben, $complemento_limpo, $tipo_bem_desc, $pp_config);
+                // Ajustar BEN para ser um alias válido do tipo, se possível
+                if ($tipo_ben_id > 0) {
+                    $ben = pp_forcar_ben_em_aliases($ben, $tipo_bem_desc, $tipo_detectado['alias_usado'] ?? null);
+                }
                 // 4) Encontrar dependência
                 $dependencia_id = 0;
                 $dep_key = pp_normaliza($dependencia_original);

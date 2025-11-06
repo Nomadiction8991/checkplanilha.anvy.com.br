@@ -190,7 +190,44 @@ function pp_aplicar_sinonimos($ben, $complemento, $tipo_desc, array $config) {
     return [$ben, $complemento];
 }
 
+function pp_forcar_ben_em_aliases($ben, $tipo_desc, $alias_usado = null) {
+    // Garantir que o BEN seja uma das opções listadas em tipos_bens.descricao (separadas por '/')
+    // Compara por forma normalizada, mas retorna a forma em caixa alta como aparece na descrição do tipo
+    $tokens = array_map('trim', preg_split('/\s*\/\s*/', (string)$tipo_desc));
+    $tokens_upper = array_map(function($t){ return strtoupper($t); }, $tokens);
+    $tokens_norm = array_map('pp_normaliza', $tokens);
+    $ben_norm = pp_normaliza($ben);
+
+    // 1) Se BEN já pertence aos aliases por normalização, retorna o token correspondente (em upper)
+    foreach ($tokens_norm as $i => $t_norm) {
+        if ($t_norm !== '' && $t_norm === $ben_norm) {
+            return $tokens_upper[$i];
+        }
+    }
+    // 2) Se alias_usado existir, tentar mapear para um dos tokens
+    if (!empty($alias_usado)) {
+        $alias_norm = pp_normaliza($alias_usado);
+        foreach ($tokens_norm as $i => $t_norm) {
+            if ($t_norm !== '' && $t_norm === $alias_norm) {
+                return $tokens_upper[$i];
+            }
+        }
+    }
+    // 3) Fallback: primeiro token válido; se vazio, mantém o BEN em upper
+    foreach ($tokens_upper as $tok) {
+        if (trim($tok) !== '') return strtoupper($tok);
+    }
+    return strtoupper($ben);
+}
+
 function pp_montar_descricao($qtd, $tipo_codigo, $tipo_desc, $ben, $comp, $dep, array $config) {
+    // Formato desejado: 1x [CODIGO - DESCRICAO] BEN - COMPLEMENTO(DEPENDENCIA)
+    // Regras:
+    // - Quantidade sempre '1x'
+    // - Tipo dentro de [] usando 'CODIGO - DESCRICAO' ou '?' se desconhecido
+    // - BEN sempre uma das opções (aliases) do tipo; se não casar, mantém valor original normalizado
+    // - Separador entre BEN e COMPLEMENTO: ' - '
+    // - Dependência imediatamente após COMPLEMENTO sem espaço antes de '(', e sem hífen antes dos parênteses
     $brackets = '?';
     if (!empty($tipo_codigo) && !empty($tipo_desc)) {
         $brackets = sprintf('%d - %s', (int)$tipo_codigo, strtoupper($tipo_desc));
@@ -199,11 +236,13 @@ function pp_montar_descricao($qtd, $tipo_codigo, $tipo_desc, $ben, $comp, $dep, 
     $comp = strtoupper(trim($comp));
     $dep = strtoupper(trim((string)$dep));
     $desc = sprintf('%dx [%s] %s', (int)$qtd, $brackets, $ben !== '' ? $ben : 'SEM DESCRICAO');
-    $use_hyphen = empty($config['remove_hyphens']) && (isset($config['description_format']) && $config['description_format'] === 'hyphen');
     if ($comp !== '') {
-        $desc .= $use_hyphen ? ' - ' . $comp : ' ' . $comp;
+        $desc .= ' - ' . $comp;
     }
-    if ($dep !== '') { $desc .= $use_hyphen ? ' - (' . $dep . ')' : ' (' . $dep . ')'; }
+    if ($dep !== '') {
+        // adicionar espaço antes da dependência (sem hífen)
+        $desc .= ' (' . $dep . ')';
+    }
     return $desc;
 }
 
