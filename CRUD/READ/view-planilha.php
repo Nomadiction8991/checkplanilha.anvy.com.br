@@ -45,35 +45,36 @@ $filtro_dependencia = trim($_GET['dependencia'] ?? '');
 $filtro_codigo = trim($_GET['codigo'] ?? '');
 $filtro_status = trim($_GET['status'] ?? '');
 
-// Query base usando apenas a nova tabela de produtos
+// Query base usando a tabela produtos com as colunas REAIS do servidor
 $sql_base = "SELECT 
-                p.id,
+                p.id_produto,
                 p.codigo,
-                p.nome,
-                p.nome_editado,
-                p.dependencia,
-                p.dependencia_editada,
-                p.observacoes,
+                p.descricao_completa,
+                p.editado_descricao_completa,
+                p.complemento,
+                p.editado_complemento,
+                p.ben,
+                p.editado_ben,
+                p.dependencia_id,
+                p.editado_dependencia_id,
+                p.observacao,
                 COALESCE(p.checado, 0) AS checado,
-                COALESCE(p.dr, 0) AS dr,
-                COALESCE(p.imprimir, 0) AS imprimir,
-                COALESCE(p.editado, 0) AS editado
+                COALESCE(p.editado, 0) AS editado,
+                COALESCE(p.imprimir_etiqueta, 0) AS imprimir,
+                COALESCE(p.imprimir_14_1, 0) AS imprimir_141
              FROM produtos p
              WHERE p.planilha_id = :id_planilha";
 
 $params = [':id_planilha' => $id_planilha];
 
 if ($filtro_nome !== '') {
-    $sql_base .= " AND (p.nome LIKE :nome OR p.nome_editado LIKE :nome)";
+    $sql_base .= " AND (p.descricao_completa LIKE :nome OR p.editado_descricao_completa LIKE :nome)";
     $params[':nome'] = '%' . $filtro_nome . '%';
 }
 
 if ($filtro_dependencia !== '') {
-    // Considera tanto a dependência original quanto uma possível edição pendente
-    $sql_base .= " AND (
-        p.dependencia LIKE :dependencia OR
-        p.dependencia_editada LIKE :dependencia
-    )";
+    // Filtra por dependencia_id (considerar tanto original quanto editado)
+    $sql_base .= " AND (p.dependencia_id LIKE :dependencia OR p.editado_dependencia_id LIKE :dependencia)";
     $params[':dependencia'] = '%' . $filtro_dependencia . '%';
 }
 
@@ -89,20 +90,16 @@ if ($filtro_status !== '') {
             $sql_base .= " AND COALESCE(p.checado, 0) = 1";
             break;
         case 'observacao':
-            $sql_base .= " AND (p.observacoes IS NOT NULL AND p.observacoes <> '')";
+            $sql_base .= " AND (p.observacao IS NOT NULL AND p.observacao <> '')";
             break;
         case 'etiqueta':
-            $sql_base .= " AND COALESCE(p.imprimir, 0) = 1";
+            $sql_base .= " AND COALESCE(p.imprimir_etiqueta, 0) = 1";
             break;
         case 'pendente':
             $sql_base .= " AND (COALESCE(p.checado, 0) = 0
-                                 AND (p.observacoes IS NULL OR p.observacoes = '')
-                                 AND COALESCE(p.dr, 0) = 0
-                                 AND COALESCE(p.imprimir, 0) = 0
+                                 AND (p.observacao IS NULL OR p.observacao = '')
+                                 AND COALESCE(p.imprimir_etiqueta, 0) = 0
                                  AND COALESCE(p.editado, 0) = 0)";
-            break;
-        case 'dr':
-            $sql_base .= " AND COALESCE(p.dr, 0) = 1";
             break;
         case 'editado':
             $sql_base .= " AND COALESCE(p.editado, 0) = 1";
@@ -117,10 +114,10 @@ $sql_count = "SELECT COUNT(*) AS total
 
 // Aplicar os mesmos filtros do $sql_base na query de contagem
 if ($filtro_nome !== '') {
-    $sql_count .= " AND (p.nome LIKE :nome OR p.nome_editado LIKE :nome)";
+    $sql_count .= " AND (p.descricao_completa LIKE :nome OR p.editado_descricao_completa LIKE :nome)";
 }
 if ($filtro_dependencia !== '') {
-    $sql_count .= " AND (p.dependencia LIKE :dependencia OR p.dependencia_editada LIKE :dependencia)";
+    $sql_count .= " AND (p.dependencia_id LIKE :dependencia OR p.editado_dependencia_id LIKE :dependencia)";
 }
 if ($filtro_codigo !== '') {
     $sql_count .= " AND REPLACE(REPLACE(REPLACE(p.codigo, ' ', ''), '-', ''), '/', '') LIKE :codigo";
@@ -131,20 +128,16 @@ if ($filtro_status !== '') {
             $sql_count .= " AND COALESCE(p.checado, 0) = 1";
             break;
         case 'observacao':
-            $sql_count .= " AND (p.observacoes IS NOT NULL AND p.observacoes <> '')";
+            $sql_count .= " AND (p.observacao IS NOT NULL AND p.observacao <> '')";
             break;
         case 'etiqueta':
-            $sql_count .= " AND COALESCE(p.imprimir, 0) = 1";
+            $sql_count .= " AND COALESCE(p.imprimir_etiqueta, 0) = 1";
             break;
         case 'pendente':
             $sql_count .= " AND (COALESCE(p.checado, 0) = 0
-                                 AND (p.observacoes IS NULL OR p.observacoes = '')
-                                 AND COALESCE(p.dr, 0) = 0
-                                 AND COALESCE(p.imprimir, 0) = 0
+                                 AND (p.observacao IS NULL OR p.observacao = '')
+                                 AND COALESCE(p.imprimir_etiqueta, 0) = 0
                                  AND COALESCE(p.editado, 0) = 0)";
-            break;
-        case 'dr':
-            $sql_count .= " AND COALESCE(p.dr, 0) = 1";
             break;
         case 'editado':
             $sql_count .= " AND COALESCE(p.editado, 0) = 1";
@@ -166,7 +159,7 @@ if ($total_paginas > 0 && $pagina > $total_paginas) {
 }
 
 // Busca efetiva dos produtos com ordenação e limites
-$sql_dados = $sql_base . " ORDER BY p.id DESC LIMIT :limite OFFSET :offset";
+$sql_dados = $sql_base . " ORDER BY p.id_produto DESC LIMIT :limite OFFSET :offset";
 $stmt = $conexao->prepare($sql_dados);
 foreach ($params as $key => $value) {
     $stmt->bindValue($key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
@@ -179,17 +172,17 @@ $produtos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 // Dependências únicas para preencher o select de filtros
 try {
     $sql_filtros = "SELECT DISTINCT dep FROM (
-                        SELECT p.dependencia AS dep
+                        SELECT p.dependencia_id AS dep
                         FROM produtos p
                         WHERE p.planilha_id = :id_dep_original
-                          AND p.dependencia IS NOT NULL
-                          AND p.dependencia <> ''
+                          AND p.dependencia_id IS NOT NULL
+                          AND p.dependencia_id <> 0
                         UNION ALL
-                        SELECT p.dependencia_editada AS dep
+                        SELECT p.editado_dependencia_id AS dep
                         FROM produtos p
                         WHERE p.planilha_id = :id_dep_editada
-                          AND p.dependencia_editada IS NOT NULL
-                          AND p.dependencia_editada <> ''
+                          AND p.editado_dependencia_id IS NOT NULL
+                          AND p.editado_dependencia_id <> 0
                     ) deps
                     ORDER BY dep";
     $stmt_filtros = $conexao->prepare($sql_filtros);
