@@ -64,11 +64,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        // Converter CNPJ
-        $cnpj_limpo = preg_replace('/[^0-9]/', '', $valor_cnpj);
-
-        // Iniciar transação
-        $conexao->beginTransaction();
+    // Converter CNPJ
+    $cnpj_limpo = preg_replace('/[^0-9]/', '', $valor_cnpj);
 
         // Procesar comum e obter ID (pode criar ou atualizar)
         $dados_comum = [
@@ -82,6 +79,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception('Erro ao processar comum.');
         }
 
+        // Carregar todas as linhas e contar candidatas (linhas de produto com código preenchido)
+        $linhas = $aba->toArray();
+        $linha_atual = 0;
+        $registros_candidatos = 0;
+
+        $colunaParaIndice = function($coluna) {
+            $coluna = strtoupper($coluna);
+            $indice = 0;
+            $tamanho = strlen($coluna);
+            for ($i = 0; $i < $tamanho; $i++) {
+                $indice = $indice * 26 + (ord($coluna[$i]) - ord('A') + 1);
+            }
+            return $indice - 1;
+        };
+        $idx_codigo = $colunaParaIndice($mapeamento_codigo);
+        $idx_complemento = $colunaParaIndice($mapeamento_complemento);
+        $idx_dependencia = $colunaParaIndice($mapeamento_dependencia);
+
+        foreach ($linhas as $linha) {
+            $linha_atual++;
+            if ($linha_atual <= $pulo_linhas) { continue; }
+            if (empty(array_filter($linha))) { continue; }
+            $codigo_tmp = isset($linha[$idx_codigo]) ? trim((string)$linha[$idx_codigo]) : '';
+            if ($codigo_tmp !== '') { $registros_candidatos++; }
+        }
+
+        if ($registros_candidatos === 0) {
+            throw new Exception('Nenhuma linha de produto encontrada após o cabeçalho. Verifique o mapeamento de colunas e o número de linhas a pular.');
+        }
+
+        // Iniciar transação apenas para planilha+produtos; dados do Comum já foram persistidos
+        $conexao->beginTransaction();
+
         // Criar nova planilha vinculada ao comum
         $sql_planilha = "INSERT INTO planilhas (comum_id, posicao_cnpj, posicao_comum, posicao_data, pulo_linhas, mapeamento_colunas, data_posicao, ativo) 
                         VALUES (:comum_id, :posicao_cnpj, :posicao_comum, :posicao_data, :pulo_linhas, :mapeamento_colunas, :data_posicao, 1)";
@@ -90,8 +120,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bindValue(':posicao_cnpj', $posicao_cnpj);
         $stmt->bindValue(':posicao_comum', $posicao_comum);
         $stmt->bindValue(':posicao_data', $posicao_data);
-    $stmt->bindValue(':pulo_linhas', $pulo_linhas);
-    $stmt->bindValue(':mapeamento_colunas', "codigo=$mapeamento_codigo;complemento=$mapeamento_complemento;dependencia=$mapeamento_dependencia");
+        $stmt->bindValue(':pulo_linhas', $pulo_linhas);
+        $stmt->bindValue(':mapeamento_colunas', "codigo=$mapeamento_codigo;complemento=$mapeamento_complemento;dependencia=$mapeamento_dependencia");
         $stmt->bindValue(':data_posicao', $data_mysql);
         $stmt->execute();
         $id_planilha = $conexao->lastInsertId();
@@ -119,7 +149,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $str = (string)$str;
             $s = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $str);
             if ($s === false) {
-                return $str; // fallback sem remover acentos
+                return $str;
             }
             return $s;
         };
@@ -152,24 +182,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         unset($dep);
 
         // Processar linhas do CSV
-        $linhas = $aba->toArray();
         $registros_importados = 0;
         $registros_erros = 0;
         $linha_atual = 0;
-
-        function colunaParaIndice($coluna) {
-            $coluna = strtoupper($coluna);
-            $indice = 0;
-            $tamanho = strlen($coluna);
-            for ($i = 0; $i < $tamanho; $i++) {
-                $indice = $indice * 26 + (ord($coluna[$i]) - ord('A') + 1);
-            }
-            return $indice - 1;
-        }
-
-        $idx_codigo = colunaParaIndice($mapeamento_codigo);
-        $idx_complemento = colunaParaIndice($mapeamento_complemento);
-        $idx_dependencia = colunaParaIndice($mapeamento_dependencia);
 
         foreach ($linhas as $linha) {
             $linha_atual++;
@@ -230,7 +245,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $melhor = null; // ['len'=>, 'tb'=>, 'alias'=>]
                     foreach ($tipos_aliases as $tb) {
                         foreach ($tb['aliases'] as $alias_norm) {
-                            if ($alias_norm !== '' && str_starts_with($texto_norm, $alias_norm)) {
+                            if ($alias_norm !== '' && strpos($texto_norm, $alias_norm) === 0) {
                                 $len = strlen($alias_norm);
                                 if ($melhor === null || $len > $melhor['len']) {
                                     $melhor = ['len' => $len, 'tb' => $tb, 'alias' => $alias_norm];
@@ -277,6 +292,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $ben = strtoupper(preg_replace('/\s+/', ' ', $ben));
                 $complemento_limpo = strtoupper(preg_replace('/\s+/', ' ', $complemento_limpo));
 
+                // Fallback: se ficou tudo vazio tenta usar original
+                if ($ben === '' && $complemento_limpo === '') {
+                    $ben = strtoupper(trim($complemento_original));
+                    if ($ben === '') { $ben = 'SEM DESCRICAO'; }
+                }
+
                 // 4) Encontrar dependência por descrição (case- e accent-insensitive)
                 $dependencia_id = 0;
                 $dep_key = $normaliza($dependencia_original);
@@ -304,7 +325,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     $brackets = '?';
                 }
-                $descricao_completa_calc = '1x [' . $brackets . '] ' . $ben;
+                $descricao_completa_calc = '1x [' . $brackets . '] ' . ($ben !== '' ? $ben : 'SEM DESCRICAO');
                 if ($complemento_limpo !== '') { $descricao_completa_calc .= ' - ' . $complemento_limpo; }
                 if (trim($dependencia_rotulo) !== '') { $descricao_completa_calc .= ' - (' . strtoupper($dependencia_rotulo) . ')'; }
 
@@ -322,6 +343,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $registros_importados++;
                 } else {
                     $registros_erros++;
+                    $err = $stmt_prod->errorInfo();
+                    error_log('ERRO INSERT PRODUTO: ' . json_encode($err));
                 }
             } catch (Exception $e) {
                 $registros_erros++;
@@ -329,12 +352,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        // Permitir importação mesmo sem produtos (não lançar exceção)
-
-        $conexao->commit();
-        $mensagem = "Importação concluída! {$registros_importados} produtos importados.";
-        $tipo_mensagem = 'success';
-        $sucesso = true;
+        // Validar se todos os candidatos foram importados; se não, cancelar a planilha
+        if ($registros_importados === $registros_candidatos) {
+            $conexao->commit();
+            $mensagem = "Importação concluída! {$registros_importados} de {$registros_candidatos} produtos importados.";
+            $tipo_mensagem = 'success';
+            $sucesso = true;
+        } else {
+            if ($conexao->inTransaction()) { $conexao->rollBack(); }
+            $mensagem = "Importação cancelada: apenas {$registros_importados} de {$registros_candidatos} produtos foram importados. A planilha não foi salva. Os dados do Comum foram salvos.";
+            $tipo_mensagem = 'danger';
+            $sucesso = false;
+        }
 
     } catch (Exception $e) {
         if ($conexao->inTransaction()) {
