@@ -76,18 +76,7 @@ function pp_detectar_tipo($texto, $codigo_detectado, array $tipos_aliases) {
         }
     }
     if ($melhor) {
-        // remove o alias do começo no texto original (aproximado pelo tamanho normalizado)
-        $alias = $melhor['alias'];
-        $chars = 0; $acum = '';
-        for ($i=0; $i<mb_strlen($texto); $i++) {
-            $parte = mb_substr($texto, 0, $i+1);
-            if (pp_normaliza($parte) === $alias) { $chars = $i+1; break; }
-        }
-        if ($chars > 0) {
-            $texto = trim(mb_substr($texto, $chars));
-        }
-        // remover separadores iniciais
-        $texto = preg_replace('/^[\s\-–—:]+/u', '', $texto);
+        // não remover o alias do texto; apenas registrar o tipo e o alias usado
         $tipo = ['id'=>$melhor['tb']['id'],'codigo'=>$melhor['tb']['codigo'],'descricao'=>$melhor['tb']['descricao'],'alias_usado'=>$melhor['alias']];
     }
     return [$tipo, trim($texto)];

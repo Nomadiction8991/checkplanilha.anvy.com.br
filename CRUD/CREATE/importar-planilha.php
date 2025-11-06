@@ -193,7 +193,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($tipo_ben_id) {
                     foreach ($tipos_aliases as $tbTmp) { if ($tbTmp['id'] === $tipo_ben_id) { $aliases_tipo_atual = $tbTmp['aliases']; break; } }
                 }
-                [$ben_raw, $comp_raw] = pp_extrair_ben_complemento($texto_pos_tipo, $aliases_tipo_atual ?: []);
+                // Agora que pp_detectar_tipo não remove mais o alias, podemos separar BEN e COMPLEMENTO pelo primeiro ' - '
+                $texto_para_ben_comp = $texto_pos_tipo;
+                [$ben_raw, $comp_raw] = pp_extrair_ben_complemento($texto_para_ben_comp, $aliases_tipo_atual ?: []);
                 $ben = strtoupper(preg_replace('/\s+/', ' ', $ben_raw));
                 $complemento_limpo = strtoupper(preg_replace('/\s+/', ' ', $comp_raw));
                 if ($ben === '' && $complemento_limpo === '') {
