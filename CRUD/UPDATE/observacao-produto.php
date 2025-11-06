@@ -41,16 +41,23 @@ $check = [
 
 // Buscar dados do produto POR ID
 try {
-    $sql_produto = "SELECT * FROM produtos WHERE id = :id_produto AND id_planilha = :id_planilha";
+    $sql_produto = "SELECT * FROM produtos WHERE id_produto = :id_produto AND planilha_id = :planilha_id";
     $stmt_produto = $conexao->prepare($sql_produto);
     $stmt_produto->bindValue(':id_produto', $id_produto);
-    $stmt_produto->bindValue(':id_planilha', $id_planilha);
+    $stmt_produto->bindValue(':planilha_id', $id_planilha);
     $stmt_produto->execute();
     $produto = $stmt_produto->fetch();
     
     if (!$produto) {
         throw new Exception('Produto não encontrado na planilha.');
     }
+    
+    // Preencher informações do check com dados da própria tabela produtos
+    $check = [
+        'checado' => $produto['checado'] ?? 0,
+        'observacoes' => $produto['observacao'] ?? '',
+        'imprimir' => $produto['imprimir_etiqueta'] ?? 0
+    ];
     
 } catch (Exception $e) {
     $mensagem = "Erro ao carregar produto: " . $e->getMessage();
@@ -69,11 +76,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $filtro_status = $_POST['status'] ?? '';
     
     try {
-        // Atualizar observações diretamente na tabela produtos
-        $sql_update = "UPDATE produtos SET observacoes = :observacoes WHERE id = :produto_id";
+        // Atualizar observações diretamente na tabela produtos - USANDO id_produto
+        $sql_update = "UPDATE produtos SET observacao = :observacao WHERE id_produto = :id_produto AND planilha_id = :planilha_id";
         $stmt_update = $conexao->prepare($sql_update);
-        $stmt_update->bindValue(':observacoes', $observacoes);
-        $stmt_update->bindValue(':produto_id', $id_produto, PDO::PARAM_INT);
+        $stmt_update->bindValue(':observacao', $observacoes);
+        $stmt_update->bindValue(':id_produto', $id_produto, PDO::PARAM_INT);
+        $stmt_update->bindValue(':planilha_id', $id_planilha, PDO::PARAM_INT);
         $stmt_update->execute();
         
         // REDIRECIONAR PARA view-planilha.php APÓS SALVAR

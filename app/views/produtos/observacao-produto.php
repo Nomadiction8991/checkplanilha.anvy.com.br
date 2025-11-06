@@ -23,8 +23,8 @@ ob_start();
     <div class="card-body">
         <div class="row g-2 small">
             <div class="col-12"><strong>Código:</strong> <?php echo htmlspecialchars($produto['codigo'] ?? ''); ?></div>
-            <div class="col-12"><strong>Nome:</strong> <?php echo htmlspecialchars($produto['nome'] ?? ''); ?></div>
-            <div class="col-12"><strong>Dependência:</strong> <?php echo htmlspecialchars($produto['dependencia'] ?? ''); ?></div>
+            <div class="col-12"><strong>Nome:</strong> <?php echo htmlspecialchars($produto['descricao_completa'] ?? ''); ?></div>
+            <div class="col-12"><strong>Dependência:</strong> <?php echo htmlspecialchars($produto['dependencia_id'] ?? ''); ?></div>
         </div>
         
         <div class="mt-2">
@@ -33,9 +33,6 @@ ob_start();
             <?php endif; ?>
             <?php if (!empty($check['observacoes'])): ?>
                 <span class="badge bg-warning">📜 Com Obs</span>
-            <?php endif; ?>
-            <?php if ($check['dr'] == 1): ?>
-                <span class="badge bg-danger">📦 DR</span>
             <?php endif; ?>
             <?php if ($check['imprimir'] == 1): ?>
                 <span class="badge bg-info">🏷️ Imprimir</span>

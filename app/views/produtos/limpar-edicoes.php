@@ -32,21 +32,23 @@ if (!$id_produto || !$id_planilha) {
 }
 
 try {
-    // Verificar existência em produtos_check
-    $stmt = $conexao->prepare('SELECT COUNT(*) AS total FROM produtos_check WHERE produto_id = :pid');
-    $stmt->bindValue(':pid', $id_produto);
-    $stmt->execute();
-    $existe = $stmt->fetch()['total'] > 0;
-
-    if ($existe) {
-        // Limpar campos de edição e imprimir
-        $up = $conexao->prepare('UPDATE produtos_check SET nome = NULL, dependencia = NULL, imprimir = 0, editado = 0 WHERE produto_id = :pid');
-        $up->bindValue(':pid', $id_produto);
-        $up->execute();
-        $msg = 'Edições limpas com sucesso!';
-    } else {
-        $msg = 'Nenhuma edição encontrada para limpar.';
-    }
+    // Limpar campos de edição na tabela produtos - USANDO id_produto
+    $sql_update = "UPDATE produtos 
+                   SET editado_descricao_completa = NULL, 
+                       editado_complemento = NULL, 
+                       editado_ben = NULL, 
+                       editado_dependencia_id = NULL, 
+                       imprimir_etiqueta = 0, 
+                       editado = 0 
+                   WHERE id_produto = :id_produto 
+                     AND planilha_id = :planilha_id";
+    
+    $stmt_update = $conexao->prepare($sql_update);
+    $stmt_update->bindValue(':id_produto', $id_produto);
+    $stmt_update->bindValue(':planilha_id', $id_planilha);
+    $stmt_update->execute();
+    
+    $msg = 'Edições limpas com sucesso!';
 
     redirectBack([
         'id' => $id_planilha,

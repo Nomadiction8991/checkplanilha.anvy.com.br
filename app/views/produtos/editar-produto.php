@@ -26,10 +26,16 @@ ob_start();
                 <strong>Código:</strong> <?php echo htmlspecialchars($produto['codigo'] ?? ''); ?>
             </div>
             <div class="col-12">
-                <strong>Nome:</strong> <?php echo htmlspecialchars($produto['nome'] ?? ''); ?>
+                <strong>Descrição Completa:</strong> <?php echo htmlspecialchars($produto['descricao_completa'] ?? ''); ?>
             </div>
             <div class="col-12">
-                <strong>Dependência:</strong> <?php echo htmlspecialchars($produto['dependencia'] ?? ''); ?>
+                <strong>Complemento:</strong> <?php echo htmlspecialchars($produto['complemento'] ?? ''); ?>
+            </div>
+            <div class="col-12">
+                <strong>Bem:</strong> <?php echo htmlspecialchars($produto['ben'] ?? ''); ?>
+            </div>
+            <div class="col-12">
+                <strong>Dependência:</strong> <?php echo htmlspecialchars($produto['dependencia_id'] ?? ''); ?>
             </div>
         </div>
     </div>
@@ -50,9 +56,22 @@ ob_start();
     <div class="card mb-3">
         <div class="card-body">
             <div class="mb-3">
-                <label for="novo_nome" class="form-label">Novo Nome</label>
-                <input type="text" class="form-control" id="novo_nome" name="novo_nome" 
-                       value="<?php echo htmlspecialchars($novo_nome ?? ''); ?>" 
+                <label for="nova_descricao" class="form-label">Nova Descrição Completa</label>
+                <textarea class="form-control" id="nova_descricao" name="nova_descricao" rows="3"
+                       placeholder="Deixe em branco para não alterar"><?php echo htmlspecialchars($nova_descricao ?? ''); ?></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label for="novo_complemento" class="form-label">Novo Complemento</label>
+                <input type="text" class="form-control" id="novo_complemento" name="novo_complemento" 
+                       value="<?php echo htmlspecialchars($novo_complemento ?? ''); ?>" 
+                       placeholder="Deixe em branco para não alterar">
+            </div>
+
+            <div class="mb-3">
+                <label for="novo_ben" class="form-label">Novo Bem</label>
+                <input type="text" class="form-control" id="novo_ben" name="novo_ben" 
+                       value="<?php echo htmlspecialchars($novo_ben ?? ''); ?>" 
                        placeholder="Deixe em branco para não alterar">
             </div>
 
