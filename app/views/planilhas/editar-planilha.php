@@ -80,7 +80,7 @@ if (!$planilha) {
 }
 
 $pageTitle = 'Editar Planilha';
-$backUrl = '../../comuns/listar-planilhas.php?comum_id=' . urlencode((string)$planilha['comum_id']);
+$backUrl = '../comuns/listar-planilhas.php?comum_id=' . urlencode((string)$planilha['comum_id']);
 
 ob_start();
 ?>

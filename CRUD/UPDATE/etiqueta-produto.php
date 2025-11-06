@@ -25,16 +25,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         // Validar se pode marcar para impressão (deve estar checado e não estar no DR)
         if ($imprimir == 1) {
-            $sql_verifica = "SELECT p.*, COALESCE(pc.checado, 0) as checado, COALESCE(pc.dr, 0) as dr 
-                            FROM produtos p 
-                            LEFT JOIN produtos_check pc ON p.id = pc.produto_id 
-                            WHERE p.id = :produto_id";
-            $stmt_verifica = $conexao->prepare($sql_verifica);
-            $stmt_verifica->bindValue(':produto_id', $produto_id);
+            // Validar com flags da própria tabela produtos
+            $stmt_verifica = $conexao->prepare('SELECT checado, dr FROM produtos WHERE id = :id');
+            $stmt_verifica->bindValue(':id', $produto_id, PDO::PARAM_INT);
             $stmt_verifica->execute();
-            $produto_info = $stmt_verifica->fetch();
-            
-            if (!$produto_info || $produto_info['checado'] == 0 || $produto_info['dr'] == 1) {
+            $produto_info = $stmt_verifica->fetch(PDO::FETCH_ASSOC);
+
+            if (!$produto_info || ($produto_info['checado'] ?? 0) == 0 || ($produto_info['dr'] ?? 0) == 1) {
                 $query_string = http_build_query(array_merge(
                     ['id' => $id_planilha], 
                     $filtros,
@@ -44,25 +41,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit;
             }
         }
-        
-        // Verificar se já existe registro
-        $sql_check = "SELECT * FROM produtos_check WHERE produto_id = :produto_id";
-        $stmt_check = $conexao->prepare($sql_check);
-        $stmt_check->bindValue(':produto_id', $produto_id);
-        $stmt_check->execute();
-        $existe = $stmt_check->fetch();
-        
-        if ($existe) {
-            // Atualizar
-            $sql = "UPDATE produtos_check SET imprimir = :imprimir WHERE produto_id = :produto_id";
-        } else {
-            // Inserir
-            $sql = "INSERT INTO produtos_check (produto_id, imprimir) VALUES (:produto_id, :imprimir)";
-        }
-        
-        $stmt = $conexao->prepare($sql);
-        $stmt->bindValue(':produto_id', $produto_id);
-        $stmt->bindValue(':imprimir', $imprimir, PDO::PARAM_INT);
+        // Atualizar flag diretamente em produtos
+        $stmt = $conexao->prepare('UPDATE produtos SET imprimir = :imprimir WHERE id = :id');
+        $stmt->bindValue(':imprimir', (int)$imprimir, PDO::PARAM_INT);
+        $stmt->bindValue(':id', $produto_id, PDO::PARAM_INT);
         $stmt->execute();
         
         // Redirecionar de volta mantendo os filtros
