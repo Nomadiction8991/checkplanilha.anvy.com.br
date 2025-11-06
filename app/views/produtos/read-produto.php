@@ -115,6 +115,20 @@ ob_start();
   
 </div>
 
+<!-- BOTÃO DE EXCLUSÃO EM MASSA (inicialmente oculto) -->
+<div id="deleteButtonContainer" class="card mb-3" style="display: none;">
+  <div class="card-body">
+    <form method="POST" id="deleteForm">
+      <input type="hidden" name="id_planilha" value="<?php echo htmlspecialchars($id_planilha); ?>">
+      <div id="selectedProducts"></div>
+      <button type="submit" class="btn btn-danger w-100" onclick="return confirm('Tem certeza que deseja excluir os produtos selecionados?');">
+        <i class="bi bi-trash me-2"></i>
+        Excluir <span id="countSelected">0</span> Produto(s) Selecionado(s)
+      </button>
+    </form>
+  </div>
+</div>
+
 <div class="card">
   <div class="card-header d-flex justify-content-between align-items-center">
     <span>
@@ -135,30 +149,34 @@ ob_start();
           <?php foreach ($produtos as $produto): ?>
             <tr>
               <td>
-                <!-- Linha 1: Descrição -->
-                <div class="fw-semibold mb-2">
-                  <?php echo htmlspecialchars($produto['descricao_completa']); ?>
-                </div>
-                <!-- Linha 2: Status e Ações -->
-                <div class="d-flex justify-content-between align-items-center">
-                  <div class="d-flex gap-1 flex-wrap">
-                    <?php if (!empty($produto['codigo'])): ?>
-                      <span class="badge bg-info text-dark"><?php echo htmlspecialchars($produto['codigo']); ?></span>
-                    <?php endif; ?>
-                    <?php if (isset($produto['condicao_141']) && ($produto['condicao_141'] == 1 || $produto['condicao_141'] == 3)): ?>
-                      <span class="badge bg-warning text-dark">Nota</span>
-                    <?php endif; ?>
-                    <?php if ($produto['imprimir_14_1'] == 1): ?>
-                      <span class="badge bg-primary">14.1</span>
-                    <?php endif; ?>
+                <div class="d-flex gap-2">
+                  <div class="form-check mt-1">
+                    <input class="form-check-input produto-checkbox" type="checkbox" value="<?php echo $produto['id']; ?>" id="produto_<?php echo $produto['id']; ?>">
                   </div>
-                  <div class="btn-group btn-group-sm">
-                    <a class="btn btn-outline-primary" title="Editar" href="./update-produto.php?id_produto=<?php echo $produto['id']; ?>&id=<?php echo $id_planilha; ?>&<?php echo gerarParametrosFiltro(true); ?>">
-                      <i class="bi bi-pencil"></i>
-                    </a>
-                    <a class="btn btn-outline-danger" title="Excluir" href="./delete-produto.php?id_produto=<?php echo $produto['id']; ?>&id=<?php echo $id_planilha; ?>&<?php echo gerarParametrosFiltro(true); ?>">
-                      <i class="bi bi-trash"></i>
-                    </a>
+                  <div class="flex-grow-1">
+                    <!-- Linha 1: Descrição -->
+                    <div class="fw-semibold mb-2">
+                      <?php echo htmlspecialchars($produto['descricao_completa']); ?>
+                    </div>
+                    <!-- Linha 2: Status e Ações -->
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div class="d-flex gap-1 flex-wrap">
+                        <?php if (!empty($produto['codigo'])): ?>
+                          <span class="badge bg-info text-dark"><?php echo htmlspecialchars($produto['codigo']); ?></span>
+                        <?php endif; ?>
+                        <?php if (isset($produto['condicao_141']) && ($produto['condicao_141'] == 1 || $produto['condicao_141'] == 3)): ?>
+                          <span class="badge bg-warning text-dark">Nota</span>
+                        <?php endif; ?>
+                        <?php if ($produto['imprimir_14_1'] == 1): ?>
+                          <span class="badge bg-primary">14.1</span>
+                        <?php endif; ?>
+                      </div>
+                      <div class="btn-group btn-group-sm">
+                        <a class="btn btn-outline-primary" title="Editar" href="./update-produto.php?id_produto=<?php echo $produto['id']; ?>&id=<?php echo $id_planilha; ?>&<?php echo gerarParametrosFiltro(true); ?>">
+                          <i class="bi bi-pencil"></i>
+                        </a>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </td>
@@ -216,6 +234,69 @@ ob_start();
     </div>
   <?php endif; ?>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const checkboxes = document.querySelectorAll('.produto-checkbox');
+  const deleteButtonContainer = document.getElementById('deleteButtonContainer');
+  const selectedProductsDiv = document.getElementById('selectedProducts');
+  const countSelected = document.getElementById('countSelected');
+  const deleteForm = document.getElementById('deleteForm');
+
+  function atualizarContagem() {
+    const checados = document.querySelectorAll('.produto-checkbox:checked').length;
+    countSelected.textContent = checados;
+    
+    // Mostrar/ocultar container de exclusão
+    if (checados > 0) {
+      deleteButtonContainer.style.display = 'block';
+    } else {
+      deleteButtonContainer.style.display = 'none';
+    }
+    
+    // Atualizar inputs ocultos com IDs selecionados
+    selectedProductsDiv.innerHTML = '';
+    document.querySelectorAll('.produto-checkbox:checked').forEach(checkbox => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'ids_produtos[]';
+      input.value = checkbox.value;
+      selectedProductsDiv.appendChild(input);
+    });
+  }
+
+  // Adicionar listener em cada checkbox
+  checkboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', atualizarContagem);
+  });
+
+  // Enviar form de exclusão via POST
+  deleteForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Enviar via AJAX ou formulário tradicional
+    const formData = new FormData(deleteForm);
+    
+    fetch('./delete-produtos.php', {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Recarregar a página
+        location.reload();
+      } else {
+        alert('Erro ao excluir produtos: ' + (data.message || 'Erro desconhecido'));
+      }
+    })
+    .catch(error => {
+      console.error('Erro:', error);
+      alert('Erro ao excluir produtos');
+    });
+  });
+});
+</script>
 
 <?php
 $contentHtml = ob_get_clean();

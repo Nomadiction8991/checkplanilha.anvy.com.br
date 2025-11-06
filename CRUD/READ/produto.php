@@ -19,7 +19,7 @@ $filtro_status = $_GET['filtro_status'] ?? '';
 
 // Paginação
 $pagina = $_GET['pagina'] ?? 1;
-$produtos_por_pagina = 10;
+$produtos_por_pagina = 20;
 $offset = ($pagina - 1) * $produtos_por_pagina;
 
 // Construir a query base
