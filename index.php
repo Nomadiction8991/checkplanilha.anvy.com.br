@@ -13,6 +13,11 @@ $headerActions = '
         </button>
         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="menuPrincipal">
             <li>
+                <a class="dropdown-item" href="app/views/usuarios/read-usuario.php">
+                    <i class="bi bi-people me-2"></i>Listagem de Usuários
+                </a>
+            </li>
+            <li>
                 <a class="dropdown-item" href="app/views/planilhas/importar-planilha.php">
                     <i class="bi bi-upload me-2"></i>Importar Planilha
                 </a>
