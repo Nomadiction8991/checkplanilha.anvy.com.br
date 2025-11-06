@@ -110,20 +110,48 @@ if ($filtro_status !== '') {
     }
 }
 
-// Total de registros para paginação - usando COUNT direto sem subquery
-$sql_count = str_replace('SELECT 
-                p.id,
-                p.codigo,
-                p.nome,
-                p.nome_editado,
-                p.dependencia,
-                p.dependencia_editada,
-                p.observacoes,
-                COALESCE(p.checado, 0) AS checado,
-                COALESCE(p.dr, 0) AS dr,
-                COALESCE(p.imprimir, 0) AS imprimir,
-                COALESCE(p.editado, 0) AS editado
-             FROM', 'SELECT COUNT(*) AS total FROM', $sql_base);
+// Total de registros para paginação - query COUNT simplificada
+$sql_count = "SELECT COUNT(*) AS total 
+              FROM produtos p 
+              WHERE p.planilha_id = :id_planilha";
+
+// Aplicar os mesmos filtros do $sql_base na query de contagem
+if ($filtro_nome !== '') {
+    $sql_count .= " AND (p.nome LIKE :nome OR p.nome_editado LIKE :nome)";
+}
+if ($filtro_dependencia !== '') {
+    $sql_count .= " AND (p.dependencia LIKE :dependencia OR p.dependencia_editada LIKE :dependencia)";
+}
+if ($filtro_codigo !== '') {
+    $sql_count .= " AND REPLACE(REPLACE(REPLACE(p.codigo, ' ', ''), '-', ''), '/', '') LIKE :codigo";
+}
+if ($filtro_status !== '') {
+    switch ($filtro_status) {
+        case 'checado':
+            $sql_count .= " AND COALESCE(p.checado, 0) = 1";
+            break;
+        case 'observacao':
+            $sql_count .= " AND (p.observacoes IS NOT NULL AND p.observacoes <> '')";
+            break;
+        case 'etiqueta':
+            $sql_count .= " AND COALESCE(p.imprimir, 0) = 1";
+            break;
+        case 'pendente':
+            $sql_count .= " AND (COALESCE(p.checado, 0) = 0
+                                 AND (p.observacoes IS NULL OR p.observacoes = '')
+                                 AND COALESCE(p.dr, 0) = 0
+                                 AND COALESCE(p.imprimir, 0) = 0
+                                 AND COALESCE(p.editado, 0) = 0)";
+            break;
+        case 'dr':
+            $sql_count .= " AND COALESCE(p.dr, 0) = 1";
+            break;
+        case 'editado':
+            $sql_count .= " AND COALESCE(p.editado, 0) = 1";
+            break;
+    }
+}
+
 $stmt_count = $conexao->prepare($sql_count);
 foreach ($params as $key => $value) {
     $stmt_count->bindValue($key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
