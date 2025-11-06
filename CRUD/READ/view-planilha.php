@@ -121,7 +121,14 @@ $stmt->execute();
 $produtos = $stmt->fetchAll();
 
 // Filtros únicos
-$sql_filtros = "SELECT DISTINCT dependencia FROM produtos WHERE id_planilha = :id_planilha ORDER BY dependencia";
+$sql_filtros = "
+    SELECT DISTINCT dependencia FROM produtos WHERE id_planilha = :id_planilha
+    UNION
+    SELECT DISTINCT pc.dependencia FROM produtos_check pc
+    INNER JOIN produtos p ON pc.produto_id = p.id
+    WHERE p.id_planilha = :id_planilha AND pc.editado = 1 AND pc.dependencia IS NOT NULL
+    ORDER BY dependencia
+";
 $stmt_filtros = $conexao->prepare($sql_filtros);
 $stmt_filtros->bindValue(':id_planilha', $id_planilha);
 $stmt_filtros->execute();

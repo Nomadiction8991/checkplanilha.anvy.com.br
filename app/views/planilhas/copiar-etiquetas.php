@@ -19,7 +19,14 @@ try {
 
 // Dependências disponíveis
 try {
-    $sql_dependencias = "SELECT DISTINCT dependencia FROM produtos WHERE id_planilha = :id_planilha ORDER BY dependencia";
+    $sql_dependencias = "
+        SELECT DISTINCT dependencia FROM produtos WHERE id_planilha = :id_planilha
+        UNION
+        SELECT DISTINCT pc.dependencia FROM produtos_check pc
+        INNER JOIN produtos p ON pc.produto_id = p.id
+        WHERE p.id_planilha = :id_planilha AND pc.editado = 1 AND pc.dependencia IS NOT NULL
+        ORDER BY dependencia
+    ";
     $stmt_dependencias = $conexao->prepare($sql_dependencias);
     $stmt_dependencias->bindValue(':id_planilha', $id_planilha);
     $stmt_dependencias->execute();
