@@ -87,6 +87,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute();
         $id_planilha = $conexao->lastInsertId();
 
+        // Pré-carregar tipos de bens e dependências para matching
+        $tipos_bens = [];
+        $stmtTipos = $conexao->prepare("SELECT id, descricao FROM tipos_bens ORDER BY LENGTH(descricao) DESC");
+        if ($stmtTipos->execute()) {
+            $tipos_bens = $stmtTipos->fetchAll(PDO::FETCH_ASSOC);
+        }
+        $dep_map = [];
+        $stmtDeps = $conexao->prepare("SELECT id, descricao FROM dependencias");
+        if ($stmtDeps->execute()) {
+            foreach ($stmtDeps->fetchAll(PDO::FETCH_ASSOC) as $d) {
+                $dep_map[mb_strtoupper(trim($d['descricao']))] = (int)$d['id'];
+            }
+        }
+
+        // Funções auxiliares
+        $normaliza = function($str) {
+            $str = trim((string)$str);
+            // Normalização simples para comparação case-insensitive
+            $upper = mb_strtoupper($str, 'UTF-8');
+            return $upper;
+        };
+
         // Processar linhas do CSV
         $linhas = $aba->toArray();
         $registros_importados = 0;
@@ -104,7 +126,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $idx_codigo = colunaParaIndice($mapeamento_codigo);
-    $idx_complemento = colunaParaIndice($mapeamento_complemento);
+        $idx_complemento = colunaParaIndice($mapeamento_complemento);
         $idx_dependencia = colunaParaIndice($mapeamento_dependencia);
 
         foreach ($linhas as $linha) {
@@ -124,15 +146,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     continue;
                 }
 
-                $complemento = isset($linha[$idx_complemento]) ? trim($linha[$idx_complemento]) : '';
-                $dependencia = isset($linha[$idx_dependencia]) ? trim($linha[$idx_dependencia]) : '';
+                $complemento = isset($linha[$idx_complemento]) ? trim((string)$linha[$idx_complemento]) : '';
+                $dependencia = isset($linha[$idx_dependencia]) ? trim((string)$linha[$idx_dependencia]) : '';
+
+                // Determinar tipo de bem a partir do início do complemento
+                $tipo_ben_id = 0;
+                $comp_upper = $normaliza($complemento);
+                foreach ($tipos_bens as $tb) {
+                    $tb_desc_upper = $normaliza($tb['descricao']);
+                    if ($tb_desc_upper !== '' && mb_substr($comp_upper, 0, mb_strlen($tb_desc_upper)) === $tb_desc_upper) {
+                        $tipo_ben_id = (int)$tb['id'];
+                        // Remover o prefixo do complemento preservando o restante
+                        $resto = mb_substr($complemento, mb_strlen($tb['descricao']));
+                        // Remover separadores iniciais como '-' ':' '–' '—' e espaços
+                        $resto = preg_replace('/^[\s\-–—:]+/u', '', (string)$resto);
+                        $complemento = trim((string)$resto);
+                        break;
+                    }
+                }
+
+                // Encontrar dependência por descrição exata (case-insensitive)
+                $dependencia_id = 0;
+                $dep_key = $normaliza($dependencia);
+                if ($dep_key !== '' && isset($dep_map[$dep_key])) {
+                    $dependencia_id = $dep_map[$dep_key];
+                }
 
                 $sql_produto = "INSERT INTO produtos (planilha_id, codigo, descricao_completa, editado_descricao_completa, tipo_ben_id, editado_tipo_ben_id, ben, editado_ben, complemento, editado_complemento, dependencia_id, editado_dependencia_id, chacado, editado, imprimir_etiqueta, imprimir_14_1, observacao, ativo) 
-                               VALUES (:planilha_id, :codigo, '', '', 0, 0, '', '', :complemento, '', 0, 0, 0, 0, 0, 0, '', 1)";
+                               VALUES (:planilha_id, :codigo, '', '', :tipo_ben_id, 0, '', '', :complemento, '', :dependencia_id, 0, 0, 0, 0, 0, '', 1)";
                 $stmt_prod = $conexao->prepare($sql_produto);
                 $stmt_prod->bindValue(':planilha_id', $id_planilha, PDO::PARAM_INT);
                 $stmt_prod->bindValue(':codigo', $codigo);
+                $stmt_prod->bindValue(':tipo_ben_id', $tipo_ben_id, PDO::PARAM_INT);
                 $stmt_prod->bindValue(':complemento', $complemento);
+                $stmt_prod->bindValue(':dependencia_id', $dependencia_id, PDO::PARAM_INT);
                 if ($stmt_prod->execute()) {
                     $registros_importados++;
                 } else {
