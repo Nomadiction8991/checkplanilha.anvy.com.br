@@ -3,7 +3,7 @@ require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/CRUD/conexao.php';
 require_once __DIR__ . '/app/functions/comum_functions.php';
 
-$pageTitle = 'Menu Principal';
+$pageTitle = 'Comuns';
 $backUrl = null;
 
 $headerActions = '

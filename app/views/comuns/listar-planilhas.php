@@ -179,7 +179,7 @@ ob_start();
                                             <input type="text" class="form-control" id="mapeamento_codigo" name="mapeamento_codigo" placeholder="Coluna: Código" value="A">
                                         </div>
                                         <div class="col-md-4">
-                                            <input type="text" class="form-control" id="mapeamento_nome" name="mapeamento_nome" placeholder="Coluna: Nome" value="D">
+                                            <input type="text" class="form-control" id="mapeamento_complemento" name="mapeamento_complemento" placeholder="Coluna: Complemento" value="D">
                                         </div>
                                         <div class="col-md-4">
                                             <input type="text" class="form-control" id="mapeamento_dependencia" name="mapeamento_dependencia" placeholder="Coluna: Dependência" value="P">
@@ -206,8 +206,8 @@ $contentHtml = ob_get_clean();
 $contentFile = __DIR__ . '/../../../temp_content.php';
 file_put_contents($contentFile, $contentHtml);
 
-// Incluir layout principal
-require_once __DIR__ . '/../layouts/main-layout.php';
+// Incluir layout app-wrapper (padronizado)
+require_once __DIR__ . '/../layouts/app-wrapper.php';
 
 // Limpar arquivo temporário
 @unlink($contentFile);
