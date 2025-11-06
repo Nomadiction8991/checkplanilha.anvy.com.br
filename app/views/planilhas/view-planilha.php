@@ -4,7 +4,7 @@ $id_planilha = $_GET['id'] ?? null;
 require_once __DIR__ . '/../../../CRUD/READ/view-planilha.php';
 
 // Configurações da página
-$pageTitle = htmlspecialchars($planilha['comum'] ?? 'Visualizar Planilha');
+$pageTitle = htmlspecialchars($planilha['comum_descricao'] ?? 'Visualizar Planilha');
 $backUrl = '../../../index.php';
 $headerActions = '
     <a href="../shared/menu-unificado.php?id=' . $id_planilha . '&contexto=planilha" class="btn-header-action" title="Menu">

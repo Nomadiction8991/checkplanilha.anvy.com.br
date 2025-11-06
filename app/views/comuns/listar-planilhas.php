@@ -184,7 +184,7 @@ ob_start();
                                         <a href="../../../CRUD/READ/view-planilha.php?id=<?php echo $planilha['id']; ?>" class="btn btn-sm btn-primary" title="Visualizar">
                                             <i class="bi bi-eye"></i>
                                         </a>
-                                        <a href="../../../CRUD/UPDATE/editar-planilha.php?id=<?php echo $planilha['id']; ?>" class="btn btn-sm btn-warning" title="Editar">
+                                        <a href="../../planilhas/editar-planilha.php?id=<?php echo $planilha['id']; ?>" class="btn btn-sm btn-warning" title="Editar">
                                             <i class="bi bi-pencil"></i>
                                         </a>
                                     </td>

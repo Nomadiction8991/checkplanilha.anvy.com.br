@@ -1,11 +1,86 @@
 <?php
-require_once __DIR__ . '/../../../auth.php'; // Autenticação
-require_once __DIR__ . '/../../../CRUD/UPDATE/editar-planilha.php';
+require_once __DIR__ . '/../../../auth.php';
+require_once __DIR__ . '/../../../CRUD/conexao.php';
 
-$id_planilha = $_GET['id'] ?? null;
+$id_planilha = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+if ($id_planilha <= 0) {
+    header('Location: ../../../index.php');
+    exit;
+}
 
-$pageTitle = "Editar Planilha";
-$backUrl = '../../../index.php';
+$mensagem = '';
+$tipo_mensagem = '';
+
+// Carregar dados da planilha e do comum associado
+function carregar_planilha($conexao, $id_planilha) {
+    $sql = "SELECT p.id, p.comum_id, p.ativo, p.data_posicao,
+                   c.descricao AS comum_descricao,
+                   c.administracao, c.cidade, c.setor
+            FROM planilhas p
+            LEFT JOIN comums c ON c.id = p.comum_id
+            WHERE p.id = :id";
+    $st = $conexao->prepare($sql);
+    $st->bindValue(':id', $id_planilha, PDO::PARAM_INT);
+    $st->execute();
+    return $st->fetch(PDO::FETCH_ASSOC) ?: null;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    try {
+        $ativo = isset($_POST['ativo']) ? 1 : 0;
+        $administracao = trim($_POST['administracao'] ?? '');
+        $cidade = trim($_POST['cidade'] ?? '');
+        $setor = isset($_POST['setor']) && $_POST['setor'] !== '' ? (int)$_POST['setor'] : null;
+
+        if ($administracao === '' || $cidade === '') {
+            throw new Exception('Administração e Cidade são obrigatórios.');
+        }
+
+        // Obter comum_id pela planilha
+        $planilha_atual = carregar_planilha($conexao, $id_planilha);
+        if (!$planilha_atual) {
+            throw new Exception('Planilha não encontrada.');
+        }
+
+        $conexao->beginTransaction();
+
+        // Atualizar status da planilha
+        $up1 = $conexao->prepare('UPDATE planilhas SET ativo = :ativo WHERE id = :id');
+        $up1->bindValue(':ativo', $ativo, PDO::PARAM_INT);
+        $up1->bindValue(':id', $id_planilha, PDO::PARAM_INT);
+        $up1->execute();
+
+        // Atualizar dados do comum relacionado
+        $up2 = $conexao->prepare('UPDATE comums SET administracao = :adm, cidade = :cid, setor = :setor WHERE id = :cid_comum');
+        $up2->bindValue(':adm', $administracao);
+        $up2->bindValue(':cid', $cidade);
+        if ($setor === null) {
+            $up2->bindValue(':setor', null, PDO::PARAM_NULL);
+        } else {
+            $up2->bindValue(':setor', $setor, PDO::PARAM_INT);
+        }
+        $up2->bindValue(':cid_comum', (int)$planilha_atual['comum_id'], PDO::PARAM_INT);
+        $up2->execute();
+
+        $conexao->commit();
+
+        $mensagem = 'Dados atualizados com sucesso!';
+        $tipo_mensagem = 'success';
+    } catch (Exception $e) {
+        if ($conexao->inTransaction()) { $conexao->rollBack(); }
+        $mensagem = 'Erro ao atualizar: ' . $e->getMessage();
+        $tipo_mensagem = 'error';
+    }
+}
+
+// Dados atualizados para exibição
+$planilha = carregar_planilha($conexao, $id_planilha);
+if (!$planilha) { 
+    die('Planilha não encontrada.');
+}
+
+$pageTitle = 'Editar Planilha';
+$backUrl = '../../comuns/listar-planilhas.php?comum_id=' . urlencode((string)$planilha['comum_id']);
 
 ob_start();
 ?>
@@ -55,55 +130,7 @@ ob_start();
         </div>
     </div>
 
-    <!-- Configurações -->
-    <div class="card mb-3">
-        <div class="card-header">
-            <i class="bi bi-gear me-2"></i>
-            Configurações de Importação
-        </div>
-        <div class="card-body">
-            <div class="mb-3">
-                <label for="linhas_pular" class="form-label">Linhas Iniciais a Pular <span class="text-danger">*</span></label>
-                <input type="number" class="form-control" id="linhas_pular" name="linhas_pular" 
-                       value="<?php echo $config['pulo_linhas'] ?? 25; ?>" min="0" required>
-            </div>
-
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label for="localizacao_cnpj" class="form-label">CNPJ <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="localizacao_cnpj" name="localizacao_cnpj" 
-                           value="<?php echo htmlspecialchars($config['cnpj'] ?? 'U5'); ?>" required>
-                </div>
-                <div class="col-md-6">
-                    <label for="localizacao_comum" class="form-label">Comum <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="localizacao_comum" name="localizacao_comum" 
-                           value="<?php echo htmlspecialchars($config['comum'] ?? 'D16'); ?>" required>
-                </div>
-                <div class="col-md-6">
-                    <label for="localizacao_endereco" class="form-label">Endereço <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="localizacao_endereco" name="localizacao_endereco" 
-                           value="<?php echo htmlspecialchars($config['endereco'] ?? 'A4'); ?>" required>
-                </div>
-                <div class="col-md-6">
-                    <label for="localizacao_data_posicao" class="form-label">Data Posição <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="localizacao_data_posicao" name="localizacao_data_posicao" 
-                           value="<?php echo htmlspecialchars($config['data_posicao'] ?? 'D13'); ?>" required>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Atualizar Dados -->
-    <div class="card mb-3">
-        <div class="card-header">
-            <i class="bi bi-arrow-repeat me-2"></i>
-            Atualizar Dados
-        </div>
-        <div class="card-body">
-            <label for="arquivo" class="form-label">Novo Arquivo CSV (opcional)</label>
-            <input type="file" class="form-control" id="arquivo" name="arquivo" accept=".csv">
-        </div>
-    </div>
+    <!-- Removido: configurações antigas e reimportação (não fazem parte do novo escopo de edição) -->
 
     <!-- Outros Dados -->
     <div class="card mb-3">
@@ -196,7 +223,7 @@ document.addEventListener('DOMContentLoaded', function(){
         }catch(err){ cidadeSel.innerHTML='<option value="">Erro ao carregar cidades</option>'; console.error(err); }
     }
 
-    // Validação do formulário
+    // Pré-preencher checkbox de ativo (já está no HTML) e validar
     const form = document.querySelector('form');
     form.addEventListener('submit', function(e){ 
         const estado = document.getElementById('administracao').value; 
