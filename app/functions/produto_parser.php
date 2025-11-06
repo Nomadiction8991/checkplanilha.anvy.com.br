@@ -142,10 +142,8 @@ function pp_remover_ben_do_complemento($ben, $complemento) {
     if ($ben === '' || $complemento === '') return $complemento;
     $comp = $complemento;
     $ben_q = preg_quote($ben, '/');
-    // remove BEN no início + separador
+    // Remover apenas BEN no início seguido de separador, preservando ocorrências internas para evitar perda de informação
     $comp = preg_replace('/^' . $ben_q . '(\s+|\/|\-|:)+/u', '', $comp);
-    // remove BEN isolado por separadores
-    $comp = preg_replace('/(\s|\/|\-|:)' . $ben_q . '(\s|\/|\-|:)/u', ' ', $comp);
     $comp = trim(preg_replace('/\s+/', ' ', $comp));
     return $comp;
 }

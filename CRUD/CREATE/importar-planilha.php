@@ -203,9 +203,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if ($ben === '') { $ben = 'SEM DESCRICAO'; }
                 }
                 // Remover redundâncias do BEN no complemento
+                $comp_original = $complemento_limpo;
                 $complemento_limpo = pp_remover_ben_do_complemento($ben, $complemento_limpo);
                 // Aplicar sinônimos conforme config
                 [$ben, $complemento_limpo] = pp_aplicar_sinonimos($ben, $complemento_limpo, $tipo_bem_desc, $pp_config);
+                // Se após sinônimos e dedup complemento ficar vazio mas havia original, restaura para não perder informação
+                if ($complemento_limpo === '' && $comp_original !== '') {
+                    $complemento_limpo = $comp_original;
+                }
                 // Ajustar BEN para ser um alias válido do tipo, se possível
                 if ($tipo_ben_id > 0) {
                     $ben = pp_forcar_ben_em_aliases($ben, $tipo_bem_desc, $tipo_detectado['alias_usado'] ?? null);
@@ -241,6 +246,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'tipo_desc' => $tipo_bem_desc,
                         'ben' => $ben,
                         'complemento' => $complemento_limpo,
+                        'complemento_original' => $comp_original,
                         'dependencia_id' => $dependencia_id,
                         'dependencia' => $dependencia_rotulo,
                         'descricao_final' => $descricao_completa_calc
