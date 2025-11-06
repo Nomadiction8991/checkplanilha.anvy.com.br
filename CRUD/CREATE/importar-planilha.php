@@ -106,17 +106,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmtDeps = $conexao->prepare("SELECT id, descricao FROM dependencias");
         if ($stmtDeps->execute()) {
             foreach ($stmtDeps->fetchAll(PDO::FETCH_ASSOC) as $d) {
-                $dep_map[mb_strtoupper(trim($d['descricao']))] = (int)$d['id'];
+                $dep_map[] = [
+                    'id' => (int)$d['id'],
+                    'k' => null, // preenchido após normalização
+                    'descricao' => $d['descricao']
+                ];
             }
         }
 
         // Funções auxiliares
-        $normaliza = function($str) {
-            $str = trim((string)$str);
-            // Normalização simples para comparação case-insensitive
-            $upper = mb_strtoupper($str, 'UTF-8');
-            return $upper;
+        $removerAcentos = function($str) {
+            $str = (string)$str;
+            $s = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $str);
+            if ($s === false) {
+                return $str; // fallback sem remover acentos
+            }
+            return $s;
         };
+        $normaliza = function($str) use ($removerAcentos) {
+            $str = trim((string)$str);
+            $str = preg_replace('/\s+/', ' ', $str);
+            $str = $removerAcentos($str);
+            $str = strtoupper($str);
+            return $str;
+        };
+
+        // Construir chaves normalizadas para dependências
+        foreach ($dep_map as &$dep) {
+            $dep['k'] = $normaliza($dep['descricao']);
+        }
+        unset($dep);
 
         // Processar linhas do CSV
         $linhas = $aba->toArray();
@@ -174,11 +193,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
 
-                // Encontrar dependência por descrição exata (case-insensitive)
+                // Encontrar dependência por descrição (case- e accent-insensitive)
                 $dependencia_id = 0;
                 $dep_key = $normaliza($dependencia);
-                if ($dep_key !== '' && isset($dep_map[$dep_key])) {
-                    $dependencia_id = $dep_map[$dep_key];
+                if ($dep_key !== '') {
+                    foreach ($dep_map as $d) {
+                        if ($d['k'] === $dep_key) {
+                            $dependencia_id = $d['id'];
+                            break;
+                        }
+                    }
                 }
 
                 $sql_produto = "INSERT INTO produtos (planilha_id, codigo, descricao_completa, editado_descricao_completa, tipo_ben_id, editado_tipo_ben_id, ben, editado_ben, complemento, editado_complemento, dependencia_id, editado_dependencia_id, chacado, editado, imprimir_etiqueta, imprimir_14_1, observacao, ativo) 
@@ -200,9 +224,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        if ($registros_importados === 0 && $registros_erros > 0) {
-            throw new Exception("Nenhum registro foi importado.");
-        }
+        // Permitir importação mesmo sem produtos (não lançar exceção)
 
         $conexao->commit();
         $mensagem = "Importação concluída! {$registros_importados} produtos importados.";
