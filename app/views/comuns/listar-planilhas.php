@@ -143,6 +143,30 @@ ob_start();
                         <div class="card-body">
                             <form action="../../../CRUD/CREATE/importar-planilha.php" method="POST" enctype="multipart/form-data">
                                 <input type="hidden" name="comum_id" value="<?php echo $comum_id; ?>">
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="administracao" class="form-label">Administração <span class="text-danger">*</span></label>
+                                        <select id="administracao" name="administracao" class="form-select" required>
+                                            <option value="">Carregando cidades de MT...</option>
+                                        </select>
+                                        <small class="text-muted">Formato: Cidade (MT)</small>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="cidade" class="form-label">Cidade <span class="text-danger">*</span></label>
+                                        <select id="cidade" name="cidade" class="form-select" required>
+                                            <option value="">Carregando cidades de MT...</option>
+                                        </select>
+                                        <small class="text-muted">Formato: Cidade (MT)</small>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label for="setor" class="form-label">Setor (opcional)</label>
+                                        <input type="number" class="form-control" id="setor" name="setor" min="0" step="1" placeholder="Ex: 3">
+                                    </div>
+                                </div>
                                 
                                 <div class="mb-3">
                                     <label for="arquivo_csv" class="form-label">Arquivo CSV</label>
@@ -212,3 +236,39 @@ require_once __DIR__ . '/../layouts/app-wrapper.php';
 // Limpar arquivo temporário
 @unlink($contentFile);
 ?>
+<script>
+// Popula Administração e Cidade com as cidades do MT (independentes)
+document.addEventListener('DOMContentLoaded', async function(){
+    const selAdm = document.getElementById('administracao');
+    const selCid = document.getElementById('cidade');
+
+    async function carregarCidadesMT(){
+        try {
+            const respUF = await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados');
+            const estados = await respUF.json();
+            const mt = estados.find(e => e.sigla === 'MT');
+            if (!mt) throw new Error('UF MT não encontrada');
+
+            const respCidades = await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados/' + mt.id + '/municipios');
+            let cidades = await respCidades.json();
+            cidades = cidades.map(c => c.nome).sort((a,b)=>a.localeCompare(b));
+
+            const optionsHtml = ['<option value="">Selecione...</option>']
+                .concat(cidades.map(nome => {
+                    const label = `${nome} (MT)`;
+                    return `<option value="${label}">${label}</option>`;
+                }))
+                .join('');
+
+            if (selAdm) selAdm.innerHTML = optionsHtml;
+            if (selCid) selCid.innerHTML = optionsHtml;
+        } catch (e) {
+            if (selAdm) selAdm.innerHTML = '<option value="">Erro ao carregar</option>';
+            if (selCid) selCid.innerHTML = '<option value="">Erro ao carregar</option>';
+            console.error(e);
+        }
+    }
+
+    carregarCidadesMT();
+});
+</script>

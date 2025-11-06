@@ -15,6 +15,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $pulo_linhas = (int)($_POST['pulo_linhas'] ?? 25);
     $mapeamento_codigo = strtoupper(trim($_POST['mapeamento_codigo'] ?? 'A'));
     $mapeamento_complemento = strtoupper(trim($_POST['mapeamento_complemento'] ?? 'D'));
+    $administracao = trim($_POST['administracao'] ?? '');
+    $cidade = trim($_POST['cidade'] ?? '');
+    $setor = isset($_POST['setor']) && $_POST['setor'] !== '' ? (int)$_POST['setor'] : null;
     $mapeamento_dependencia = strtoupper(trim($_POST['mapeamento_dependencia'] ?? 'P'));
 
     $mensagem = '';
@@ -25,6 +28,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Validações
         if (!$arquivo_csv || $arquivo_csv['error'] !== UPLOAD_ERR_OK) {
             throw new Exception('Selecione um arquivo CSV válido.');
+        }
+        if (empty($administracao) || empty($cidade)) {
+            throw new Exception('Administração e Cidade são obrigatórias.');
         }
 
         $extensao = strtolower(pathinfo($arquivo_csv['name'], PATHINFO_EXTENSION));
@@ -66,7 +72,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Procesar comum e obter ID (pode criar ou atualizar)
         $dados_comum = [
-            'cnpj' => $cnpj_limpo
+            'cnpj' => $cnpj_limpo,
+            'administracao' => $administracao,
+            'cidade' => $cidade,
+            'setor' => $setor
         ];
         $comum_processado_id = processar_comum($conexao, $valor_comum, $dados_comum);
         if (!$comum_processado_id) {
