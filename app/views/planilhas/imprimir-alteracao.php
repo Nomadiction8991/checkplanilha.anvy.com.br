@@ -41,7 +41,13 @@ try {
                      LEFT JOIN produtos_check pc ON p.id = pc.produto_id 
                      WHERE p.id_planilha = :id_planilha";
     $params = [':id_planilha' => $id_planilha];
-    if (!empty($filtro_dependencia)) { $sql_produtos .= " AND p.dependencia LIKE :dependencia"; $params[':dependencia'] = '%' . $filtro_dependencia . '%'; }
+    if (!empty($filtro_dependencia)) { 
+        $sql_produtos .= " AND (
+            (CAST(pc.editado AS SIGNED) = 1 AND pc.dependencia LIKE :dependencia) OR
+            (CAST(pc.editado AS SIGNED) IS NULL OR CAST(pc.editado AS SIGNED) = 0) AND p.dependencia LIKE :dependencia
+        )"; 
+        $params[':dependencia'] = '%' . $filtro_dependencia . '%'; 
+    }
     $sql_produtos .= " ORDER BY p.codigo";
     $stmt_produtos = $conexao->prepare($sql_produtos);
     foreach ($params as $k => $v) { $stmt_produtos->bindValue($k, $v); }

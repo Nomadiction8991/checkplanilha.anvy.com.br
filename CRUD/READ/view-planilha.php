@@ -60,7 +60,11 @@ if (!empty($filtro_nome)) {
     $params[':nome'] = '%' . $filtro_nome . '%';
 }
 if (!empty($filtro_dependencia)) {
-    $sql .= " AND p.dependencia LIKE :dependencia";
+    // Se o produto foi editado (editado = 1), usa a nova dependência, caso contrário usa a original
+    $sql .= " AND (
+        (COALESCE(pc.editado, 0) = 1 AND pc.dependencia LIKE :dependencia) OR
+        (COALESCE(pc.editado, 0) = 0 AND p.dependencia LIKE :dependencia)
+    )";
     $params[':dependencia'] = '%' . $filtro_dependencia . '%';
 }
 if (!empty($filtro_codigo)) {

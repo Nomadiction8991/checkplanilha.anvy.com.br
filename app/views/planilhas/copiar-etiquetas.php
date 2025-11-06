@@ -30,12 +30,15 @@ $dependencia_selecionada = $_GET['dependencia'] ?? '';
 
 // Produtos marcados para imprimir (produtos checados)
 try {
-    $sql_produtos = "SELECT p.codigo, p.dependencia 
+    $sql_produtos = "SELECT p.codigo, COALESCE(pc.dependencia, p.dependencia) as dependencia
                      FROM produtos p 
                      INNER JOIN produtos_check pc ON p.id = pc.produto_id 
                      WHERE p.id_planilha = :id_planilha AND pc.imprimir = 1";
     if (!empty($dependencia_selecionada)) {
-        $sql_produtos .= " AND p.dependencia = :dependencia";
+        $sql_produtos .= " AND (
+            (CAST(pc.editado AS SIGNED) = 1 AND pc.dependencia = :dependencia) OR
+            (CAST(pc.editado AS SIGNED) IS NULL OR CAST(pc.editado AS SIGNED) = 0) AND p.dependencia = :dependencia
+        )";
     }
     $sql_produtos .= " ORDER BY p.codigo";
     $stmt_produtos = $conexao->prepare($sql_produtos);
