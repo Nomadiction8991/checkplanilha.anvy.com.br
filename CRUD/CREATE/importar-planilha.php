@@ -389,6 +389,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if ($ben === '') { $ben = 'SEM DESCRICAO'; }
                 }
 
+                // 3.1 Remover ocorrências redundantes do BEN dentro do complemento (início ou após separadores)
+                if ($complemento_limpo !== '' && $ben !== '' && $ben !== 'SEM DESCRICAO') {
+                    // Remove BEN no início
+                    $complemento_limpo = preg_replace('/^' . preg_quote($ben, '/') . '(\s+|\/|\-|:)+/u', '', $complemento_limpo);
+                    // Remove BEN repetido em qualquer posição isolado por separadores
+                    $complemento_limpo = preg_replace('/(\s|\/|\-|:)' . preg_quote($ben, '/') . '(\s|\/|\-|:)/u', ' ', $complemento_limpo);
+                    $complemento_limpo = trim(preg_replace('/\s+/', ' ', $complemento_limpo));
+                }
+
+                // 3.2 Sinônimos inteligentes: se complemento contém ARMARIO e tipo inclui PRATELEIRA / ESTANTE, força BEN = PRATELEIRA
+                $ben_sinonimos = [
+                    'ARMARIO' => 'PRATELEIRA',
+                    'ARMARIOS' => 'PRATELEIRA',
+                    'ARMÁRIO' => 'PRATELEIRA',
+                    'ARMÁRIOS' => 'PRATELEIRA'
+                ];
+                foreach ($ben_sinonimos as $k => $subst) {
+                    if (str_contains($complemento_limpo, strtoupper($k))) {
+                        // Verifica se tipo de bem possui PRATELEIRA / ESTANTE
+                        if ($tipo_bem_desc && preg_match('/PRATELEIRA\s*\/\s*ESTANTE/i', $tipo_bem_desc)) {
+                            $ben = $subst;
+                            break;
+                        }
+                    }
+                }
+                // Após ajuste de sinônimo, remover novamente BEN do complemento se aparecer
+                if ($complemento_limpo !== '' && $ben !== '' && $ben !== 'SEM DESCRICAO') {
+                    $complemento_limpo = preg_replace('/\b' . preg_quote($ben, '/') . '\b/u', '', $complemento_limpo);
+                    $complemento_limpo = trim(preg_replace('/\s+/', ' ', $complemento_limpo));
+                }
+
                 // 4) Encontrar dependência por descrição (case- e accent-insensitive)
                 $dependencia_id = 0;
                 $dep_key = $normaliza($dependencia_original);
@@ -416,9 +447,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     $brackets = '?';
                 }
+                // Montar descricao completa SEM hifens entre partes: 1x [TIPO] BEN COMPLEMENTO (DEPENDENCIA)
                 $descricao_completa_calc = '1x [' . $brackets . '] ' . ($ben !== '' ? $ben : 'SEM DESCRICAO');
-                if ($complemento_limpo !== '') { $descricao_completa_calc .= ' - ' . $complemento_limpo; }
-                if (trim($dependencia_rotulo) !== '') { $descricao_completa_calc .= ' - (' . strtoupper($dependencia_rotulo) . ')'; }
+                if ($complemento_limpo !== '') { $descricao_completa_calc .= ' ' . $complemento_limpo; }
+                if (trim($dependencia_rotulo) !== '') { $descricao_completa_calc .= ' (' . strtoupper($dependencia_rotulo) . ')'; }
 
                 $sql_produto = "INSERT INTO produtos (planilha_id, codigo, descricao_completa, editado_descricao_completa, tipo_ben_id, editado_tipo_ben_id, ben, editado_ben, complemento, editado_complemento, dependencia_id, editado_dependencia_id, checado, editado, imprimir_etiqueta, imprimir_14_1, observacao, ativo) 
                                VALUES (:planilha_id, :codigo, :descricao_completa, '', :tipo_ben_id, 0, :ben, '', :complemento, '', :dependencia_id, 0, 0, 0, 0, 0, '', 1)";
