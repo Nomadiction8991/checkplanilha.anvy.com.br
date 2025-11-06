@@ -110,8 +110,20 @@ if ($filtro_status !== '') {
     }
 }
 
-// Total de registros para paginação
-$sql_count = "SELECT COUNT(*) AS total FROM (" . $sql_base . ") AS produtos_filtrados";
+// Total de registros para paginação - usando COUNT direto sem subquery
+$sql_count = str_replace('SELECT 
+                p.id,
+                p.codigo,
+                p.nome,
+                p.nome_editado,
+                p.dependencia,
+                p.dependencia_editada,
+                p.observacoes,
+                COALESCE(p.checado, 0) AS checado,
+                COALESCE(p.dr, 0) AS dr,
+                COALESCE(p.imprimir, 0) AS imprimir,
+                COALESCE(p.editado, 0) AS editado
+             FROM', 'SELECT COUNT(*) AS total FROM', $sql_base);
 $stmt_count = $conexao->prepare($sql_count);
 foreach ($params as $key => $value) {
     $stmt_count->bindValue($key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
