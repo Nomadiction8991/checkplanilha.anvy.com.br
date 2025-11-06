@@ -248,4 +248,34 @@ function obter_planilhas_por_comum($conexao, $comum_id) {
     }
 }
 
+/**
+ * Busca comuns por código (numérico) ou descrição textual.
+ * Quando nenhum termo é informado, retorna todos os registros.
+ *
+ * @param PDO $conexao Conexão com banco de dados
+ * @param string $termo Texto informado pelo usuário
+ * @return array Lista de comuns filtrada
+ */
+function buscar_comuns($conexao, $termo = '') {
+    $termo = trim($termo);
+
+    if ($termo === '') {
+        return obter_todos_comuns($conexao);
+    }
+
+    try {
+        $sql = "SELECT id, codigo, cnpj, descricao, administracao, cidade, setor
+                FROM comums
+                WHERE CAST(codigo AS CHAR) LIKE :busca OR descricao LIKE :busca
+                ORDER BY codigo ASC";
+        $stmt = $conexao->prepare($sql);
+        $stmt->bindValue(':busca', '%' . $termo . '%');
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+        error_log("Erro ao buscar comuns: " . $e->getMessage());
+        return [];
+    }
+}
+
 ?>
