@@ -112,9 +112,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 <strong>Código:</strong> <?php echo htmlspecialchars($produto['codigo'] ?? ''); ?>
             </div>
             <div class="col-12">
-                <strong>Tipo de Bem:</strong> <?php echo htmlspecialchars(($produto['tipo_bem_codigo'] ?? '') . ' - ' . ($produto['tipo_bem_descricao'] ?? '')); ?>
-            </div>
-            <div class="col-12">
                 <strong>Bem:</strong> <?php echo htmlspecialchars($produto['ben'] ?? ''); ?>
             </div>
             <div class="col-12">

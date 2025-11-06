@@ -37,9 +37,8 @@ $nova_dependencia_id = '';
 
 // Buscar dados do produto - USANDO id_produto
 try {
-    $sql_produto = "SELECT p.*, tb.codigo as tipo_bem_codigo, tb.descricao as tipo_bem_descricao, d.descricao as dependencia_descricao
+    $sql_produto = "SELECT p.*, d.descricao as dependencia_descricao
                     FROM produtos p
-                    LEFT JOIN tipos_bens tb ON p.id_tipo_ben = tb.id
                     LEFT JOIN dependencias d ON p.dependencia_id = d.id
                     WHERE p.id_produto = :id_produto AND p.planilha_id = :planilha_id";
     $stmt_produto = $conexao->prepare($sql_produto);
@@ -53,7 +52,7 @@ try {
     }
     
     // Pré-preencher com edições se existirem
-    $novo_tipo_bem_id = $produto['editado_id_tipo_bem'] ?? '';
+    // Tipo de bem não é salvo como ID no schema atual; usamos apenas para dirigir o campo BEM
     $novo_bem = $produto['editado_ben'] ?? '';
     $novo_complemento = $produto['editado_complemento'] ?? '';
     $nova_dependencia_id = $produto['editado_dependencia_id'] ?? '';
@@ -107,10 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $sql_update = "UPDATE produtos SET imprimir_etiqueta = 1, editado = 1";
         $params = [':id_produto' => $id_produto, ':planilha_id' => $id_planilha];
 
-        if ($novo_tipo_bem_id !== '') {
-            $sql_update .= ", editado_id_tipo_bem = :novo_tipo_bem_id";
-            $params[':novo_tipo_bem_id'] = $novo_tipo_bem_id;
-        }
+        // Observação: não persistimos o ID do tipo de bem, apenas o BEM derivado
         if ($novo_bem !== '') {
             $sql_update .= ", editado_ben = :novo_bem";
             $params[':novo_bem'] = $novo_bem;

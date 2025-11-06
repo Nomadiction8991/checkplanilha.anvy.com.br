@@ -98,7 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Pré-carregar tipos de bens e dependências para matching
         $tipos_bens = [];
-        $stmtTipos = $conexao->prepare("SELECT id, descricao FROM tipos_bens ORDER BY LENGTH(descricao) DESC");
+        $stmtTipos = $conexao->prepare("SELECT id, codigo, descricao FROM tipos_bens ORDER BY LENGTH(descricao) DESC");
         if ($stmtTipos->execute()) {
             $tipos_bens = $stmtTipos->fetchAll(PDO::FETCH_ASSOC);
         }
@@ -130,6 +130,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $str = strtoupper($str);
             return $str;
         };
+
+        // Mapa de aliases normalizados para tipos de bens (por descricao e sinônimos separados por '/')
+        $tipos_aliases = [];
+        foreach ($tipos_bens as $tb) {
+            $aliases = array_filter(array_map('trim', preg_split('/\s*\/\s*/', (string)$tb['descricao'])));
+            $aliases[] = (string)$tb['descricao']; // inclui a descricao completa como alias
+            $aliases_norm = array_unique(array_map($normaliza, $aliases));
+            $tipos_aliases[] = [
+                'id' => (int)$tb['id'],
+                'codigo' => (int)$tb['codigo'],
+                'descricao' => (string)$tb['descricao'],
+                'aliases' => $aliases_norm,
+            ];
+        }
 
         // Construir chaves normalizadas para dependências
         foreach ($dep_map as &$dep) {
@@ -174,28 +188,98 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     continue;
                 }
 
-                $complemento = isset($linha[$idx_complemento]) ? trim((string)$linha[$idx_complemento]) : '';
-                $dependencia = isset($linha[$idx_dependencia]) ? trim((string)$linha[$idx_dependencia]) : '';
+                $complemento_original = isset($linha[$idx_complemento]) ? trim((string)$linha[$idx_complemento]) : '';
+                $dependencia_original = isset($linha[$idx_dependencia]) ? trim((string)$linha[$idx_dependencia]) : '';
 
-                // Determinar tipo de bem a partir do início do complemento
-                $tipo_ben_id = 0;
-                $comp_upper = $normaliza($complemento);
-                foreach ($tipos_bens as $tb) {
-                    $tb_desc_upper = $normaliza($tb['descricao']);
-                    if ($tb_desc_upper !== '' && mb_substr($comp_upper, 0, mb_strlen($tb_desc_upper)) === $tb_desc_upper) {
-                        $tipo_ben_id = (int)$tb['id'];
-                        // Remover o prefixo do complemento preservando o restante
-                        $resto = mb_substr($complemento, mb_strlen($tb['descricao']));
-                        // Remover separadores iniciais como '-' ':' '–' '—' e espaços
-                        $resto = preg_replace('/^[\s\-–—:]+/u', '', (string)$resto);
-                        $complemento = trim((string)$resto);
-                        break;
+                // Parsing avançado: detectar código, tipo de bem (por código ou nome), remover prefixos e extrair BEN e COMPLEMENTO
+                $texto = $complemento_original;
+                $texto_norm = $normaliza($texto);
+
+                // 1) Remover prefixo de código no início, ex: "68 -", "13.001 -", "OT-1 -"
+                $codigo_detectado = null;
+                if (preg_match('/^\s*(\d{1,3})(?:[\.,]\d+)?\s*\-\s*/u', $texto, $m)) {
+                    $codigo_detectado = (int)$m[1];
+                    $texto = preg_replace('/^\s*' . preg_quote($m[0], '/') . '/u', '', $texto);
+                    $texto_norm = $normaliza($texto);
+                } else {
+                    // Remove padrões "OT-... -" apenas do texto (não influencia no código do tipo)
+                    if (preg_match('/^\s*OT-?\d+\s*\-\s*/iu', $texto)) {
+                        $texto = preg_replace('/^\s*OT-?\d+\s*\-\s*/iu', '', $texto);
+                        $texto_norm = $normaliza($texto);
                     }
                 }
 
-                // Encontrar dependência por descrição (case- e accent-insensitive)
+                // 2) Descobrir tipo de bem: primeiro por código, depois por nome
+                $tipo_ben_id = 0;
+                $tipo_ben_codigo = null;
+                $tipo_bem_desc = null;
+
+                if ($codigo_detectado !== null) {
+                    foreach ($tipos_aliases as $tb) {
+                        if ((int)$tb['codigo'] === $codigo_detectado) {
+                            $tipo_ben_id = (int)$tb['id'];
+                            $tipo_ben_codigo = (int)$tb['codigo'];
+                            $tipo_bem_desc = (string)$tb['descricao'];
+                            break;
+                        }
+                    }
+                }
+
+                if ($tipo_ben_id === 0) {
+                    // tentar por nome/alias; usa o alias mais longo que dê match no início do texto
+                    $melhor = null; // ['len'=>, 'tb'=>, 'alias'=>]
+                    foreach ($tipos_aliases as $tb) {
+                        foreach ($tb['aliases'] as $alias_norm) {
+                            if ($alias_norm !== '' && str_starts_with($texto_norm, $alias_norm)) {
+                                $len = strlen($alias_norm);
+                                if ($melhor === null || $len > $melhor['len']) {
+                                    $melhor = ['len' => $len, 'tb' => $tb, 'alias' => $alias_norm];
+                                }
+                            }
+                        }
+                    }
+                    if ($melhor) {
+                        $tipo_ben_id = (int)$melhor['tb']['id'];
+                        $tipo_ben_codigo = (int)$melhor['tb']['codigo'];
+                        $tipo_bem_desc = (string)$melhor['tb']['descricao'];
+                        // remove apenas uma ocorrência inicial do alias do texto original (tolerante a variações de caixa/acentos)
+                        $alias_regex = '/^\s*' . preg_quote($melhor['alias'], '/') . '\s*[\-–—:]?\s*/i';
+                        // como $melhor['alias'] está normalizado, aplicamos no texto normalizado para encontrar o deslocamento,
+                        // mas removemos no texto original de forma simples: tirando o mesmo número de caracteres aproximados.
+                        $texto = preg_replace($alias_regex, '', $texto);
+                        $texto_norm = $normaliza($texto);
+                    }
+                }
+
+                // 3) Extrair BEN e COMPLEMENTO do restante
+                $ben = '';
+                $complemento_limpo = trim($texto);
+                // se houver separador " - ", assume-se que BEN é a parte esquerda e COMPLEMENTO a direita
+                if (preg_match('/\s\-\s/u', $complemento_limpo)) {
+                    [$parte_ben, $parte_comp] = preg_split('/\s\-\s/u', $complemento_limpo, 2);
+                    $ben = trim($parte_ben);
+                    $complemento_limpo = trim($parte_comp);
+                } else {
+                    // se houver múltiplos itens separados por '/', mantemos apenas o primeiro como BEN
+                    if (strpos($complemento_limpo, '/') !== false) {
+                        $tokens = array_filter(array_map('trim', explode('/', $complemento_limpo)));
+                        if (!empty($tokens)) {
+                            $ben = array_shift($tokens);
+                            $complemento_limpo = trim(implode(' / ', $tokens));
+                        }
+                    } else {
+                        $ben = $complemento_limpo;
+                        $complemento_limpo = '';
+                    }
+                }
+
+                // Normalizar espaços e caixa para persistência (BEN e complemento em Maiúsculas como padrão)
+                $ben = strtoupper(preg_replace('/\s+/', ' ', $ben));
+                $complemento_limpo = strtoupper(preg_replace('/\s+/', ' ', $complemento_limpo));
+
+                // 4) Encontrar dependência por descrição (case- e accent-insensitive)
                 $dependencia_id = 0;
-                $dep_key = $normaliza($dependencia);
+                $dep_key = $normaliza($dependencia_original);
                 if ($dep_key !== '') {
                     foreach ($dep_map as $d) {
                         if ($d['k'] === $dep_key) {
@@ -204,14 +288,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         }
                     }
                 }
+                $dependencia_rotulo = '';
+                if ($dependencia_id > 0) {
+                    foreach ($dep_map as $d) {
+                        if ($d['id'] === $dependencia_id) { $dependencia_rotulo = $d['descricao']; break; }
+                    }
+                } else {
+                    $dependencia_rotulo = $dependencia_original;
+                }
 
-                $sql_produto = "INSERT INTO produtos (planilha_id, codigo, descricao_completa, editado_descricao_completa, tipo_ben_id, editado_tipo_ben_id, ben, editado_ben, complemento, editado_complemento, dependencia_id, editado_dependencia_id, chacado, editado, imprimir_etiqueta, imprimir_14_1, observacao, ativo) 
-                               VALUES (:planilha_id, :codigo, '', '', :tipo_ben_id, 0, '', '', :complemento, '', :dependencia_id, 0, 0, 0, 0, 0, '', 1)";
+                // 5) Montar a descricao completa: 1x [CODIGO - DESCRICAO] BEN - COMPLEMENTO - (DEPENDENCIA)
+                $brackets = '';
+                if ($tipo_ben_id > 0) {
+                    $brackets = sprintf('%d - %s', (int)$tipo_ben_codigo, strtoupper($tipo_bem_desc));
+                } else {
+                    $brackets = '?';
+                }
+                $descricao_completa_calc = '1x [' . $brackets . '] ' . $ben;
+                if ($complemento_limpo !== '') { $descricao_completa_calc .= ' - ' . $complemento_limpo; }
+                if (trim($dependencia_rotulo) !== '') { $descricao_completa_calc .= ' - (' . strtoupper($dependencia_rotulo) . ')'; }
+
+                $sql_produto = "INSERT INTO produtos (planilha_id, codigo, descricao_completa, editado_descricao_completa, tipo_ben_id, editado_tipo_ben_id, ben, editado_ben, complemento, editado_complemento, dependencia_id, editado_dependencia_id, checado, editado, imprimir_etiqueta, imprimir_14_1, observacao, ativo) 
+                               VALUES (:planilha_id, :codigo, :descricao_completa, '', :tipo_ben_id, 0, :ben, '', :complemento, '', :dependencia_id, 0, 0, 0, 0, 0, '', 1)";
                 $stmt_prod = $conexao->prepare($sql_produto);
                 $stmt_prod->bindValue(':planilha_id', $id_planilha, PDO::PARAM_INT);
                 $stmt_prod->bindValue(':codigo', $codigo);
+                $stmt_prod->bindValue(':descricao_completa', $descricao_completa_calc);
                 $stmt_prod->bindValue(':tipo_ben_id', $tipo_ben_id, PDO::PARAM_INT);
-                $stmt_prod->bindValue(':complemento', $complemento);
+                $stmt_prod->bindValue(':ben', $ben);
+                $stmt_prod->bindValue(':complemento', $complemento_limpo);
                 $stmt_prod->bindValue(':dependencia_id', $dependencia_id, PDO::PARAM_INT);
                 if ($stmt_prod->execute()) {
                     $registros_importados++;
