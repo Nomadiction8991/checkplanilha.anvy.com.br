@@ -1,23 +1,13 @@
 <?php
-require_once __DIR__ . '/../../../auth.php'; // Autenticação
-/**
- * Menu Unificado - Mostra opções baseadas no contexto
- * 
- * Parâmetros aceitos via GET:
- * - id: ID da planilha (opcional, usado em contextos de planilha específica)
- * - contexto: 'principal', 'planilha', 'relatorio' (auto-detectado se não fornecido)
- * - origem: URL da página que chamou o menu (para voltar)
- */
+require_once __DIR__ . '/../../../auth.php';
 
 $id_planilha = $_GET['id'] ?? null;
 $contexto = $_GET['contexto'] ?? 'auto';
 $origem = $_GET['origem'] ?? null;
 $modo_publico = !empty($_SESSION['public_acesso']);
 
-// Auto-detectar contexto baseado no referer se não foi especificado
 if ($contexto === 'auto') {
     $referer = $_SERVER['HTTP_REFERER'] ?? '';
-    
     if (strpos($referer, 'relatorio-14-1.php') !== false) {
         $contexto = 'relatorio';
     } elseif (strpos($referer, 'view-planilha.php') !== false || 
@@ -31,316 +21,134 @@ if ($contexto === 'auto') {
     }
 }
 
-// Determinar URL de retorno
-// - Se origem informada, usa origem
-// - Se contexto de planilha/relatório, voltar para view-planilha
-// - Se contexto principal (menu do index), voltar para index
 if ($origem) {
     $backUrl = $origem;
 } elseif (($contexto === 'planilha' || $contexto === 'relatorio') && $id_planilha) {
-    // Em modo público, voltar para a seleção pública
     if ($modo_publico) {
         $backUrl = '../../../public/assinar.php';
     } else {
         $backUrl = '../planilhas/view-planilha.php?id=' . urlencode($id_planilha);
     }
 } else {
-    // Menu principal
     $backUrl = $modo_publico ? '../../../public/assinar.php' : '../../../index.php';
 }
 
-// Configurações da página
 $pageTitle = "Menu";
 $headerActions = '';
-if ($modo_publico) {
-    // Mostrar botão de sair do modo público
-    $headerActions = '<a href="../../../public/sair.php" class="btn-header-action" title="Sair acesso público"><i class="bi bi-box-arrow-right fs-5"></i></a>';
-}
 
-// Iniciar buffer para capturar o conteúdo
 ob_start();
 ?>
 
-<style>
-.menu-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1rem;
-}
-
-.menu-card {
-    transition: transform 0.2s, box-shadow 0.2s;
-    cursor: pointer;
-}
-
-.menu-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
-.menu-card.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.menu-card.disabled:hover {
-    transform: none;
-}
-
-.menu-section-title {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #6c757d;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin: 1.5rem 0 0.75rem 0;
-    padding-left: 0.25rem;
-}
-
-.menu-section-title:first-child {
-    margin-top: 0;
-}
-</style>
-
-<div class="menu-grid">
-    
-    <?php if ($contexto === 'principal'): ?>
-        <!-- Seção: Planilhas -->
-        <div class="menu-section-title">
-            <i class="bi bi-file-earmark-spreadsheet me-1"></i>
-            Planilhas
-        </div>
-        
-        <a href="../planilhas/importar-planilha.php" class="text-decoration-none">
-            <div class="card menu-card">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="bi bi-file-earmark-arrow-up-fill me-2" style="color: #28a745;"></i>
-                        Importar Planilha
-                    </h5>
-                    <p class="card-text small text-muted">Importar nova planilha CSV</p>
-                </div>
+<div class="card">
+    <div class="card-header">
+        <i class="bi bi-list me-2"></i>Menu de Opções
+    </div>
+    <div class="list-group list-group-flush">
+        <?php if ($contexto === 'principal'): ?>
+            <div class="list-group-item bg-light text-muted small fw-semibold">
+                <i class="bi bi-file-earmark-spreadsheet me-1"></i> PLANILHAS
             </div>
-        </a>
-        
-        <!-- Seção: Usuários -->
-        <div class="menu-section-title">
-            <i class="bi bi-people me-1"></i>
-            Administração
-        </div>
-        
-        <a href="../usuarios/read-usuario.php" class="text-decoration-none">
-            <div class="card menu-card">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="bi bi-people-fill me-2" style="color: #6610f2;"></i>
-                        Listagem de Usuários
-                    </h5>
-                    <p class="card-text small text-muted">Gerenciar usuários do sistema</p>
-                </div>
+            <a href="../planilhas/importar-planilha.php" class="list-group-item list-group-item-action">
+                <i class="bi bi-upload me-2"></i>Importar Planilha
+            </a>
+            <div class="list-group-item bg-light text-muted small fw-semibold">
+                <i class="bi bi-people me-1"></i> ADMINISTRAÇÃO
             </div>
-        </a>
-    <?php endif; ?>
-    
-    <?php if ($contexto === 'planilha' && $id_planilha): ?>
-        <!-- Seção: Produtos -->
-        <?php if (!$modo_publico): ?>
-            <div class="menu-section-title">
-                <i class="bi bi-box-seam me-1"></i>
-                Produtos
+            <a href="../usuarios/read-usuario.php" class="list-group-item list-group-item-action">
+                <i class="bi bi-people me-2"></i>Listagem de Usuários
+            </a>
+            <div class="list-group-item bg-light text-muted small fw-semibold">
+                <i class="bi bi-gear me-1"></i> SISTEMA
             </div>
-            
-            <a href="../produtos/read-produto.php?id=<?php echo $id_planilha; ?>" class="text-decoration-none">
-                <div class="card menu-card">
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            <i class="bi bi-list-ul me-2" style="color: #007bff;"></i>
-                            Listagem de Produtos
-                        </h5>
-                        <p class="card-text small text-muted">Visualizar e cadastrar produtos da planilha</p>
-                    </div>
-                </div>
+            <a href="../../../logout.php" class="list-group-item list-group-item-action text-danger">
+                <i class="bi bi-box-arrow-right me-2"></i>Sair
             </a>
         <?php endif; ?>
         
-        <!-- Seção: Relatórios -->
-        <div class="menu-section-title">
-            <i class="bi bi-file-earmark-text me-1"></i>
-            Relatórios
-        </div>
-        
-        <a href="../planilhas/relatorio-14-1.php?id=<?php echo $id_planilha; ?>" class="text-decoration-none">
-            <div class="card menu-card">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="bi bi-file-earmark-pdf-fill me-2" style="color: #17a2b8;"></i>
-                        Relatório 14.1
-                    </h5>
-                    <p class="card-text small text-muted">Gerar relatório 14.1</p>
+        <?php if ($contexto === 'planilha' && $id_planilha): ?>
+            <?php if (!$modo_publico): ?>
+                <div class="list-group-item bg-light text-muted small fw-semibold">
+                    <i class="bi bi-box-seam me-1"></i> PRODUTOS
                 </div>
+                <a href="../produtos/read-produto.php?id=<?php echo $id_planilha; ?>" class="list-group-item list-group-item-action">
+                    <i class="bi bi-list-ul me-2"></i>Listagem de Produtos
+                </a>
+            <?php endif; ?>
+            <div class="list-group-item bg-light text-muted small fw-semibold">
+                <i class="bi bi-file-earmark-text me-1"></i> RELATÓRIOS
             </div>
-        </a>
-        
-        <a href="../planilhas/imprimir-alteracao.php?id=<?php echo $id_planilha; ?>" class="text-decoration-none">
-            <div class="card menu-card">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="bi bi-file-earmark-diff-fill me-2" style="color: #9c27b0;"></i>
-                        Relatório de Alterações
-                    </h5>
-                    <p class="card-text small text-muted">Relatório de alterações realizadas</p>
-                </div>
-            </div>
-        </a>
-        
-        <?php if (!$modo_publico): ?>
-            <!-- Seção: Outros -->
-            <div class="menu-section-title">
-                <i class="bi bi-three-dots me-1"></i>
-                Outros
-            </div>
-            
-            <a href="../planilhas/copiar-etiquetas.php?id=<?php echo $id_planilha; ?>" class="text-decoration-none">
-                <div class="card menu-card">
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            <i class="bi bi-tags-fill me-2" style="color: #ff9800;"></i>
-                            Copiar Etiquetas
-                        </h5>
-                        <p class="card-text small text-muted">Copiar etiquetas selecionadas</p>
-                    </div>
-                </div>
+            <a href="../planilhas/relatorio-14-1.php?id=<?php echo $id_planilha; ?>" class="list-group-item list-group-item-action">
+                <i class="bi bi-file-earmark-pdf me-2"></i>Relatório 14.1
             </a>
+            <a href="../planilhas/imprimir-alteracao.php?id=<?php echo $id_planilha; ?>" class="list-group-item list-group-item-action">
+                <i class="bi bi-file-earmark-diff me-2"></i>Relatório de Alterações
+            </a>
+            <?php if (!$modo_publico): ?>
+                <div class="list-group-item bg-light text-muted small fw-semibold">
+                    <i class="bi bi-three-dots me-1"></i> OUTROS
+                </div>
+                <a href="../planilhas/copiar-etiquetas.php?id=<?php echo $id_planilha; ?>" class="list-group-item list-group-item-action">
+                    <i class="bi bi-tags me-2"></i>Copiar Etiquetas
+                </a>
+                <a href="../planilhas/editar-planilha.php?id=<?php echo $id_planilha; ?>" class="list-group-item list-group-item-action">
+                    <i class="bi bi-pencil me-2"></i>Editar Planilha
+                </a>
+            <?php endif; ?>
         <?php endif; ?>
-    <?php endif; ?>
-    
-    <?php if ($contexto === 'relatorio' && $id_planilha): ?>
-        <!-- Seção: Navegação -->
-        <div class="menu-section-title">
-            <i class="bi bi-compass me-1"></i>
-            Navegação
-        </div>
         
-        <a href="../planilhas/view-planilha.php?id=<?php echo $id_planilha; ?>" class="text-decoration-none">
-            <div class="card menu-card">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="bi bi-eye-fill me-2" style="color: #007bff;"></i>
-                        Ver Planilha
-                    </h5>
-                    <p class="card-text small text-muted">Visualizar produtos da planilha</p>
-                </div>
+        <?php if ($contexto === 'relatorio' && $id_planilha): ?>
+            <div class="list-group-item bg-light text-muted small fw-semibold">
+                <i class="bi bi-compass me-1"></i> NAVEGAÇÃO
             </div>
-        </a>
-        
-        <a href="../planilhas/editar-planilha.php?id=<?php echo $id_planilha; ?>" class="text-decoration-none">
-            <div class="card menu-card">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="bi bi-pencil-fill me-2" style="color: #6c757d;"></i>
-                        Editar Planilha
-                    </h5>
-                    <p class="card-text small text-muted">Editar configurações da planilha</p>
-                </div>
+            <a href="../planilhas/view-planilha.php?id=<?php echo $id_planilha; ?>" class="list-group-item list-group-item-action">
+                <i class="bi bi-eye me-2"></i>Ver Planilha
+            </a>
+            <a href="../planilhas/editar-planilha.php?id=<?php echo $id_planilha; ?>" class="list-group-item list-group-item-action">
+                <i class="bi bi-pencil me-2"></i>Editar Planilha
+            </a>
+            <div class="list-group-item bg-light text-muted small fw-semibold">
+                <i class="bi bi-pen me-1"></i> ASSINATURAS
             </div>
-        </a>
-        
-        <!-- Seção: Assinaturas -->
-        <div class="menu-section-title">
-            <i class="bi bi-pen me-1"></i>
-            Assinaturas Digitais
-        </div>
-        
-        <a href="../planilhas/assinatura-14-1.php?id=<?php echo $id_planilha; ?>" class="text-decoration-none">
-            <div class="card menu-card">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="bi bi-pen-fill me-2" style="color: #6610f2;"></i>
-                        Assinar Documentos
-                    </h5>
-                    <p class="card-text small text-muted">Gerenciar assinaturas do relatório 14.1</p>
+            <a href="../planilhas/assinatura-14-1.php?id=<?php echo $id_planilha; ?>" class="list-group-item list-group-item-action">
+                <i class="bi bi-pen me-2"></i>Assinar Documentos
+            </a>
+            <?php if (!$modo_publico): ?>
+                <div class="list-group-item bg-light text-muted small fw-semibold">
+                    <i class="bi bi-box-seam me-1"></i> PRODUTOS
                 </div>
+                <a href="../produtos/read-produto.php?id=<?php echo $id_planilha; ?>" class="list-group-item list-group-item-action">
+                    <i class="bi bi-plus-circle me-2"></i>Cadastrar Produto
+                </a>
+            <?php endif; ?>
+            <div class="list-group-item bg-light text-muted small fw-semibold">
+                <i class="bi bi-printer me-1"></i> IMPRESSÕES
             </div>
-        </a>
-        
-        <?php if (!$modo_publico): ?>
-            <!-- Seção: Produtos -->
-            <div class="menu-section-title">
-                <i class="bi bi-box-seam me-1"></i>
-                Produtos
-            </div>
-            
-            <a href="../produtos/read-produto.php?id=<?php echo $id_planilha; ?>" class="text-decoration-none">
-                <div class="card menu-card">
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            <i class="bi bi-plus-circle-fill me-2" style="color: #28a745;"></i>
-                            Cadastrar Produto
-                        </h5>
-                        <p class="card-text small text-muted">Adicionar novo produto manualmente</p>
-                    </div>
-                </div>
+            <?php if (!$modo_publico): ?>
+                <a href="../planilhas/copiar-etiquetas.php?id=<?php echo $id_planilha; ?>" class="list-group-item list-group-item-action">
+                    <i class="bi bi-tags me-2"></i>Copiar Etiquetas
+                </a>
+            <?php endif; ?>
+            <a href="../planilhas/imprimir-alteracao.php?id=<?php echo $id_planilha; ?>" class="list-group-item list-group-item-action">
+                <i class="bi bi-file-earmark-diff me-2"></i>Imprimir Alterações
             </a>
         <?php endif; ?>
         
-        <?php if (!$modo_publico): ?>
-            <!-- Seção: Outras Impressões -->
-            <div class="menu-section-title">
-                <i class="bi bi-printer me-1"></i>
-                Outras Impressões
+        <?php if ($modo_publico): ?>
+            <div class="list-group-item bg-light text-muted small fw-semibold">
+                <i class="bi bi-gear me-1"></i> SISTEMA
             </div>
-            
-            <a href="../planilhas/copiar-etiquetas.php?id=<?php echo $id_planilha; ?>" class="text-decoration-none">
-                <div class="card menu-card">
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            <i class="bi bi-tags-fill me-2" style="color: #ff9800;"></i>
-                            Copiar Etiquetas
-                        </h5>
-                        <p class="card-text small text-muted">Copiar etiquetas selecionadas</p>
-                    </div>
-                </div>
+            <a href="../../../public/sair.php" class="list-group-item list-group-item-action text-danger">
+                <i class="bi bi-box-arrow-right me-2"></i>Sair
             </a>
         <?php endif; ?>
-
-        <a href="../planilhas/imprimir-alteracao.php?id=<?php echo $id_planilha; ?>" class="text-decoration-none">
-            <div class="card menu-card">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="bi bi-file-earmark-diff-fill me-2" style="color: #9c27b0;"></i>
-                        Imprimir Alterações
-                    </h5>
-                    <p class="card-text small text-muted">Relatório de alterações realizadas</p>
-                </div>
-            </div>
-        </a>
-    <?php endif; ?>
-    
-    <?php if ($contexto === 'principal'): ?>
-        <!-- Seção Sistema removida conforme solicitação -->
-    <?php endif; ?>
-    
-    <?php if (($contexto === 'planilha' || $contexto === 'relatorio') && !$id_planilha): ?>
-        <!-- Aviso quando não há ID de planilha -->
-        <div class="alert alert-warning">
-            <i class="bi bi-exclamation-triangle me-2"></i>
-            Algumas opções requerem uma planilha selecionada.
-        </div>
-    <?php endif; ?>
+    </div>
 </div>
 
 <?php
-// Capturar o conteúdo
 $contentHtml = ob_get_clean();
-
-// Criar arquivo temporário com o conteúdo
-$tempFile = __DIR__ . '/../../../temp_menu_unificado_' . uniqid() . '.php';
+$tempFile = __DIR__ . '/../../../temp_menu_' . uniqid() . '.php';
 file_put_contents($tempFile, $contentHtml);
 $contentFile = $tempFile;
-
-// Renderizar o layout
 include __DIR__ . '/../layouts/app-wrapper.php';
-
-// Limpar arquivo temporário
 unlink($tempFile);
 ?>
