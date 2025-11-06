@@ -101,6 +101,7 @@ ob_start();
             <table class="table table-hover table-striped mb-0 align-middle">
                 <thead>
                     <tr>
+                        <th style="width: 80px">ID</th>
                         <th style="width: 40%">Código</th>
                         <th>Descrição</th>
                         <th style="width: 110px">Ação</th>
@@ -109,7 +110,7 @@ ob_start();
                 <tbody>
                     <?php if (empty($comums)): ?>
                         <tr>
-                            <td colspan="2" class="text-center py-4 text-muted">
+                            <td colspan="4" class="text-center py-4 text-muted">
                                 <i class="bi bi-inbox fs-3 d-block mb-2"></i>
                                 Nenhum comum encontrado
                             </td>
@@ -117,6 +118,7 @@ ob_start();
                     <?php else: ?>
                         <?php foreach ($comums as $comum): ?>
                             <tr data-href="app/views/comuns/listar-planilhas.php?comum_id=<?php echo (int) $comum['id']; ?>">
+                                <td><span class="text-muted">#</span> <?php echo (int) $comum['id']; ?></td>
                                 <td class="fw-semibold text-uppercase">
                                     <?php echo htmlspecialchars(formatar_codigo_comum($comum['codigo'])); ?>
                                 </td>

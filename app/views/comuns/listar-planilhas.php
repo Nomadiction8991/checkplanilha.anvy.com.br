@@ -56,12 +56,10 @@ try {
     }
 
     $where = implode(' AND ', $conds);
-    $sql = "SELECT p.id, p.comum_id, p.data_posicao, p.ativo, COUNT(pr.id_produto) as total_produtos
-            FROM planilhas p
-            LEFT JOIN produtos pr ON p.id = pr.planilha_id
-            WHERE $where
-            GROUP BY p.id, p.comum_id, p.data_posicao, p.ativo
-            ORDER BY p.data_posicao DESC, p.id DESC";
+    $sql = "SELECT p.id, p.comum_id, p.data_posicao, p.ativo
+        FROM planilhas p
+        WHERE $where
+        ORDER BY p.data_posicao DESC, p.id DESC";
     $stmt = $conexao->prepare($sql);
     foreach ($params as $k=>$v) {
         $stmt->bindValue($k, $v);
@@ -164,7 +162,6 @@ ob_start();
                             <tr>
                                 <th style="width: 80px">#</th>
                                 <th>Data</th>
-                                <th>Produtos</th>
                                 <th>Status</th>
                                 <th style="width: 120px">Ações</th>
                             </tr>
@@ -178,13 +175,12 @@ ob_start();
                                 <tr>
                                     <td><strong><?php echo $planilha['id']; ?></strong></td>
                                     <td><?php echo $planilha['data_posicao'] ? date('d/m/Y', strtotime($planilha['data_posicao'])) : '-'; ?></td>
-                                    <td><span class="badge bg-info"><?php echo $planilha['total_produtos']; ?></span></td>
                                     <td><span class="badge <?php echo $status_badge; ?>"><?php echo $status_texto; ?></span></td>
                                     <td>
                                         <a href="../../../CRUD/READ/view-planilha.php?id=<?php echo $planilha['id']; ?>" class="btn btn-sm btn-primary" title="Visualizar">
                                             <i class="bi bi-eye"></i>
                                         </a>
-                                        <a href="../../planilhas/editar-planilha.php?id=<?php echo $planilha['id']; ?>" class="btn btn-sm btn-warning" title="Editar">
+                                        <a href="../planilhas/editar-planilha.php?id=<?php echo $planilha['id']; ?>" class="btn btn-sm btn-warning" title="Editar">
                                             <i class="bi bi-pencil"></i>
                                         </a>
                                     </td>
