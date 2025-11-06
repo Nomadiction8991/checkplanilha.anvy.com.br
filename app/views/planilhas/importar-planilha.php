@@ -84,6 +84,19 @@ ob_start();
     <!-- Mapeamento de Colunas -->
     <div class="card mb-3">
         <div class="card-header">
+            <i class="bi bi-bug me-2"></i>
+            Opções
+        </div>
+        <div class="card-body">
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" id="debug_import" name="debug_import">
+                <label class="form-check-label" for="debug_import">Gerar log de depuração da importação</label>
+            </div>
+            <small class="text-muted">Quando ativado, um arquivo é salvo em app/tmp com detalhes de cada linha importada.</small>
+        </div>
+    </div>
+    <div class="card mb-3">
+        <div class="card-header">
             <i class="bi bi-columns-gap me-2"></i>
             Mapeamento de Colunas
         </div>
