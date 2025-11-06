@@ -267,24 +267,67 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 // 3) Extrair BEN e COMPLEMENTO do restante
+                // BEN deve ser um dos aliases do tipo de bem identificado
+                // COMPLEMENTO é o que vem após " - "
                 $ben = '';
                 $complemento_limpo = trim($texto);
-                // se houver separador " - ", assume-se que BEN é a parte esquerda e COMPLEMENTO a direita
-                if (preg_match('/\s\-\s/u', $complemento_limpo)) {
-                    [$parte_ben, $parte_comp] = preg_split('/\s\-\s/u', $complemento_limpo, 2);
-                    $ben = trim($parte_ben);
-                    $complemento_limpo = trim($parte_comp);
-                } else {
-                    // se houver múltiplos itens separados por '/', mantemos apenas o primeiro como BEN
-                    if (strpos($complemento_limpo, '/') !== false) {
-                        $tokens = array_filter(array_map('trim', explode('/', $complemento_limpo)));
-                        if (!empty($tokens)) {
-                            $ben = array_shift($tokens);
-                            $complemento_limpo = trim(implode(' / ', $tokens));
+
+                // Se identificamos um tipo de bem, procurar qual alias aparece no início do texto restante
+                if ($tipo_ben_id > 0 && isset($tipos_aliases)) {
+                    $tipo_atual = null;
+                    foreach ($tipos_aliases as $tb) {
+                        if ((int)$tb['id'] === $tipo_ben_id) {
+                            $tipo_atual = $tb;
+                            break;
                         }
+                    }
+
+                    if ($tipo_atual) {
+                        // Procurar qual alias do tipo aparece no início do texto
+                        $texto_norm_rest = $normaliza($complemento_limpo);
+                        $ben_encontrado = null;
+                        $melhor_len = 0;
+
+                        foreach ($tipo_atual['aliases'] as $alias_norm) {
+                            if ($alias_norm !== '' && strpos($texto_norm_rest, $alias_norm) === 0) {
+                                $len = strlen($alias_norm);
+                                if ($len > $melhor_len) {
+                                    $melhor_len = $len;
+                                    // Encontrar a versão original do alias no texto (preservando caixa)
+                                    $ben_encontrado = substr($complemento_limpo, 0, strlen($alias_norm));
+                                }
+                            }
+                        }
+
+                        if ($ben_encontrado !== null) {
+                            $ben = trim($ben_encontrado);
+                            // Remover o BEN do início do texto e o que sobrar é o complemento
+                            $resto = substr($complemento_limpo, strlen($ben_encontrado));
+                            // Remover separadores iniciais como " - ", " / ", etc
+                            $resto = preg_replace('/^\s*[\-–—\/]\s*/u', '', $resto);
+                            $complemento_limpo = trim($resto);
+                        }
+                    }
+                }
+
+                // Se não encontrou BEN pelo tipo, usar lógica antiga de separação por " - "
+                if ($ben === '') {
+                    if (preg_match('/\s\-\s/u', $complemento_limpo)) {
+                        [$parte_ben, $parte_comp] = preg_split('/\s\-\s/u', $complemento_limpo, 2);
+                        $ben = trim($parte_ben);
+                        $complemento_limpo = trim($parte_comp);
                     } else {
-                        $ben = $complemento_limpo;
-                        $complemento_limpo = '';
+                        // se houver múltiplos itens separados por '/', mantemos apenas o primeiro como BEN
+                        if (strpos($complemento_limpo, '/') !== false) {
+                            $tokens = array_filter(array_map('trim', explode('/', $complemento_limpo)));
+                            if (!empty($tokens)) {
+                                $ben = array_shift($tokens);
+                                $complemento_limpo = trim(implode(' / ', $tokens));
+                            }
+                        } else {
+                            $ben = $complemento_limpo;
+                            $complemento_limpo = '';
+                        }
                     }
                 }
 
