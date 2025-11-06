@@ -23,28 +23,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     try {
-        // Validar se pode marcar para impressão (deve estar checado e não estar no DR)
+        // Validar se pode marcar para impressão (deve estar checado)
         if ($imprimir == 1) {
-            // Validar com flags da própria tabela produtos
-            $stmt_verifica = $conexao->prepare('SELECT checado, dr FROM produtos WHERE id = :id');
-            $stmt_verifica->bindValue(':id', $produto_id, PDO::PARAM_INT);
+            // Validar com flags da própria tabela produtos - USANDO id_produto
+            $stmt_verifica = $conexao->prepare('SELECT checado FROM produtos WHERE id_produto = :id_produto AND planilha_id = :planilha_id');
+            $stmt_verifica->bindValue(':id_produto', $produto_id, PDO::PARAM_INT);
+            $stmt_verifica->bindValue(':planilha_id', $id_planilha, PDO::PARAM_INT);
             $stmt_verifica->execute();
             $produto_info = $stmt_verifica->fetch(PDO::FETCH_ASSOC);
 
-            if (!$produto_info || ($produto_info['checado'] ?? 0) == 0 || ($produto_info['dr'] ?? 0) == 1) {
+            if (!$produto_info || ($produto_info['checado'] ?? 0) == 0) {
                 $query_string = http_build_query(array_merge(
                     ['id' => $id_planilha], 
                     $filtros,
-                    ['erro' => 'Só é possível marcar para impressão produtos que estão checados e não estão no DR.']
+                    ['erro' => 'Só é possível marcar para impressão produtos que estão checados.']
                 ));
                 header('Location: ../../app/views/planilhas/view-planilha.php?' . $query_string);
                 exit;
             }
         }
-        // Atualizar flag diretamente em produtos
-        $stmt = $conexao->prepare('UPDATE produtos SET imprimir = :imprimir WHERE id = :id');
+        // Atualizar flag diretamente em produtos - USANDO id_produto
+        $stmt = $conexao->prepare('UPDATE produtos SET imprimir_etiqueta = :imprimir WHERE id_produto = :id_produto AND planilha_id = :planilha_id');
         $stmt->bindValue(':imprimir', (int)$imprimir, PDO::PARAM_INT);
-        $stmt->bindValue(':id', $produto_id, PDO::PARAM_INT);
+        $stmt->bindValue(':id_produto', $produto_id, PDO::PARAM_INT);
+        $stmt->bindValue(':planilha_id', $id_planilha, PDO::PARAM_INT);
         $stmt->execute();
         
         // Redirecionar de volta mantendo os filtros

@@ -34,9 +34,9 @@ if (!$id_produto || !$id_planilha) {
 try {
     // Limpar campos de edição na tabela produtos - USANDO id_produto
     $sql_update = "UPDATE produtos 
-                   SET editado_descricao_completa = NULL, 
-                       editado_complemento = NULL, 
+                   SET editado_id_tipo_bem = NULL,
                        editado_ben = NULL, 
+                       editado_complemento = NULL, 
                        editado_dependencia_id = NULL, 
                        imprimir_etiqueta = 0, 
                        editado = 0 

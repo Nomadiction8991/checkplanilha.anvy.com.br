@@ -30,12 +30,18 @@ if (!$id_produto || !$id_planilha) {
 
 $mensagem = '';
 $tipo_mensagem = '';
-$novo_nome = '';
-$nova_dependencia = '';
+$novo_tipo_bem_id = '';
+$novo_bem = '';
+$novo_complemento = '';
+$nova_dependencia_id = '';
 
 // Buscar dados do produto - USANDO id_produto
 try {
-    $sql_produto = "SELECT * FROM produtos WHERE id_produto = :id_produto AND planilha_id = :planilha_id";
+    $sql_produto = "SELECT p.*, tb.codigo as tipo_bem_codigo, tb.descricao as tipo_bem_descricao, d.descricao as dependencia_descricao
+                    FROM produtos p
+                    LEFT JOIN tipos_bens tb ON p.id_tipo_ben = tb.id
+                    LEFT JOIN dependencias d ON p.dependencia_id = d.id
+                    WHERE p.id_produto = :id_produto AND p.planilha_id = :planilha_id";
     $stmt_produto = $conexao->prepare($sql_produto);
     $stmt_produto->bindValue(':id_produto', $id_produto);
     $stmt_produto->bindValue(':planilha_id', $id_planilha);
@@ -45,49 +51,44 @@ try {
     if (!$produto) {
         throw new Exception('Produto não encontrado.');
     }
-    // Pré-preencher com edições se existirem no novo schema
-    $nova_descricao = $produto['editado_descricao_completa'] ?? '';
+    
+    // Pré-preencher com edições se existirem
+    $novo_tipo_bem_id = $produto['editado_id_tipo_bem'] ?? '';
+    $novo_bem = $produto['editado_ben'] ?? '';
     $novo_complemento = $produto['editado_complemento'] ?? '';
-    $novo_ben = $produto['editado_ben'] ?? '';
-    $nova_dependencia = $produto['editado_dependencia_id'] ?? '';
+    $nova_dependencia_id = $produto['editado_dependencia_id'] ?? '';
     
 } catch (Exception $e) {
     $mensagem = "Erro ao carregar produto: " . $e->getMessage();
     $tipo_mensagem = 'error';
 }
 
-// Buscar opções de dependência para o select
+// Buscar todos os tipos de bens
 try {
-    $sql_dependencias = "
-        SELECT DISTINCT dep FROM (
-            SELECT p.dependencia_id AS dep
-            FROM produtos p
-            WHERE p.planilha_id = :id_planilha
-              AND p.dependencia_id IS NOT NULL
-              AND p.dependencia_id <> ''
-            UNION
-            SELECT p.editado_dependencia_id AS dep
-            FROM produtos p
-            WHERE p.planilha_id = :id_planilha
-              AND p.editado_dependencia_id IS NOT NULL
-              AND p.editado_dependencia_id <> ''
-        ) deps
-        ORDER BY dep
-    ";
-    $stmt_dependencias = $conexao->prepare($sql_dependencias);
-    $stmt_dependencias->bindValue(':id_planilha', $id_planilha);
-    $stmt_dependencias->execute();
-    $dependencia_options = $stmt_dependencias->fetchAll(PDO::FETCH_COLUMN);
+    $sql_tipos_bens = "SELECT id, codigo, descricao FROM tipos_bens ORDER BY codigo";
+    $stmt_tipos = $conexao->prepare($sql_tipos_bens);
+    $stmt_tipos->execute();
+    $tipos_bens = $stmt_tipos->fetchAll();
 } catch (Exception $e) {
-    $dependencia_options = [];
+    $tipos_bens = [];
+}
+
+// Buscar todas as dependências
+try {
+    $sql_dependencias = "SELECT id, descricao FROM dependencias ORDER BY descricao";
+    $stmt_deps = $conexao->prepare($sql_dependencias);
+    $stmt_deps->execute();
+    $dependencias = $stmt_deps->fetchAll();
+} catch (Exception $e) {
+    $dependencias = [];
 }
 
 // Processar o formulário quando enviado
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nova_descricao = trim($_POST['nova_descricao'] ?? '');
-    $novo_complemento = trim($_POST['novo_complemento'] ?? '');
-    $novo_ben = trim($_POST['novo_ben'] ?? '');
-    $nova_dependencia = trim($_POST['nova_dependencia'] ?? '');
+    $novo_tipo_bem_id = trim($_POST['novo_tipo_bem_id'] ?? '');
+    $novo_bem = strtoupper(trim($_POST['novo_bem'] ?? ''));
+    $novo_complemento = strtoupper(trim($_POST['novo_complemento'] ?? ''));
+    $nova_dependencia_id = trim($_POST['nova_dependencia_id'] ?? '');
     
     // Receber filtros do POST também
     $pagina = $_POST['pagina'] ?? 1;
@@ -98,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         // Se não houver alterações, retorna
-        if ($nova_descricao === '' && $novo_complemento === '' && $novo_ben === '' && $nova_dependencia === '') {
+        if ($novo_tipo_bem_id === '' && $novo_bem === '' && $novo_complemento === '' && $nova_dependencia_id === '') {
             header('Location: ' . getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, $filtro_codigo, $filtro_status));
             exit;
         }
@@ -106,21 +107,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $sql_update = "UPDATE produtos SET imprimir_etiqueta = 1, editado = 1";
         $params = [':id_produto' => $id_produto, ':planilha_id' => $id_planilha];
 
-        if ($nova_descricao !== '') {
-            $sql_update .= ", editado_descricao_completa = :nova_descricao";
-            $params[':nova_descricao'] = $nova_descricao;
+        if ($novo_tipo_bem_id !== '') {
+            $sql_update .= ", editado_id_tipo_bem = :novo_tipo_bem_id";
+            $params[':novo_tipo_bem_id'] = $novo_tipo_bem_id;
+        }
+        if ($novo_bem !== '') {
+            $sql_update .= ", editado_ben = :novo_bem";
+            $params[':novo_bem'] = $novo_bem;
         }
         if ($novo_complemento !== '') {
             $sql_update .= ", editado_complemento = :novo_complemento";
             $params[':novo_complemento'] = $novo_complemento;
         }
-        if ($novo_ben !== '') {
-            $sql_update .= ", editado_ben = :novo_ben";
-            $params[':novo_ben'] = $novo_ben;
-        }
-        if ($nova_dependencia !== '') {
-            $sql_update .= ", editado_dependencia_id = :nova_dependencia";
-            $params[':nova_dependencia'] = $nova_dependencia;
+        if ($nova_dependencia_id !== '') {
+            $sql_update .= ", editado_dependencia_id = :nova_dependencia_id";
+            $params[':nova_dependencia_id'] = $nova_dependencia_id;
         }
 
         $sql_update .= " WHERE id_produto = :id_produto AND planilha_id = :planilha_id";
