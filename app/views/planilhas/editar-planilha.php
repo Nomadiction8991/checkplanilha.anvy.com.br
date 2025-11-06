@@ -92,53 +92,20 @@ ob_start();
     </div>
 <?php endif; ?>
 
-<form method="POST" enctype="multipart/form-data">
-    <!-- Info Atual -->
+<form method="POST">
     <div class="card mb-3">
         <div class="card-header">
-            <i class="bi bi-info-circle me-2"></i>
-            Informações Atuais
+            <i class="bi bi-gear me-2"></i>
+            Dados da Planilha
         </div>
         <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label class="form-label">CNPJ</label>
-                    <input type="text" class="form-control" value="<?php echo htmlspecialchars($planilha['cnpj'] ?? ''); ?>" disabled>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Comum</label>
-                    <input type="text" class="form-control" value="<?php echo htmlspecialchars($planilha['comum'] ?? ''); ?>" disabled>
-                </div>
-                <div class="col-md-6">
-                    <label for="endereco" class="form-label">Endereço</label>
-                    <input type="text" class="form-control" id="endereco" name="endereco" 
-                           value="<?php echo htmlspecialchars($planilha['endereco'] ?? ''); ?>" disabled>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Data Posição</label>
-                    <input type="text" class="form-control" value="<?php echo htmlspecialchars($planilha['data_posicao'] ?? ''); ?>" disabled>
-                </div>
-            </div>
-            
-            <div class="form-check mt-3">
+            <div class="form-check mb-3">
                 <input class="form-check-input" type="checkbox" id="ativo" name="ativo" value="1" 
                        <?php echo ($planilha['ativo'] ?? 0) ? 'checked' : ''; ?>>
                 <label class="form-check-label" for="ativo">
                     Planilha Ativa
                 </label>
             </div>
-        </div>
-    </div>
-
-    <!-- Removido: configurações antigas e reimportação (não fazem parte do novo escopo de edição) -->
-
-    <!-- Outros Dados -->
-    <div class="card mb-3">
-        <div class="card-header">
-            <i class="bi bi-person-lines-fill me-2"></i>
-            Outros Dados
-        </div>
-        <div class="card-body">
             <div class="row g-3">
                 <div class="col-md-6">
                     <label for="administracao" class="form-label">Administração <span class="text-danger">*</span></label>
@@ -158,7 +125,6 @@ ob_start();
                            value="<?php echo htmlspecialchars($planilha['setor'] ?? ''); ?>" min="0" step="1">
                 </div>
             </div>
-            
         </div>
     </div>
 

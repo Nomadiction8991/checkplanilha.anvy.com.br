@@ -35,7 +35,20 @@ $headerActions = '
 
 // ===== Consulta de planilhas (aplicando filtros) =====
 $fs = $_GET['filtro_status'] ?? 'todas';
-$buscaData = $_GET['busca_data'] ?? '';
+$data_inicio_str = trim($_GET['data_inicio'] ?? '');
+$data_fim_str = trim($_GET['data_fim'] ?? '');
+
+// Converte datas dd/mm/yyyy -> yyyy-mm-dd para consulta
+$data_inicio_mysql = null;
+$data_fim_mysql = null;
+if ($data_inicio_str !== '') {
+    $dt = DateTime::createFromFormat('d/m/Y', $data_inicio_str);
+    if ($dt) { $data_inicio_mysql = $dt->format('Y-m-d'); }
+}
+if ($data_fim_str !== '') {
+    $dt = DateTime::createFromFormat('d/m/Y', $data_fim_str);
+    if ($dt) { $data_fim_mysql = $dt->format('Y-m-d'); }
+}
 
 $planilhas = [];
 $total_registros = 0;
@@ -44,9 +57,17 @@ try {
     $conds = ['p.comum_id = :comum_id'];
     $params = [':comum_id' => (int)$comum_id];
 
-    if (!empty($buscaData) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $buscaData)) {
-        $conds[] = 'p.data_posicao = :data_posicao';
-        $params[':data_posicao'] = $buscaData;
+    // Filtro por intervalo de datas
+    if ($data_inicio_mysql && $data_fim_mysql) {
+        $conds[] = 'p.data_posicao BETWEEN :data_inicio AND :data_fim';
+        $params[':data_inicio'] = $data_inicio_mysql;
+        $params[':data_fim'] = $data_fim_mysql;
+    } elseif ($data_inicio_mysql) {
+        $conds[] = 'p.data_posicao >= :data_inicio';
+        $params[':data_inicio'] = $data_inicio_mysql;
+    } elseif ($data_fim_mysql) {
+        $conds[] = 'p.data_posicao <= :data_fim';
+        $params[':data_fim'] = $data_fim_mysql;
     }
 
     if ($fs === 'ativas') {
@@ -85,15 +106,28 @@ ob_start();
         <form method="GET" action="">
             <input type="hidden" name="comum_id" value="<?php echo (int)$comum_id; ?>">
 
-            <div class="mb-3">
-                <label class="form-label" for="busca_data">
-                    <i class="bi bi-calendar-date me-1"></i>
-                    Data da posição
-                </label>
-                <div class="input-group">
-                    <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
-                    <input type="date" class="form-control" id="busca_data" name="busca_data"
-                           value="<?php echo htmlspecialchars($buscaData); ?>">
+            <div class="row g-2">
+                <div class="col-6">
+                    <label class="form-label" for="data_inicio">
+                        <i class="bi bi-calendar-date me-1"></i>
+                        Data inicial (dd/mm/aaaa)
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+                        <input type="text" class="form-control" id="data_inicio" name="data_inicio" placeholder="dd/mm/aaaa"
+                               value="<?php echo htmlspecialchars($data_inicio_str); ?>" inputmode="numeric" pattern="\d{2}/\d{2}/\d{4}">
+                    </div>
+                </div>
+                <div class="col-6">
+                    <label class="form-label" for="data_fim">
+                        <i class="bi bi-calendar-date me-1"></i>
+                        Data final (dd/mm/aaaa)
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+                        <input type="text" class="form-control" id="data_fim" name="data_fim" placeholder="dd/mm/aaaa"
+                               value="<?php echo htmlspecialchars($data_fim_str); ?>" inputmode="numeric" pattern="\d{2}/\d{2}/\d{4}">
+                    </div>
                 </div>
             </div>
 
@@ -177,7 +211,7 @@ ob_start();
                                     <td><?php echo $planilha['data_posicao'] ? date('d/m/Y', strtotime($planilha['data_posicao'])) : '-'; ?></td>
                                     <td><span class="badge <?php echo $status_badge; ?>"><?php echo $status_texto; ?></span></td>
                                     <td>
-                                        <a href="../../../CRUD/READ/view-planilha.php?id=<?php echo $planilha['id']; ?>" class="btn btn-sm btn-primary" title="Visualizar">
+                                        <a href="../planilhas/view-planilha.php?id=<?php echo $planilha['id']; ?>" class="btn btn-sm btn-primary" title="Visualizar">
                                             <i class="bi bi-eye"></i>
                                         </a>
                                         <a href="../planilhas/editar-planilha.php?id=<?php echo $planilha['id']; ?>" class="btn btn-sm btn-warning" title="Editar">
