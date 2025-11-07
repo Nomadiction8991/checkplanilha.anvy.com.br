@@ -93,8 +93,11 @@ ob_start();
 </div>
 
 <div class="card">
-    <div class="card-header">
-        <i class="bi bi-building me-2"></i>Comuns cadastrados
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>
+            <i class="bi bi-building me-2"></i>Comuns cadastrados
+        </span>
+        <span class="badge bg-white text-dark"><?php echo count($comums); ?> itens</span>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">

@@ -187,10 +187,19 @@ ob_start();
                                 <?php
                                     $status_badge = $planilha['ativo'] ? 'bg-success' : 'bg-secondary';
                                     $status_texto = $planilha['ativo'] ? 'Ativa' : 'Inativa';
+                                    
+                                    // Formatar data para dd/mm/yyyy
+                                    $data_formatada = '-';
+                                    if ($planilha['data_posicao']) {
+                                        $dt = DateTime::createFromFormat('Y-m-d', $planilha['data_posicao']);
+                                        if ($dt) {
+                                            $data_formatada = $dt->format('d/m/Y');
+                                        }
+                                    }
                                 ?>
                                 <tr>
                                     <td><strong><?php echo $planilha['id']; ?></strong></td>
-                                    <td><?php echo $planilha['data_posicao'] ? date('d/m/Y', strtotime($planilha['data_posicao'])) : '-'; ?></td>
+                                    <td><?php echo $data_formatada; ?></td>
                                     <td><span class="badge <?php echo $status_badge; ?>"><?php echo $status_texto; ?></span></td>
                                     <td>
                                         <div class="d-flex justify-content-center gap-2">
