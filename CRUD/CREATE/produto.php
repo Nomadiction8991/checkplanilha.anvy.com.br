@@ -76,11 +76,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Converter multiplicador para inteiro
             $multiplicador = (int)$multiplicador;
             
-            // Capturar ID do usuário da sessão para armazenar como cadastrador
-            $usuario_id = $_SESSION['user_id'] ?? null;
-            
             // Inserir múltiplos produtos conforme o multiplicador (agora na tabela produtos)
             // Campos padrão para novo cadastro: novo=1, checado=1, imprimir_etiqueta=1, editado=0, ativo=1
+            $administrador_acessor_id = isset($_SESSION['usuario_id']) ? (int)$_SESSION['usuario_id'] : null;
             $sql_inserir = "INSERT INTO produtos (
                            planilha_id, codigo, descricao_completa, editado_descricao_completa,
                            tipo_bem_id, editado_tipo_bem_id, bem, editado_bem,
@@ -113,6 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt_inserir->bindValue(':imprimir_14_1', $imprimir_14_1);
                 // Definição padrão para satisfazer NOT NULL no banco (campo não é usado no cadastro manual)
                 $stmt_inserir->bindValue(':condicao_14_1', 2, PDO::PARAM_INT);
+                $stmt_inserir->bindValue(':administrador_acessor_id', $administrador_acessor_id, $administrador_acessor_id !== null ? PDO::PARAM_INT : PDO::PARAM_NULL);
                 
                 
                 $stmt_inserir->execute();
