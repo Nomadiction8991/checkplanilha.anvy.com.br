@@ -93,19 +93,13 @@ ob_start();
 <?php endif; ?>
 
 <form method="POST">
+    <!-- Card: Dados do Comum -->
     <div class="card mb-3">
         <div class="card-header">
-            <i class="bi bi-gear me-2"></i>
-            Dados da Planilha
+            <i class="bi bi-building me-2"></i>
+            Dados do Comum
         </div>
         <div class="card-body">
-            <div class="form-check mb-3">
-                <input class="form-check-input" type="checkbox" id="ativo" name="ativo" value="1" 
-                       <?php echo ($planilha['ativo'] ?? 0) ? 'checked' : ''; ?>>
-                <label class="form-check-label" for="ativo">
-                    Planilha Ativa
-                </label>
-            </div>
             <div class="row g-3">
                 <div class="col-md-6">
                     <label for="administracao" class="form-label">Administração <span class="text-danger">*</span></label>
@@ -165,6 +159,23 @@ ob_start();
                     <input type="number" class="form-control" id="setor" name="setor" 
                            value="<?php echo htmlspecialchars($planilha['setor'] ?? ''); ?>" min="0" step="1">
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card: Dados da Planilha (apenas ativação) -->
+    <div class="card mb-3">
+        <div class="card-header">
+            <i class="bi bi-gear me-2"></i>
+            Dados da Planilha
+        </div>
+        <div class="card-body">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="ativo" name="ativo" value="1" 
+                       <?php echo ($planilha['ativo'] ?? 0) ? 'checked' : ''; ?>>
+                <label class="form-check-label" for="ativo">
+                    Planilha Ativa
+                </label>
             </div>
         </div>
     </div>
