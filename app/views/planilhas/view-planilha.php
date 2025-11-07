@@ -269,6 +269,11 @@ ob_start();
             <span class="badge" style="background-color: #dc3545;">DR</span>
             <span class="badge" style="background-color: #9c27b0;">Editado</span>
         </div>
+        <hr class="my-2">
+        <div class="d-flex flex-wrap gap-2 justify-content-center small text-muted">
+            <span><span class="badge bg-warning text-dark">⚠</span> Tipo de bem não identificado</span>
+            <span><span class="badge bg-danger">🔴</span> Erro na descrição (revisar BEN/complemento)</span>
+        </div>
     </div>
 </div>
 
@@ -307,8 +312,9 @@ ob_start();
                 $show_obs = true; // Sempre mostrar observação
                 $show_edit = ($p['checado'] == 0);
                 $tipo_invalido = (!isset($p['tipo_ben_id']) || $p['tipo_ben_id'] == 0 || empty($p['tipo_ben_id']));
+                $erro_parsing = (isset($p['observacao']) && strpos($p['observacao'], '[REVISAR]') === 0);
             ?>
-            <div class="list-group-item <?php echo $classe; ?><?php echo $tipo_invalido ? ' border-warning border-2' : ''; ?>" <?php echo $tipo_invalido ? 'title="⚠ Tipo de bem não identificado"' : ''; ?>>
+            <div class="list-group-item <?php echo $classe; ?><?php echo $erro_parsing ? ' border-danger border-2' : ($tipo_invalido ? ' border-warning border-2' : ''); ?>" <?php echo $erro_parsing ? 'title="🔴 Erro na descrição do produto - revisar BEN/complemento"' : ($tipo_invalido ? 'title="⚠ Tipo de bem não identificado"' : ''); ?>>
                 <!-- Código -->
                 <div class="codigo-produto">
                     <?php echo htmlspecialchars($p['codigo']); ?>

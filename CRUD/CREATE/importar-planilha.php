@@ -179,7 +179,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $dependencia_original = isset($linha[$idx_dependencia]) ? trim((string)$linha[$idx_dependencia]) : '';
 
                 // Parsing avançado: detectar código, tipo de bem (por código ou nome), remover prefixos e extrair BEN e COMPLEMENTO
-                // Texto base para parsing: todo o complemento original vira descrição
+                // Texto base para parsing: extrair BEN do complemento
                 $texto_base = $complemento_original;
                 // 1) Remover prefixo de código (ex: "68 - ")
                 [$codigo_detectado, $texto_sem_prefixo] = pp_extrair_codigo_prefixo($texto_base);
@@ -189,14 +189,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $tipo_ben_codigo = $tipo_detectado['codigo'];
                 $tipo_bem_desc = $tipo_detectado['descricao'];
                 
-                // 3) NÃO extrair BEN automaticamente; manter todo texto no complemento
-                // BEN fica vazio por padrão; só será preenchido se vier do banco (edição futura)
-                $ben = '';
-                $complemento_limpo = strtoupper(preg_replace('/\s+/', ' ', trim($texto_sem_prefixo)));
+                // 3) Extrair BEN e COMPLEMENTO usando aliases do tipo (se disponível)
+                $aliases_tipo_atual = null;
+                if ($tipo_ben_id) {
+                    foreach ($tipos_aliases as $tbTmp) { 
+                        if ($tbTmp['id'] === $tipo_ben_id) { 
+                            $aliases_tipo_atual = $tbTmp['aliases']; 
+                            break; 
+                        } 
+                    }
+                }
                 
-                // Fallback se complemento vazio
-                if ($complemento_limpo === '') {
-                    $complemento_limpo = strtoupper(trim($complemento_original));
+                [$ben_raw, $comp_raw] = pp_extrair_ben_complemento($texto_pos_tipo, $aliases_tipo_atual ?: []);
+                $ben = strtoupper(preg_replace('/\s+/', ' ', trim($ben_raw)));
+                $complemento_limpo = strtoupper(preg_replace('/\s+/', ' ', trim($comp_raw)));
+                
+                // Validação: BEN deve ser um dos aliases do tipo
+                $ben_valido = false;
+                if ($ben !== '' && $tipo_ben_id > 0 && $aliases_tipo_atual) {
+                    $ben_norm = pp_normaliza($ben);
+                    foreach ($aliases_tipo_atual as $alias_norm) {
+                        if ($alias_norm === $ben_norm) {
+                            $ben_valido = true;
+                            break;
+                        }
+                    }
+                }
+                
+                // Se BEN inválido ou vazio, tentar forçar para primeiro alias do tipo
+                if (!$ben_valido && $tipo_ben_id > 0 && !empty($aliases_tipo_atual)) {
+                    // Pegar primeiro alias válido do tipo
+                    foreach ($aliases_tipo_atual as $alias_norm) {
+                        if ($alias_norm !== '') {
+                            // Encontrar correspondente em maiúscula da descrição do tipo
+                            $tokens = array_map('trim', preg_split('/\s*\/\s*/', $tipo_bem_desc));
+                            foreach ($tokens as $tok) {
+                                if (pp_normaliza($tok) === $alias_norm) {
+                                    $ben = strtoupper($tok);
+                                    $ben_valido = true;
+                                    break 2;
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Fallback completo: se ainda vazio, usar todo texto no complemento
+                if ($ben === '' && $complemento_limpo === '') {
+                    $complemento_limpo = strtoupper(trim($texto_sem_prefixo));
+                    if ($complemento_limpo === '') {
+                        $complemento_limpo = strtoupper(trim($complemento_original));
+                    }
+                }
+                
+                // Remover redundâncias do BEN no início do complemento
+                if ($ben !== '' && $complemento_limpo !== '') {
+                    $complemento_limpo = pp_remover_ben_do_complemento($ben, $complemento_limpo);
                 }
                 // 4) Encontrar dependência
                 $dependencia_id = 0;
@@ -217,9 +265,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     $dependencia_rotulo = $dependencia_original;
                 }
-                // 5) Montar descrição completa via parser (BEN vazio por padrão)
+                // 5) Montar descrição completa via parser (BEN pode estar vazio ou preenchido)
                 $descricao_completa_calc = pp_montar_descricao(1, $tipo_ben_codigo, $tipo_bem_desc, $ben, $complemento_limpo, $dependencia_rotulo, $pp_config);
 
+                // Marcar se houve problema na extração (tipo inválido OU BEN não validado quando tipo existe)
+                $tem_erro_parsing = ($tipo_ben_id === 0 && $codigo_detectado !== null) || ($tipo_ben_id > 0 && $ben !== '' && !$ben_valido);
+                
                 if ($debug_import) {
                     $debug_lines[] = json_encode([
                         'linha' => $linha_atual,
@@ -228,15 +279,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'tipo_codigo' => $tipo_ben_codigo,
                         'tipo_desc' => $tipo_bem_desc,
                         'ben' => $ben,
+                        'ben_valido' => $ben_valido,
                         'complemento' => $complemento_limpo,
                         'dependencia_id' => $dependencia_id,
                         'dependencia' => $dependencia_rotulo,
-                        'descricao_final' => $descricao_completa_calc
+                        'descricao_final' => $descricao_completa_calc,
+                        'erro_parsing' => $tem_erro_parsing
                     ], JSON_UNESCAPED_UNICODE);
                 }
 
+                // Inserir produto (usaremos observacao para flag temporária de erro se necessário)
+                $obs_prefix = $tem_erro_parsing ? '[REVISAR] ' : '';
                 $sql_produto = "INSERT INTO produtos (planilha_id, codigo, descricao_completa, editado_descricao_completa, tipo_ben_id, editado_tipo_ben_id, ben, editado_ben, complemento, editado_complemento, dependencia_id, editado_dependencia_id, checado, editado, imprimir_etiqueta, imprimir_14_1, observacao, ativo) 
-                               VALUES (:planilha_id, :codigo, :descricao_completa, '', :tipo_ben_id, 0, :ben, '', :complemento, '', :dependencia_id, 0, 0, 0, 0, 0, '', 1)";
+                               VALUES (:planilha_id, :codigo, :descricao_completa, '', :tipo_ben_id, 0, :ben, '', :complemento, '', :dependencia_id, 0, 0, 0, 0, 0, :observacao, 1)";
                 $stmt_prod = $conexao->prepare($sql_produto);
                 $stmt_prod->bindValue(':planilha_id', $id_planilha, PDO::PARAM_INT);
                 $stmt_prod->bindValue(':codigo', $codigo);
@@ -245,6 +300,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt_prod->bindValue(':ben', $ben);
                 $stmt_prod->bindValue(':complemento', $complemento_limpo);
                 $stmt_prod->bindValue(':dependencia_id', $dependencia_id, PDO::PARAM_INT);
+                $stmt_prod->bindValue(':observacao', $obs_prefix);
                 if ($stmt_prod->execute()) {
                     $registros_importados++;
                 } else {
