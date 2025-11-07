@@ -109,14 +109,47 @@ ob_start();
             <div class="row g-3">
                 <div class="col-md-6">
                     <label for="administracao" class="form-label">Administração <span class="text-danger">*</span></label>
+                    <?php 
+                        // Administração e cidade armazenadas como 'MT - NomeDaCidade'
+                        $administracao_atual = $planilha['administracao'] ?? '';
+                        $cidade_atual = $planilha['cidade'] ?? '';
+                        // Extrair somente nome após ' - '
+                        $nome_cidade_adm = '';
+                        if (strpos($administracao_atual,' - ') !== false) {
+                            $parts = explode(' - ',$administracao_atual,2);
+                            $nome_cidade_adm = $parts[1];
+                        }
+                        $nome_cidade_cid = '';
+                        if (strpos($cidade_atual,' - ') !== false) {
+                            $parts2 = explode(' - ',$cidade_atual,2);
+                            $nome_cidade_cid = $parts2[1];
+                        }
+                        // Definir base de cidades de MT (pode ser ampliado depois ou carregado de tabela auxiliar)
+                        $cidades_mt = [
+                            'Cuiabá','Várzea Grande','Rondonópolis','Sinop','Sorriso','Barra do Garças','Tangará da Serra','Lucas do Rio Verde','Primavera do Leste','Alta Floresta','Campo Verde','Cáceres','Colíder','Guarantã do Norte','Juína','Mirassol d’Oeste','Nova Mutum','Pontes e Lacerda','São Félix do Araguaia','Peixoto de Azevedo'
+                        ];
+                        sort($cidades_mt);
+                    ?>
                     <select id="administracao" name="administracao" class="form-select" required>
-                        <option value="">Carregando...</option>
+                        <option value="">Selecione...</option>
+                        <?php foreach ($cidades_mt as $c): 
+                            $val = 'MT - ' . $c;
+                            $sel = ($administracao_atual === $val) ? 'selected' : '';
+                        ?>
+                            <option value="<?php echo htmlspecialchars($val); ?>" <?php echo $sel; ?>><?php echo htmlspecialchars($val); ?></option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
                 <div class="col-md-3">
                     <label for="cidade" class="form-label">Cidade <span class="text-danger">*</span></label>
-                    <select id="cidade" name="cidade" class="form-select" required disabled>
-                        <option value="">Carregando...</option>
+                    <select id="cidade" name="cidade" class="form-select" required>
+                        <option value="">Selecione...</option>
+                        <?php foreach ($cidades_mt as $c): 
+                            $val = 'MT - ' . $c;
+                            $sel = ($cidade_atual === $val) ? 'selected' : '';
+                        ?>
+                            <option value="<?php echo htmlspecialchars($val); ?>" <?php echo $sel; ?>><?php echo htmlspecialchars($val); ?></option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
                 <div class="col-md-3">
@@ -140,110 +173,10 @@ $contentHtml = ob_get_clean();
 // Script para captura de assinaturas e carregar assinaturas existentes
 // Reutiliza a mesma lógica do importar-planilha para modal, estados e cidades
 // Pre-encode any server values used by the script to avoid parsing issues
-$pre_administracao = json_encode($planilha['administracao'] ?? '');
-$pre_cidade = json_encode($planilha['cidade'] ?? '');
-
-$script = <<<HTML
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-    // Estados / Cidades (popula cidades de MT e armazena valores no formato "MT - Cidade")
-    const preAdministracao = $pre_administracao;
-    const preCidade = $pre_cidade;
-    
-    // Helper para escapar HTML antes de injetar como option
-    function esc(str){
-        if(!str) return '';
-        return String(str)
-            .replace(/&/g,'&amp;')
-            .replace(/</g,'&lt;')
-            .replace(/>/g,'&gt;')
-            .replace(/"/g,'&quot;')
-            .replace(/'/g,'&#039;');
-    }
-
-    async function loadEstados(){
-        const sel = document.getElementById('administracao');
-        // Exibir valor atual imediatamente (pré-carregado) enquanto busca os dados
-        if (preAdministracao) {
-            sel.innerHTML = '<option value="'+esc(preAdministracao)+'" selected>'+esc(preAdministracao)+'</option>';
-            sel.disabled = false;
-        } else {
-            sel.innerHTML = '<option value="">Carregando estados...</option>';
-        }
-        try{
-            const res = await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados');
-            const estados = await res.json();
-            // encontrar MT
-            const mt = estados.find(s => s.sigla === 'MT');
-            if(!mt){ sel.innerHTML='<option value="">MT não encontrado</option>'; return; }
-            sel.innerHTML = '<option value="">Carregando cidades de MT...</option>';
-            await loadCidades(mt.id);
-        }catch(err){ sel.innerHTML='<option value="">Erro ao carregar estados</option>'; console.error(err); }
-    }
-
-    async function loadCidades(estadoId){
-        const cidadeSel = document.getElementById('cidade');
-        const adminSel = document.getElementById('administracao');
-        // Exibir valor atual imediatamente
-        if (preCidade) {
-            cidadeSel.innerHTML = '<option value="'+esc(preCidade)+'" selected>'+esc(preCidade)+'</option>';
-            cidadeSel.disabled = false;
-        } else {
-            cidadeSel.innerHTML = '<option value="">Carregando cidades...</option>';
-            cidadeSel.disabled = true;
-        }
-        if (!preAdministracao) {
-            adminSel.innerHTML = '<option value="">Carregando cidades...</option>';
-            adminSel.disabled = true;
-        }
-        try{
-            const res = await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados/'+estadoId+'/municipios');
-            const cidades = await res.json();
-            cidades.sort((a,b)=>a.nome.localeCompare(b.nome));
-            cidadeSel.innerHTML = '<option value="">Selecione a cidade</option>';
-            adminSel.innerHTML = '<option value="">Selecione a cidade</option>';
-            const sigla = 'MT';
-            cidades.forEach(ct=>{
-                const val = sigla + ' - ' + ct.nome;
-                const opt = document.createElement('option'); opt.value = val; opt.text = val; cidadeSel.appendChild(opt);
-                const opt2 = document.createElement('option'); opt2.value = val; opt2.text = val; adminSel.appendChild(opt2);
-            });
-            cidadeSel.disabled = false; 
-            adminSel.disabled = false;
-            
-            // Pré-selecionar valores existentes APÓS carregar as opções
-            if(preAdministracao){ 
-                adminSel.value = preAdministracao;
-                console.log('Pré-selecionado administracao:', preAdministracao);
-            }
-            if(preCidade){ 
-                cidadeSel.value = preCidade;
-                console.log('Pré-selecionado cidade:', preCidade);
-            }
-        }catch(err){ cidadeSel.innerHTML='<option value="">Erro ao carregar cidades</option>'; console.error(err); }
-    }
-
-    // Pré-preencher checkbox de ativo (já está no HTML) e validar
-    const form = document.querySelector('form');
-    form.addEventListener('submit', function(e){ 
-        const estado = document.getElementById('administracao').value; 
-        const cidadeVal = document.getElementById('cidade').value; 
-        if(!estado || !cidadeVal){ 
-            e.preventDefault(); 
-            alert('Por favor preencha Administração e Cidade (campos obrigatórios).'); 
-            return false; 
-        }
-    });
-
-    // Inicialização: carregar estados, depois cidades e aplicar seleção pré-existente se houver
-    loadEstados();
-});
-</script>
-HTML;
-
-$contentHtml = $contentHtml . $script;
+// Render direto sem JS (prefill já feito via PHP)
+$contentHtmlFinal = $contentHtml;
 $tempFile = __DIR__ . '/../../../temp_editar_planilha_' . uniqid() . '.php';
-file_put_contents($tempFile, $contentHtml);
+file_put_contents($tempFile, $contentHtmlFinal);
 $contentFile = $tempFile;
 include __DIR__ . '/../layouts/app-wrapper.php';
 unlink($tempFile);
