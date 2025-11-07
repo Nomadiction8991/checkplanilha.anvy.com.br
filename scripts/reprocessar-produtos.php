@@ -71,8 +71,8 @@ $sql_produtos = "
         p.id_produto as id,
         p.planilha_id,
         p.codigo,
-        p.tipo_ben_id,
-        p.ben,
+        p.tipo_bem_id,
+        p.bem,
         p.complemento,
         p.dependencia_id,
         p.descricao_completa as descricao,
@@ -80,9 +80,9 @@ $sql_produtos = "
         tb.descricao as tipo_descricao,
         d.descricao as dependencia_nome
     FROM produtos p
-    LEFT JOIN tipos_bens tb ON p.tipo_ben_id = tb.id
+    LEFT JOIN tipos_bens tb ON p.tipo_bem_id = tb.id
     LEFT JOIN dependencias d ON p.dependencia_id = d.id
-    WHERE p.tipo_ben_id > 0
+    WHERE p.tipo_bem_id > 0
 ";
 
 if ($options['planilha_id']) {
@@ -119,10 +119,10 @@ foreach ($produtos as $produto) {
     $stats['processados']++;
     
     $produto_id = $produto['id'];
-    $tipo_ben_id = (int)$produto['tipo_ben_id'];
+    $tipo_bem_id = (int)$produto['tipo_bem_id'];
     $tipo_codigo = $produto['tipo_codigo'];
     $tipo_descricao = $produto['tipo_descricao'];
-    $ben_atual = $produto['ben'] ?? '';
+    $bem_atual = $produto['bem'] ?? '';
     $complemento_atual = $produto['complemento'] ?? '';
     $descricao_atual = $produto['descricao'] ?? '';
     $dependencia_nome = $produto['dependencia_nome'] ?? '';
@@ -130,7 +130,7 @@ foreach ($produtos as $produto) {
     if ($options['verbose']) {
         echo "Produto ID: $produto_id (Planilha: {$produto['planilha_id']})\n";
         echo "  Tipo: [$tipo_codigo] $tipo_descricao\n";
-        echo "  BEN atual: '$ben_atual'\n";
+        echo "  BEN atual: '$bem_atual'\n";
         echo "  Complemento atual: '$complemento_atual'\n";
     }
     
@@ -138,7 +138,7 @@ foreach ($produtos as $produto) {
     $aliases_tipo_atual = null;
     $aliases_originais = null;
     foreach ($tipos_aliases as $tb) {
-        if ($tb['id'] === $tipo_ben_id) {
+        if ($tb['id'] === $tipo_bem_id) {
             $aliases_tipo_atual = $tb['aliases'];
             $aliases_originais = $tb['aliases_originais'] ?? null;
             break;
@@ -248,11 +248,11 @@ foreach ($produtos as $produto) {
             $sql_update = "
                 UPDATE produtos 
                 SET 
-                    ben = :ben,
+                    bem = :bem,
                     complemento = :complemento,
                     descricao = :descricao,
-                    editado_tipo_ben_id = tipo_ben_id,
-                    editado_ben = ben,
+                    editado_tipo_bem_id = tipo_bem_id,
+                    editado_bem = bem,
                     editado_complemento = complemento,
                     editado_dependencia_id = dependencia_id
                 WHERE id = :id

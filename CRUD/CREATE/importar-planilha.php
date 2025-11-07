@@ -185,16 +185,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 [$codigo_detectado, $texto_sem_prefixo] = pp_extrair_codigo_prefixo($texto_base);
                 // 2) Detectar tipo (por código ou alias) mantendo texto original intacto
                 [$tipo_detectado, $texto_pos_tipo] = pp_detectar_tipo($texto_sem_prefixo, $codigo_detectado, $tipos_aliases);
-                $tipo_ben_id = (int)$tipo_detectado['id'];
-                $tipo_ben_codigo = $tipo_detectado['codigo'];
+                $tipo_bem_id = (int)$tipo_detectado['id'];
+                $tipo_bem_codigo = $tipo_detectado['codigo'];
                 $tipo_bem_desc = $tipo_detectado['descricao'];
                 
-                // 3) Extrair BEN e COMPLEMENTO usando aliases do tipo (se disponível)
+                // 3) Extrair BEM e COMPLEMENTO usando aliases do tipo (se disponível)
                 $aliases_tipo_atual = null;
                 $aliases_originais = null;
-                if ($tipo_ben_id) {
+                if ($tipo_bem_id) {
                     foreach ($tipos_aliases as $tbTmp) { 
-                        if ($tbTmp['id'] === $tipo_ben_id) { 
+                        if ($tbTmp['id'] === $tipo_bem_id) { 
                             $aliases_tipo_atual = $tbTmp['aliases'];
                             $aliases_originais = $tbTmp['aliases_originais'] ?? null;
                             break; 
@@ -206,9 +206,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $ben = strtoupper(preg_replace('/\s+/', ' ', trim($ben_raw)));
                 $complemento_limpo = strtoupper(preg_replace('/\s+/', ' ', trim($comp_raw)));
                 
-                // Validação: BEN deve ser um dos aliases do tipo (com fuzzy match)
+                // Validação: BEM deve ser um dos aliases do tipo (com fuzzy match)
                 $ben_valido = false;
-                if ($ben !== '' && $tipo_ben_id > 0 && $aliases_tipo_atual) {
+                if ($ben !== '' && $tipo_bem_id > 0 && $aliases_tipo_atual) {
                     $ben_norm = pp_normaliza($ben);
                     foreach ($aliases_tipo_atual as $alias_norm) {
                         if ($alias_norm === $ben_norm || pp_match_fuzzy($ben, $alias_norm)) {
@@ -218,8 +218,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
                 
-                // Se BEN inválido ou vazio, tentar forçar para primeiro alias do tipo
-                if (!$ben_valido && $tipo_ben_id > 0 && !empty($aliases_tipo_atual)) {
+                // Se BEM inválido ou vazio, tentar forçar para primeiro alias do tipo
+                if (!$ben_valido && $tipo_bem_id > 0 && !empty($aliases_tipo_atual)) {
                     // Pegar primeiro alias válido do tipo
                     foreach ($aliases_tipo_atual as $alias_norm) {
                         if ($alias_norm !== '') {
@@ -267,18 +267,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     $dependencia_rotulo = $dependencia_original;
                 }
-                // 5) Montar descrição completa via parser (BEN pode estar vazio ou preenchido)
-                $descricao_completa_calc = pp_montar_descricao(1, $tipo_ben_codigo, $tipo_bem_desc, $ben, $complemento_limpo, $dependencia_rotulo, $pp_config);
+                // 5) Montar descrição completa via parser (BEM pode estar vazio ou preenchido)
+                $descricao_completa_calc = pp_montar_descricao(1, $tipo_bem_codigo, $tipo_bem_desc, $ben, $complemento_limpo, $dependencia_rotulo, $pp_config);
 
-                // Marcar se houve problema na extração (tipo inválido OU BEN não validado quando tipo existe)
-                $tem_erro_parsing = ($tipo_ben_id === 0 && $codigo_detectado !== null) || ($tipo_ben_id > 0 && $ben !== '' && !$ben_valido);
+                // Marcar se houve problema na extração (tipo inválido OU BEM não validado quando tipo existe)
+                $tem_erro_parsing = ($tipo_bem_id === 0 && $codigo_detectado !== null) || ($tipo_bem_id > 0 && $ben !== '' && !$ben_valido);
                 
                 if ($debug_import) {
                     $debug_lines[] = json_encode([
                         'linha' => $linha_atual,
                         'codigo' => $codigo,
-                        'tipo_id' => $tipo_ben_id,
-                        'tipo_codigo' => $tipo_ben_codigo,
+                        'tipo_id' => $tipo_bem_id,
+                        'tipo_codigo' => $tipo_bem_codigo,
                         'tipo_desc' => $tipo_bem_desc,
                         'ben' => $ben,
                         'ben_valido' => $ben_valido,
@@ -292,14 +292,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 // Inserir produto (usaremos observacao para flag temporária de erro se necessário)
                 $obs_prefix = $tem_erro_parsing ? '[REVISAR] ' : '';
-                $sql_produto = "INSERT INTO produtos (planilha_id, codigo, descricao_completa, editado_descricao_completa, tipo_ben_id, editado_tipo_ben_id, ben, editado_ben, complemento, editado_complemento, dependencia_id, editado_dependencia_id, checado, editado, imprimir_etiqueta, imprimir_14_1, observacao, ativo) 
-                               VALUES (:planilha_id, :codigo, :descricao_completa, '', :tipo_ben_id, 0, :ben, '', :complemento, '', :dependencia_id, 0, 0, 0, 0, 0, :observacao, 1)";
+                $sql_produto = "INSERT INTO produtos (planilha_id, codigo, descricao_completa, editado_descricao_completa, tipo_bem_id, editado_tipo_bem_id, bem, editado_bem, complemento, editado_complemento, dependencia_id, editado_dependencia_id, checado, editado, imprimir_etiqueta, imprimir_14_1, observacao, ativo) 
+                               VALUES (:planilha_id, :codigo, :descricao_completa, '', :tipo_bem_id, 0, :bem, '', :complemento, '', :dependencia_id, 0, 0, 0, 0, 0, :observacao, 1)";
                 $stmt_prod = $conexao->prepare($sql_produto);
                 $stmt_prod->bindValue(':planilha_id', $id_planilha, PDO::PARAM_INT);
                 $stmt_prod->bindValue(':codigo', $codigo);
                 $stmt_prod->bindValue(':descricao_completa', $descricao_completa_calc);
-                $stmt_prod->bindValue(':tipo_ben_id', $tipo_ben_id, PDO::PARAM_INT);
-                $stmt_prod->bindValue(':ben', $ben);
+                $stmt_prod->bindValue(':tipo_bem_id', $tipo_bem_id, PDO::PARAM_INT);
+                $stmt_prod->bindValue(':bem', $ben);
                 $stmt_prod->bindValue(':complemento', $complemento_limpo);
                 $stmt_prod->bindValue(':dependencia_id', $dependencia_id, PDO::PARAM_INT);
                 $stmt_prod->bindValue(':observacao', $obs_prefix);

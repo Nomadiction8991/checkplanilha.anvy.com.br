@@ -53,7 +53,7 @@ $sql_base = "SELECT
                      p.editado_descricao_completa,
                      p.complemento,
                      p.editado_complemento,
-                     p.ben,
+                     p.bem,
                      p.editado_bem,
                      p.tipo_bem_id,
                      p.dependencia_id,
