@@ -76,6 +76,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Converter multiplicador para inteiro
             $multiplicador = (int)$multiplicador;
             
+            // Capturar ID do usuário da sessão para armazenar como cadastrador
+            $usuario_id = $_SESSION['user_id'] ?? null;
+            
             // Inserir múltiplos produtos conforme o multiplicador (agora na tabela produtos)
             // Campos padrão para novo cadastro: novo=1, checado=1, imprimir_etiqueta=1, editado=0, ativo=1
             $sql_inserir = "INSERT INTO produtos (
@@ -83,13 +86,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                            tipo_bem_id, editado_tipo_bem_id, bem, editado_bem,
                            complemento, editado_complemento, dependencia_id, editado_dependencia_id,
                            checado, editado, imprimir_etiqueta, imprimir_14_1,
-                           observacao, ativo, novo, condicao_14_1
+                           observacao, ativo, novo, condicao_14_1, administrador_acessor_id
                            ) VALUES (
                            :planilha_id, :codigo, :descricao_completa, '',
                            :id_tipo_bem, 0, :tipo_bem, '',
                            :complemento, '', :id_dependencia, 0,
                            1, 0, 1, :imprimir_14_1,
-                           '', 1, 1, :condicao_14_1
+                           '', 1, 1, :condicao_14_1, :administrador_acessor_id
                            )";
             
             $stmt_inserir = $conexao->prepare($sql_inserir);

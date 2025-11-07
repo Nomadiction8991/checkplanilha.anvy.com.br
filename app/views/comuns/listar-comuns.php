@@ -12,9 +12,28 @@ $headerActions = '
     </a>
 ';
 
-// Obter todos os comuns
+// Paginação de comuns
+$pagina = isset($_GET['pagina']) ? max(1,(int)$_GET['pagina']) : 1;
+$limite = 20;
+$offset = ($pagina - 1) * $limite;
+
+// Obter total
 try {
-    $comuns = obter_todos_comuns($conexao);
+    $total_registros = (int)$conexao->query("SELECT COUNT(*) FROM comums")->fetchColumn();
+    $total_paginas = (int)ceil($total_registros / $limite);
+} catch (Exception $e) {
+    $total_registros = 0;
+    $total_paginas = 1;
+    $erro = "Erro ao contar comuns: " . $e->getMessage();
+}
+
+// Obter página atual
+try {
+    $stmt_comuns = $conexao->prepare("SELECT id, codigo, cnpj, descricao, administracao, cidade, setor FROM comums ORDER BY codigo ASC LIMIT :limite OFFSET :offset");
+    $stmt_comuns->bindValue(':limite',$limite,PDO::PARAM_INT);
+    $stmt_comuns->bindValue(':offset',$offset,PDO::PARAM_INT);
+    $stmt_comuns->execute();
+    $comuns = $stmt_comuns->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
     $comuns = [];
     $erro = "Erro ao carregar comuns: " . $e->getMessage();
@@ -86,10 +105,30 @@ ob_start();
                     </table>
                 </div>
 
-                <div class="mt-3 text-muted small">
-                    <i class="bi bi-info-circle me-1"></i>
-                    Total: <strong><?php echo count($comuns); ?></strong> comuns cadastradas
+                <div class="mt-3 text-muted small d-flex justify-content-between align-items-center">
+                    <span>
+                        <i class="bi bi-info-circle me-1"></i>
+                        Página <?php echo $pagina; ?> de <?php echo $total_paginas; ?> | Exibindo <strong><?php echo count($comuns); ?></strong> de <strong><?php echo $total_registros; ?></strong>
+                    </span>
                 </div>
+
+                <?php if($total_paginas > 1): ?>
+                <nav class="mt-2" aria-label="Paginação comuns">
+                  <ul class="pagination pagination-sm justify-content-center mb-0">
+                    <?php if($pagina > 1): ?>
+                    <li class="page-item"><a class="page-link" href="?<?php echo http_build_query(array_merge($_GET,['pagina'=>$pagina-1])); ?>">&laquo;</a></li>
+                    <?php endif; ?>
+                    <?php $ini = max(1,$pagina-2); $fim = min($total_paginas,$pagina+2); for($i=$ini;$i<=$fim;$i++): ?>
+                      <li class="page-item <?php echo $i==$pagina?'active':''; ?>">
+                        <a class="page-link" href="?<?php echo http_build_query(array_merge($_GET,['pagina'=>$i])); ?>"><?php echo $i; ?></a>
+                      </li>
+                    <?php endfor; ?>
+                    <?php if($pagina < $total_paginas): ?>
+                    <li class="page-item"><a class="page-link" href="?<?php echo http_build_query(array_merge($_GET,['pagina'=>$pagina+1])); ?>">&raquo;</a></li>
+                    <?php endif; ?>
+                  </ul>
+                </nav>
+                <?php endif; ?>
             <?php endif; ?>
 
         </div>

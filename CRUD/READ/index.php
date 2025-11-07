@@ -4,7 +4,7 @@ require_once __DIR__ . '/../conexao.php';
 
 // Parâmetros da paginação
 $pagina = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
-$limite = 10;
+$limite = 20;
 $offset = ($pagina - 1) * $limite;
 
 // Filtros

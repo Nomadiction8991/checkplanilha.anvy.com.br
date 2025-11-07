@@ -58,8 +58,7 @@ ob_start();
             Lista de Usuários
         </div>
         <small class="text-white">
-            <span id="totalUsuarios"><?php echo count($usuarios); ?></span> 
-            <span id="usuariosTexto">usuário(s)</span>
+            Página <?php echo $pagina; ?> de <?php echo $total_paginas; ?> | <span id="totalUsuarios"><?php echo count($usuarios); ?></span> <span id="usuariosTexto">usuário(s) nesta página</span>
         </small>
     </div>
     <div class="card-body p-0">
@@ -102,6 +101,24 @@ ob_start();
         <?php endif; ?>
     </div>
 </div>
+
+<?php if($total_paginas > 1): ?>
+<nav class="mt-3" aria-label="Paginação usuários">
+  <ul class="pagination pagination-sm justify-content-center mb-0">
+    <?php if($pagina > 1): ?>
+    <li class="page-item"><a class="page-link" href="?<?php echo http_build_query(array_merge($_GET,['pagina'=>$pagina-1])); ?>">&laquo;</a></li>
+    <?php endif; ?>
+    <?php $ini = max(1,$pagina-2); $fim = min($total_paginas,$pagina+2); for($i=$ini;$i<=$fim;$i++): ?>
+      <li class="page-item <?php echo $i==$pagina?'active':''; ?>">
+        <a class="page-link" href="?<?php echo http_build_query(array_merge($_GET,['pagina'=>$i])); ?>"><?php echo $i; ?></a>
+      </li>
+    <?php endfor; ?>
+    <?php if($pagina < $total_paginas): ?>
+    <li class="page-item"><a class="page-link" href="?<?php echo http_build_query(array_merge($_GET,['pagina'=>$pagina+1])); ?>">&raquo;</a></li>
+    <?php endif; ?>
+  </ul>
+</nav>
+<?php endif; ?>
 
 <script>
 // Filtro de busca por nome

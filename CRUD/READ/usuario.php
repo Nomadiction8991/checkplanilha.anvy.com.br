@@ -2,9 +2,20 @@
 require_once __DIR__ . '/../../auth.php'; // Autenticação
 require_once __DIR__ . '/../conexao.php';
 
-// Buscar todos os usuários
-$sql = "SELECT * FROM usuarios ORDER BY nome ASC";
+$pagina = isset($_GET['pagina']) ? max(1,(int)$_GET['pagina']) : 1;
+$limite = 20;
+$offset = ($pagina - 1) * $limite;
+
+// Contagem total
+$sql_count = "SELECT COUNT(*) FROM usuarios";
+$total_registros = (int)$conexao->query($sql_count)->fetchColumn();
+$total_paginas = (int)ceil($total_registros / $limite);
+
+// Buscar página de usuários
+$sql = "SELECT * FROM usuarios ORDER BY nome ASC LIMIT :limite OFFSET :offset";
 $stmt = $conexao->prepare($sql);
+$stmt->bindValue(':limite',$limite,PDO::PARAM_INT);
+$stmt->bindValue(':offset',$offset,PDO::PARAM_INT);
 $stmt->execute();
 $usuarios = $stmt->fetchAll();
 ?>

@@ -69,17 +69,31 @@ try {
     }
 
     $where = implode(' AND ', $conds);
+    $pagina = isset($_GET['pagina']) ? max(1,(int)$_GET['pagina']) : 1;
+    $limite = 20;
+    $offset = ($pagina - 1) * $limite;
+
+    // Contagem total para paginação
+    $sql_count = "SELECT COUNT(*) FROM planilhas p WHERE $where";
+    $stmt_count = $conexao->prepare($sql_count);
+    foreach ($params as $k=>$v){ $stmt_count->bindValue($k,$v); }
+    $stmt_count->execute();
+    $total_registros = (int)$stmt_count->fetchColumn();
+
+    $total_paginas = (int)ceil($total_registros / $limite);
+
     $sql = "SELECT p.id, p.comum_id, p.data_posicao, p.ativo
         FROM planilhas p
         WHERE $where
-        ORDER BY p.data_posicao DESC, p.id DESC";
+        ORDER BY p.data_posicao DESC, p.id DESC
+        LIMIT :limite OFFSET :offset";
     $stmt = $conexao->prepare($sql);
-    foreach ($params as $k=>$v) {
-        $stmt->bindValue($k, $v);
-    }
+    foreach ($params as $k=>$v) { $stmt->bindValue($k, $v); }
+    $stmt->bindValue(':limite',$limite,PDO::PARAM_INT);
+    $stmt->bindValue(':offset',$offset,PDO::PARAM_INT);
     $stmt->execute();
     $planilhas = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    $total_registros = is_array($planilhas) ? count($planilhas) : 0;
+    // $total_registros já calculado acima
 } catch (Exception $e) {
     // Exibiremos o erro mais abaixo no bloco de listagem
     $erro_carregar = $e->getMessage();
@@ -160,7 +174,7 @@ ob_start();
             <i class="bi bi-list me-2"></i>
             Planilhas
         </span>
-        <span class="badge bg-white text-dark"><?php echo (int)$total_registros; ?> itens</span>
+    <span class="badge bg-white text-dark"><?php echo (int)$total_registros; ?> itens (pág. <?php echo $pagina; ?>/<?php echo $total_paginas ?: 1; ?>)</span>
     </div>
     <div class="card-body p-0">
         <?php if (!empty($erro_carregar)): ?>
@@ -228,6 +242,26 @@ ob_start();
                         </tbody>
                     </table>
                 </div>
+            <?php endif; ?>
+            <?php if($total_paginas > 1): ?>
+            <nav aria-label="Paginação" class="mt-3">
+                <ul class="pagination pagination-sm justify-content-center mb-0">
+                    <?php if($pagina > 1): ?>
+                    <li class="page-item"><a class="page-link" href="?<?php echo http_build_query(array_merge($_GET,['pagina'=>$pagina-1])); ?>">&laquo;</a></li>
+                    <?php endif; ?>
+                    <?php 
+                    $ini = max(1,$pagina-2);
+                    $fim = min($total_paginas,$pagina+2);
+                    for($i=$ini;$i<=$fim;$i++): ?>
+                        <li class="page-item <?php echo $i==$pagina?'active':''; ?>">
+                            <a class="page-link" href="?<?php echo http_build_query(array_merge($_GET,['pagina'=>$i])); ?>"><?php echo $i; ?></a>
+                        </li>
+                    <?php endfor; ?>
+                    <?php if($pagina < $total_paginas): ?>
+                    <li class="page-item"><a class="page-link" href="?<?php echo http_build_query(array_merge($_GET,['pagina'=>$pagina+1])); ?>">&raquo;</a></li>
+                    <?php endif; ?>
+                </ul>
+            </nav>
             <?php endif; ?>
         <?php endif; ?>
     </div>

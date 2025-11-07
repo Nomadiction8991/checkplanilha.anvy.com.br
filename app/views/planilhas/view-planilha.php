@@ -135,66 +135,8 @@ ob_start();
     border-left: 4px solid #fdd835 !important;
 }
 
-/* Estilos para os botões de ação */
-.btn-acao {
-    padding: 0.25rem 0.5rem;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    opacity: 1;
-    transition: all 0.2s;
-    pointer-events: auto !important; /* garante clique mesmo em containers */
-}
-
-.btn-acao:hover {
-    opacity: 1;
-    transform: scale(1.1);
-}
-
-.btn-acao.active {
-    opacity: 1;
-    background: rgba(0, 0, 0, 0.05);
-    border-radius: 0.25rem;
-}
-
-.btn-acao svg {
-    width: 24px;
-    height: 24px;
-}
-
-/* Garantir visibilidade do botão check */
-.check-form { 
-    display: inline-block !important; 
-    visibility: visible !important;
-    opacity: 1 !important;
-}
-
-.btn-check {
-    display: inline-block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    width: auto !important;
-    height: auto !important;
-    position: relative !important;
-    z-index: 1 !important;
-    background: transparent !important;
-    padding: 0.25rem 0.5rem !important;
-}
-
-.btn-check i {
-    display: inline-block !important;
-    font-size: 24px !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    color: #198754 !important;
-}
-
-/* Garantir que o formulário do botão de check seja visível */
-.check-form button {
-    display: inline-block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-}
+/* Ações: usar padrão Bootstrap para botões */
+.acao-container .btn { padding: 0.25rem 0.5rem; }
 
 .edicao-pendente {
     background: #f3e5f5;
@@ -478,7 +420,7 @@ ob_start();
                 <div class="acao-container">
                     <!-- Check -->
                     <?php if ($show_check): ?>
-                    <form method="POST" action="./check-produto.php" style="display: inline;" class="check-form">
+                    <form method="POST" action="./check-produto.php" style="display: inline;">
                         <input type="hidden" name="produto_id" value="<?php echo $p['id_produto']; ?>">
                         <input type="hidden" name="id_planilha" value="<?php echo $id_planilha; ?>">
                         <input type="hidden" name="checado" value="<?php echo $p['checado'] ? '0' : '1'; ?>">
@@ -487,8 +429,8 @@ ob_start();
                         <input type="hidden" name="dependencia" value="<?php echo htmlspecialchars($filtro_dependencia ?? ''); ?>">
                         <input type="hidden" name="codigo" value="<?php echo htmlspecialchars($filtro_codigo ?? ''); ?>">
                         <input type="hidden" name="status" value="<?php echo htmlspecialchars($filtro_status ?? ''); ?>">
-                        <button type="submit" class="btn-acao btn-check <?php echo $p['checado'] == 1 ? 'active' : ''; ?>" title="<?php echo $p['checado'] ? 'Desmarcar checado' : 'Marcar como checado'; ?>">
-                            <i class="bi bi-check-circle-fill" style="color: #198754; font-size: 24px;"></i>
+                        <button type="submit" class="btn btn-outline-success btn-sm <?php echo $p['checado'] == 1 ? 'active' : ''; ?>" title="<?php echo $p['checado'] ? 'Desmarcar checado' : 'Marcar como checado'; ?>">
+                            <i class="bi bi-check-circle-fill"></i>
                         </button>
                     </form>
                     <?php else: ?>
@@ -506,8 +448,8 @@ ob_start();
                         <input type="hidden" name="dependencia" value="<?php echo htmlspecialchars($filtro_dependencia ?? ''); ?>">
                         <input type="hidden" name="codigo" value="<?php echo htmlspecialchars($filtro_codigo ?? ''); ?>">
                         <input type="hidden" name="status" value="<?php echo htmlspecialchars($filtro_status ?? ''); ?>">
-                        <button type="submit" class="btn-acao btn-etiqueta <?php echo $p['imprimir'] == 1 ? 'active' : ''; ?>" title="Etiqueta">
-                            <i class="bi bi-printer-fill" style="color: #17a2b8; font-size: 24px;"></i>
+                        <button type="submit" class="btn btn-outline-info btn-sm <?php echo $p['imprimir'] == 1 ? 'active' : ''; ?>" title="Etiqueta">
+                            <i class="bi bi-printer-fill"></i>
                         </button>
                     </form>
                     <?php endif; ?>
@@ -515,16 +457,16 @@ ob_start();
                     <!-- Observação -->
                     <?php if ($show_obs): ?>
                     <a href="../produtos/observacao-produto.php?id_produto=<?php echo $p['id_produto']; ?>&id=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina ?? 1; ?>&nome=<?php echo urlencode($filtro_nome ?? ''); ?>&dependencia=<?php echo urlencode($filtro_dependencia ?? ''); ?>&filtro_codigo=<?php echo urlencode($filtro_codigo ?? ''); ?>&status=<?php echo urlencode($filtro_status ?? ''); ?>"
-                       class="btn-acao btn-observacao <?php echo !empty($p['observacao']) ? 'active' : ''; ?>" title="Observação">
-                        <i class="bi bi-chat-square-text-fill" style="color: #ff9800; font-size: 24px;"></i>
+                       class="btn btn-outline-warning btn-sm <?php echo !empty($p['observacao']) ? 'active' : ''; ?>" title="Observação">
+                        <i class="bi bi-chat-square-text-fill"></i>
                     </a>
                     <?php endif; ?>
                     
                     <!-- Editar -->
                     <?php if ($show_edit): ?>
                     <a href="../produtos/editar-produto.php?id_produto=<?php echo $p['id_produto']; ?>&id=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina ?? 1; ?>&nome=<?php echo urlencode($filtro_nome ?? ''); ?>&dependencia=<?php echo urlencode($filtro_dependencia ?? ''); ?>&filtro_codigo=<?php echo urlencode($filtro_codigo ?? ''); ?>&status=<?php echo urlencode($filtro_status ?? ''); ?>"
-                       class="btn-acao btn-editar <?php echo $tem_edicao ? 'active' : ''; ?>" title="Editar">
-                        <i class="bi bi-pencil-fill" style="color: #9c27b0; font-size: 24px;"></i>
+                       class="btn btn-outline-primary btn-sm <?php echo $tem_edicao ? 'active' : ''; ?>" title="Editar">
+                        <i class="bi bi-pencil-fill"></i>
                     </a>
                     <?php endif; ?>
                     
@@ -539,8 +481,8 @@ ob_start();
                         <input type="hidden" name="dependencia" value="<?php echo htmlspecialchars($filtro_dependencia ?? ''); ?>">
                         <input type="hidden" name="codigo" value="<?php echo htmlspecialchars($filtro_codigo ?? ''); ?>">
                         <input type="hidden" name="status" value="<?php echo htmlspecialchars($filtro_status ?? ''); ?>">
-                        <button type="submit" class="btn-acao btn-dr <?php echo $p['ativo'] == 0 ? 'active' : ''; ?>" title="DR">
-                            <i class="bi bi-exclamation-triangle-fill" style="color: #dc3545; font-size: 24px;"></i>
+                        <button type="submit" class="btn btn-outline-danger btn-sm <?php echo $p['ativo'] == 0 ? 'active' : ''; ?>" title="DR">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
                         </button>
                     </form>
                     <?php endif; ?>
