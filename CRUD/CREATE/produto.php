@@ -99,7 +99,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Montar descrição completa (quantidade sempre será 1)
                 $descricao_completa = "1x [" . $tipo_bem['codigo'] . " - " . $tipo_bem['descricao'] . "] " . $tipo_ben . " - " . $complemento . " - (" . $dependencia['descricao'] . ")";
                 
-                $stmt_inserir->bindValue(':id_planilha', $id_planilha);
+                // Corrige placeholder: na query é :planilha_id (antes usava :id_planilha causando HY093)
+                $stmt_inserir->bindValue(':planilha_id', $id_planilha);
                 $stmt_inserir->bindValue(':codigo', !empty($codigo) ? $codigo : null);
                 $stmt_inserir->bindValue(':id_tipo_bem', $id_tipo_ben);
                 $stmt_inserir->bindValue(':tipo_bem', $tipo_ben);
