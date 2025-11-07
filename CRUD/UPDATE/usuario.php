@@ -33,6 +33,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $senha = trim($_POST['senha'] ?? '');
     $confirmar_senha = trim($_POST['confirmar_senha'] ?? '');
     $ativo = isset($_POST['ativo']) ? 1 : 0;
+    
+    // Novos campos
+    $cpf = trim($_POST['cpf'] ?? '');
+    $telefone = trim($_POST['telefone'] ?? '');
+    $tipo = trim($_POST['tipo'] ?? 'Administrador/Acessor');
+    $assinatura = trim($_POST['assinatura'] ?? '');
+    
+    // Endereço
+    $endereco_cep = trim($_POST['endereco_cep'] ?? '');
+    $endereco_logradouro = trim($_POST['endereco_logradouro'] ?? '');
+    $endereco_numero = trim($_POST['endereco_numero'] ?? '');
+    $endereco_complemento = trim($_POST['endereco_complemento'] ?? '');
+    $endereco_bairro = trim($_POST['endereco_bairro'] ?? '');
+    $endereco_cidade = trim($_POST['endereco_cidade'] ?? '');
+    $endereco_estado = trim($_POST['endereco_estado'] ?? '');
 
     try {
         // Validações
@@ -46,6 +61,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             throw new Exception('Email inválido.');
+        }
+        
+        // Validar CPF (se preenchido)
+        if (!empty($cpf)) {
+            $cpf_numeros = preg_replace('/\D/', '', $cpf);
+            if (strlen($cpf_numeros) !== 11) {
+                throw new Exception('CPF inválido. Deve conter 11 dígitos.');
+            }
+            
+            // Verificar se CPF já existe (exceto o próprio usuário)
+            $stmt = $conexao->prepare('SELECT id FROM usuarios WHERE cpf = :cpf AND id != :id');
+            $stmt->bindValue(':cpf', $cpf);
+            $stmt->bindValue(':id', $id);
+            $stmt->execute();
+            if ($stmt->fetch()) {
+                throw new Exception('Este CPF já está cadastrado por outro usuário.');
+            }
+        }
+        
+        // Validar telefone (se preenchido)
+        if (!empty($telefone)) {
+            $telefone_numeros = preg_replace('/\D/', '', $telefone);
+            if (strlen($telefone_numeros) < 10 || strlen($telefone_numeros) > 11) {
+                throw new Exception('Telefone inválido. Deve conter 10 ou 11 dígitos.');
+            }
         }
 
         // Verificar se email já existe (exceto o próprio usuário)
@@ -69,18 +109,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
-            $sql = "UPDATE usuarios SET nome = :nome, email = :email, senha = :senha, ativo = :ativo WHERE id = :id";
+            $sql = "UPDATE usuarios SET 
+                    nome = :nome, 
+                    email = :email, 
+                    senha = :senha, 
+                    ativo = :ativo,
+                    cpf = :cpf,
+                    telefone = :telefone,
+                    tipo = :tipo,
+                    assinatura = :assinatura,
+                    endereco_cep = :endereco_cep,
+                    endereco_logradouro = :endereco_logradouro,
+                    endereco_numero = :endereco_numero,
+                    endereco_complemento = :endereco_complemento,
+                    endereco_bairro = :endereco_bairro,
+                    endereco_cidade = :endereco_cidade,
+                    endereco_estado = :endereco_estado
+                    WHERE id = :id";
             $stmt = $conexao->prepare($sql);
             $stmt->bindValue(':senha', $senha_hash);
         } else {
             // Sem alteração de senha
-            $sql = "UPDATE usuarios SET nome = :nome, email = :email, ativo = :ativo WHERE id = :id";
+            $sql = "UPDATE usuarios SET 
+                    nome = :nome, 
+                    email = :email, 
+                    ativo = :ativo,
+                    cpf = :cpf,
+                    telefone = :telefone,
+                    tipo = :tipo,
+                    assinatura = :assinatura,
+                    endereco_cep = :endereco_cep,
+                    endereco_logradouro = :endereco_logradouro,
+                    endereco_numero = :endereco_numero,
+                    endereco_complemento = :endereco_complemento,
+                    endereco_bairro = :endereco_bairro,
+                    endereco_cidade = :endereco_cidade,
+                    endereco_estado = :endereco_estado
+                    WHERE id = :id";
             $stmt = $conexao->prepare($sql);
         }
 
         $stmt->bindValue(':nome', $nome);
         $stmt->bindValue(':email', $email);
         $stmt->bindValue(':ativo', $ativo);
+        $stmt->bindValue(':cpf', $cpf);
+        $stmt->bindValue(':telefone', $telefone);
+        $stmt->bindValue(':tipo', $tipo);
+        $stmt->bindValue(':assinatura', $assinatura);
+        $stmt->bindValue(':endereco_cep', $endereco_cep);
+        $stmt->bindValue(':endereco_logradouro', $endereco_logradouro);
+        $stmt->bindValue(':endereco_numero', $endereco_numero);
+        $stmt->bindValue(':endereco_complemento', $endereco_complemento);
+        $stmt->bindValue(':endereco_bairro', $endereco_bairro);
+        $stmt->bindValue(':endereco_cidade', $endereco_cidade);
+        $stmt->bindValue(':endereco_estado', $endereco_estado);
         $stmt->bindValue(':id', $id);
         $stmt->execute();
 

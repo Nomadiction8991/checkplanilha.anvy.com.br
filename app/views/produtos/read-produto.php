@@ -152,7 +152,7 @@ ob_start();
       <i class="bi bi-box-seam me-2"></i>
       Produtos
     </span>
-    <span class="badge bg-white text-dark"><?php echo count($produtos ?? []); ?> itens</span>
+    <span class="badge bg-white text-dark"><?php echo $total_registros ?? 0; ?> itens (pág. <?php echo $pagina; ?>/<?php echo $total_paginas ?: 1; ?>)</span>
   </div>
   <div class="table-responsive">
     <table class="table align-middle mb-0">

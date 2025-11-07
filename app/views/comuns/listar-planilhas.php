@@ -190,7 +190,7 @@ ob_start();
                     <table class="table table-hover table-striped mb-0 align-middle text-center">
                         <thead>
                             <tr>
-                                <th style="width: 80px">#</th>
+                                <th style="width: 80px">ID</th>
                                 <th>Data</th>
                                 <th>Status</th>
                                 <th style="width: 120px">Ações</th>

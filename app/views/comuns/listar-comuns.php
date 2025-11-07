@@ -45,9 +45,12 @@ ob_start();
 
 <div class="container-fluid py-4">
     <div class="card">
-        <div class="card-header bg-info text-white">
+        <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+            <span>
             <i class="bi bi-building me-2"></i>
             Lista de Comuns
+            </span>
+            <span class="badge bg-white text-dark"><?php echo $total_registros; ?> itens (pág. <?php echo $pagina; ?>/<?php echo $total_paginas ?: 1; ?>)</span>
         </div>
         <div class="card-body">
             
