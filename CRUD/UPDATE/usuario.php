@@ -103,7 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (strlen($d) <= 1) return $d; // um dígito sem hífen
             return substr($d,0,-1) . '-' . substr($d,-1);
         };
-        if ($rg_igual_cpf) { $rg = $formatarRg($cpf); } else { $rg = $formatarRg($rg); }
+    if ($rg_igual_cpf) { $rg = $cpf; } else { $rg = $formatarRg($rg); }
         $rg_nums = preg_replace('/\D/','', $rg);
         if (strlen($rg_nums) < 2) { throw new Exception('O RG é obrigatório e deve ter ao menos 2 dígitos.'); }
 
@@ -133,7 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (empty($assinatura_conjuge)) {
                 throw new Exception('A assinatura do cônjuge é obrigatória.');
             }
-            if ($rg_conjuge_igual_cpf) { $rg_conjuge = $formatarRg($cpf_conjuge); } else if (!empty($rg_conjuge)) { $rg_conjuge = $formatarRg($rg_conjuge); }
+            if ($rg_conjuge_igual_cpf) { $rg_conjuge = $cpf_conjuge; } else if (!empty($rg_conjuge)) { $rg_conjuge = $formatarRg($rg_conjuge); }
             if (!empty($rg_conjuge)) {
                 $rnums = preg_replace('/\D/','', $rg_conjuge);
                 if (strlen($rnums) < 2) { throw new Exception('O RG do cônjuge deve ter ao menos 2 dígitos.'); }

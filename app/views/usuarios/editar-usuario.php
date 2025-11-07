@@ -301,11 +301,13 @@ $(document).ready(function() {
     const rgInput = document.getElementById('rg');
     function aplicarRgIgualCpf(aplicar) {
         if (aplicar) {
-            const cpfDigits = document.getElementById('cpf').value.replace(/\D/g,'');
-            rgInput.value = formatRgDigits(cpfDigits);
+            Inputmask('999.999.999-99').mask('#rg');
+            const cpfMasked = document.getElementById('cpf').value;
+            rgInput.value = cpfMasked;
             rgInput.setAttribute('disabled','disabled');
         } else {
             rgInput.removeAttribute('disabled');
+            Inputmask.remove('#rg');
             rgInput.value = formatRgDigits('<?php echo preg_replace('/\D/','', $usuario['rg'] ?? ''); ?>');
         }
     }
@@ -317,11 +319,13 @@ $(document).ready(function() {
     const rgConjInput = document.getElementById('rg_conjuge');
     function aplicarRgConjugeIgualCpf(aplicar) {
         if (aplicar) {
-            const cpfDigits = document.getElementById('cpf_conjuge').value.replace(/\D/g,'');
-            rgConjInput.value = formatRgDigits(cpfDigits);
+            Inputmask('999.999.999-99').mask('#rg_conjuge');
+            const cpfMasked = document.getElementById('cpf_conjuge').value;
+            rgConjInput.value = cpfMasked;
             rgConjInput.setAttribute('disabled','disabled');
         } else {
             rgConjInput.removeAttribute('disabled');
+            Inputmask.remove('#rg_conjuge');
             rgConjInput.value = formatRgDigits('<?php echo preg_replace('/\D/','', $usuario['rg_conjuge'] ?? ''); ?>');
         }
     }

@@ -332,11 +332,15 @@ $(document).ready(function() {
     });
     function aplicarRgIgualCpf(aplicar) {
         if (aplicar) {
-            const cpfDigits = document.getElementById('cpf').value.replace(/\D/g,'');
-            rgInput.value = formatRgDigits(cpfDigits);
+            // Aplica máscara de CPF ao RG e copia valor mascarado
+            Inputmask('999.999.999-99').mask('#rg');
+            const cpfMasked = document.getElementById('cpf').value;
+            rgInput.value = cpfMasked;
             rgInput.setAttribute('disabled','disabled');
         } else {
+            // Remove máscara e limpa para voltar à formatação dinâmica
             rgInput.removeAttribute('disabled');
+            Inputmask.remove('#rg');
             rgInput.value = '';
         }
     }
@@ -352,11 +356,13 @@ $(document).ready(function() {
     });
     function aplicarRgConjugeIgualCpf(aplicar) {
         if (aplicar) {
-            const cpfDigits = document.getElementById('cpf_conjuge').value.replace(/\D/g,'');
-            rgConjInput.value = formatRgDigits(cpfDigits);
+            Inputmask('999.999.999-99').mask('#rg_conjuge');
+            const cpfMasked = document.getElementById('cpf_conjuge').value;
+            rgConjInput.value = cpfMasked;
             rgConjInput.setAttribute('disabled','disabled');
         } else {
             rgConjInput.removeAttribute('disabled');
+            Inputmask.remove('#rg_conjuge');
             rgConjInput.value = '';
         }
     }

@@ -81,7 +81,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             return substr($d,0,-1) . '-' . substr($d,-1);
         };
         if ($rg_igual_cpf) {
-            $rg = $formatarRg($cpf);
+            // Se RG igual CPF, mantém exatamente o CPF informado (com máscara) para RG
+            $rg = $cpf;
         } else {
             $rg = $formatarRg($rg);
         }
@@ -144,7 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             // RG do cônjuge
             if ($rg_conjuge_igual_cpf) {
-                $rg_conjuge = $formatarRg($cpf_conjuge);
+                $rg_conjuge = $cpf_conjuge; // mantém máscara de CPF no RG do cônjuge
             } else if (!empty($rg_conjuge)) {
                 $rg_conjuge = $formatarRg($rg_conjuge);
             }
