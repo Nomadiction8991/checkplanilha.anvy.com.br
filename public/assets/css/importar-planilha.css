@@ -176,90 +176,62 @@ body {
 
 /* ========== RESPONSIVIDADE ========== */
 
-/* Tablets */
-@media (max-width: 768px) and (min-width: 481px) {
-    .conteudo {
-        padding: 75px 12px 12px 12px;
-    }
-    
-    .card {
-        padding: 15px;
-    }
-    
-    .mapeamento-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .btn {
-        min-width: 180px;
-    }
+/* Estilos padrão mobile-first para todos os dispositivos */
+.conteudo {
+    padding: 65px 10px 10px 10px;
 }
 
-/* Celulares */
-@media (max-width: 480px) {
-    /* Cabeçalho já responsivo via base.css */
-    
-    .conteudo {
-        padding: 65px 10px 10px 10px;
-    }
-    
-    .card {
-        padding: 12px;
-    }
-    
-    .card h2 {
-        font-size: 15px;
-    }
-    
-    .form-group {
-        margin-bottom: 15px;
-    }
-    
-    .form-group input,
-    .form-group select {
-        padding: 12px 10px;
-        font-size: 16px; /* Melhora experiência touch */
-    }
-    
-    .mapeamento-item {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-        padding: 8px;
-    }
-    
-    .mapeamento-label {
-        min-width: auto;
-    }
-    
-    .mapeamento-input {
-        width: 100%;
-        max-width: 80px;
-    }
-    
-    .btn {
-        padding: 14px 20px;
-        font-size: 16px;
-        min-width: 160px;
-        width: 100%;
-    }
-    
-    .message {
-        padding: 12px;
-        font-size: 13px;
-    }
+.card {
+    padding: 12px;
 }
 
-/* Telas grandes */
-@media (min-width: 769px) {
-    .mapeamento-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .btn {
-        min-width: 220px;
-    }
+.card h2 {
+    font-size: 15px;
 }
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group input,
+.form-group select {
+    padding: 12px 10px;
+    font-size: 16px; /* Melhora experiência touch */
+}
+
+.mapeamento-grid {
+    grid-template-columns: 1fr;
+}
+
+.mapeamento-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px;
+}
+
+.mapeamento-label {
+    min-width: auto;
+}
+
+.mapeamento-input {
+    width: 100%;
+    max-width: 80px;
+}
+
+.btn {
+    padding: 14px 20px;
+    font-size: 16px;
+    min-width: 160px;
+    width: 100%;
+}
+
+.message {
+    padding: 12px;
+    font-size: 13px;
+}
+
+/* Telas grandes removidas - sempre 400px */
 
 /* Estados desabilitados */
 .form-group input:disabled,

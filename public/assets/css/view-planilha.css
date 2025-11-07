@@ -581,84 +581,78 @@ td {
     color: #0056b3;
 }
 
-/* Responsividade */
-@media (max-width: 768px) {
-    .form-filtros {
-        flex-direction: column;
-        gap: 10px;
-    }
-    .campo-codigo {
-        flex-direction: row;
-        gap: 8px;
-    }
-    .conteudo {
-        padding: 15px;
-    }
-    .filtros-content {
-        grid-template-columns: 1fr;
-    }
+/* Estilos padrão mobile-first para todos os dispositivos */
+.form-filtros {
+    flex-direction: column;
+    gap: 10px;
 }
 
-@media (max-width: 480px) {
-    .cabecalho {
-        padding: 10px 12px;
-        height: 55px;
-    }
-    .cabecalho h1 {
-        font-size: 16px;
-        max-width: 150px;
-    }
-    .voltar,
-    .acoes a {
-        width: 32px;
-        height: 32px;
-    }
-    .conteudo {
-        margin-top: 55px;
-        padding: 10px;
-    }
-    .form-filtros {
-        flex-direction: column;
-        gap: 10px;
-    }
-    .campo-codigo {
-        flex-direction: row;
-        gap: 8px;
-    }
-    .btn-filtrar {
-        min-width: 36px;
-        height: 36px;
-        padding: 0 8px;
-        font-size: 16px;
-    }
-    .btn-filtrar svg {
-        width: 20px;
-        height: 20px;
-    }
-    .filtros-content {
-        grid-template-columns: 1fr;
-    }
-    .acao-container {
-        gap: 4px;
-    }
-    .btn-acao {
-        width: 32px;
-        height: 32px;
-        padding: 4px;
-    }
-    .btn-acao svg {
-        width: 20px;
-        height: 20px;
-    }
-    .paginacao {
-        gap: 6px;
-        padding: 10px;
-    }
-    .pagina-item,
-    .pagina-atual {
-        min-width: 36px;
-        height: 36px;
-        padding: 0 8px;
-        font-size: 13px;
-    }
+.campo-codigo {
+    flex-direction: row;
+    gap: 8px;
+}
+
+.conteudo {
+    margin-top: 55px;
+    padding: 10px;
+}
+
+.filtros-content {
+    grid-template-columns: 1fr;
+}
+
+.cabecalho {
+    padding: 10px 12px;
+    height: 55px;
+}
+
+.cabecalho h1 {
+    font-size: 16px;
+    max-width: 150px;
+}
+
+.voltar,
+.acoes a {
+    width: 32px;
+    height: 32px;
+}
+
+.btn-filtrar {
+    min-width: 36px;
+    height: 36px;
+    padding: 0 8px;
+    font-size: 16px;
+}
+
+.btn-filtrar svg {
+    width: 20px;
+    height: 20px;
+}
+
+.acao-container {
+    gap: 4px;
+}
+
+.btn-acao {
+    width: 32px;
+    height: 32px;
+    padding: 4px;
+}
+
+.btn-acao svg {
+    width: 20px;
+    height: 20px;
+}
+
+.paginacao {
+    gap: 6px;
+    padding: 10px;
+}
+
+.pagina-item,
+.pagina-atual {
+    min-width: 36px;
+    height: 36px;
+    padding: 0 8px;
+    font-size: 13px;
 }

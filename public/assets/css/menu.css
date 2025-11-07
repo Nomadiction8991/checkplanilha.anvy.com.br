@@ -136,32 +136,31 @@ body {
     background: linear-gradient(135deg, #f5c2c7, #f1a8af);
 }
 
-@media (max-width: 480px) {
-
-    .voltar{
-        width: 32px;
-        height: 32px;
-    }
-    
-    .voltar svg{
-        width: 36px;
-        height: 36px;
-    }
-
-        .cabecalho h1 {
-        font-size: 16px;
-        max-width: 150px;
-    }
-    .cabecalho {
-        padding: 10px 12px;
-        height: 55px;
-    }
-    .conteudo{
-        margin-top: 55px;
-    }
-
+/* Estilos padrão mobile-first para todos os dispositivos */
+.voltar {
+    width: 32px;
+    height: 32px;
 }
 
-.voltar{
+.voltar svg {
+    width: 36px;
+    height: 36px;
+}
+
+.cabecalho h1 {
+    font-size: 16px;
+    max-width: 150px;
+}
+
+.cabecalho {
+    padding: 10px 12px;
+    height: 55px;
+}
+
+.conteudo {
+    margin-top: 55px;
+}
+
+.voltar {
     transition: all 0.2s ease-in-out;
 }
