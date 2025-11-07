@@ -56,7 +56,6 @@ $sql_base = "SELECT
                      p.ben,
                      p.editado_ben,
                      p.tipo_ben_id,
-                     p.editado_tipo_ben_id,
                      p.dependencia_id,
                      p.editado_dependencia_id,
                      p.observacao,
@@ -66,15 +65,12 @@ $sql_base = "SELECT
                      COALESCE(p.imprimir_14_1, 0) AS imprimir_141,
                      COALESCE(p.ativo, 1) AS ativo,
                      -- Infos extras para montar descrição editada on-the-fly
-                     t1.codigo AS tipo_codigo,
-                     t1.descricao AS tipo_desc,
-                     t2.codigo AS editado_tipo_codigo,
-                     t2.descricao AS editado_tipo_desc,
+                    t1.codigo AS tipo_codigo,
+                    t1.descricao AS tipo_desc,
                      d1.descricao AS dependencia_desc,
                      d2.descricao AS editado_dependencia_desc
                  FROM produtos p
                  LEFT JOIN tipos_bens t1 ON p.tipo_ben_id = t1.id
-                 LEFT JOIN tipos_bens t2 ON p.editado_tipo_ben_id = t2.id
                  LEFT JOIN dependencias d1 ON p.dependencia_id = d1.id
                  LEFT JOIN dependencias d2 ON p.editado_dependencia_id = d2.id
                  WHERE p.planilha_id = :id_planilha";

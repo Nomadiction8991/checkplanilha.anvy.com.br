@@ -55,10 +55,8 @@ try {
     }
     
     // Pré-preencher com edições se existirem (senão usa original)
-    // Tipo de bem: usar editado_tipo_bem_id se >0, senão tipo_ben_id
-    if (!empty($produto['editado_tipo_bem_id']) && (int)$produto['editado_tipo_bem_id'] > 0) {
-        $novo_tipo_bem_id = (int)$produto['editado_tipo_bem_id'];
-    } elseif (!empty($produto['tipo_ben_id']) && (int)$produto['tipo_ben_id'] > 0) {
+    // Tipo de bem: usar tipo_ben_id do produto (não persistimos editado_tipo_bem_id nesta instalação)
+    if (!empty($produto['tipo_ben_id']) && (int)$produto['tipo_ben_id'] > 0) {
         $novo_tipo_bem_id = (int)$produto['tipo_ben_id'];
     }
     $novo_bem = $produto['editado_ben'] !== '' ? $produto['editado_ben'] : ($produto['ben'] ?? '');
@@ -106,7 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         // Determinar campos originais para fallback
-        $orig_tipo_id = (int)($produto['editado_tipo_bem_id'] ?: $produto['tipo_ben_id']);
+    $orig_tipo_id = (int)($produto['tipo_ben_id']);
         $orig_ben = $produto['editado_ben'] !== '' ? $produto['editado_ben'] : ($produto['ben'] ?? '');
         $orig_comp = $produto['editado_complemento'] !== '' ? $produto['editado_complemento'] : ($produto['complemento'] ?? '');
         $orig_dep_id = (int)($produto['editado_dependencia_id'] ?: $produto['dependencia_id']);
@@ -127,11 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $sql_update = "UPDATE produtos SET imprimir_etiqueta = 1, editado = 1";
         $params = [':id_produto' => $id_produto, ':planilha_id' => $id_planilha];
 
-        // Persistir tipo de bem editado se informado
-        if ($novo_tipo_bem_id !== '') {
-            $sql_update .= ", editado_tipo_bem_id = :novo_tipo_bem_id";
-            $params[':novo_tipo_bem_id'] = (int)$novo_tipo_bem_id;
-        }
+        // Observação: nesta instalação não persistimos coluna editado_tipo_bem_id
         if ($novo_bem !== '') {
             $sql_update .= ", editado_ben = :novo_bem";
             $params[':novo_bem'] = $novo_bem;

@@ -410,8 +410,8 @@ ob_start();
                     $desc_editada_visivel = trim($p['editado_descricao_completa'] ?? '');
                     if ($desc_editada_visivel === '') {
                         // Dados base (preferir editados)
-                        $tipo_codigo_final = $p['editado_tipo_codigo'] ?: $p['tipo_codigo'];
-                        $tipo_desc_final = $p['editado_tipo_desc'] ?: $p['tipo_desc'];
+                        $tipo_codigo_final = $p['tipo_codigo'];
+                        $tipo_desc_final = $p['tipo_desc'];
                         $ben_final = ($p['editado_ben'] !== '' ? $p['editado_ben'] : $p['ben']);
                         $comp_final = ($p['editado_complemento'] !== '' ? $p['editado_complemento'] : $p['complemento']);
                         $dep_final = ($p['editado_dependencia_desc'] ?: $p['dependencia_desc']);
