@@ -413,7 +413,7 @@ ob_start();
                 <!-- Edição Pendente -->
                 <?php if ($tem_edicao): ?>
                 <div class="edicao-pendente">
-                    <strong>Edição pendente:</strong><br>
+                    <strong>Edição:</strong><br>
                     <?php
                     // Mostrar editado_descricao_completa se existir; caso contrário montar uma versão dinâmica
                     $desc_editada_visivel = trim($p['editado_descricao_completa'] ?? '');
