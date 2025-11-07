@@ -405,9 +405,43 @@ ob_start();
                 <?php if ($tem_edicao): ?>
                 <div class="edicao-pendente">
                     <strong>✍ Edição pendente:</strong><br>
-                    <?php if (!empty($p['editado_descricao_completa'])): ?>
-                        <?php echo htmlspecialchars($p['editado_descricao_completa']); ?><br>
-                    <?php endif; ?>
+                    <?php
+                    // Mostrar editado_descricao_completa se existir; caso contrário montar uma versão dinâmica
+                    $desc_editada_visivel = trim($p['editado_descricao_completa'] ?? '');
+                    if ($desc_editada_visivel === '') {
+                        // Dados base (preferir editados)
+                        $tipo_codigo_final = $p['editado_tipo_codigo'] ?: $p['tipo_codigo'];
+                        $tipo_desc_final = $p['editado_tipo_desc'] ?: $p['tipo_desc'];
+                        $ben_final = ($p['editado_ben'] !== '' ? $p['editado_ben'] : $p['ben']);
+                        $comp_final = ($p['editado_complemento'] !== '' ? $p['editado_complemento'] : $p['complemento']);
+                        $dep_final = ($p['editado_dependencia_desc'] ?: $p['dependencia_desc']);
+                        // Montagem simples (similar à função pp_montar_descricao mas sem quantidade)
+                        $partes = [];
+                        if ($tipo_codigo_final && $tipo_desc_final) {
+                            $partes[] = strtoupper($tipo_codigo_final . ' - ' . $tipo_desc_final);
+                        }
+                        if ($ben_final !== '') {
+                            $partes[] = strtoupper($ben_final);
+                        }
+                        if ($comp_final !== '') {
+                            // Evitar duplicação do ben no complemento (básico)
+                            $comp_tmp = strtoupper($comp_final);
+                            if ($ben_final !== '' && strpos($comp_tmp, strtoupper($ben_final)) === 0) {
+                                $comp_tmp = trim(substr($comp_tmp, strlen($ben_final)));
+                                $comp_tmp = preg_replace('/^[\s\-\/]+/','',$comp_tmp);
+                            }
+                            if ($comp_tmp !== '') $partes[] = $comp_tmp;
+                        }
+                        $desc_editada_visivel = implode(' - ', $partes);
+                        if ($dep_final) {
+                            $desc_editada_visivel .= ' (' . strtoupper($dep_final) . ')';
+                        }
+                        if ($desc_editada_visivel === '') {
+                            $desc_editada_visivel = 'EDIÇÃO SEM DESCRIÇÃO';
+                        }
+                    }
+                    echo htmlspecialchars($desc_editada_visivel);
+                    ?><br>
                 </div>
                 <?php endif; ?>
                 

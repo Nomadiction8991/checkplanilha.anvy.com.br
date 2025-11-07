@@ -1,6 +1,8 @@
 <?php
 require_once __DIR__ . '/../../auth.php'; // Autenticação
 require_once __DIR__ . '/../conexao.php';
+// Funções de montagem de descrição
+require_once __DIR__ . '/../../app/functions/produto_parser.php';
 
 // Receber parâmetros
 $id_produto = $_GET['id_produto'] ?? null;
@@ -30,6 +32,7 @@ if (!$id_produto || !$id_planilha) {
 
 $mensagem = '';
 $tipo_mensagem = '';
+// Valores do formulário (pré-preenchidos com editados ou originais)
 $novo_tipo_bem_id = '';
 $novo_bem = '';
 $novo_complemento = '';
@@ -51,11 +54,16 @@ try {
         throw new Exception('Produto não encontrado.');
     }
     
-    // Pré-preencher com edições se existirem
-    // Tipo de bem não é salvo como ID no schema atual; usamos apenas para dirigir o campo BEM
-    $novo_bem = $produto['editado_ben'] ?? '';
-    $novo_complemento = $produto['editado_complemento'] ?? '';
-    $nova_dependencia_id = $produto['editado_dependencia_id'] ?? '';
+    // Pré-preencher com edições se existirem (senão usa original)
+    // Tipo de bem: usar editado_tipo_bem_id se >0, senão tipo_ben_id
+    if (!empty($produto['editado_tipo_bem_id']) && (int)$produto['editado_tipo_bem_id'] > 0) {
+        $novo_tipo_bem_id = (int)$produto['editado_tipo_bem_id'];
+    } elseif (!empty($produto['tipo_ben_id']) && (int)$produto['tipo_ben_id'] > 0) {
+        $novo_tipo_bem_id = (int)$produto['tipo_ben_id'];
+    }
+    $novo_bem = $produto['editado_ben'] !== '' ? $produto['editado_ben'] : ($produto['ben'] ?? '');
+    $novo_complemento = $produto['editado_complemento'] !== '' ? $produto['editado_complemento'] : ($produto['complemento'] ?? '');
+    $nova_dependencia_id = $produto['editado_dependencia_id'] !== '' ? $produto['editado_dependencia_id'] : ($produto['dependencia_id'] ?? '');
     
 } catch (Exception $e) {
     $mensagem = "Erro ao carregar produto: " . $e->getMessage();
@@ -97,8 +105,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $filtro_status = $_POST['status'] ?? '';
 
     try {
-        // Se não houver alterações, retorna
-        if ($novo_tipo_bem_id === '' && $novo_bem === '' && $novo_complemento === '' && $nova_dependencia_id === '') {
+        // Determinar campos originais para fallback
+        $orig_tipo_id = (int)($produto['editado_tipo_bem_id'] ?: $produto['tipo_ben_id']);
+        $orig_ben = $produto['editado_ben'] !== '' ? $produto['editado_ben'] : ($produto['ben'] ?? '');
+        $orig_comp = $produto['editado_complemento'] !== '' ? $produto['editado_complemento'] : ($produto['complemento'] ?? '');
+        $orig_dep_id = (int)($produto['editado_dependencia_id'] ?: $produto['dependencia_id']);
+
+        // Verificar se houve realmente alguma alteração
+        $houve_alteracao = false;
+        if ($novo_tipo_bem_id !== '' && (int)$novo_tipo_bem_id !== $orig_tipo_id) $houve_alteracao = true;
+        if ($novo_bem !== '' && $novo_bem !== strtoupper($orig_ben)) $houve_alteracao = true;
+        if ($novo_complemento !== '' && $novo_complemento !== strtoupper($orig_comp)) $houve_alteracao = true;
+        if ($nova_dependencia_id !== '' && (int)$nova_dependencia_id !== $orig_dep_id) $houve_alteracao = true;
+
+        if (!$houve_alteracao) {
+            // Nada mudou, retorna sem marcar edição
             header('Location: ' . getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, $filtro_codigo, $filtro_status));
             exit;
         }
@@ -106,7 +127,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $sql_update = "UPDATE produtos SET imprimir_etiqueta = 1, editado = 1";
         $params = [':id_produto' => $id_produto, ':planilha_id' => $id_planilha];
 
-        // Observação: não persistimos o ID do tipo de bem, apenas o BEM derivado
+        // Persistir tipo de bem editado se informado
+        if ($novo_tipo_bem_id !== '') {
+            $sql_update .= ", editado_tipo_bem_id = :novo_tipo_bem_id";
+            $params[':novo_tipo_bem_id'] = (int)$novo_tipo_bem_id;
+        }
         if ($novo_bem !== '') {
             $sql_update .= ", editado_ben = :novo_bem";
             $params[':novo_bem'] = $novo_bem;
@@ -117,8 +142,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         if ($nova_dependencia_id !== '') {
             $sql_update .= ", editado_dependencia_id = :nova_dependencia_id";
-            $params[':nova_dependencia_id'] = $nova_dependencia_id;
+            $params[':nova_dependencia_id'] = (int)$nova_dependencia_id;
         }
+
+        // Montar descrição completa editada usando fallback para originais se campo editado em branco
+        // Determinar valores finais (se não enviados, usa original)
+        $final_tipo_id = ($novo_tipo_bem_id !== '') ? (int)$novo_tipo_bem_id : $orig_tipo_id;
+        $final_ben = ($novo_bem !== '') ? $novo_bem : strtoupper($orig_ben);
+        $final_comp = ($novo_complemento !== '') ? $novo_complemento : strtoupper($orig_comp);
+        $final_dep_id = ($nova_dependencia_id !== '') ? (int)$nova_dependencia_id : $orig_dep_id;
+
+        // Buscar dados do tipo selecionado
+        $tipo_codigo = null; $tipo_desc = '';
+        foreach ($tipos_bens as $tb) {
+            if ((int)$tb['id'] === (int)$final_tipo_id) {
+                $tipo_codigo = $tb['codigo'];
+                $tipo_desc = $tb['descricao'];
+                break;
+            }
+        }
+        // Buscar descrição da dependência
+        $dep_desc = '';
+        foreach ($dependencias as $dep) {
+            if ((int)$dep['id'] === (int)$final_dep_id) {
+                $dep_desc = $dep['descricao'];
+                break;
+            }
+        }
+        if ($dep_desc === '' && !empty($produto['dependencia_descricao'])) {
+            $dep_desc = $produto['dependencia_descricao'];
+        }
+
+        // Usar função de montagem (quantidade padrão 1)
+        $descricao_editada = pp_montar_descricao(1, $tipo_codigo, $tipo_desc, $final_ben, $final_comp, $dep_desc, []);
+        $sql_update .= ", editado_descricao_completa = :editado_desc";
+        $params[':editado_desc'] = strtoupper($descricao_editada);
 
         $sql_update .= " WHERE id_produto = :id_produto AND planilha_id = :planilha_id";
         $stmt_update = $conexao->prepare($sql_update);

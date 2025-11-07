@@ -47,26 +47,37 @@ $filtro_status = trim($_GET['status'] ?? '');
 
 // Query base usando a tabela produtos com as colunas REAIS do servidor
 $sql_base = "SELECT 
-                p.id_produto,
-                p.codigo,
-                p.descricao_completa,
-                p.editado_descricao_completa,
-                p.complemento,
-                p.editado_complemento,
-                p.ben,
-                p.editado_ben,
-                p.tipo_ben_id,
-                p.editado_tipo_ben_id,
-                p.dependencia_id,
-                p.editado_dependencia_id,
-                p.observacao,
-                COALESCE(p.checado, 0) AS checado,
-                COALESCE(p.editado, 0) AS editado,
-                COALESCE(p.imprimir_etiqueta, 0) AS imprimir,
-                COALESCE(p.imprimir_14_1, 0) AS imprimir_141,
-                COALESCE(p.ativo, 1) AS ativo
-             FROM produtos p
-             WHERE p.planilha_id = :id_planilha";
+                     p.id_produto,
+                     p.codigo,
+                     p.descricao_completa,
+                     p.editado_descricao_completa,
+                     p.complemento,
+                     p.editado_complemento,
+                     p.ben,
+                     p.editado_ben,
+                     p.tipo_ben_id,
+                     p.editado_tipo_ben_id,
+                     p.dependencia_id,
+                     p.editado_dependencia_id,
+                     p.observacao,
+                     COALESCE(p.checado, 0) AS checado,
+                     COALESCE(p.editado, 0) AS editado,
+                     COALESCE(p.imprimir_etiqueta, 0) AS imprimir,
+                     COALESCE(p.imprimir_14_1, 0) AS imprimir_141,
+                     COALESCE(p.ativo, 1) AS ativo,
+                     -- Infos extras para montar descrição editada on-the-fly
+                     t1.codigo AS tipo_codigo,
+                     t1.descricao AS tipo_desc,
+                     t2.codigo AS editado_tipo_codigo,
+                     t2.descricao AS editado_tipo_desc,
+                     d1.descricao AS dependencia_desc,
+                     d2.descricao AS editado_dependencia_desc
+                 FROM produtos p
+                 LEFT JOIN tipos_bens t1 ON p.tipo_ben_id = t1.id
+                 LEFT JOIN tipos_bens t2 ON p.editado_tipo_ben_id = t2.id
+                 LEFT JOIN dependencias d1 ON p.dependencia_id = d1.id
+                 LEFT JOIN dependencias d2 ON p.editado_dependencia_id = d2.id
+                 WHERE p.planilha_id = :id_planilha";
 
 $params = [':id_planilha' => $id_planilha];
 
