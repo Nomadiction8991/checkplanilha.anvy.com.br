@@ -165,26 +165,6 @@ ob_start();
     flex-wrap: wrap;
     margin-top: 0.5rem;
 }
-
-/* Forçar layout mobile em todos os tamanhos de tela */
-@media (min-width: 768px) {
-    /* Cards mantém largura máxima para não esticar demais */
-    .card {
-        max-width: 100%;
-    }
-    
-    /* Legenda: forçar quebra de linha em telas grandes */
-    .card-body .d-flex.flex-wrap {
-        flex-direction: column !important;
-        align-items: flex-start !important;
-    }
-    
-    /* Cada item da legenda em linha separada */
-    .card-body .d-flex.flex-wrap > span {
-        width: 100%;
-        margin-bottom: 0.25rem;
-    }
-}
 </style>
 
 <!-- Link para Material Icons -->

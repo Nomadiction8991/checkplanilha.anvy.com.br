@@ -29,6 +29,9 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     
+        <!-- Mobile-First Global CSS -->
+        <link rel="stylesheet" href="<?php echo ($ambiente_manifest === 'dev') ? '/dev/public/assets/css/mobile-first.css' : '/public/assets/css/mobile-first.css'; ?>">
+    
     <!-- Custom CSS -->
     <style>
         /* ===== LAYOUT MOBILE 400px CENTRALIZADO ===== */
