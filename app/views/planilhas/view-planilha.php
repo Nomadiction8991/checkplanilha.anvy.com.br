@@ -97,17 +97,35 @@ ob_start();
     vertical-align: middle;
 }
 
-/* Cores das linhas baseadas no status */
-.linha-pendente { background-color: #ffffff; border-left: 4px solid #6c757d; }
-.linha-checado { background-color: #d4edda; border-left: 4px solid #28a745; }
-.linha-observacao { background-color: #fff3e0; border-left: 4px solid #ff9800; }
-.linha-imprimir { background-color: #d1ecf1; border-left: 4px solid #17a2b8; }
-.linha-dr { background-color: #f8d7da; border-left: 4px solid #dc3545; }
-.linha-editado { background-color: #e2d9f3; border-left: 4px solid #9c27b0; }
+/* Cores das linhas baseadas no status - Paleta marcante e diferenciada */
+.linha-pendente { 
+    background-color: #ffffff; 
+    border-left: none; 
+}
+.linha-checado { 
+    background-color: #d4f4dd; 
+    border-left: 4px solid #10b759; 
+}
+.linha-observacao { 
+    background-color: #fff4e6; 
+    border-left: 4px solid #fb8c00; 
+}
+.linha-imprimir { 
+    background-color: #e3f2fd; 
+    border-left: 4px solid #1976d2; 
+}
+.linha-dr { 
+    background-color: #ffebee; 
+    border-left: 4px solid #e53935; 
+}
+.linha-editado { 
+    background-color: #f3e5f5; 
+    border-left: 4px solid #8e24aa; 
+}
 
-/* Aviso de tipo não identificado - apenas borda esquerda */
+/* Aviso de tipo não identificado - amarelo ouro forte */
 .tipo-nao-identificado {
-    border-left: 4px solid #ffc107 !important;
+    border-left: 4px solid #fdd835 !important;
 }
 
 /* Estilos para os botões de ação */
@@ -299,34 +317,30 @@ ob_start();
     <div class="card-body p-2">
         <div class="d-flex flex-wrap gap-2 justify-content-center small">
             <span class="d-flex align-items-center gap-1">
-                <span style="width: 3px; height: 16px; background-color: #6c757d; display: inline-block;"></span>
-                Pendente
-            </span>
-            <span class="d-flex align-items-center gap-1">
-                <span style="width: 3px; height: 16px; background-color: #28a745; display: inline-block;"></span>
+                <span style="width: 3px; height: 16px; background-color: #10b759; display: inline-block;"></span>
                 Checado
             </span>
             <span class="d-flex align-items-center gap-1">
-                <span style="width: 3px; height: 16px; background-color: #ff9800; display: inline-block;"></span>
+                <span style="width: 3px; height: 16px; background-color: #fb8c00; display: inline-block;"></span>
                 Observação
             </span>
             <span class="d-flex align-items-center gap-1">
-                <span style="width: 3px; height: 16px; background-color: #17a2b8; display: inline-block;"></span>
+                <span style="width: 3px; height: 16px; background-color: #1976d2; display: inline-block;"></span>
                 Para Imprimir
             </span>
             <span class="d-flex align-items-center gap-1">
-                <span style="width: 3px; height: 16px; background-color: #dc3545; display: inline-block;"></span>
+                <span style="width: 3px; height: 16px; background-color: #e53935; display: inline-block;"></span>
                 DR
             </span>
             <span class="d-flex align-items-center gap-1">
-                <span style="width: 3px; height: 16px; background-color: #9c27b0; display: inline-block;"></span>
+                <span style="width: 3px; height: 16px; background-color: #8e24aa; display: inline-block;"></span>
                 Editado
             </span>
         </div>
         <hr class="my-2">
         <div class="d-flex flex-wrap gap-2 justify-content-center small text-muted">
             <span class="d-flex align-items-center gap-1">
-                <span style="width: 3px; height: 16px; background-color: #ffc107; display: inline-block;"></span>
+                <span style="width: 3px; height: 16px; background-color: #fdd835; display: inline-block;"></span>
                 Tipo de bem não identificado
             </span>
         </div>
@@ -349,7 +363,7 @@ ob_start();
                 $classe = '';
                 $tem_edicao = $p['editado'] == 1;
                 
-                if ($p['dr'] == 1) {
+                if ($p['ativo'] == 0) {
                     $classe = 'linha-dr';
                 } elseif ($p['imprimir'] == 1 && $p['checado'] == 1) {
                     $classe = 'linha-imprimir';
@@ -452,16 +466,16 @@ ob_start();
                     
                     <!-- DR -->
                     <?php if ($show_dr): ?>
-                    <form method="POST" action="../../../CRUD/UPDATE/dr-produto.php" style="display: inline;" onsubmit="return confirmarDR(this, <?php echo $p['dr']; ?>)">
+                    <form method="POST" action="../../../CRUD/UPDATE/dr-produto.php" style="display: inline;" onsubmit="return confirmarDR(this, <?php echo $p['ativo'] == 0 ? 1 : 0; ?>)">
                         <input type="hidden" name="produto_id" value="<?php echo $p['id_produto']; ?>">
                         <input type="hidden" name="id_planilha" value="<?php echo $id_planilha; ?>">
-                        <input type="hidden" name="dr" value="<?php echo $p['dr'] ? '0' : '1'; ?>">
+                        <input type="hidden" name="dr" value="<?php echo $p['ativo'] == 0 ? '0' : '1'; ?>">
                         <input type="hidden" name="pagina" value="<?php echo $pagina ?? 1; ?>">
                         <input type="hidden" name="nome" value="<?php echo htmlspecialchars($filtro_nome ?? ''); ?>">
                         <input type="hidden" name="dependencia" value="<?php echo htmlspecialchars($filtro_dependencia ?? ''); ?>">
                         <input type="hidden" name="codigo" value="<?php echo htmlspecialchars($filtro_codigo ?? ''); ?>">
                         <input type="hidden" name="status" value="<?php echo htmlspecialchars($filtro_status ?? ''); ?>">
-                        <button type="submit" class="btn-acao btn-dr <?php echo $p['dr'] == 1 ? 'active' : ''; ?>" title="DR">
+                        <button type="submit" class="btn-acao btn-dr <?php echo $p['ativo'] == 0 ? 'active' : ''; ?>" title="DR">
                             <i class="bi bi-exclamation-triangle-fill" style="color: #dc3545; font-size: 24px;"></i>
                         </button>
                     </form>

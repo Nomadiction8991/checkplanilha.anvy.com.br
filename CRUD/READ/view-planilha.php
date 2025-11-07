@@ -64,7 +64,7 @@ $sql_base = "SELECT
                 COALESCE(p.editado, 0) AS editado,
                 COALESCE(p.imprimir_etiqueta, 0) AS imprimir,
                 COALESCE(p.imprimir_14_1, 0) AS imprimir_141,
-                COALESCE(p.dr, 0) AS dr
+                COALESCE(p.ativo, 1) AS ativo
              FROM produtos p
              WHERE p.planilha_id = :id_planilha";
 
