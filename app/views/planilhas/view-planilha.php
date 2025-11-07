@@ -5,7 +5,7 @@ require_once __DIR__ . '/../../../CRUD/READ/view-planilha.php';
 
 // Configurações da página
 $pageTitle = htmlspecialchars($planilha['comum_descricao'] ?? 'Visualizar Planilha');
-$backUrl = '../../../index.php';
+$backUrl = '../planilhas/index.php';
 $headerActions = '
     <a href="../shared/menu-unificado.php?id=' . $id_planilha . '&contexto=planilha" class="btn-header-action" title="Menu">
         <i class="bi bi-list fs-5"></i>
@@ -73,6 +73,11 @@ ob_start();
 .linha-imprimir { background-color: #d1ecf1; border-left: 4px solid #17a2b8; }
 .linha-dr { background-color: #f8d7da; border-left: 4px solid #dc3545; }
 .linha-editado { background-color: #e2d9f3; border-left: 4px solid #9c27b0; }
+
+/* Aviso de tipo não identificado - apenas borda esquerda */
+.tipo-nao-identificado {
+    border-left: 4px solid #ffc107 !important;
+}
 
 /* Estilos para os botões de ação */
 .btn-acao {
@@ -262,17 +267,37 @@ ob_start();
 <div class="card mb-3">
     <div class="card-body p-2">
         <div class="d-flex flex-wrap gap-2 justify-content-center small">
-            <span class="badge" style="background-color: #6c757d;">Pendente</span>
-            <span class="badge" style="background-color: #28a745;">Checado</span>
-            <span class="badge" style="background-color: #ff9800;">Observação</span>
-            <span class="badge" style="background-color: #17a2b8;">Para Imprimir</span>
-            <span class="badge" style="background-color: #dc3545;">DR</span>
-            <span class="badge" style="background-color: #9c27b0;">Editado</span>
+            <span class="d-flex align-items-center gap-1">
+                <span style="width: 3px; height: 16px; background-color: #6c757d; display: inline-block;"></span>
+                Pendente
+            </span>
+            <span class="d-flex align-items-center gap-1">
+                <span style="width: 3px; height: 16px; background-color: #28a745; display: inline-block;"></span>
+                Checado
+            </span>
+            <span class="d-flex align-items-center gap-1">
+                <span style="width: 3px; height: 16px; background-color: #ff9800; display: inline-block;"></span>
+                Observação
+            </span>
+            <span class="d-flex align-items-center gap-1">
+                <span style="width: 3px; height: 16px; background-color: #17a2b8; display: inline-block;"></span>
+                Para Imprimir
+            </span>
+            <span class="d-flex align-items-center gap-1">
+                <span style="width: 3px; height: 16px; background-color: #dc3545; display: inline-block;"></span>
+                DR
+            </span>
+            <span class="d-flex align-items-center gap-1">
+                <span style="width: 3px; height: 16px; background-color: #9c27b0; display: inline-block;"></span>
+                Editado
+            </span>
         </div>
         <hr class="my-2">
         <div class="d-flex flex-wrap gap-2 justify-content-center small text-muted">
-            <span><span class="badge bg-warning text-dark">⚠</span> Tipo de bem não identificado</span>
-            <span><span class="badge bg-danger">🔴</span> Erro na descrição (revisar BEN/complemento)</span>
+            <span class="d-flex align-items-center gap-1">
+                <span style="width: 3px; height: 16px; background-color: #ffc107; display: inline-block;"></span>
+                Tipo de bem não identificado
+            </span>
         </div>
     </div>
 </div>
@@ -312,9 +337,8 @@ ob_start();
                 $show_obs = true; // Sempre mostrar observação
                 $show_edit = ($p['checado'] == 0);
                 $tipo_invalido = (!isset($p['tipo_ben_id']) || $p['tipo_ben_id'] == 0 || empty($p['tipo_ben_id']));
-                $erro_parsing = (isset($p['observacao']) && strpos($p['observacao'], '[REVISAR]') === 0);
             ?>
-            <div class="list-group-item <?php echo $classe; ?><?php echo $erro_parsing ? ' border-danger border-2' : ($tipo_invalido ? ' border-warning border-2' : ''); ?>" <?php echo $erro_parsing ? 'title="🔴 Erro na descrição do produto - revisar BEN/complemento"' : ($tipo_invalido ? 'title="⚠ Tipo de bem não identificado"' : ''); ?>>
+            <div class="list-group-item <?php echo $classe; ?><?php echo $tipo_invalido ? ' tipo-nao-identificado' : ''; ?>" <?php echo $tipo_invalido ? 'title="Tipo de bem não identificado"' : ''; ?>>
                 <!-- Código -->
                 <div class="codigo-produto">
                     <?php echo htmlspecialchars($p['codigo']); ?>
