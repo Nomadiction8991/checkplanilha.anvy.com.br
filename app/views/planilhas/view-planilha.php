@@ -306,8 +306,9 @@ ob_start();
                 $show_imprimir = ($p['checado'] == 1 && $p['editado'] == 0);
                 $show_obs = true; // Sempre mostrar observação
                 $show_edit = ($p['checado'] == 0);
+                $tipo_invalido = (!isset($p['tipo_ben_id']) || $p['tipo_ben_id'] == 0 || empty($p['tipo_ben_id']));
             ?>
-            <div class="list-group-item <?php echo $classe; ?><?php echo ($p['tipo_ben_id'] == 0 || empty($p['tipo_ben_id'])) ? ' border-warning border-2' : ''; ?>" <?php echo ($p['tipo_ben_id'] == 0 || empty($p['tipo_ben_id'])) ? 'title="⚠ Tipo de bem não identificado"' : ''; ?>>
+            <div class="list-group-item <?php echo $classe; ?><?php echo $tipo_invalido ? ' border-warning border-2' : ''; ?>" <?php echo $tipo_invalido ? 'title="⚠ Tipo de bem não identificado"' : ''; ?>>
                 <!-- Código -->
                 <div class="codigo-produto">
                     <?php echo htmlspecialchars($p['codigo']); ?>
