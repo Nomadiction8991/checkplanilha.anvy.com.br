@@ -7,9 +7,40 @@ require_once __DIR__ . '/../../../CRUD/READ/view-planilha.php';
 $pageTitle = htmlspecialchars($planilha['comum_descricao'] ?? 'Visualizar Planilha');
 $backUrl = '../comuns/listar-planilhas.php?comum_id=' . urlencode($planilha['comum_id'] ?? '');
 $headerActions = '
-    <a href="../shared/menu-unificado.php?id=' . $id_planilha . '&contexto=planilha" class="btn-header-action" title="Menu">
-        <i class="bi bi-list fs-5"></i>
-    </a>
+    <div class="dropdown">
+        <button class="btn-header-action" type="button" id="menuPlanilha" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-list fs-5"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="menuPlanilha">
+            <li>
+                <a class="dropdown-item" href="../produtos/read-produto.php?id=' . $id_planilha . '">
+                    <i class="bi bi-list-ul me-2"></i>Listagem de Produtos
+                </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <a class="dropdown-item" href="../planilhas/relatorio-14-1.php?id=' . $id_planilha . '">
+                    <i class="bi bi-file-earmark-pdf me-2"></i>Relatório 14.1
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item" href="../planilhas/copiar-etiquetas.php?id=' . $id_planilha . '">
+                    <i class="bi bi-tags me-2"></i>Copiar Etiquetas
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item" href="../planilhas/imprimir-alteracao.php?id=' . $id_planilha . '">
+                    <i class="bi bi-printer me-2"></i>Imprimir Alteração
+                </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <a class="dropdown-item" href="../../../logout.php">
+                    <i class="bi bi-box-arrow-right me-2"></i>Sair
+                </a>
+            </li>
+        </ul>
+    </div>
 ';
 
 // Iniciar buffer para capturar o conteúdo
@@ -318,7 +349,9 @@ ob_start();
                 $classe = '';
                 $tem_edicao = $p['editado'] == 1;
                 
-                if ($p['imprimir'] == 1 && $p['checado'] == 1) {
+                if ($p['dr'] == 1) {
+                    $classe = 'linha-dr';
+                } elseif ($p['imprimir'] == 1 && $p['checado'] == 1) {
                     $classe = 'linha-imprimir';
                 } elseif ($p['checado'] == 1) {
                     $classe = 'linha-checado';
@@ -336,6 +369,7 @@ ob_start();
                 $show_imprimir = ($p['checado'] == 1 && $p['editado'] == 0);
                 $show_obs = true; // Sempre mostrar observação
                 $show_edit = ($p['checado'] == 0);
+                $show_dr = true; // Sempre mostrar DR
                 $tipo_invalido = (!isset($p['tipo_ben_id']) || $p['tipo_ben_id'] == 0 || empty($p['tipo_ben_id']));
             ?>
             <div class="list-group-item <?php echo $classe; ?><?php echo $tipo_invalido ? ' tipo-nao-identificado' : ''; ?>" <?php echo $tipo_invalido ? 'title="Tipo de bem não identificado"' : ''; ?>>
@@ -414,6 +448,23 @@ ob_start();
                        class="btn-acao btn-editar <?php echo $tem_edicao ? 'active' : ''; ?>" title="Editar">
                         <i class="bi bi-pencil-fill" style="color: #9c27b0; font-size: 24px;"></i>
                     </a>
+                    <?php endif; ?>
+                    
+                    <!-- DR -->
+                    <?php if ($show_dr): ?>
+                    <form method="POST" action="../../../CRUD/UPDATE/dr-produto.php" style="display: inline;" onsubmit="return confirmarDR(this, <?php echo $p['dr']; ?>)">
+                        <input type="hidden" name="produto_id" value="<?php echo $p['id_produto']; ?>">
+                        <input type="hidden" name="id_planilha" value="<?php echo $id_planilha; ?>">
+                        <input type="hidden" name="dr" value="<?php echo $p['dr'] ? '0' : '1'; ?>">
+                        <input type="hidden" name="pagina" value="<?php echo $pagina ?? 1; ?>">
+                        <input type="hidden" name="nome" value="<?php echo htmlspecialchars($filtro_nome ?? ''); ?>">
+                        <input type="hidden" name="dependencia" value="<?php echo htmlspecialchars($filtro_dependencia ?? ''); ?>">
+                        <input type="hidden" name="codigo" value="<?php echo htmlspecialchars($filtro_codigo ?? ''); ?>">
+                        <input type="hidden" name="status" value="<?php echo htmlspecialchars($filtro_status ?? ''); ?>">
+                        <button type="submit" class="btn-acao btn-dr <?php echo $p['dr'] == 1 ? 'active' : ''; ?>" title="DR">
+                            <i class="bi bi-exclamation-triangle-fill" style="color: #dc3545; font-size: 24px;"></i>
+                        </button>
+                    </form>
                     <?php endif; ?>
                 </div>
             </div>

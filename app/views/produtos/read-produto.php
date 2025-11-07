@@ -3,9 +3,26 @@ require_once __DIR__ . '/../../../auth.php'; // Autenticação
 include __DIR__ . '/../../../CRUD/READ/produto.php';
 
 $pageTitle = 'Visualizar Produtos';
-$backUrl = '../shared/menu-unificado.php?id=' . urlencode($id_planilha) . '&contexto=planilha';
+$backUrl = '../planilhas/view-planilha.php?id=' . urlencode($id_planilha);
 $headerActions = '
-    <a href="./create-produto.php?id=' . urlencode($id_planilha) . '&' . gerarParametrosFiltro(true) . '" class="btn-header-action" title="Novo Produto"><i class="bi bi-plus-lg"></i></a>
+    <div class="dropdown">
+        <button class="btn-header-action" type="button" id="menuProdutos" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-list fs-5"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="menuProdutos">
+            <li>
+                <a href="./create-produto.php?id=' . urlencode($id_planilha) . '&' . gerarParametrosFiltro(true) . '" class="dropdown-item">
+                    <i class="bi bi-plus-lg me-2"></i>Novo Produto
+                </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <a class="dropdown-item" href="../../../logout.php">
+                    <i class="bi bi-box-arrow-right me-2"></i>Sair
+                </a>
+            </li>
+        </ul>
+    </div>
 ';
 
 // CSS customizado para garantir exibição dos botões

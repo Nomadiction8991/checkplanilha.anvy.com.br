@@ -157,9 +157,26 @@ if ($mostrar_novos) $total_mostrar += $total_novos;
 
 // Cabeçalho do layout
 $pageTitle = 'Imprimir Alterações';
-$backUrl = '../shared/menu-unificado.php?id=' . $id_planilha . '&contexto=planilha';
+$backUrl = '../planilhas/view-planilha.php?id=' . $id_planilha;
 $headerActions = '
-    <button class="btn-header-action" title="Imprimir" onclick="window.print()"><i class="bi bi-printer"></i></button>
+    <div class="dropdown">
+        <button class="btn-header-action" type="button" id="menuAlteracao" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-list fs-5"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="menuAlteracao">
+            <li>
+                <button class="dropdown-item" onclick="window.print()">
+                    <i class="bi bi-printer me-2"></i>Imprimir
+                </button>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <a class="dropdown-item" href="../../../logout.php">
+                    <i class="bi bi-box-arrow-right me-2"></i>Sair
+                </a>
+            </li>
+        </ul>
+    </div>
 ';
 
 // CSS de impressão e ajustes para o wrapper mobile

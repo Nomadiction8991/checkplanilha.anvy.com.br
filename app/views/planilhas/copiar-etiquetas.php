@@ -85,11 +85,26 @@ try {
 }
 
 $pageTitle = 'Copiar Etiquetas';
-$backUrl = '../shared/menu-unificado.php?id=' . urlencode($id_planilha) . '&contexto=planilha';
+$backUrl = '../planilhas/view-planilha.php?id=' . urlencode($id_planilha);
 $headerActions = '
-    <a href="../shared/menu-unificado.php?id=' . urlencode($id_planilha) . '&contexto=planilha" class="btn-header-action" title="Menu">
-        <i class="bi bi-list fs-5"></i>
-    </a>
+    <div class="dropdown">
+        <button class="btn-header-action" type="button" id="menuEtiquetas" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-list fs-5"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="menuEtiquetas">
+            <li>
+                <a class="dropdown-item" href="../planilhas/view-planilha.php?id=' . $id_planilha . '">
+                    <i class="bi bi-eye me-2"></i>Visualizar Planilha
+                </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <a class="dropdown-item" href="../../../logout.php">
+                    <i class="bi bi-box-arrow-right me-2"></i>Sair
+                </a>
+            </li>
+        </ul>
+    </div>
 ';
 
 ob_start();

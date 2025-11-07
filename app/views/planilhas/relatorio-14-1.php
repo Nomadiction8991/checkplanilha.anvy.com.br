@@ -25,12 +25,31 @@ if (file_exists($templatePath)) {
 }
 
 $pageTitle = 'Relatório 14.1';
-$backUrl = '../shared/menu-unificado.php?id=' . urlencode($id_planilha) . '&contexto=planilha';
+$backUrl = '../planilhas/view-planilha.php?id=' . urlencode($id_planilha);
 $headerActions = '
-    <button id="btnPrint" class="btn-header-action" title="Imprimir"><i class="bi bi-printer"></i></button>
-    <a href="assinatura-14-1.php?id=' . urlencode($id_planilha) . '" class="btn-header-action" title="Assinaturas">
-        <i class="bi bi-pen"></i>
-    </a>
+    <div class="dropdown">
+        <button class="btn-header-action" type="button" id="menuRelatorio" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-list fs-5"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="menuRelatorio">
+            <li>
+                <button id="btnPrint" class="dropdown-item">
+                    <i class="bi bi-printer me-2"></i>Imprimir
+                </button>
+            </li>
+            <li>
+                <a href="assinatura-14-1.php?id=' . urlencode($id_planilha) . '" class="dropdown-item">
+                    <i class="bi bi-pen me-2"></i>Assinaturas
+                </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <a class="dropdown-item" href="../../../logout.php">
+                    <i class="bi bi-box-arrow-right me-2"></i>Sair
+                </a>
+            </li>
+        </ul>
+    </div>
 ';
 
 // CSS customizado para a interface da aplicação (não do formulário)

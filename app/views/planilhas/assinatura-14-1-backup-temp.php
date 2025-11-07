@@ -31,11 +31,20 @@ $stmt->execute();
 $produtos = $stmt->fetchAll();
 
 $pageTitle = 'Assinar Documentos 14.1';
-$backUrl = '../shared/menu-unificado.php?id=' . urlencode($id_planilha) . '&contexto=relatorio';
+$backUrl = '../planilhas/relatorio-14-1.php?id=' . urlencode($id_planilha);
 $headerActions = '
-    <a href="../shared/menu-unificado.php?id=' . urlencode($id_planilha) . '&contexto=relatorio" class="btn-header-action" title="Menu">
-        <i class="bi bi-list fs-5"></i>
-    </a>
+    <div class="dropdown">
+        <button class="btn-header-action" type="button" id="menuAssinatura" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-list fs-5"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="menuAssinatura">
+            <li>
+                <a class="dropdown-item" href="../../../logout.php">
+                    <i class="bi bi-box-arrow-right me-2"></i>Sair
+                </a>
+            </li>
+        </ul>
+    </div>
 ';
 
 // Gerar URL de compartilhamento desta página (inclui parâmetros atuais)

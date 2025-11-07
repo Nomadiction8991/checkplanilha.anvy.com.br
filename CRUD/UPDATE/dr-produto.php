@@ -26,12 +26,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Se estiver marcando DR (dr = 1), limpar observações e desmarcar imprimir
         if ($dr == 1) {
             // Marcar DR: limpar observações e desmarcar imprimir
-            $stmt = $conexao->prepare('UPDATE produtos SET dr = 1, observacoes = NULL, imprimir = 0 WHERE id = :id');
+            $stmt = $conexao->prepare('UPDATE produtos SET dr = 1, observacao = NULL, imprimir_etiqueta = 0 WHERE id_produto = :id');
             $stmt->bindValue(':id', $produto_id, PDO::PARAM_INT);
             $stmt->execute();
         } else {
             // Desmarcar DR
-            $stmt = $conexao->prepare('UPDATE produtos SET dr = 0 WHERE id = :id');
+            $stmt = $conexao->prepare('UPDATE produtos SET dr = 0 WHERE id_produto = :id');
             $stmt->bindValue(':id', $produto_id, PDO::PARAM_INT);
             $stmt->execute();
         }
