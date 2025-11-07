@@ -299,7 +299,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                complemento, editado_complemento, dependencia_id, editado_dependencia_id,
                                checado, editado, imprimir_etiqueta, imprimir_14_1,
                                observacao, ativo, novo,
-                               condicao_141, numero_nota, data_emissao, valor_nota, fornecedor_nota
+                               condicao_14_1, numero_nota, data_emissao, valor_nota, fornecedor_nota
                                ) VALUES (
                                :planilha_id, :codigo, :descricao_completa, '',
                                :tipo_bem_id, 0, :bem, '',

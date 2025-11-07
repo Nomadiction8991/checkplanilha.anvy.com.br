@@ -30,7 +30,7 @@ $sql = "SELECT
             1 AS quantidade,
             p.bem AS tipo_ben,
             p.complemento,
-            COALESCE(p.condicao_141, 0) AS condicao_141,
+            COALESCE(p.condicao_14_1, 0) AS condicao_141,
             COALESCE(p.imprimir_14_1, 0) AS imprimir_14_1,
             d.descricao AS dependencia_descricao
         FROM produtos p
@@ -121,11 +121,11 @@ if (!empty($filtro_dependencia)) {
 
 if (!empty($filtro_status)) {
     if ($filtro_status === 'com_nota') {
-    $condicoes[] = "(COALESCE(p.condicao_141,0) = 1 OR COALESCE(p.condicao_141,0) = 3)";
+    $condicoes[] = "(COALESCE(p.condicao_14_1,0) = 1 OR COALESCE(p.condicao_14_1,0) = 3)";
     } elseif ($filtro_status === 'com_14_1') {
     $condicoes[] = "COALESCE(p.imprimir_14_1,0) = 1";
     } elseif ($filtro_status === 'sem_status') {
-    $condicoes[] = "(p.condicao_141 IS NULL OR p.condicao_141 = 2) AND COALESCE(p.imprimir_14_1,0) = 0";
+    $condicoes[] = "(p.condicao_14_1 IS NULL OR p.condicao_14_1 = 2) AND COALESCE(p.imprimir_14_1,0) = 0";
     }
 }
 
