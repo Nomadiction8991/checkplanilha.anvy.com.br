@@ -191,25 +191,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 // 3) Extrair BEN e COMPLEMENTO usando aliases do tipo (se disponível)
                 $aliases_tipo_atual = null;
+                $aliases_originais = null;
                 if ($tipo_ben_id) {
                     foreach ($tipos_aliases as $tbTmp) { 
                         if ($tbTmp['id'] === $tipo_ben_id) { 
-                            $aliases_tipo_atual = $tbTmp['aliases']; 
+                            $aliases_tipo_atual = $tbTmp['aliases'];
+                            $aliases_originais = $tbTmp['aliases_originais'] ?? null;
                             break; 
                         } 
                     }
                 }
                 
-                [$ben_raw, $comp_raw] = pp_extrair_ben_complemento($texto_pos_tipo, $aliases_tipo_atual ?: []);
+                [$ben_raw, $comp_raw] = pp_extrair_ben_complemento($texto_pos_tipo, $aliases_tipo_atual ?: [], $aliases_originais, $tipo_bem_desc);
                 $ben = strtoupper(preg_replace('/\s+/', ' ', trim($ben_raw)));
                 $complemento_limpo = strtoupper(preg_replace('/\s+/', ' ', trim($comp_raw)));
                 
-                // Validação: BEN deve ser um dos aliases do tipo
+                // Validação: BEN deve ser um dos aliases do tipo (com fuzzy match)
                 $ben_valido = false;
                 if ($ben !== '' && $tipo_ben_id > 0 && $aliases_tipo_atual) {
                     $ben_norm = pp_normaliza($ben);
                     foreach ($aliases_tipo_atual as $alias_norm) {
-                        if ($alias_norm === $ben_norm) {
+                        if ($alias_norm === $ben_norm || pp_match_fuzzy($ben, $alias_norm)) {
                             $ben_valido = true;
                             break;
                         }
