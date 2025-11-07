@@ -35,6 +35,7 @@ $headerActions = '
 $customCss = '
 .table-hover tbody tr { cursor: pointer; }
 .input-group .btn-clear { border-top-left-radius: 0; border-bottom-left-radius: 0; }
+.table.table-center thead th, .table.table-center tbody td { text-align: center; vertical-align: middle; }
 ';
 
 $busca = trim($_GET['busca'] ?? '');
@@ -97,7 +98,7 @@ ob_start();
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover table-striped mb-0 align-middle">
+            <table class="table table-hover table-striped table-center mb-0 align-middle">
                 <thead>
                     <tr>
                         <th style="width: 80px">ID</th>
