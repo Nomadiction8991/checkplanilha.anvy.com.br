@@ -23,29 +23,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     try {
-        // Validar se pode desmarcar o check (não pode estar inativo/DR ou marcado para impressão)
-        if ($checado == 0) {
-            $sql_verifica = "SELECT COALESCE(p.ativo, 1) as ativo, COALESCE(p.imprimir_etiqueta, 0) as imprimir 
-                            FROM produtos p 
-                            WHERE p.id_produto = :produto_id";
-            $stmt_verifica = $conexao->prepare($sql_verifica);
-            $stmt_verifica->bindValue(':produto_id', $produto_id);
-            $stmt_verifica->execute();
-            $status = $stmt_verifica->fetch();
-            
-            if ($status && ($status['ativo'] == 0 || $status['imprimir'] == 1)) {
-                $query_string = http_build_query(array_merge(
-                    ['id' => $id_planilha], 
-                    $filtros,
-                    ['erro' => 'Não é possível desmarcar o check se o produto estiver no DR ou marcado para impressão.']
-                ));
-                header('Location: ../../app/views/planilhas/view-planilha.php?' . $query_string);
-                exit;
-            }
+        // Buscar status atual do produto
+        $sql_verifica = "SELECT COALESCE(p.ativo, 1) as ativo, COALESCE(p.imprimir_etiqueta, 0) as imprimir 
+                         FROM produtos p 
+                         WHERE p.id_produto = :produto_id";
+        $stmt_verifica = $conexao->prepare($sql_verifica);
+        $stmt_verifica->bindValue(':produto_id', $produto_id);
+        $stmt_verifica->execute();
+        $status = $stmt_verifica->fetch();
+
+        // Regras de validação:
+        // - Não pode marcar checado se estiver em DR
+        if ($checado == 1 && $status && $status['ativo'] == 0) {
+            $query_string = http_build_query(array_merge(
+                ['id' => $id_planilha], 
+                $filtros,
+                ['erro' => 'Não é possível marcar como checado enquanto o produto estiver no DR.']
+            ));
+            header('Location: ../../app/views/planilhas/view-planilha.php?' . $query_string);
+            exit;
+        }
+
+        // - Não pode desmarcar o check se estiver em DR ou marcado para impressão
+        if ($checado == 0 && $status && ($status['ativo'] == 0 || $status['imprimir'] == 1)) {
+            $query_string = http_build_query(array_merge(
+                ['id' => $id_planilha], 
+                $filtros,
+                ['erro' => 'Não é possível desmarcar o check se o produto estiver no DR ou marcado para impressão.']
+            ));
+            header('Location: ../../app/views/planilhas/view-planilha.php?' . $query_string);
+            exit;
         }
         
         // Atualizar coluna checado na tabela produtos
-        $sql = "UPDATE produtos SET checado = :checado WHERE id_produto = :produto_id";
+    $sql = "UPDATE produtos SET checado = :checado WHERE id_produto = :produto_id";
         $stmt = $conexao->prepare($sql);
         $stmt->bindValue(':produto_id', $produto_id);
         $stmt->bindValue(':checado', $checado, PDO::PARAM_INT);

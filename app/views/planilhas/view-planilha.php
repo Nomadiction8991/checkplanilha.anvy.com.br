@@ -378,12 +378,21 @@ ob_start();
                 }
                 
                 // Determinar quais botões mostrar
-                // Regra do botão de check: NÃO mostrar quando imprimir=1 ou editado=1; caso contrário, mostrar
-                $show_check = !($p['imprimir'] == 1 || $p['editado'] == 1);
-                $show_imprimir = ($p['checado'] == 1 && $p['editado'] == 0);
-                $show_obs = true; // Sempre mostrar observação
-                $show_edit = ($p['checado'] == 0);
-                $show_dr = true; // Sempre mostrar DR
+                // Se estiver em DR (ativo=0), esconder todas as ações exceto o DR
+                if ($p['ativo'] == 0) {
+                    $show_check = false;
+                    $show_imprimir = false;
+                    $show_obs = false;
+                    $show_edit = false;
+                    $show_dr = true;
+                } else {
+                    // Regra do botão de check: NÃO mostrar quando imprimir=1 ou editado=1; caso contrário, mostrar
+                    $show_check = !($p['imprimir'] == 1 || $p['editado'] == 1);
+                    $show_imprimir = ($p['checado'] == 1 && $p['editado'] == 0);
+                    $show_obs = true; // Observação disponível quando ativo
+                    $show_edit = ($p['checado'] == 0);
+                    $show_dr = true; // Sempre mostrar DR
+                }
                 $tipo_invalido = (!isset($p['tipo_ben_id']) || $p['tipo_ben_id'] == 0 || empty($p['tipo_ben_id']));
             ?>
             <div class="list-group-item <?php echo $classe; ?><?php echo $tipo_invalido ? ' tipo-nao-identificado' : ''; ?>" <?php echo $tipo_invalido ? 'title="Tipo de bem não identificado"' : ''; ?>>
