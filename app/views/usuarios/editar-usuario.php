@@ -53,6 +53,16 @@ ob_start();
                            placeholder="000.000.000-00" required>
                 </div>
                 <div class="col-12">
+                    <label for="rg" class="form-label">RG <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="rg" name="rg" 
+                           value="<?php echo htmlspecialchars($usuario['rg'] ?? ''); ?>" 
+                           placeholder="00000000-0" required <?php echo !empty($usuario['rg_igual_cpf']) ? 'disabled' : ''; ?>>
+                    <div class="form-check mt-1">
+                        <input class="form-check-input" type="checkbox" id="rg_igual_cpf" name="rg_igual_cpf" value="1" <?php echo !empty($usuario['rg_igual_cpf']) ? 'checked' : ''; ?>>
+                        <label class="form-check-label" for="rg_igual_cpf">RG igual ao CPF</label>
+                    </div>
+                </div>
+                <div class="col-12">
                     <label for="telefone" class="form-label">Telefone <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="telefone" name="telefone" 
                            value="<?php echo htmlspecialchars($usuario['telefone'] ?? ''); ?>" 
@@ -158,7 +168,60 @@ ob_start();
         </div>
     </div>
 
-    <!-- Card 3: Assinatura Digital -->
+    <!-- Card 2.1: Estado civil -->
+    <div class="card mb-3">
+        <div class="card-header">
+            <i class="bi bi-person-hearts me-2"></i>
+            Estado civil
+        </div>
+        <div class="card-body">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="casado" name="casado" value="1" <?php echo !empty($usuario['casado']) ? 'checked' : ''; ?>>
+                <label class="form-check-label" for="casado">Sou casado(a)</label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 3: Dados do Cônjuge (condicional) -->
+    <div id="cardConjuge" class="card mb-3" style="display: <?php echo !empty($usuario['casado']) ? '' : 'none'; ?>;">
+        <div class="card-header">
+            <i class="bi bi-people-fill me-2"></i>
+            Dados do Cônjuge
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label for="nome_conjuge" class="form-label">Nome Completo do Cônjuge</label>
+                <input type="text" class="form-control" id="nome_conjuge" name="nome_conjuge" value="<?php echo htmlspecialchars($usuario['nome_conjuge'] ?? ''); ?>">
+            </div>
+            <div class="row g-3">
+                <div class="col-12">
+                    <label for="cpf_conjuge" class="form-label">CPF do Cônjuge</label>
+                    <input type="text" class="form-control" id="cpf_conjuge" name="cpf_conjuge" value="<?php echo htmlspecialchars($usuario['cpf_conjuge'] ?? ''); ?>" placeholder="000.000.000-00">
+                </div>
+                <div class="col-12">
+                    <label for="rg_conjuge" class="form-label">RG do Cônjuge</label>
+                    <input type="text" class="form-control" id="rg_conjuge" name="rg_conjuge" value="<?php echo htmlspecialchars($usuario['rg_conjuge'] ?? ''); ?>" placeholder="00000000-0">
+                </div>
+                <div class="col-12">
+                    <label for="telefone_conjuge" class="form-label">Telefone do Cônjuge</label>
+                    <input type="text" class="form-control" id="telefone_conjuge" name="telefone_conjuge" value="<?php echo htmlspecialchars($usuario['telefone_conjuge'] ?? ''); ?>" placeholder="(00) 00000-0000">
+                </div>
+            </div>
+
+            <hr>
+            <div class="mb-2 fw-semibold">Assinatura Digital do Cônjuge</div>
+            <div class="signature-preview-container mb-3">
+                <canvas id="canvas_conjuge" width="800" height="160" class="signature-preview-canvas" style="border:1px solid #dee2e6; border-radius:0.375rem; width:100%; height:auto; background:#f8f9fa;"></canvas>
+            </div>
+            <button type="button" class="btn btn-primary w-100" onclick="abrirModalAssinatura('conjuge')">
+                <i class="bi bi-pen me-2"></i>
+                Fazer Assinatura do Cônjuge
+            </button>
+            <input type="hidden" id="assinatura_conjuge" name="assinatura_conjuge" value="<?php echo htmlspecialchars($usuario['assinatura_conjuge'] ?? ''); ?>">
+        </div>
+    </div>
+
+    <!-- Card 4: Assinatura Digital -->
     <div class="card mb-3">
         <div class="card-header">
             <i class="bi bi-pen me-2"></i>
@@ -219,12 +282,47 @@ ob_start();
 $(document).ready(function() {
     // Máscara CPF: 000.000.000-00
     Inputmask('999.999.999-99').mask('#cpf');
+    Inputmask('999.999.999-99').mask('#cpf_conjuge');
     
     // Máscara Telefone: (00) 00000-0000 ou (00) 0000-0000
     Inputmask(['(99) 99999-9999', '(99) 9999-9999']).mask('#telefone');
+    Inputmask(['(99) 99999-9999', '(99) 9999-9999']).mask('#telefone_conjuge');
     
     // Máscara CEP: 00000-000
     Inputmask('99999-999').mask('#cep');
+
+    // Máscara RG
+    Inputmask({ regex: "\\d{1,8}-[\\dXx]" }).mask('#rg');
+    Inputmask({ regex: "\\d{1,8}-[\\dXx]" }).mask('#rg_conjuge');
+
+    function aplicarRgIgualCpf(aplicar) {
+        const rgInput = document.getElementById('rg');
+        if (aplicar) {
+            rgInput.value = document.getElementById('cpf').value;
+            rgInput.setAttribute('disabled', 'disabled');
+            Inputmask('999.999.999-99').mask('#rg');
+        } else {
+            rgInput.removeAttribute('disabled');
+            Inputmask({ regex: "\\d{1,8}-[\\dXx]" }).mask('#rg');
+        }
+    }
+    aplicarRgIgualCpf(document.getElementById('rg_igual_cpf').checked);
+    document.getElementById('rg_igual_cpf').addEventListener('change', function(){
+        aplicarRgIgualCpf(this.checked);
+        if (!this.checked) {
+            document.getElementById('rg').value = '<?php echo htmlspecialchars($usuario['rg'] ?? ''); ?>';
+        }
+    });
+    document.getElementById('cpf').addEventListener('input', function(){
+        if (document.getElementById('rg_igual_cpf').checked) {
+            document.getElementById('rg').value = this.value;
+        }
+    });
+
+    const casadoCb = document.getElementById('casado');
+    casadoCb.addEventListener('change', function(){
+        document.getElementById('cardConjuge').style.display = this.checked ? '' : 'none';
+    });
 });
 
 // ========== VIACEP: BUSCA AUTOMÁTICA DE ENDEREÇO ==========
@@ -527,9 +625,14 @@ window.fecharModalAssinatura = async function(){
 // Inicializar preview canvas na carga e carregar assinatura existente
 document.addEventListener('DOMContentLoaded', function() {
     initPreviewCanvas('canvas_usuario');
+    initPreviewCanvas('canvas_conjuge');
     const existingSignature = document.getElementById('assinatura_usuario').value;
     if (existingSignature) {
         drawImageOnCanvas('canvas_usuario', existingSignature);
+    }
+    const existingConjuge = document.getElementById('assinatura_conjuge').value;
+    if (existingConjuge) {
+        drawImageOnCanvas('canvas_conjuge', existingConjuge);
     }
 });
 
@@ -547,8 +650,19 @@ document.getElementById('formUsuario').addEventListener('submit', function(e) {
         }
     }
     
-    // Assinatura já está salva no campo hidden assinatura_usuario
-    // O backend receberá via $_POST['assinatura']
+    // Validação simples de campos do cônjuge se marcado como casado
+    if (document.getElementById('casado').checked) {
+        const obrigatoriosConjuge = ['nome_conjuge','cpf_conjuge','telefone_conjuge'];
+        for (let id of obrigatoriosConjuge) {
+            const el = document.getElementById(id);
+            if (el && !el.value.trim()) {
+                e.preventDefault();
+                alert('Preencha todos os dados obrigatórios do cônjuge.');
+                return false;
+            }
+        }
+    }
+    // Assinaturas já estão salvas nos campos hidden
 });
 </script>
 <?php endif; ?>

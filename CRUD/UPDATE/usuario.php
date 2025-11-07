@@ -36,9 +36,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     // Novos campos
     $cpf = trim($_POST['cpf'] ?? '');
+    $rg = trim($_POST['rg'] ?? '');
+    $rg_igual_cpf = isset($_POST['rg_igual_cpf']) ? 1 : 0;
     $telefone = trim($_POST['telefone'] ?? '');
     $tipo = trim($_POST['tipo'] ?? 'Administrador/Acessor');
     $assinatura = trim($_POST['assinatura'] ?? '');
+    $casado = isset($_POST['casado']) ? 1 : 0;
+    $nome_conjuge = trim($_POST['nome_conjuge'] ?? '');
+    $cpf_conjuge = trim($_POST['cpf_conjuge'] ?? '');
+    $rg_conjuge = trim($_POST['rg_conjuge'] ?? '');
+    $telefone_conjuge = trim($_POST['telefone_conjuge'] ?? '');
+    $assinatura_conjuge = trim($_POST['assinatura_conjuge'] ?? '');
     
     // Endereço
     $endereco_cep = trim($_POST['endereco_cep'] ?? '');
@@ -88,6 +96,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
+        // RG
+        if ($rg_igual_cpf) { $rg = $cpf; }
+        $rg_limpo = preg_replace('/\s+/', '', $rg);
+        if (empty($rg_limpo)) {
+            throw new Exception('O RG é obrigatório.');
+        }
+
+        // Se casado, validar campos mínimos do cônjuge
+        if ($casado) {
+            if (empty($nome_conjuge)) {
+                throw new Exception('O nome do cônjuge é obrigatório.');
+            }
+            $cpf_conjuge_num = preg_replace('/\D/','', $cpf_conjuge);
+            if (strlen($cpf_conjuge_num) !== 11) {
+                throw new Exception('CPF do cônjuge inválido.');
+            }
+        }
+
         // Verificar se email já existe (exceto o próprio usuário)
         $stmt = $conexao->prepare('SELECT id FROM usuarios WHERE email = :email AND id != :id');
         $stmt->bindValue(':email', $email);
@@ -109,12 +135,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
-            $sql = "UPDATE usuarios SET 
+        $sql = "UPDATE usuarios SET 
                     nome = :nome, 
                     email = :email, 
                     senha = :senha, 
                     ativo = :ativo,
                     cpf = :cpf,
+            rg = :rg,
+            rg_igual_cpf = :rg_igual_cpf,
                     telefone = :telefone,
                     tipo = :tipo,
                     assinatura = :assinatura,
@@ -124,17 +152,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     endereco_complemento = :endereco_complemento,
                     endereco_bairro = :endereco_bairro,
                     endereco_cidade = :endereco_cidade,
-                    endereco_estado = :endereco_estado
+            endereco_estado = :endereco_estado,
+            casado = :casado,
+            nome_conjuge = :nome_conjuge,
+            cpf_conjuge = :cpf_conjuge,
+            rg_conjuge = :rg_conjuge,
+            telefone_conjuge = :telefone_conjuge,
+            assinatura_conjuge = :assinatura_conjuge
                     WHERE id = :id";
             $stmt = $conexao->prepare($sql);
             $stmt->bindValue(':senha', $senha_hash);
         } else {
             // Sem alteração de senha
-            $sql = "UPDATE usuarios SET 
+        $sql = "UPDATE usuarios SET 
                     nome = :nome, 
                     email = :email, 
                     ativo = :ativo,
                     cpf = :cpf,
+            rg = :rg,
+            rg_igual_cpf = :rg_igual_cpf,
                     telefone = :telefone,
                     tipo = :tipo,
                     assinatura = :assinatura,
@@ -144,7 +180,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     endereco_complemento = :endereco_complemento,
                     endereco_bairro = :endereco_bairro,
                     endereco_cidade = :endereco_cidade,
-                    endereco_estado = :endereco_estado
+            endereco_estado = :endereco_estado,
+            casado = :casado,
+            nome_conjuge = :nome_conjuge,
+            cpf_conjuge = :cpf_conjuge,
+            rg_conjuge = :rg_conjuge,
+            telefone_conjuge = :telefone_conjuge,
+            assinatura_conjuge = :assinatura_conjuge
                     WHERE id = :id";
             $stmt = $conexao->prepare($sql);
         }
@@ -153,6 +195,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bindValue(':email', $email);
         $stmt->bindValue(':ativo', $ativo);
         $stmt->bindValue(':cpf', $cpf);
+    $stmt->bindValue(':rg', $rg);
+    $stmt->bindValue(':rg_igual_cpf', $rg_igual_cpf, PDO::PARAM_INT);
         $stmt->bindValue(':telefone', $telefone);
         $stmt->bindValue(':tipo', $tipo);
         $stmt->bindValue(':assinatura', $assinatura);
@@ -163,6 +207,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bindValue(':endereco_bairro', $endereco_bairro);
         $stmt->bindValue(':endereco_cidade', $endereco_cidade);
         $stmt->bindValue(':endereco_estado', $endereco_estado);
+    $stmt->bindValue(':casado', $casado, PDO::PARAM_INT);
+    $stmt->bindValue(':nome_conjuge', $nome_conjuge);
+    $stmt->bindValue(':cpf_conjuge', $cpf_conjuge);
+    $stmt->bindValue(':rg_conjuge', $rg_conjuge);
+    $stmt->bindValue(':telefone_conjuge', $telefone_conjuge);
+    $stmt->bindValue(':assinatura_conjuge', $assinatura_conjuge);
         $stmt->bindValue(':id', $id);
         $stmt->execute();
 
