@@ -149,10 +149,27 @@ document.addEventListener('DOMContentLoaded', function(){
     // Estados / Cidades (popula cidades de MT e armazena valores no formato "MT - Cidade")
     const preAdministracao = $pre_administracao;
     const preCidade = $pre_cidade;
+    
+    // Helper para escapar HTML antes de injetar como option
+    function esc(str){
+        if(!str) return '';
+        return String(str)
+            .replace(/&/g,'&amp;')
+            .replace(/</g,'&lt;')
+            .replace(/>/g,'&gt;')
+            .replace(/"/g,'&quot;')
+            .replace(/'/g,'&#039;');
+    }
 
     async function loadEstados(){
         const sel = document.getElementById('administracao');
-        sel.innerHTML = '<option value="">Carregando estados...</option>';
+        // Exibir valor atual imediatamente (pré-carregado) enquanto busca os dados
+        if (preAdministracao) {
+            sel.innerHTML = '<option value="'+esc(preAdministracao)+'" selected>'+esc(preAdministracao)+'</option>';
+            sel.disabled = false;
+        } else {
+            sel.innerHTML = '<option value="">Carregando estados...</option>';
+        }
         try{
             const res = await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados');
             const estados = await res.json();
@@ -167,10 +184,18 @@ document.addEventListener('DOMContentLoaded', function(){
     async function loadCidades(estadoId){
         const cidadeSel = document.getElementById('cidade');
         const adminSel = document.getElementById('administracao');
-        cidadeSel.innerHTML = '<option value="">Carregando cidades...</option>';
-        cidadeSel.disabled = true;
-        adminSel.innerHTML = '<option value="">Carregando cidades...</option>';
-        adminSel.disabled = true;
+        // Exibir valor atual imediatamente
+        if (preCidade) {
+            cidadeSel.innerHTML = '<option value="'+esc(preCidade)+'" selected>'+esc(preCidade)+'</option>';
+            cidadeSel.disabled = false;
+        } else {
+            cidadeSel.innerHTML = '<option value="">Carregando cidades...</option>';
+            cidadeSel.disabled = true;
+        }
+        if (!preAdministracao) {
+            adminSel.innerHTML = '<option value="">Carregando cidades...</option>';
+            adminSel.disabled = true;
+        }
         try{
             const res = await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados/'+estadoId+'/municipios');
             const cidades = await res.json();

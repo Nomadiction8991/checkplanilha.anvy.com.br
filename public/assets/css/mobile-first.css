@@ -100,4 +100,14 @@
     .btn:last-child {
         margin-bottom: 0;
     }
+
+    /* Em listagens e áreas de ações, os botões devem ficar lado a lado e com largura automática */
+    .table .btn,
+    .list-group .btn,
+    .d-flex .btn,
+    .acao-container .btn,
+    .acao-container .btn-acao {
+        width: auto !important;
+        margin-bottom: 0 !important;
+    }
 }
