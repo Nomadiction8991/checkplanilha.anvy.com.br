@@ -197,6 +197,14 @@ ob_start();
     border-left: 3px solid #9c27b0;
 }
 
+.observacao-produto {
+    background: #fff3e0;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    margin-bottom: 0.5rem;
+    border-left: 3px solid #ff9800;
+}
+
 .info-produto {
     font-size: 0.9rem;
     color: #555;
@@ -405,7 +413,7 @@ ob_start();
                 <!-- Edição Pendente -->
                 <?php if ($tem_edicao): ?>
                 <div class="edicao-pendente">
-                    <strong>✍ Edição pendente:</strong><br>
+                    <strong>Edição pendente:</strong><br>
                     <?php
                     // Mostrar editado_descricao_completa se existir; caso contrário montar uma versão dinâmica
                     $desc_editada_visivel = trim($p['editado_descricao_completa'] ?? '');
@@ -446,12 +454,17 @@ ob_start();
                 </div>
                 <?php endif; ?>
                 
+                <!-- Observação -->
+                <?php if (!empty($p['observacao'])): ?>
+                <div class="observacao-produto">
+                    <strong>Observação:</strong><br>
+                    <?php echo htmlspecialchars($p['observacao']); ?><br>
+                </div>
+                <?php endif; ?>
+                
                 <!-- Informações -->
                 <div class="info-produto">
                     <?php echo htmlspecialchars($p['descricao_completa']); ?><br>
-                    <?php if (!empty($p['observacao'])): ?>
-                    <strong>Obs:</strong> <?php echo htmlspecialchars($p['observacao']); ?><br>
-                    <?php endif; ?>
                 </div>
                 
                 <!-- Ações -->
