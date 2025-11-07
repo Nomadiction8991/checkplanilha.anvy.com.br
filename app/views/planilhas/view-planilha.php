@@ -326,7 +326,7 @@ ob_start();
             </span>
             <span class="d-flex align-items-center gap-1">
                 <span style="width: 3px; height: 16px; background-color: #1976d2; display: inline-block;"></span>
-                Para Imprimir
+                Imprimir Etiqueta
             </span>
             <span class="d-flex align-items-center gap-1">
                 <span style="width: 3px; height: 16px; background-color: #e53935; display: inline-block;"></span>

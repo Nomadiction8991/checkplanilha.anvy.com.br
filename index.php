@@ -72,10 +72,9 @@ ob_start();
             <div class="col-12">
                 <label for="busca" class="form-label">Código ou descrição</label>
                 <div class="input-group">
-                    <span class="input-group-text"><i class="bi bi-upc-scan"></i></span>
                     <input type="text" name="busca" id="busca" class="form-control"
                            value="<?php echo htmlspecialchars($busca); ?>"
-                           placeholder="Ex: 09-0040 ou SIBIPIRUNAS">
+                           placeholder="Pesquise pelo código ou nome da comum...">
                     <?php if ($busca !== ''): ?>
                         <a href="index.php" class="btn btn-outline-secondary btn-clear" title="Limpar filtro">
                             <i class="bi bi-x-lg"></i>
