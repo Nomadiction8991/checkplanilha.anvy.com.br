@@ -208,13 +208,10 @@ function pp_forcar_ben_em_aliases($ben, $tipo_desc, $alias_usado = null) {
 }
 
 function pp_montar_descricao($qtd, $tipo_codigo, $tipo_desc, $ben, $comp, $dep, array $config) {
-    // Formato desejado: 1x [CODIGO - DESCRICAO] BEN - COMPLEMENTO(DEPENDENCIA)
-    // Regras:
-    // - Quantidade sempre '1x'
-    // - Tipo dentro de [] usando 'CODIGO - DESCRICAO' ou '?' se desconhecido
-    // - BEN sempre uma das opções (aliases) do tipo; se não casar, mantém valor original normalizado
-    // - Separador entre BEN e COMPLEMENTO: ' - '
-    // - Dependência imediatamente após COMPLEMENTO sem espaço antes de '(', e sem hífen antes dos parênteses
+    // Formato condicional:
+    // - Se BEN vazio: 1x [TIPO] COMPLEMENTO (DEPENDENCIA)
+    // - Se BEN preenchido: 1x [TIPO] BEN - COMPLEMENTO (DEPENDENCIA)
+    // Não remover informações; manter tudo do complemento original
     $brackets = '?';
     if (!empty($tipo_codigo) && !empty($tipo_desc)) {
         $brackets = sprintf('%d - %s', (int)$tipo_codigo, strtoupper($tipo_desc));
@@ -222,14 +219,31 @@ function pp_montar_descricao($qtd, $tipo_codigo, $tipo_desc, $ben, $comp, $dep, 
     $ben = strtoupper(trim($ben));
     $comp = strtoupper(trim($comp));
     $dep = strtoupper(trim((string)$dep));
-    $desc = sprintf('%dx [%s] %s', (int)$qtd, $brackets, $ben !== '' ? $ben : 'SEM DESCRICAO');
-    if ($comp !== '') {
-        $desc .= ' - ' . $comp;
+    
+    // Montar descrição base
+    $desc = sprintf('%dx [%s]', (int)$qtd, $brackets);
+    
+    // Se BEN preenchido, adiciona BEN - COMPLEMENTO; senão, só COMPLEMENTO
+    if ($ben !== '') {
+        $desc .= ' ' . $ben;
+        if ($comp !== '') {
+            $desc .= ' - ' . $comp;
+        }
+    } else {
+        // BEN vazio: vai direto pro complemento
+        if ($comp !== '') {
+            $desc .= ' ' . $comp;
+        } else {
+            // nem BEN nem complemento: fallback
+            $desc .= ' SEM DESCRICAO';
+        }
     }
+    
+    // Dependência sempre com espaço antes
     if ($dep !== '') {
-        // adicionar espaço antes da dependência (sem hífen)
         $desc .= ' (' . $dep . ')';
     }
+    
     return $desc;
 }
 

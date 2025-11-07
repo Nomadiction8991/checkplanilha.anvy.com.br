@@ -307,10 +307,10 @@ ob_start();
                 $show_obs = true; // Sempre mostrar observação
                 $show_edit = ($p['checado'] == 0);
             ?>
-            <div class="list-group-item <?php echo $classe; ?>">
+            <div class="list-group-item <?php echo $classe; ?><?php echo ($p['tipo_ben_id'] == 0 || empty($p['tipo_ben_id'])) ? ' border-warning border-2' : ''; ?>" <?php echo ($p['tipo_ben_id'] == 0 || empty($p['tipo_ben_id'])) ? 'title="⚠ Tipo de bem não identificado"' : ''; ?>>
                 <!-- Código -->
                 <div class="codigo-produto">
-                    <strong><?php echo htmlspecialchars($p['codigo']); ?></strong>
+                    <?php echo htmlspecialchars($p['codigo']); ?>
                 </div>
                 
                 <!-- Edição Pendente -->
@@ -318,20 +318,14 @@ ob_start();
                 <div class="edicao-pendente">
                     <strong>✍ Edição pendente:</strong><br>
                     <?php if (!empty($p['editado_descricao_completa'])): ?>
-                        <strong>Nome:</strong> <?php echo htmlspecialchars($p['editado_descricao_completa']); ?><br>
-                    <?php endif; ?>
-                    <?php if (!empty($p['editado_dependencia_id'])): ?>
-                        <strong>Dep ID:</strong> <?php echo htmlspecialchars($p['editado_dependencia_id']); ?>
+                        <?php echo htmlspecialchars($p['editado_descricao_completa']); ?><br>
                     <?php endif; ?>
                 </div>
                 <?php endif; ?>
                 
                 <!-- Informações -->
                 <div class="info-produto">
-                    <strong>Nome:</strong> <?php echo htmlspecialchars($p['descricao_completa']); ?><br>
-                    <?php if (!empty($p['dependencia_id'])): ?>
-                    <strong>Dep ID:</strong> <?php echo htmlspecialchars($p['dependencia_id']); ?><br>
-                    <?php endif; ?>
+                    <?php echo htmlspecialchars($p['descricao_completa']); ?><br>
                     <?php if (!empty($p['observacao'])): ?>
                     <strong>Obs:</strong> <?php echo htmlspecialchars($p['observacao']); ?><br>
                     <?php endif; ?>

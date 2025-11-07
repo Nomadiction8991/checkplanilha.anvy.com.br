@@ -179,41 +179,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $dependencia_original = isset($linha[$idx_dependencia]) ? trim((string)$linha[$idx_dependencia]) : '';
 
                 // Parsing avançado: detectar código, tipo de bem (por código ou nome), remover prefixos e extrair BEN e COMPLEMENTO
-                // Texto base para parsing
+                // Texto base para parsing: todo o complemento original vira descrição
                 $texto_base = $complemento_original;
-                // 1) Remover prefixo de código
+                // 1) Remover prefixo de código (ex: "68 - ")
                 [$codigo_detectado, $texto_sem_prefixo] = pp_extrair_codigo_prefixo($texto_base);
-                // 2) Detectar tipo (por código ou alias) e obter texto restante
+                // 2) Detectar tipo (por código ou alias) mantendo texto original intacto
                 [$tipo_detectado, $texto_pos_tipo] = pp_detectar_tipo($texto_sem_prefixo, $codigo_detectado, $tipos_aliases);
                 $tipo_ben_id = (int)$tipo_detectado['id'];
                 $tipo_ben_codigo = $tipo_detectado['codigo'];
                 $tipo_bem_desc = $tipo_detectado['descricao'];
-                // 3) Extrair BEN e COMPLEMENTO usando aliases do tipo (se disponível)
-                $aliases_tipo_atual = null;
-                if ($tipo_ben_id) {
-                    foreach ($tipos_aliases as $tbTmp) { if ($tbTmp['id'] === $tipo_ben_id) { $aliases_tipo_atual = $tbTmp['aliases']; break; } }
-                }
-                // Agora que pp_detectar_tipo não remove mais o alias, podemos separar BEN e COMPLEMENTO pelo primeiro ' - '
-                $texto_para_ben_comp = $texto_pos_tipo;
-                [$ben_raw, $comp_raw] = pp_extrair_ben_complemento($texto_para_ben_comp, $aliases_tipo_atual ?: []);
-                $ben = strtoupper(preg_replace('/\s+/', ' ', $ben_raw));
-                $complemento_limpo = strtoupper(preg_replace('/\s+/', ' ', $comp_raw));
-                if ($ben === '' && $complemento_limpo === '') {
-                    $ben = strtoupper(trim($complemento_original));
-                    if ($ben === '') { $ben = 'SEM DESCRICAO'; }
-                }
-                // Remover redundâncias do BEN no complemento
-                $comp_original = $complemento_limpo;
-                $complemento_limpo = pp_remover_ben_do_complemento($ben, $complemento_limpo);
-                // Aplicar sinônimos conforme config
-                [$ben, $complemento_limpo] = pp_aplicar_sinonimos($ben, $complemento_limpo, $tipo_bem_desc, $pp_config);
-                // Se após sinônimos e dedup complemento ficar vazio mas havia original, restaura para não perder informação
-                if ($complemento_limpo === '' && $comp_original !== '') {
-                    $complemento_limpo = $comp_original;
-                }
-                // Ajustar BEN para ser um alias válido do tipo, se possível
-                if ($tipo_ben_id > 0) {
-                    $ben = pp_forcar_ben_em_aliases($ben, $tipo_bem_desc, $tipo_detectado['alias_usado'] ?? null);
+                
+                // 3) NÃO extrair BEN automaticamente; manter todo texto no complemento
+                // BEN fica vazio por padrão; só será preenchido se vier do banco (edição futura)
+                $ben = '';
+                $complemento_limpo = strtoupper(preg_replace('/\s+/', ' ', trim($texto_sem_prefixo)));
+                
+                // Fallback se complemento vazio
+                if ($complemento_limpo === '') {
+                    $complemento_limpo = strtoupper(trim($complemento_original));
                 }
                 // 4) Encontrar dependência
                 $dependencia_id = 0;
@@ -234,7 +217,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     $dependencia_rotulo = $dependencia_original;
                 }
-                // 5) Montar descrição completa via parser
+                // 5) Montar descrição completa via parser (BEN vazio por padrão)
                 $descricao_completa_calc = pp_montar_descricao(1, $tipo_ben_codigo, $tipo_bem_desc, $ben, $complemento_limpo, $dependencia_rotulo, $pp_config);
 
                 if ($debug_import) {
@@ -246,7 +229,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'tipo_desc' => $tipo_bem_desc,
                         'ben' => $ben,
                         'complemento' => $complemento_limpo,
-                        'complemento_original' => $comp_original,
                         'dependencia_id' => $dependencia_id,
                         'dependencia' => $dependencia_rotulo,
                         'descricao_final' => $descricao_completa_calc

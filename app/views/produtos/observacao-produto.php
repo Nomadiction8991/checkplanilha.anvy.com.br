@@ -22,9 +22,8 @@ ob_start();
     </div>
     <div class="card-body">
         <div class="row g-2 small">
-            <div class="col-12"><strong>Código:</strong> <?php echo htmlspecialchars($produto['codigo'] ?? ''); ?></div>
-            <div class="col-12"><strong>Nome:</strong> <?php echo htmlspecialchars($produto['descricao_completa'] ?? ''); ?></div>
-            <div class="col-12"><strong>Dependência:</strong> <?php echo htmlspecialchars($produto['dependencia_id'] ?? ''); ?></div>
+            <div class="col-12"><?php echo htmlspecialchars($produto['codigo'] ?? ''); ?></div>
+            <div class="col-12"><?php echo htmlspecialchars($produto['descricao_completa'] ?? ''); ?></div>
         </div>
         
         <div class="mt-2">

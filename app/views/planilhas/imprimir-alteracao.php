@@ -326,12 +326,12 @@ ob_start();
                 
                 // Verificar alteração no nome
                 if (!empty($produto['nome_editado']) && $produto['nome_editado'] != $produto['nome']) {
-                    $antigo[] = '<strong>Nome:</strong> ' . htmlspecialchars($produto['nome']);
-                    $novo[] = '<strong>Nome:</strong> ' . htmlspecialchars($produto['nome_editado']);
+                    $antigo[] = htmlspecialchars($produto['nome']);
+                    $novo[] = htmlspecialchars($produto['nome_editado']);
                 } else {
                     // Se não mudou, mostrar o nome atual em ambas as colunas
-                    $antigo[] = '<strong>Nome:</strong> ' . htmlspecialchars($produto['nome']);
-                    $novo[] = '<strong>Nome:</strong> ' . htmlspecialchars($produto['nome']);
+                    $antigo[] = htmlspecialchars($produto['nome']);
+                    $novo[] = htmlspecialchars($produto['nome']);
                 }
                 
                 // Verificar alteração na dependência
