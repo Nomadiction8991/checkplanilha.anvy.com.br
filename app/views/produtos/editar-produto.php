@@ -87,16 +87,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Pré-preencher BEM caso já tenha sido editado no banco
-    const bemEditado = '<?php echo isset($produto['editado_ben']) ? strtoupper(addslashes($produto['editado_ben'])) : ''; ?>';
-    if (bemEditado) {
+    // Pré-preencher BEM usando o valor já processado pelo controller (editado ou original)
+    const bemPrefill = '<?php echo !empty($novo_bem) ? strtoupper(addslashes($novo_bem)) : ''; ?>';
+    if (bemPrefill) {
         if (selectTipoBem.value) {
             atualizarOpcoesBem();
             for (const opt of selectBem.options) {
-                if (opt.value === bemEditado) { opt.selected = true; break; }
+                if (opt.value === bemPrefill) { opt.selected = true; break; }
             }
         } else {
-            selectBem.innerHTML = '<option value="'+bemEditado+'" selected>'+bemEditado+'</option>';
+            selectBem.innerHTML = '<option value="'+bemPrefill+'" selected>'+bemPrefill+'</option>';
             selectBem.disabled = true;
         }
     }
