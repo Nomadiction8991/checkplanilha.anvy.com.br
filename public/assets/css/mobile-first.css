@@ -46,10 +46,11 @@
         flex-direction: column !important;
     }
     
-    /* Headers com múltiplos elementos */
+    /* Headers com múltiplos elementos: manter em linha e com itens separados */
     .card-header.d-flex {
-        flex-direction: column !important;
-        align-items: flex-start !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: center !important;
         gap: 0.5rem;
     }
     

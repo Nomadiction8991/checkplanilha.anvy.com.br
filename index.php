@@ -90,6 +90,9 @@ ob_start();
             </div>
         </form>
     </div>
+    <div class="card-footer text-muted small">
+        <?php echo count($comums); ?> comum(ns) encontrado(s)
+    </div>
 </div>
 
 <div class="card">
