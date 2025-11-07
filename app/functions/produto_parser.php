@@ -157,24 +157,66 @@ function pp_detectar_tipo($texto, $codigo_detectado, array $tipos_aliases) {
 function pp_extrair_ben_complemento($texto, array $tipo_aliases = null, $aliases_originais = null, $tipo_descricao = null) {
     $texto = trim($texto);
     
-    // Regra 0: Remover descrição completa do tipo SE ela aparecer no início E for seguida por um alias repetido
-    // Ex: "PRATELEIRA / ESTANTE ESTANTE METÁLICA..." -> "ESTANTE ESTANTE METÁLICA..."
-    // Mas NÃO remover em: "PRATELEIRA / ESTANTE ARMÁRIO..." (sem repetição)
+    // Regra 0: Remover descrição completa do tipo SE ela aparecer no início
+    // Match flexível: ignora diferenças como "E DE" vs "-", espaços extras, etc.
     if ($tipo_descricao && !empty($tipo_descricao) && $aliases_originais) {
         $tipo_desc_norm = pp_normaliza($tipo_descricao);
         $texto_norm = pp_normaliza($texto);
         
-        // Verificar se texto começa com tipo desc
-        if (strpos($texto_norm, $tipo_desc_norm) === 0) {
-            // Pegar o texto DEPOIS da descrição do tipo
+        // Tentar match exato primeiro
+        $match_exato = (strpos($texto_norm, $tipo_desc_norm) === 0);
+        
+        // Se não houver match exato, tentar match flexível (ignorando conectores)
+        $match_flexivel = false;
+        $texto_apos_tipo = null;
+        
+        if (!$match_exato) {
+            // Remover conectores comuns para comparação flexível
+            $tipo_limpo = preg_replace('/\s*(E\s+DE|\-|\/)\s*/iu', ' ', $tipo_desc_norm);
+            $tipo_limpo = preg_replace('/\s+/', ' ', trim($tipo_limpo));
+            
+            $texto_limpo = preg_replace('/\s*(E\s+DE|\-|\/)\s*/iu', ' ', $texto_norm);
+            $texto_limpo = preg_replace('/\s+/', ' ', trim($texto_limpo));
+            
+            // Verificar se tipo limpo aparece no início do texto limpo
+            if (strpos($texto_limpo, $tipo_limpo) === 0) {
+                $match_flexivel = true;
+                // Calcular posição aproximada onde termina o tipo no texto original
+                $palavras_tipo = explode(' ', $tipo_limpo);
+                $posicao = 0;
+                $palavras_encontradas = 0;
+                
+                foreach ($palavras_tipo as $palavra) {
+                    if ($palavra === '') continue;
+                    // Buscar esta palavra no texto original a partir da posição atual
+                    $pos = stripos($texto, $palavra, $posicao);
+                    if ($pos !== false) {
+                        $posicao = $pos + strlen($palavra);
+                        $palavras_encontradas++;
+                    }
+                }
+                
+                // Se encontrou a maioria das palavras, considerar match
+                if ($palavras_encontradas >= count($palavras_tipo) * 0.7) {
+                    $texto_apos_tipo = trim(substr($texto, $posicao));
+                    $texto_apos_tipo = preg_replace('/^[\s\-–—\/]+/u', '', $texto_apos_tipo);
+                }
+            }
+        } else {
+            // Match exato: usar método original
             $texto_apos_tipo = trim(substr($texto, strlen($tipo_descricao)));
             $texto_apos_tipo = preg_replace('/^[\s\-–—\/]+/u', '', $texto_apos_tipo);
+        }
+        
+        // Se conseguiu extrair texto após o tipo, verificar se tem alias no início
+        if ($texto_apos_tipo !== null && $texto_apos_tipo !== '') {
             $texto_apos_norm = pp_normaliza($texto_apos_tipo);
             
             // Verificar se algum alias aparece no início do texto APÓS o tipo desc
             $alias_no_inicio = false;
             foreach ($aliases_originais as $alias_orig) {
-                $pattern = '/^' . preg_quote($alias_orig, '/') . '\b/iu';
+                $alias_norm = pp_normaliza($alias_orig);
+                $pattern = '/^' . preg_quote($alias_norm, '/') . '\b/iu';
                 if (preg_match($pattern, $texto_apos_norm)) {
                     $alias_no_inicio = true;
                     break;
