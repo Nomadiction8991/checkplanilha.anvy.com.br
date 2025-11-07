@@ -97,6 +97,13 @@ ob_start();
     vertical-align: middle;
 }
 
+/* Evitar quebra dos botões no mobile dentro do input-group */
+@media (max-width: 576px) {
+    .input-group { flex-wrap: nowrap !important; }
+    .input-group .form-control { min-width: 0; }
+    .input-group > .btn { flex: 0 0 auto; }
+}
+
 /* Cores das linhas baseadas no status - Paleta marcante e diferenciada */
 .linha-pendente { 
     background-color: #ffffff; 

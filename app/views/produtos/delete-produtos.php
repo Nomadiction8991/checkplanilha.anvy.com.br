@@ -25,7 +25,7 @@ try {
     $placeholders = implode(',', array_fill(0, count($ids_produtos), '?'));
     
     // Preparar SQL
-    $sql = "DELETE FROM produtos_cadastro WHERE id_planilha = ? AND id IN ($placeholders)";
+    $sql = "DELETE FROM produtos WHERE planilha_id = ? AND id_produto IN ($placeholders)";
     $stmt = $conexao->prepare($sql);
     
     // Bind do ID da planilha

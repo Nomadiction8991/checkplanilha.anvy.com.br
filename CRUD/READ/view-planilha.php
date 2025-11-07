@@ -63,6 +63,7 @@ $sql_base = "SELECT
                      COALESCE(p.editado, 0) AS editado,
                      COALESCE(p.imprimir_etiqueta, 0) AS imprimir,
                      COALESCE(p.imprimir_14_1, 0) AS imprimir_141,
+                     COALESCE(p.novo, 0) AS novo,
                      COALESCE(p.ativo, 1) AS ativo,
                      -- Infos extras para montar descrição editada on-the-fly
                     t1.codigo AS tipo_codigo,
@@ -73,7 +74,7 @@ $sql_base = "SELECT
                  LEFT JOIN tipos_bens t1 ON p.tipo_bem_id = t1.id
                  LEFT JOIN dependencias d1 ON p.dependencia_id = d1.id
                  LEFT JOIN dependencias d2 ON p.editado_dependencia_id = d2.id
-                 WHERE p.planilha_id = :id_planilha";
+                 WHERE p.planilha_id = :id_planilha AND COALESCE(p.novo,0) = 0";
 
 $params = [':id_planilha' => $id_planilha];
 
@@ -120,7 +121,7 @@ if ($filtro_status !== '') {
 // Total de registros para paginação - query COUNT simplificada
 $sql_count = "SELECT COUNT(*) AS total 
               FROM produtos p 
-              WHERE p.planilha_id = :id_planilha";
+              WHERE p.planilha_id = :id_planilha AND COALESCE(p.novo,0) = 0";
 
 // Aplicar os mesmos filtros do $sql_base na query de contagem
 if ($filtro_nome !== '') {

@@ -10,13 +10,13 @@ if (!$id_produto || !$id_planilha) {
     exit;
 }
 
-// Buscar dados do produto
+// Buscar dados do produto na tabela produtos
 try {
-    $sql_produto = "SELECT pc.*, tb.codigo as tipo_codigo, tb.descricao as tipo_descricao, d.descricao as dependencia_descricao 
-                   FROM produtos_cadastro pc
-                   LEFT JOIN tipos_bens tb ON pc.id_tipo_ben = tb.id
-                   LEFT JOIN dependencias d ON pc.id_dependencia = d.id
-                   WHERE pc.id = :id AND pc.id_planilha = :id_planilha";
+    $sql_produto = "SELECT p.*, tb.codigo as tipo_codigo, tb.descricao as tipo_descricao, d.descricao as dependencia_descricao 
+                   FROM produtos p
+                   LEFT JOIN tipos_bens tb ON p.tipo_bem_id = tb.id
+                   LEFT JOIN dependencias d ON p.dependencia_id = d.id
+                   WHERE p.id_produto = :id AND p.planilha_id = :id_planilha";
     $stmt_produto = $conexao->prepare($sql_produto);
     $stmt_produto->bindValue(':id', $id_produto);
     $stmt_produto->bindValue(':id_planilha', $id_planilha);
@@ -34,7 +34,7 @@ try {
 // Processar a exclusão quando confirmada
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
-        $sql_excluir = "DELETE FROM produtos_cadastro WHERE id = :id AND id_planilha = :id_planilha";
+    $sql_excluir = "DELETE FROM produtos WHERE id_produto = :id AND planilha_id = :id_planilha";
         $stmt_excluir = $conexao->prepare($sql_excluir);
         $stmt_excluir->bindValue(':id', $id_produto);
         $stmt_excluir->bindValue(':id_planilha', $id_planilha);
