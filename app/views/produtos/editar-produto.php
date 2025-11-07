@@ -110,35 +110,6 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 <?php endif; ?>
 
-<div class="card mb-3">
-    <div class="card-header">
-        <i class="bi bi-info-circle me-2"></i>
-        Informações Atuais
-    </div>
-    <div class="card-body">
-        <div class="row g-2 small">
-            <div class="col-12">
-                <strong>Código:</strong> <?php echo htmlspecialchars($produto['codigo'] ?? ''); ?>
-            </div>
-            <div class="col-12">
-                <strong>Bem:</strong> <?php echo htmlspecialchars($produto['ben'] ?? ''); ?>
-            </div>
-            <div class="col-12">
-                <strong>Complemento:</strong> <?php echo htmlspecialchars($produto['complemento'] ?? ''); ?>
-            </div>
-            <div class="col-12">
-                <strong>Dependência:</strong> <?php echo htmlspecialchars($produto['dependencia_descricao'] ?? $produto['dependencia_id'] ?? ''); ?>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="alert alert-info small">
-    <strong>ℹ️ Informação:</strong> Campos em branco = sem alteração. 
-    <br><strong>⚠️ Atenção:</strong> Editar marca automaticamente para impressão.
-    <br><strong>🔤 Nota:</strong> Todos os campos serão convertidos para MAIÚSCULAS automaticamente.
-</div>
-
 <form method="POST">
     <input type="hidden" name="pagina" value="<?php echo $pagina; ?>">
     <input type="hidden" name="nome" value="<?php echo htmlspecialchars($filtro_nome); ?>">

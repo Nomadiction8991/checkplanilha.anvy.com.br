@@ -61,7 +61,10 @@ try {
     }
     $novo_bem = $produto['editado_ben'] !== '' ? $produto['editado_ben'] : ($produto['ben'] ?? '');
     $novo_complemento = $produto['editado_complemento'] !== '' ? $produto['editado_complemento'] : ($produto['complemento'] ?? '');
-    $nova_dependencia_id = $produto['editado_dependencia_id'] !== '' ? $produto['editado_dependencia_id'] : ($produto['dependencia_id'] ?? '');
+    // Dependência: usar editado se > 0, senão usar original
+    $nova_dependencia_id = (!empty($produto['editado_dependencia_id']) && (int)$produto['editado_dependencia_id'] > 0) 
+        ? (int)$produto['editado_dependencia_id'] 
+        : (int)($produto['dependencia_id'] ?? 0);
     
 } catch (Exception $e) {
     $mensagem = "Erro ao carregar produto: " . $e->getMessage();
