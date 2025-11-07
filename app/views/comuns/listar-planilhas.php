@@ -188,10 +188,22 @@ ob_start();
                                     $status_badge = $planilha['ativo'] ? 'bg-success' : 'bg-secondary';
                                     $status_texto = $planilha['ativo'] ? 'Ativa' : 'Inativa';
                                     
-                                    // Formatar data para dd/mm/yyyy
+                                    // Formatar data para dd/mm/yyyy independente do formato de origem
                                     $data_formatada = '-';
-                                    if ($planilha['data_posicao']) {
-                                        $dt = DateTime::createFromFormat('Y-m-d', $planilha['data_posicao']);
+                                    if (!empty($planilha['data_posicao'])) {
+                                        $rawData = trim($planilha['data_posicao']);
+                                        $dt = null;
+                                        // Tentar formatos comuns
+                                        $formatos = ['Y-m-d','d/m/Y','m/d/Y','Y-m-d H:i:s','d/m/Y H:i:s','m/d/Y H:i:s'];
+                                        foreach ($formatos as $f) {
+                                            $dt = DateTime::createFromFormat($f, $rawData);
+                                            if ($dt) { break; }
+                                        }
+                                        // Como fallback usar strtotime
+                                        if (!$dt) {
+                                            $ts = strtotime($rawData);
+                                            if ($ts) { $dt = (new DateTime())->setTimestamp($ts); }
+                                        }
                                         if ($dt) {
                                             $data_formatada = $dt->format('d/m/Y');
                                         }
