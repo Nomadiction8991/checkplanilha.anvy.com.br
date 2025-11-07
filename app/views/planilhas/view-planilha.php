@@ -5,7 +5,7 @@ require_once __DIR__ . '/../../../CRUD/READ/view-planilha.php';
 
 // Configurações da página
 $pageTitle = htmlspecialchars($planilha['comum_descricao'] ?? 'Visualizar Planilha');
-$backUrl = '../planilhas/index.php';
+$backUrl = '../comuns/listar-planilhas.php?comum_id=' . urlencode($planilha['comum_id'] ?? '');
 $headerActions = '
     <a href="../shared/menu-unificado.php?id=' . $id_planilha . '&contexto=planilha" class="btn-header-action" title="Menu">
         <i class="bi bi-list fs-5"></i>
