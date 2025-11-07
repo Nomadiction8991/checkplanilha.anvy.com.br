@@ -83,58 +83,7 @@ ob_start();
         </div>
       </div>
 
-      <!-- Condição 14.1 (apenas uma opção) -->
-      <div class="mt-3">
-        <label class="form-label d-block">Condição (Relatório 14.1) <small class="text-muted">(escolha uma)</small></label>
-        <div class="form-check">
-          <input class="form-check-input" type="radio" name="condicao_141" id="condicao_141_1" value="1" <?php echo (($_POST['condicao_141'] ?? '')==='1') ? 'checked' : ''; ?>>
-          <label class="form-check-label" for="condicao_141_1">
-            O bem tem mais de cinco anos de uso e o documento fiscal de aquisição está anexo.
-          </label>
-        </div>
-        <div class="form-check">
-          <input class="form-check-input" type="radio" name="condicao_141" id="condicao_141_2" value="2" <?php echo (($_POST['condicao_141'] ?? '')==='2') ? 'checked' : ''; ?>>
-          <label class="form-check-label" for="condicao_141_2">
-            O bem tem mais de cinco anos de uso, porém o documento fiscal de aquisição foi extraviado.
-          </label>
-        </div>
-        <div class="form-check">
-          <input class="form-check-input" type="radio" name="condicao_141" id="condicao_141_3" value="3" <?php echo (($_POST['condicao_141'] ?? '')==='3') ? 'checked' : ''; ?>>
-          <label class="form-check-label" for="condicao_141_3">
-            O bem tem até cinco anos de uso e o documento fiscal de aquisição está anexo.
-          </label>
-        </div>
-      </div>
-
-      <!-- Campos da Nota Fiscal (visíveis somente quando condicao_141 = 3) -->
-      <div id="camposNota" class="border rounded p-3 mt-3" style="display:none;">
-        <h6 class="mb-3">Dados da Nota Fiscal</h6>
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label for="numero_nota" class="form-label">Número da Nota Fiscal <span class="text-danger">*</span></label>
-            <input type="text" id="numero_nota" name="numero_nota" class="form-control" value="<?php echo htmlspecialchars($_POST['numero_nota'] ?? ''); ?>">
-            <div class="invalid-feedback">Informe o número da nota.</div>
-          </div>
-          <div class="col-md-6">
-            <label for="data_emissao" class="form-label">Data de Emissão <span class="text-danger">*</span></label>
-            <input type="date" id="data_emissao" name="data_emissao" class="form-control" value="<?php echo htmlspecialchars($_POST['data_emissao'] ?? ''); ?>">
-            <div class="invalid-feedback">Informe a data de emissão.</div>
-          </div>
-          <div class="col-md-6">
-            <label for="valor_nota" class="form-label">Valor <span class="text-danger">*</span></label>
-            <div class="input-group">
-              <span class="input-group-text">R$</span>
-              <input type="number" step="0.01" min="0" id="valor_nota" name="valor_nota" class="form-control" value="<?php echo htmlspecialchars($_POST['valor_nota'] ?? ''); ?>">
-            </div>
-            <div class="invalid-feedback">Informe o valor da nota.</div>
-          </div>
-          <div class="col-md-6">
-            <label for="fornecedor_nota" class="form-label">Fornecedor <span class="text-danger">*</span></label>
-            <input type="text" id="fornecedor_nota" name="fornecedor_nota" class="form-control" value="<?php echo htmlspecialchars($_POST['fornecedor_nota'] ?? ''); ?>">
-            <div class="invalid-feedback">Informe o fornecedor.</div>
-          </div>
-        </div>
-      </div>
+      <!-- Campos de Condição 14.1 e Nota Fiscal removidos a pedido -->
     </div>
   </div>
 
@@ -193,16 +142,6 @@ ob_start();
     const forms = document.querySelectorAll('.needs-validation');
     Array.from(forms).forEach(form => {
       form.addEventListener('submit', event => {
-        // Aplicar required dinamicamente quando condicao_141 = 1 ou 3 (ambas exigem nota)
-        const cond1 = document.getElementById('condicao_141_1');
-        const cond3 = document.getElementById('condicao_141_3');
-        const reqFields = ['numero_nota', 'data_emissao', 'valor_nota', 'fornecedor_nota'];
-        const mostrarNota = (cond1 && cond1.checked) || (cond3 && cond3.checked);
-        reqFields.forEach(id => {
-          const el = document.getElementById(id);
-          if (el) el.required = mostrarNota;
-        });
-
         if (!form.checkValidity()) {
           event.preventDefault();
           event.stopPropagation();
@@ -211,27 +150,7 @@ ob_start();
       }, false);
     });
   })();
-
-  // Exibir/ocultar campos da nota conforme seleção da condição 1 ou 3
-  (function(){
-    const radios = document.querySelectorAll('input[name="condicao_141"]');
-    const cond1 = document.getElementById('condicao_141_1');
-    const cond3 = document.getElementById('condicao_141_3');
-    const box = document.getElementById('camposNota');
-    const reqFields = ['numero_nota', 'data_emissao', 'valor_nota', 'fornecedor_nota'];
-    
-    function toggleNota(){
-      const show = (cond1 && cond1.checked) || (cond3 && cond3.checked);
-      box.style.display = show ? '' : 'none';
-      reqFields.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.required = show;
-      });
-    }
-    
-    radios.forEach(r => r.addEventListener('change', toggleNota));
-    document.addEventListener('DOMContentLoaded', toggleNota);
-  })();
+  
 </script>
 
 <?php
