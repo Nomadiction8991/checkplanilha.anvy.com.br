@@ -23,17 +23,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     try {
-        // Validar se pode desmarcar o check (não pode estar no DR ou marcado para impressão)
+        // Validar se pode desmarcar o check (não pode estar inativo/DR ou marcado para impressão)
         if ($checado == 0) {
-            $sql_verifica = "SELECT COALESCE(pc.dr, 0) as dr, COALESCE(pc.imprimir, 0) as imprimir 
-                            FROM produtos_check pc 
-                            WHERE pc.produto_id = :produto_id";
+            $sql_verifica = "SELECT COALESCE(p.ativo, 1) as ativo, COALESCE(p.imprimir_etiqueta, 0) as imprimir 
+                            FROM produtos p 
+                            WHERE p.id_produto = :produto_id";
             $stmt_verifica = $conexao->prepare($sql_verifica);
             $stmt_verifica->bindValue(':produto_id', $produto_id);
             $stmt_verifica->execute();
             $status = $stmt_verifica->fetch();
             
-            if ($status && ($status['dr'] == 1 || $status['imprimir'] == 1)) {
+            if ($status && ($status['ativo'] == 0 || $status['imprimir'] == 1)) {
                 $query_string = http_build_query(array_merge(
                     ['id' => $id_planilha], 
                     $filtros,
@@ -44,21 +44,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         
-        // Verificar se já existe registro
-        $sql_check = "SELECT * FROM produtos_check WHERE produto_id = :produto_id";
-        $stmt_check = $conexao->prepare($sql_check);
-        $stmt_check->bindValue(':produto_id', $produto_id);
-        $stmt_check->execute();
-        $existe = $stmt_check->fetch();
-        
-        if ($existe) {
-            // Atualizar
-            $sql = "UPDATE produtos_check SET checado = :checado WHERE produto_id = :produto_id";
-        } else {
-            // Inserir
-            $sql = "INSERT INTO produtos_check (produto_id, checado) VALUES (:produto_id, :checado)";
-        }
-        
+        // Atualizar coluna checado na tabela produtos
+        $sql = "UPDATE produtos SET checado = :checado WHERE id_produto = :produto_id";
         $stmt = $conexao->prepare($sql);
         $stmt->bindValue(':produto_id', $produto_id);
         $stmt->bindValue(':checado', $checado, PDO::PARAM_INT);

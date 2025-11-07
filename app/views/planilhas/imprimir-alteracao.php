@@ -29,22 +29,21 @@ $filtro_dependencia = $_GET['dependencia'] ?? '';
 try {
     // Buscar produtos da planilha importada (tabela produtos)
     $sql_produtos = "SELECT p.*, 
-                     CAST(pc.checado AS SIGNED) as checado, 
-                     CAST(pc.dr AS SIGNED) as dr, 
-                     CAST(pc.imprimir AS SIGNED) as imprimir, 
-                     pc.observacoes, 
-                     CAST(pc.editado AS SIGNED) as editado, 
-                     pc.nome as nome_editado, 
-                     pc.dependencia as dependencia_editada,
+                     CAST(p.checado AS SIGNED) as checado, 
+                     CAST(p.ativo AS SIGNED) as ativo, 
+                     CAST(p.imprimir_etiqueta AS SIGNED) as imprimir, 
+                     p.observacao as observacoes, 
+                     CAST(p.editado AS SIGNED) as editado, 
+                     p.editado_descricao_completa as nome_editado, 
+                     p.editado_dependencia_id as dependencia_editada,
                      'planilha' as origem
                      FROM produtos p 
-                     LEFT JOIN produtos_check pc ON p.id = pc.produto_id 
-                     WHERE p.id_planilha = :id_planilha";
+                     WHERE p.planilha_id = :id_planilha";
     $params = [':id_planilha' => $id_planilha];
     if (!empty($filtro_dependencia)) { 
         $sql_produtos .= " AND (
-            (CAST(pc.editado AS SIGNED) = 1 AND pc.dependencia LIKE :dependencia) OR
-            (CAST(pc.editado AS SIGNED) IS NULL OR CAST(pc.editado AS SIGNED) = 0) AND p.dependencia LIKE :dependencia
+            (CAST(p.editado AS SIGNED) = 1 AND p.editado_dependencia_id LIKE :dependencia) OR
+            (CAST(p.editado AS SIGNED) IS NULL OR CAST(p.editado AS SIGNED) = 0) AND p.dependencia_id LIKE :dependencia
         )"; 
         $params[':dependencia'] = '%' . $filtro_dependencia . '%'; 
     }
@@ -57,7 +56,7 @@ try {
     // Buscar produtos novos cadastrados manualmente (tabela produtos_cadastro)
     $sql_novos = "SELECT pc.id, pc.id_planilha, pc.descricao_completa as nome, '' as codigo, pc.complemento as dependencia, 
                   pc.quantidade, pc.tipo_ben, pc.imprimir_14_1 as imprimir_cadastro, 'cadastro' as origem,
-                  NULL as checado, NULL as dr, NULL as imprimir, NULL as observacoes, NULL as editado, NULL as nome_editado, NULL as dependencia_editada
+                  NULL as checado, 1 as ativo, NULL as imprimir, NULL as observacoes, NULL as editado, NULL as nome_editado, NULL as dependencia_editada
                   FROM produtos_cadastro pc 
                   WHERE pc.id_planilha = :id_planilha";
     $params_novos = [':id_planilha' => $id_planilha];
@@ -75,11 +74,10 @@ try {
 try {
     // Buscar dependências originais + dependências editadas
     $sql_dependencias = "
-        SELECT DISTINCT dependencia FROM produtos WHERE id_planilha = :id_planilha1
+        SELECT DISTINCT p.dependencia_id as dependencia FROM produtos p WHERE p.planilha_id = :id_planilha1
         UNION
-        SELECT DISTINCT pc.dependencia FROM produtos_check pc
-        INNER JOIN produtos p ON pc.produto_id = p.id
-        WHERE p.id_planilha = :id_planilha2 AND pc.editado = 1 AND pc.dependencia IS NOT NULL
+        SELECT DISTINCT p.editado_dependencia_id as dependencia FROM produtos p
+        WHERE p.planilha_id = :id_planilha2 AND p.editado = 1 AND p.editado_dependencia_id IS NOT NULL
         ORDER BY dependencia
     ";
     $stmt_dependencias = $conexao->prepare($sql_dependencias);
@@ -100,12 +98,12 @@ foreach ($todos_produtos as $produto) {
     // Produtos da planilha importada (tabela produtos)
     $tem_observacao = !empty($produto['observacoes']);
     $esta_checado = ($produto['checado'] ?? 0) == 1;
-    $esta_no_dr = ($produto['dr'] ?? 0) == 1;
+    $esta_no_dr = ($produto['ativo'] ?? 1) == 0;
     $esta_etiqueta = ($produto['imprimir'] ?? 0) == 1;
     // Usa APENAS a flag editado da tabela produtos_check (converte para int para comparação segura)
     $tem_alteracoes = (int)($produto['editado'] ?? 0) === 1;
     // Pendente = não tem registro em produtos_check (todos os campos são null)
-    $eh_pendente = is_null($produto['checado']) && is_null($produto['dr']) && is_null($produto['imprimir']) && is_null($produto['observacoes']) && is_null($produto['editado']);
+    $eh_pendente = is_null($produto['checado']) && ($produto['ativo'] ?? 1) == 1 && is_null($produto['imprimir']) && is_null($produto['observacoes']) && is_null($produto['editado']);
     
     if ($tem_alteracoes) $produtos_alteracoes[] = $produto;
     elseif ($esta_no_dr) $produtos_dr[] = $produto;
