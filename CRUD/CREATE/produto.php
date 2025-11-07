@@ -83,13 +83,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                            tipo_bem_id, editado_tipo_bem_id, bem, editado_bem,
                            complemento, editado_complemento, dependencia_id, editado_dependencia_id,
                            checado, editado, imprimir_etiqueta, imprimir_14_1,
-                           observacao, ativo, novo
+                           observacao, ativo, novo, condicao_14_1
                            ) VALUES (
                            :planilha_id, :codigo, :descricao_completa, '',
                            :id_tipo_bem, 0, :tipo_bem, '',
                            :complemento, '', :id_dependencia, 0,
                            1, 0, 1, :imprimir_14_1,
-                           '', 1, 1
+                           '', 1, 1, :condicao_14_1
                            )";
             
             $stmt_inserir = $conexao->prepare($sql_inserir);
@@ -108,6 +108,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt_inserir->bindValue(':id_dependencia', $id_dependencia);
                 $stmt_inserir->bindValue(':descricao_completa', $descricao_completa);
                 $stmt_inserir->bindValue(':imprimir_14_1', $imprimir_14_1);
+                // Definição padrão para satisfazer NOT NULL no banco (campo não é usado no cadastro manual)
+                $stmt_inserir->bindValue(':condicao_14_1', 2, PDO::PARAM_INT);
                 
                 
                 $stmt_inserir->execute();
