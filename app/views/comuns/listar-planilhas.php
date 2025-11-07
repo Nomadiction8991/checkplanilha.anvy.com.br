@@ -38,17 +38,9 @@ $fs = $_GET['filtro_status'] ?? 'todas';
 $data_inicio_str = trim($_GET['data_inicio'] ?? '');
 $data_fim_str = trim($_GET['data_fim'] ?? '');
 
-// Converte datas dd/mm/yyyy -> yyyy-mm-dd para consulta
-$data_inicio_mysql = null;
-$data_fim_mysql = null;
-if ($data_inicio_str !== '') {
-    $dt = DateTime::createFromFormat('d/m/Y', $data_inicio_str);
-    if ($dt) { $data_inicio_mysql = $dt->format('Y-m-d'); }
-}
-if ($data_fim_str !== '') {
-    $dt = DateTime::createFromFormat('d/m/Y', $data_fim_str);
-    if ($dt) { $data_fim_mysql = $dt->format('Y-m-d'); }
-}
+// Agora inputs vêm em formato yyyy-mm-dd direto do input type="date"
+$data_inicio_mysql = $data_inicio_str !== '' ? $data_inicio_str : null;
+$data_fim_mysql = $data_fim_str !== '' ? $data_fim_str : null;
 
 $planilhas = [];
 $total_registros = 0;
@@ -106,28 +98,22 @@ ob_start();
         <form method="GET" action="">
             <input type="hidden" name="comum_id" value="<?php echo (int)$comum_id; ?>">
 
-            <div class="row g-2">
+            <div class="row g-2 mb-3">
                 <div class="col-6">
                     <label class="form-label" for="data_inicio">
                         <i class="bi bi-calendar-date me-1"></i>
-                        Data inicial (dd/mm/aaaa)
+                        Data inicial
                     </label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
-                        <input type="text" class="form-control" id="data_inicio" name="data_inicio" placeholder="dd/mm/aaaa"
-                               value="<?php echo htmlspecialchars($data_inicio_str); ?>" inputmode="numeric" pattern="\d{2}/\d{2}/\d{4}">
-                    </div>
-                </div>
+                    <input type="date" class="form-control" id="data_inicio" name="data_inicio"
+                           value="<?php echo $data_inicio_mysql ?? ''; ?>">
+                </input>
                 <div class="col-6">
                     <label class="form-label" for="data_fim">
                         <i class="bi bi-calendar-date me-1"></i>
-                        Data final (dd/mm/aaaa)
+                        Data final
                     </label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
-                        <input type="text" class="form-control" id="data_fim" name="data_fim" placeholder="dd/mm/aaaa"
-                               value="<?php echo htmlspecialchars($data_fim_str); ?>" inputmode="numeric" pattern="\d{2}/\d{2}/\d{4}">
-                    </div>
+                    <input type="date" class="form-control" id="data_fim" name="data_fim"
+                           value="<?php echo $data_fim_mysql ?? ''; ?>">
                 </div>
             </div>
 
@@ -154,15 +140,11 @@ ob_start();
                 </div>
             </div>
 
-            <div class="d-grid gap-2 mt-2">
+            <div class="d-grid mt-2">
                 <button type="submit" class="btn btn-primary">
                     <i class="bi bi-search me-2"></i>
                     Filtrar
                 </button>
-                <a class="btn btn-outline-secondary" href="?<?php echo http_build_query(['comum_id' => (int)$comum_id]); ?>">
-                    <i class="bi bi-eraser me-2"></i>
-                    Limpar filtros
-                </a>
             </div>
         </form>
     </div>
@@ -191,7 +173,7 @@ ob_start();
                 </div>
             <?php else: ?>
                 <div class="table-responsive">
-                    <table class="table table-hover table-striped mb-0 align-middle">
+                    <table class="table table-hover table-striped mb-0 align-middle text-center">
                         <thead>
                             <tr>
                                 <th style="width: 80px">#</th>
@@ -211,12 +193,14 @@ ob_start();
                                     <td><?php echo $planilha['data_posicao'] ? date('d/m/Y', strtotime($planilha['data_posicao'])) : '-'; ?></td>
                                     <td><span class="badge <?php echo $status_badge; ?>"><?php echo $status_texto; ?></span></td>
                                     <td>
-                                        <a href="../planilhas/view-planilha.php?id=<?php echo $planilha['id']; ?>" class="btn btn-sm btn-primary" title="Visualizar">
-                                            <i class="bi bi-eye"></i>
-                                        </a>
-                                        <a href="../planilhas/editar-planilha.php?id=<?php echo $planilha['id']; ?>" class="btn btn-sm btn-warning" title="Editar">
-                                            <i class="bi bi-pencil"></i>
-                                        </a>
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <a href="../planilhas/view-planilha.php?id=<?php echo $planilha['id']; ?>" class="btn btn-sm btn-primary" title="Visualizar">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a href="../planilhas/editar-planilha.php?id=<?php echo $planilha['id']; ?>" class="btn btn-sm btn-warning" title="Editar">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
