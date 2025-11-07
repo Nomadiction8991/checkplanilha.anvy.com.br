@@ -25,6 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nome_conjuge = trim($_POST['nome_conjuge'] ?? '');
     $cpf_conjuge = trim($_POST['cpf_conjuge'] ?? '');
     $rg_conjuge = trim($_POST['rg_conjuge'] ?? '');
+    $rg_conjuge_igual_cpf = isset($_POST['rg_conjuge_igual_cpf']) ? 1 : 0;
     $telefone_conjuge = trim($_POST['telefone_conjuge'] ?? '');
     $assinatura_conjuge = trim($_POST['assinatura_conjuge'] ?? '');
     
@@ -73,13 +74,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception('CPF inválido. Deve conter 11 dígitos.');
         }
         
-        // Validar RG (obrigatório)
+        // Função para formatar RG (todos menos último + '-' + último)
+        $formatarRg = function($valor){
+            $d = preg_replace('/\D/','', $valor);
+            if (strlen($d) <= 1) return $d; // um dígito sem hífen
+            return substr($d,0,-1) . '-' . substr($d,-1);
+        };
         if ($rg_igual_cpf) {
-            $rg = $cpf; // força RG = CPF
+            $rg = $formatarRg($cpf);
+        } else {
+            $rg = $formatarRg($rg);
         }
-        $rg_limpo = preg_replace('/\s+/', '', $rg);
-        if (empty($rg_limpo)) {
-            throw new Exception('O RG é obrigatório.');
+        $rg_numeros = preg_replace('/\D/','', $rg);
+        if (strlen($rg_numeros) < 2) {
+            throw new Exception('O RG é obrigatório e deve ter ao menos 2 dígitos.');
         }
 
         // Validar telefone (básico: formato)
@@ -108,7 +116,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception('Este CPF já está cadastrado.');
         }
 
-        // Se casado, validar dados básicos do cônjuge
+        // Endereço obrigatório (CEP, logradouro, numero, bairro, cidade, estado)
+        if (empty($endereco_cep) || empty($endereco_logradouro) || empty($endereco_numero) || empty($endereco_bairro) || empty($endereco_cidade) || empty($endereco_estado)) {
+            throw new Exception('Todos os campos de endereço (CEP, logradouro, número, bairro, cidade e estado) são obrigatórios.');
+        }
+
+        // Assinatura obrigatória
+        if (empty($assinatura)) {
+            throw new Exception('A assinatura do usuário é obrigatória.');
+        }
+
+        // Se casado, validar dados completos do cônjuge (nome, cpf, telefone, assinatura) e RG formatado se fornecido
         if ($casado) {
             if (empty($nome_conjuge)) {
                 throw new Exception('O nome do cônjuge é obrigatório.');
@@ -117,6 +135,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (strlen($cpf_conjuge_num) !== 11) {
                 throw new Exception('CPF do cônjuge inválido.');
             }
+            $tel_conj_num = preg_replace('/\D/','', $telefone_conjuge);
+            if (strlen($tel_conj_num) < 10 || strlen($tel_conj_num) > 11) {
+                throw new Exception('Telefone do cônjuge inválido.');
+            }
+            if (empty($assinatura_conjuge)) {
+                throw new Exception('A assinatura do cônjuge é obrigatória.');
+            }
+            // RG do cônjuge
+            if ($rg_conjuge_igual_cpf) {
+                $rg_conjuge = $formatarRg($cpf_conjuge);
+            } else if (!empty($rg_conjuge)) {
+                $rg_conjuge = $formatarRg($rg_conjuge);
+            }
+            if (!empty($rg_conjuge)) {
+                $rg_conj_nums = preg_replace('/\D/','', $rg_conjuge);
+                if (strlen($rg_conj_nums) < 2) {
+                    throw new Exception('O RG do cônjuge deve ter ao menos 2 dígitos.');
+                }
+            }
+        } else {
+            // Se não casado, limpar campos de cônjuge para evitar dados órfãos
+            $nome_conjuge = $cpf_conjuge = $rg_conjuge = $telefone_conjuge = $assinatura_conjuge = '';
+            $rg_conjuge_igual_cpf = 0;
         }
 
         // Criptografar senha
@@ -127,12 +168,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     nome, email, senha, ativo, cpf, rg, rg_igual_cpf, telefone, tipo, assinatura,
                     endereco_cep, endereco_logradouro, endereco_numero, endereco_complemento,
                     endereco_bairro, endereco_cidade, endereco_estado,
-                    casado, nome_conjuge, cpf_conjuge, rg_conjuge, telefone_conjuge, assinatura_conjuge
+                    casado, nome_conjuge, cpf_conjuge, rg_conjuge, rg_conjuge_igual_cpf, telefone_conjuge, assinatura_conjuge
                 ) VALUES (
                     :nome, :email, :senha, :ativo, :cpf, :rg, :rg_igual_cpf, :telefone, :tipo, :assinatura,
                     :endereco_cep, :endereco_logradouro, :endereco_numero, :endereco_complemento,
                     :endereco_bairro, :endereco_cidade, :endereco_estado,
-                    :casado, :nome_conjuge, :cpf_conjuge, :rg_conjuge, :telefone_conjuge, :assinatura_conjuge
+                    :casado, :nome_conjuge, :cpf_conjuge, :rg_conjuge, :rg_conjuge_igual_cpf, :telefone_conjuge, :assinatura_conjuge
                 )";
         
         $stmt = $conexao->prepare($sql);
@@ -157,6 +198,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->bindValue(':nome_conjuge', $nome_conjuge);
     $stmt->bindValue(':cpf_conjuge', $cpf_conjuge);
     $stmt->bindValue(':rg_conjuge', $rg_conjuge);
+    $stmt->bindValue(':rg_conjuge_igual_cpf', $rg_conjuge_igual_cpf, PDO::PARAM_INT);
     $stmt->bindValue(':telefone_conjuge', $telefone_conjuge);
     $stmt->bindValue(':assinatura_conjuge', $assinatura_conjuge);
         $stmt->execute();

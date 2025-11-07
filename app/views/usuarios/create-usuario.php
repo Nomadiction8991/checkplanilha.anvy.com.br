@@ -55,11 +55,12 @@ ob_start();
                     <label for="rg" class="form-label">RG <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="rg" name="rg" 
                            value="<?php echo htmlspecialchars($_POST['rg'] ?? ''); ?>" 
-                           placeholder="00000000-0" required>
+                           placeholder="Digite os dígitos do RG" required>
                     <div class="form-check mt-1">
                         <input class="form-check-input" type="checkbox" id="rg_igual_cpf" name="rg_igual_cpf" value="1">
                         <label class="form-check-label" for="rg_igual_cpf">RG igual ao CPF</label>
                     </div>
+                    <small class="text-muted">Formatação automática: hífen antes do último dígito. Ex: 1234-5</small>
                 </div>
                 <div class="col-12">
                     <label for="telefone" class="form-label">Telefone <span class="text-danger">*</span></label>
@@ -216,7 +217,11 @@ ob_start();
                 </div>
                 <div class="col-12">
                     <label for="rg_conjuge" class="form-label">RG do Cônjuge</label>
-                    <input type="text" class="form-control" id="rg_conjuge" name="rg_conjuge" value="<?php echo htmlspecialchars($_POST['rg_conjuge'] ?? ''); ?>" placeholder="00000000-0">
+                    <input type="text" class="form-control" id="rg_conjuge" name="rg_conjuge" value="<?php echo htmlspecialchars($_POST['rg_conjuge'] ?? ''); ?>" placeholder="Digite os dígitos do RG">
+                    <div class="form-check mt-1">
+                        <input class="form-check-input" type="checkbox" id="rg_conjuge_igual_cpf" name="rg_conjuge_igual_cpf" value="1">
+                        <label class="form-check-label" for="rg_conjuge_igual_cpf">RG do cônjuge igual ao CPF do cônjuge</label>
+                    </div>
                 </div>
                 <div class="col-12">
                     <label for="telefone_conjuge" class="form-label">Telefone do Cônjuge</label>
@@ -308,30 +313,55 @@ $(document).ready(function() {
     Inputmask('99999-999').mask('#cep');
 
     // Máscara RG: dígitos com traço antes do último (1 a 8 dígitos + '-' + 1 dígito ou X)
-    Inputmask({ regex: "\\d{1,8}-[\\dXx]" }).mask('#rg');
-    Inputmask({ regex: "\\d{1,8}-[\\dXx]" }).mask('#rg_conjuge');
+    // Removemos máscara de RG para usar formatação dinâmica
 
     // Toggle RG igual ao CPF
+    // ======= RG Dinâmico =======
+    function formatRgDigits(raw) {
+        const digits = raw.replace(/\D/g,'');
+        if (digits.length <= 1) return digits; // 1 dígito sem hífen
+        return digits.slice(0,-1) + '-' + digits.slice(-1);
+    }
+    const rgInput = document.getElementById('rg');
+    rgInput.addEventListener('input', function(){
+        if (document.getElementById('rg_igual_cpf').checked) return; // quando igual CPF não formata manual
+        const pos = this.selectionStart;
+        const raw = this.value;
+        const formatted = formatRgDigits(raw);
+        this.value = formatted;
+    });
     function aplicarRgIgualCpf(aplicar) {
-        const rgInput = document.getElementById('rg');
         if (aplicar) {
-            rgInput.value = document.getElementById('cpf').value;
-            rgInput.setAttribute('disabled', 'disabled');
-            Inputmask('999.999.999-99').mask('#rg');
+            const cpfDigits = document.getElementById('cpf').value.replace(/\D/g,'');
+            rgInput.value = formatRgDigits(cpfDigits);
+            rgInput.setAttribute('disabled','disabled');
         } else {
             rgInput.removeAttribute('disabled');
             rgInput.value = '';
-            Inputmask({ regex: "\\d{1,8}-[\\dXx]" }).mask('#rg');
         }
     }
-    document.getElementById('rg_igual_cpf').addEventListener('change', function(){
-        aplicarRgIgualCpf(this.checked);
+    document.getElementById('rg_igual_cpf').addEventListener('change', function(){ aplicarRgIgualCpf(this.checked); });
+    document.getElementById('cpf').addEventListener('input', function(){ if (document.getElementById('rg_igual_cpf').checked) aplicarRgIgualCpf(true); });
+
+    // ======= RG Cônjuge Dinâmico =======
+    const rgConjInput = document.getElementById('rg_conjuge');
+    rgConjInput.addEventListener('input', function(){
+        if (document.getElementById('rg_conjuge_igual_cpf').checked) return;
+        const formatted = formatRgDigits(this.value);
+        this.value = formatted;
     });
-    document.getElementById('cpf').addEventListener('input', function(){
-        if (document.getElementById('rg_igual_cpf').checked) {
-            document.getElementById('rg').value = this.value;
+    function aplicarRgConjugeIgualCpf(aplicar) {
+        if (aplicar) {
+            const cpfDigits = document.getElementById('cpf_conjuge').value.replace(/\D/g,'');
+            rgConjInput.value = formatRgDigits(cpfDigits);
+            rgConjInput.setAttribute('disabled','disabled');
+        } else {
+            rgConjInput.removeAttribute('disabled');
+            rgConjInput.value = '';
         }
-    });
+    }
+    document.getElementById('rg_conjuge_igual_cpf').addEventListener('change', function(){ aplicarRgConjugeIgualCpf(this.checked); });
+    document.getElementById('cpf_conjuge').addEventListener('input', function(){ if (document.getElementById('rg_conjuge_igual_cpf').checked) aplicarRgConjugeIgualCpf(true); });
 
     // Toggle cônjuge
     const casadoCb = document.getElementById('casado');
@@ -655,8 +685,29 @@ document.getElementById('formUsuario').addEventListener('submit', function(e) {
         return false;
     }
     
-    // Assinatura já está salva no campo hidden assinatura_usuario
-    // O backend receberá via $_POST['assinatura']
+    // Campos endereço obrigatórios
+    const enderecoObrigatorios = ['cep','logradouro','numero','bairro','cidade','estado'];
+    for (let id of enderecoObrigatorios) {
+        const el = document.getElementById(id);
+        if (!el.value.trim()) { e.preventDefault(); alert('Todos os campos de endereço são obrigatórios.'); return false; }
+    }
+
+    // Assinatura usuário obrigatória
+    if (!document.getElementById('assinatura_usuario').value.trim()) {
+        e.preventDefault();
+        alert('A assinatura do usuário é obrigatória.');
+        return false;
+    }
+
+    if (document.getElementById('casado').checked) {
+        const obrigatoriosConjuge = ['nome_conjuge','cpf_conjuge','telefone_conjuge'];
+        for (let id of obrigatoriosConjuge) {
+            const el = document.getElementById(id);
+            if (!el.value.trim()) { e.preventDefault(); alert('Preencha todos os dados obrigatórios do cônjuge.'); return false; }
+        }
+        if (!document.getElementById('assinatura_conjuge').value.trim()) {
+            e.preventDefault(); alert('A assinatura do cônjuge é obrigatória.'); return false; }
+    }
 });
 </script>
 
