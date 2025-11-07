@@ -106,7 +106,7 @@ ob_start();
                     </label>
                     <input type="date" class="form-control" id="data_inicio" name="data_inicio"
                            value="<?php echo $data_inicio_mysql ?? ''; ?>">
-                </input>
+                </div>
                 <div class="col-6">
                     <label class="form-label" for="data_fim">
                         <i class="bi bi-calendar-date me-1"></i>
