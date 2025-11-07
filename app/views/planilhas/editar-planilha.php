@@ -131,24 +131,32 @@ ob_start();
                         sort($cidades_mt);
                     ?>
                     <select id="administracao" name="administracao" class="form-select" required>
-                        <option value="">Selecione...</option>
+                        <?php if ($administracao_atual !== ''): ?>
+                            <option value="<?php echo htmlspecialchars($administracao_atual); ?>" selected><?php echo htmlspecialchars($administracao_atual); ?></option>
+                        <?php else: ?>
+                            <option value="" selected>Selecione...</option>
+                        <?php endif; ?>
                         <?php foreach ($cidades_mt as $c): 
                             $val = 'MT - ' . $c;
-                            $sel = ($administracao_atual === $val) ? 'selected' : '';
+                            if (strcasecmp($administracao_atual, $val) === 0) { continue; }
                         ?>
-                            <option value="<?php echo htmlspecialchars($val); ?>" <?php echo $sel; ?>><?php echo htmlspecialchars($val); ?></option>
+                            <option value="<?php echo htmlspecialchars($val); ?>"><?php echo htmlspecialchars($val); ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
                 <div class="col-md-3">
                     <label for="cidade" class="form-label">Cidade <span class="text-danger">*</span></label>
                     <select id="cidade" name="cidade" class="form-select" required>
-                        <option value="">Selecione...</option>
+                        <?php if ($cidade_atual !== ''): ?>
+                            <option value="<?php echo htmlspecialchars($cidade_atual); ?>" selected><?php echo htmlspecialchars($cidade_atual); ?></option>
+                        <?php else: ?>
+                            <option value="" selected>Selecione...</option>
+                        <?php endif; ?>
                         <?php foreach ($cidades_mt as $c): 
                             $val = 'MT - ' . $c;
-                            $sel = ($cidade_atual === $val) ? 'selected' : '';
+                            if (strcasecmp($cidade_atual, $val) === 0) { continue; }
                         ?>
-                            <option value="<?php echo htmlspecialchars($val); ?>" <?php echo $sel; ?>><?php echo htmlspecialchars($val); ?></option>
+                            <option value="<?php echo htmlspecialchars($val); ?>"><?php echo htmlspecialchars($val); ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
