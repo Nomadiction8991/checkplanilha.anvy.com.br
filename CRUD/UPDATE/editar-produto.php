@@ -55,15 +55,15 @@ try {
     }
     
     // Pré-preencher com edições se existirem (senão usa original)
-    // Tipo de bem: usar editado_tipo_ben_id se > 0, senão tipo_ben_id
+    // Tipo de bem: usar editado_tipo_bem_id se > 0, senão tipo_bem_id
     $novo_tipo_bem_id = 0;
-    if (!empty($produto['editado_tipo_ben_id']) && (int)$produto['editado_tipo_ben_id'] > 0) {
-        $novo_tipo_bem_id = (int)$produto['editado_tipo_ben_id'];
-    } elseif (!empty($produto['tipo_ben_id']) && (int)$produto['tipo_ben_id'] > 0) {
-        $novo_tipo_bem_id = (int)$produto['tipo_ben_id'];
+    if (!empty($produto['editado_tipo_bem_id']) && (int)$produto['editado_tipo_bem_id'] > 0) {
+        $novo_tipo_bem_id = (int)$produto['editado_tipo_bem_id'];
+    } elseif (!empty($produto['tipo_bem_id']) && (int)$produto['tipo_bem_id'] > 0) {
+        $novo_tipo_bem_id = (int)$produto['tipo_bem_id'];
     }
     
-    $novo_bem = $produto['editado_ben'] !== '' ? $produto['editado_ben'] : ($produto['ben'] ?? '');
+    $novo_bem = $produto['editado_bem'] !== '' ? $produto['editado_bem'] : ($produto['bem'] ?? '');
     $novo_complemento = $produto['editado_complemento'] !== '' ? $produto['editado_complemento'] : ($produto['complemento'] ?? '');
     // Dependência: usar editado se > 0, senão usar original
     $nova_dependencia_id = (!empty($produto['editado_dependencia_id']) && (int)$produto['editado_dependencia_id'] > 0) 
@@ -111,10 +111,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         // Determinar campos originais para fallback (usar editado se existir, senão original)
-        $orig_tipo_id = (!empty($produto['editado_tipo_ben_id']) && (int)$produto['editado_tipo_ben_id'] > 0) 
-            ? (int)$produto['editado_tipo_ben_id'] 
-            : (int)$produto['tipo_ben_id'];
-        $orig_ben = $produto['editado_ben'] !== '' ? $produto['editado_ben'] : ($produto['ben'] ?? '');
+        $orig_tipo_id = (!empty($produto['editado_tipo_bem_id']) && (int)$produto['editado_tipo_bem_id'] > 0) 
+            ? (int)$produto['editado_tipo_bem_id'] 
+            : (int)$produto['tipo_bem_id'];
+        $orig_bem = $produto['editado_bem'] !== '' ? $produto['editado_bem'] : ($produto['bem'] ?? '');
         $orig_comp = $produto['editado_complemento'] !== '' ? $produto['editado_complemento'] : ($produto['complemento'] ?? '');
         $orig_dep_id = (!empty($produto['editado_dependencia_id']) && (int)$produto['editado_dependencia_id'] > 0)
             ? (int)$produto['editado_dependencia_id']
@@ -142,7 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $params[':novo_tipo_bem_id'] = (int)$novo_tipo_bem_id;
         }
         if ($novo_bem !== '') {
-            $sql_update .= ", editado_ben = :novo_bem";
+            $sql_update .= ", editado_bem = :novo_bem";
             $params[':novo_bem'] = $novo_bem;
         }
         if ($novo_complemento !== '') {

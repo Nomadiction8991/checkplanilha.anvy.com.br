@@ -54,8 +54,8 @@ $sql_base = "SELECT
                      p.complemento,
                      p.editado_complemento,
                      p.ben,
-                     p.editado_ben,
-                     p.tipo_ben_id,
+                     p.editado_bem,
+                     p.tipo_bem_id,
                      p.dependencia_id,
                      p.editado_dependencia_id,
                      p.observacao,
@@ -70,7 +70,7 @@ $sql_base = "SELECT
                      d1.descricao AS dependencia_desc,
                      d2.descricao AS editado_dependencia_desc
                  FROM produtos p
-                 LEFT JOIN tipos_bens t1 ON p.tipo_ben_id = t1.id
+                 LEFT JOIN tipos_bens t1 ON p.tipo_bem_id = t1.id
                  LEFT JOIN dependencias d1 ON p.dependencia_id = d1.id
                  LEFT JOIN dependencias d2 ON p.editado_dependencia_id = d2.id
                  WHERE p.planilha_id = :id_planilha";

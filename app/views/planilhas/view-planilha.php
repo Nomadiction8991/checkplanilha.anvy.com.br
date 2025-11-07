@@ -393,7 +393,8 @@ ob_start();
                     $show_edit = ($p['checado'] == 0);
                     $show_dr = true; // Sempre mostrar DR
                 }
-                $tipo_invalido = (!isset($p['tipo_ben_id']) || $p['tipo_ben_id'] == 0 || empty($p['tipo_ben_id']));
+            
+            $tipo_invalido = (!isset($p['tipo_bem_id']) || $p['tipo_bem_id'] == 0 || empty($p['tipo_bem_id']));
             ?>
             <div class="list-group-item <?php echo $classe; ?><?php echo $tipo_invalido ? ' tipo-nao-identificado' : ''; ?>" <?php echo $tipo_invalido ? 'title="Tipo de bem não identificado"' : ''; ?>>
                 <!-- Código -->
@@ -412,7 +413,7 @@ ob_start();
                         // Dados base (preferir editados)
                         $tipo_codigo_final = $p['tipo_codigo'];
                         $tipo_desc_final = $p['tipo_desc'];
-                        $ben_final = ($p['editado_ben'] !== '' ? $p['editado_ben'] : $p['ben']);
+                        $ben_final = ($p['editado_bem'] !== '' ? $p['editado_bem'] : $p['bem']);
                         $comp_final = ($p['editado_complemento'] !== '' ? $p['editado_complemento'] : $p['complemento']);
                         $dep_final = ($p['editado_dependencia_desc'] ?: $p['dependencia_desc']);
                         // Montagem simples (similar à função pp_montar_descricao mas sem quantidade)
