@@ -183,9 +183,18 @@ document.addEventListener('DOMContentLoaded', function(){
                 const opt = document.createElement('option'); opt.value = val; opt.text = val; cidadeSel.appendChild(opt);
                 const opt2 = document.createElement('option'); opt2.value = val; opt2.text = val; adminSel.appendChild(opt2);
             });
-            cidadeSel.disabled = false; adminSel.disabled = false;
-            if(preCidade){ for(const o of cidadeSel.options) if(o.value===preCidade){ o.selected=true; break; } }
-            if(preAdministracao){ for(const o of adminSel.options) if(o.value===preAdministracao){ o.selected=true; break; } }
+            cidadeSel.disabled = false; 
+            adminSel.disabled = false;
+            
+            // Pré-selecionar valores existentes APÓS carregar as opções
+            if(preAdministracao){ 
+                adminSel.value = preAdministracao;
+                console.log('Pré-selecionado administracao:', preAdministracao);
+            }
+            if(preCidade){ 
+                cidadeSel.value = preCidade;
+                console.log('Pré-selecionado cidade:', preCidade);
+            }
         }catch(err){ cidadeSel.innerHTML='<option value="">Erro ao carregar cidades</option>'; console.error(err); }
     }
 
