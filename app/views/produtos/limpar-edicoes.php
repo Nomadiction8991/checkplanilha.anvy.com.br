@@ -35,7 +35,8 @@ try {
     // Limpar campos de edição na tabela produtos - USANDO id_produto
     // Importante: usar valores padrão válidos ('' ou 0) pois colunas são NOT NULL em alguns bancos
     $sql_update = "UPDATE produtos 
-                   SET editado_ben = '',
+                   SET editado_tipo_bem_id = 0,
+                       editado_ben = '',
                        editado_complemento = '',
                        editado_dependencia_id = 0,
                        editado_descricao_completa = '',
