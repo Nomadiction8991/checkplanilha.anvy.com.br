@@ -31,6 +31,7 @@ $options = [
     'verbose' => in_array('--verbose', $argv),
     'limit' => null,
     'planilha_id' => null,
+    'codigo' => null,
 ];
 
 foreach ($argv as $arg) {
@@ -39,6 +40,9 @@ foreach ($argv as $arg) {
     }
     if (preg_match('/^--planilha-id=(\d+)$/', $arg, $m)) {
         $options['planilha_id'] = (int)$m[1];
+    }
+    if (preg_match('/^--codigo=(.+)$/', $arg, $m)) {
+        $options['codigo'] = trim($m[1], '"\'');
     }
 }
 
@@ -64,16 +68,17 @@ echo "✓ Aliases construídos\n\n";
 // Buscar produtos para reprocessar
 $sql_produtos = "
     SELECT 
-        p.id,
+        p.id_produto as id,
         p.planilha_id,
+        p.codigo,
         p.tipo_ben_id,
         p.ben,
         p.complemento,
         p.dependencia_id,
-        p.descricao,
+        p.descricao_completa as descricao,
         tb.codigo as tipo_codigo,
         tb.descricao as tipo_descricao,
-        d.nome as dependencia_nome
+        d.descricao as dependencia_nome
     FROM produtos p
     LEFT JOIN tipos_bens tb ON p.tipo_ben_id = tb.id
     LEFT JOIN dependencias d ON p.dependencia_id = d.id
@@ -84,7 +89,11 @@ if ($options['planilha_id']) {
     $sql_produtos .= " AND p.planilha_id = " . (int)$options['planilha_id'];
 }
 
-$sql_produtos .= " ORDER BY p.id";
+if ($options['codigo']) {
+    $sql_produtos .= " AND p.codigo = " . $conexao->quote($options['codigo']);
+}
+
+$sql_produtos .= " ORDER BY p.id_produto";
 
 if ($options['limit']) {
     $sql_produtos .= " LIMIT " . (int)$options['limit'];
@@ -142,8 +151,14 @@ foreach ($produtos as $produto) {
         continue;
     }
     
-    // Reprocessar: juntar BEN + COMPLEMENTO para extrair novamente
-    $texto_completo = trim($ben_atual . ' ' . $complemento_atual);
+    // Reprocessar: usar COMPLEMENTO como texto base (é o mais próximo do texto original do CSV)
+    // porque BEN pode estar errado. Se o tipo desc aparecer no início do complemento, o parser vai lidar com isso.
+    $texto_completo = trim($complemento_atual);
+    
+    // Fallback: se complemento vazio mas tem BEN, usar BEN
+    if ($texto_completo === '' && $ben_atual !== '') {
+        $texto_completo = trim($ben_atual);
+    }
     
     if ($texto_completo === '') {
         if ($options['verbose']) echo "  ⊘ Produto sem texto para processar\n\n";
