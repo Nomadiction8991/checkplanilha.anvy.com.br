@@ -45,13 +45,13 @@ ob_start();
             </div>
 
             <div class="row g-3">
-                <div class="col-md-6">
+                <div class="col-12">
                     <label for="cpf" class="form-label">CPF <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="cpf" name="cpf" 
                            value="<?php echo htmlspecialchars($_POST['cpf'] ?? ''); ?>" 
                            placeholder="000.000.000-00" required>
                 </div>
-                <div class="col-md-6">
+                <div class="col-12">
                     <label for="telefone" class="form-label">Telefone <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="telefone" name="telefone" 
                            value="<?php echo htmlspecialchars($_POST['telefone'] ?? ''); ?>" 
@@ -66,14 +66,14 @@ ob_start();
             </div>
 
             <div class="row g-3">
-                <div class="col-md-6">
+                <div class="col-12">
                     <label for="senha" class="form-label">Senha <span class="text-danger">*</span></label>
                     <input type="password" class="form-control" id="senha" name="senha" 
                            minlength="6" required>
                     <small class="text-muted">Mínimo de 6 caracteres</small>
                 </div>
 
-                <div class="col-md-6">
+                <div class="col-12">
                     <label for="confirmar_senha" class="form-label">Confirmar Senha <span class="text-danger">*</span></label>
                     <input type="password" class="form-control" id="confirmar_senha" name="confirmar_senha" 
                            minlength="6" required>
@@ -98,14 +98,14 @@ ob_start();
         </div>
         <div class="card-body">
             <div class="row g-3">
-                <div class="col-md-4">
+                <div class="col-12">
                     <label for="cep" class="form-label">CEP</label>
                     <input type="text" class="form-control" id="cep" name="endereco_cep" 
                            value="<?php echo htmlspecialchars($_POST['endereco_cep'] ?? ''); ?>" 
                            placeholder="00000-000">
                     <small class="text-muted">Preencha para buscar automaticamente</small>
                 </div>
-                <div class="col-md-8">
+                <div class="col-12">
                     <label for="logradouro" class="form-label">Logradouro</label>
                     <input type="text" class="form-control" id="logradouro" name="endereco_logradouro" 
                            value="<?php echo htmlspecialchars($_POST['endereco_logradouro'] ?? ''); ?>">
@@ -113,18 +113,18 @@ ob_start();
             </div>
 
             <div class="row g-3 mt-2">
-                <div class="col-md-3">
+                <div class="col-12">
                     <label for="numero" class="form-label">Número</label>
                     <input type="text" class="form-control" id="numero" name="endereco_numero" 
                            value="<?php echo htmlspecialchars($_POST['endereco_numero'] ?? ''); ?>">
                 </div>
-                <div class="col-md-5">
+                <div class="col-12">
                     <label for="complemento" class="form-label">Complemento</label>
                     <input type="text" class="form-control" id="complemento" name="endereco_complemento" 
                            value="<?php echo htmlspecialchars($_POST['endereco_complemento'] ?? ''); ?>" 
                            placeholder="Apto, bloco, etc">
                 </div>
-                <div class="col-md-4">
+                <div class="col-12">
                     <label for="bairro" class="form-label">Bairro</label>
                     <input type="text" class="form-control" id="bairro" name="endereco_bairro" 
                            value="<?php echo htmlspecialchars($_POST['endereco_bairro'] ?? ''); ?>">
@@ -132,12 +132,12 @@ ob_start();
             </div>
 
             <div class="row g-3 mt-2">
-                <div class="col-md-8">
+                <div class="col-12">
                     <label for="cidade" class="form-label">Cidade</label>
                     <input type="text" class="form-control" id="cidade" name="endereco_cidade" 
                            value="<?php echo htmlspecialchars($_POST['endereco_cidade'] ?? ''); ?>">
                 </div>
-                <div class="col-md-4">
+                <div class="col-12">
                     <label for="estado" class="form-label">Estado</label>
                     <select class="form-select" id="estado" name="endereco_estado">
                         <option value="">Selecione</option>
@@ -192,7 +192,7 @@ ob_start();
             </div>
             
             <!-- Botão para abrir modal -->
-            <button type="button" class="btn btn-primary btn-lg w-100" onclick="abrirModalAssinatura('usuario')">
+            <button type="button" class="btn btn-primary w-100" onclick="abrirModalAssinatura('usuario')">
                 <i class="bi bi-pen me-2"></i>
                 Fazer Assinatura
             </button>
@@ -202,8 +202,8 @@ ob_start();
         </div>
     </div>
 
-    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-        <button type="submit" class="btn btn-primary">
+    <div class="d-grid gap-2">
+        <button type="submit" class="btn btn-primary w-100">
             <i class="bi bi-check-lg me-1"></i>
             Cadastrar Usuário
         </button>

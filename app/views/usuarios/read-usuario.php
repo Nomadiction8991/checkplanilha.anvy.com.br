@@ -85,6 +85,17 @@ ob_start();
                                            class="btn btn-sm btn-outline-primary" title="Editar">
                                             <i class="bi bi-pencil"></i>
                                         </a>
+                                        <?php 
+                                            $telefone_limpo = preg_replace('/\D/','', $usuario['telefone'] ?? '');
+                                            // Se tiver número (10 ou 11 dígitos), mostra botão WhatsApp
+                                            if ($telefone_limpo && (strlen($telefone_limpo) === 10 || strlen($telefone_limpo) === 11)):
+                                                $wa_link = 'https://wa.me/55' . $telefone_limpo; 
+                                        ?>
+                                            <a href="<?php echo $wa_link; ?>" target="_blank" rel="noopener" 
+                                               class="btn btn-sm btn-outline-success" title="WhatsApp">
+                                                <i class="bi bi-whatsapp"></i>
+                                            </a>
+                                        <?php endif; ?>
                                         <button onclick="excluirUsuario(<?php echo $usuario['id']; ?>, '<?php echo addslashes($usuario['nome']); ?>')" 
                                                 class="btn btn-sm btn-outline-danger" title="Excluir">
                                             <i class="bi bi-trash"></i>
