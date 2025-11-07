@@ -34,7 +34,6 @@ const tiposBensOpcoes = <?php echo json_encode(array_reduce($tipos_bens, functio
 document.addEventListener('DOMContentLoaded', function() {
     const selectTipoBem = document.getElementById('novo_tipo_bem_id');
     const selectBem = document.getElementById('novo_bem');
-    const divBem = document.getElementById('div_bem');
     
     // Função para atualizar opções de Bem baseado no Tipo de Bem selecionado
     function atualizarOpcoesBem() {
@@ -43,8 +42,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!tipoBemId) {
             // Desabilitar e limpar
             selectBem.disabled = true;
-            selectBem.innerHTML = '<option value="">-- Selecione primeiro o Tipo de Bem --</option>';
-            divBem.style.display = 'none';
+            selectBem.innerHTML = '<option value="">-- Escolha o Tipo de Bem acima --</option>';
             return;
         }
         
@@ -60,7 +58,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 opt.textContent = opcao.toUpperCase();
                 selectBem.appendChild(opt);
             });
-            divBem.style.display = 'block';
         } else if (opcoes.length === 1) {
             // Apenas uma opção, preencher automaticamente
             selectBem.disabled = false;
@@ -70,12 +67,10 @@ document.addEventListener('DOMContentLoaded', function() {
             opt.textContent = opcoes[0].toUpperCase();
             opt.selected = true;
             selectBem.appendChild(opt);
-            divBem.style.display = 'block';
         } else {
             // Sem opções, campo livre
             selectBem.disabled = true;
             selectBem.innerHTML = '<option value="">-- Não aplicável --</option>';
-            divBem.style.display = 'none';
         }
     }
     
@@ -91,6 +86,20 @@ document.addEventListener('DOMContentLoaded', function() {
             this.value = this.value.toUpperCase();
         });
     });
+
+    // Pré-preencher BEM caso já tenha sido editado no banco
+    const bemEditado = '<?php echo isset($produto['editado_ben']) ? strtoupper(addslashes($produto['editado_ben'])) : ''; ?>';
+    if (bemEditado) {
+        if (selectTipoBem.value) {
+            atualizarOpcoesBem();
+            for (const opt of selectBem.options) {
+                if (opt.value === bemEditado) { opt.selected = true; break; }
+            }
+        } else {
+            selectBem.innerHTML = '<option value="'+bemEditado+'" selected>'+bemEditado+'</option>';
+            selectBem.disabled = true;
+        }
+    }
 });
 </script>
 
@@ -154,19 +163,19 @@ document.addEventListener('DOMContentLoaded', function() {
                         </option>
                     <?php endforeach; ?>
                 </select>
-                <div class="form-text">Selecione o tipo de bem para habilitar o campo "Bem"</div>
+                <div class="form-text">Selecione o tipo de bem para desbloquear o campo "Bem"</div>
             </div>
 
-            <!-- BEM (habilitado apenas após selecionar Tipo de Bem) -->
-            <div class="mb-3" id="div_bem" style="display: none;">
+            <!-- BEM (sempre visível, desabilitado até escolher tipo) -->
+            <div class="mb-3" id="div_bem">
                 <label for="novo_bem" class="form-label">
                     <i class="bi bi-box me-1"></i>
                     Bem
                 </label>
                 <select class="form-select text-uppercase-input" id="novo_bem" name="novo_bem" disabled>
-                    <option value="">-- Selecione primeiro o Tipo de Bem --</option>
+                    <option value="">-- Escolha o Tipo de Bem acima --</option>
                 </select>
-                <div class="form-text">Este campo é habilitado automaticamente após escolher o Tipo de Bem</div>
+                <div class="form-text">Fica bloqueado até selecionar o Tipo de Bem</div>
             </div>
 
             <!-- COMPLEMENTO -->
