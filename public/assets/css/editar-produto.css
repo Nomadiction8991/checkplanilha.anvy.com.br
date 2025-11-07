@@ -192,6 +192,25 @@ select.form-control {
     font-size: 13px;
 }
 
+/* Estilos padrão mobile-first para todos os dispositivos */
+.conteudo {
+    padding: 10px;
+    margin-top: 55px;
+}
+
+.product-card {
+    padding: 12px;
+}
+
+.btn {
+    width: 100%;
+    text-align: center;
+}
+
+.form-control, .form-select {
+    font-size: 16px;
+}
+
 /* Responsividade - Padrão similar */
 @media (max-width: 768px) {
     .conteudo {

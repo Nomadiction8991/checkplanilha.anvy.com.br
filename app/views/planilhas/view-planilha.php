@@ -93,31 +93,32 @@ ob_start();
 }
 
 .mic-btn .material-icons-round {
-    font-size: 24px;
+    font-size: 20px;
     vertical-align: middle;
 }
 
-/* Evitar quebra dos botões no mobile dentro do input-group */
-@media (max-width: 576px) {
-    .input-group { 
-        flex-wrap: nowrap !important; 
-        display: flex !important;
-    }
-    .input-group .form-control { 
-        min-width: 0;
-        flex: 1 1 auto !important; /* Input preenche o espaço restante */
-    }
-    .input-group > .btn { 
-        flex: 0 0 15% !important; /* Botões ocupam 15% cada */
-        min-width: 45px !important; /* Largura mínima para não ficarem muito pequenos */
-        max-width: 60px !important; /* Largura máxima para não ficarem grandes */
-        padding: 0.375rem 0.25rem !important;
-        font-size: 1.1rem !important;
-    }
-    .input-group > .btn .material-icons-round,
-    .input-group > .btn i {
-        font-size: 20px !important;
-    }
+/* Estilos padrão para todos os dispositivos (mobile-first) */
+.input-group { 
+    flex-wrap: nowrap !important; 
+    display: flex !important;
+}
+
+.input-group .form-control { 
+    min-width: 0;
+    flex: 1 1 auto !important; /* Input preenche o espaço restante */
+}
+
+.input-group > .btn { 
+    flex: 0 0 15% !important; /* Botões ocupam 15% cada */
+    min-width: 45px !important;
+    max-width: 60px !important;
+    padding: 0.375rem 0.25rem !important;
+    font-size: 1.1rem !important;
+}
+
+.input-group > .btn .material-icons-round,
+.input-group > .btn i {
+    font-size: 20px !important;
 }
 
 /* Cores das linhas baseadas no status - Paleta marcante e diferenciada */

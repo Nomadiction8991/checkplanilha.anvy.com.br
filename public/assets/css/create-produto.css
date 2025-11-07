@@ -141,49 +141,35 @@ body {
     pointer-events: none;
 }
 
-/* Responsividade */
-@media (max-width: 768px) {
-    .form-row {
-        grid-template-columns: 1fr;
-        gap: 0;
-    }
-    
-    .form-container {
-        padding: 20px;
-        margin: 0 10px;
-    }
-    
-    .conteudo {
-        padding: 15px;
-    }
+/* Estilos padrão mobile-first para todos os dispositivos */
+.form-row {
+    grid-template-columns: 1fr;
+    gap: 0;
 }
 
-@media (max-width: 480px) {
-    /* Cabeçalho já responsivo via base.css */
-    
-    .voltar svg {
-        width: 36px;
-        height: 36px;
-    }
-    
-    .conteudo {
-        margin-top: 55px;
-        padding: 10px;
-    }
-    
-    .form-container {
-        padding: 15px;
-    }
-    
-    .form-control {
-        padding: 10px 12px;
-        font-size: 16px; /* Previne zoom no iOS */
-    }
-    
-    .checkbox-group {
-        flex-direction: column;
-        gap: 10px;
-    }
+.form-container {
+    padding: 15px;
+    margin: 0 10px;
+}
+
+.conteudo {
+    margin-top: 55px;
+    padding: 10px;
+}
+
+.voltar svg {
+    width: 36px;
+    height: 36px;
+}
+
+.form-control {
+    padding: 10px 12px;
+    font-size: 16px; /* Previne zoom no iOS */
+}
+
+.checkbox-group {
+    flex-direction: column;
+    gap: 10px;
 }
 
 /* Animações */

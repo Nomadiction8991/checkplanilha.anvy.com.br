@@ -216,69 +216,48 @@ textarea.form-control {
 
 /* ========== RESPONSIVIDADE ========== */
 
-/* Tablets */
-@media (max-width: 768px) {
-    .conteudo {
-        padding: 15px;
-    }
-    
-    /* Cabeçalho já responsivo via base.css */
-    
-    .conteudo {
-        margin-top: 55px;
-    }
-    
-    .product-card {
-        padding: 15px;
-    }
-    
-    .status-info {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    
-    .btn {
-        width: 100%;
-        text-align: center;
-    }
+/* Estilos padrão mobile-first para todos os dispositivos */
+.conteudo {
+    padding: 10px;
+    margin-top: 55px;
 }
 
-/* Celulares */
-@media (max-width: 480px) {
-    .conteudo {
-        padding: 10px;
-    }
-    
-    .product-card {
-        padding: 12px;
-    }
-    
-    .form-control {
-        padding: 8px 10px;
-    }
-    
-    .btn {
-        padding: 10px 20px;
-        width: 100%;
-    }
-    
-    .cabecalho {
-        padding: 10px 12px;
-        height: 55px;
-    }
-    
-    .cabecalho h1 {
-        font-size: 16px;
-        max-width: 150px;
-    }
-    
-    .voltar {
-        width: 32px;
-        height: 32px;
-    }
-    
-    .voltar svg {
-        width: 24px;
-        height: 24px;
-    }
+.product-card {
+    padding: 12px;
+}
+
+.status-info {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.btn {
+    width: 100%;
+    text-align: center;
+    padding: 10px 20px;
+}
+
+.form-control {
+    padding: 8px 10px;
+    font-size: 16px;
+}
+
+.cabecalho {
+    padding: 10px 12px;
+    height: 55px;
+}
+
+.cabecalho h1 {
+    font-size: 16px;
+    max-width: 150px;
+}
+
+.voltar {
+    width: 32px;
+    height: 32px;
+}
+
+.voltar svg {
+    width: 24px;
+    height: 24px;
 }
