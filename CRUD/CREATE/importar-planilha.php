@@ -298,15 +298,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                tipo_bem_id, editado_tipo_bem_id, bem, editado_bem,
                                complemento, editado_complemento, dependencia_id, editado_dependencia_id,
                                checado, editado, imprimir_etiqueta, imprimir_14_1,
-                               observacao, ativo, novo,
-                               condicao_14_1, numero_nota, data_emissao, valor_nota, fornecedor_nota
+                               observacao, ativo, novo
                                ) VALUES (
                                :planilha_id, :codigo, :descricao_completa, '',
                                :tipo_bem_id, 0, :bem, '',
                                :complemento, '', :dependencia_id, 0,
                                0, 0, 0, :imprimir_14_1,
-                               :observacao, 1, 0,
-                               :condicao_141, :numero_nota, :data_emissao, :valor_nota, :fornecedor_nota
+                               :observacao, 1, 0
                                )";
                 $stmt_prod = $conexao->prepare($sql_produto);
                 $stmt_prod->bindValue(':planilha_id', $id_planilha, PDO::PARAM_INT);
@@ -317,11 +315,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt_prod->bindValue(':complemento', $complemento_limpo);
                 $stmt_prod->bindValue(':dependencia_id', $dependencia_id, PDO::PARAM_INT);
                 $stmt_prod->bindValue(':observacao', $obs_prefix);
-                $stmt_prod->bindValue(':condicao_141', $condicao_141, PDO::PARAM_INT);
-                $stmt_prod->bindValue(':numero_nota', $numero_nota);
-                $stmt_prod->bindValue(':data_emissao', $data_emissao);
-                $stmt_prod->bindValue(':valor_nota', $valor_nota);
-                $stmt_prod->bindValue(':fornecedor_nota', $fornecedor_nota);
+                // Campos de condição 14.1 e nota fiscal removidos
                 if ($stmt_prod->execute()) {
                     $registros_importados++;
                 } else {
