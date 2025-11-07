@@ -189,8 +189,8 @@ ob_start();
                         <?php endif; ?>
                       </div>
                       <div class="btn-group btn-group-sm">
-                        <a class="btn btn-outline-primary" title="Editar" href="./update-produto.php?id_produto=<?php echo $produto['id']; ?>&id=<?php echo $id_planilha; ?>&<?php echo gerarParametrosFiltro(true); ?>">
-                          <i class="bi bi-pencil"></i>
+                        <a class="btn btn-outline-primary btn-sm" title="Editar" href="./update-produto.php?id_produto=<?php echo $produto['id']; ?>&id=<?php echo $id_planilha; ?>&<?php echo gerarParametrosFiltro(true); ?>">
+                          <i class="bi bi-pencil-fill"></i>
                         </a>
                       </div>
                     </div>
