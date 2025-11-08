@@ -77,45 +77,35 @@ ob_start();
                 <table class="table table-hover mb-0" id="tabelaUsuarios">
                     <thead>
                         <tr>
-                            <th>Nome</th>
-                            <th style="width: 150px;" class="text-end">Ações</th>
+                            <th>Usuário</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php foreach ($usuarios as $usuario): ?>
-                            <?php $is_self = isset($_SESSION['usuario_id']) && (int)$_SESSION['usuario_id'] === (int)$usuario['id']; ?>
+                            <?php
+                                $telefone_limpo = preg_replace('/\D/','', $usuario['telefone'] ?? '');
+                                $wa_link = ($telefone_limpo && (strlen($telefone_limpo) === 10 || strlen($telefone_limpo) === 11))
+                                    ? ('https://wa.me/55' . $telefone_limpo)
+                                    : null;
+                            ?>
                             <tr data-nome="<?php echo strtolower(htmlspecialchars($usuario['nome'])); ?>" 
                                 data-status="<?php echo $usuario['ativo']; ?>">
                                 <td>
-                                    <strong><?php echo htmlspecialchars($usuario['nome']); ?></strong><br>
-                                    <small class="text-muted">ID #<?php echo (int)$usuario['id']; ?> | <?php echo htmlspecialchars($usuario['email']); ?></small><br>
-                                    <small class="badge rounded-pill bg-<?php echo $usuario['ativo'] ? 'success' : 'secondary'; ?>">
-                                        <?php echo $usuario['ativo'] ? 'Ativo' : 'Inativo'; ?>
-                                    </small>
-                                </td>
-                                <td class="text-end">
-                                    <div class="btn-group" role="group">
-                                        <?php if ($is_self): ?>
-                                            <a href="./editar-usuario.php?id=<?php echo $usuario['id']; ?>" 
-                                               class="btn btn-sm btn-outline-primary" title="Editar Meu Perfil">
-                                                <i class="bi bi-pencil"></i>
+                                    <div class="d-flex flex-column">
+                                        <div class="fw-semibold text-wrap"><?php echo htmlspecialchars($usuario['nome']); ?></div>
+                                        <div class="small text-muted text-wrap"><?php echo htmlspecialchars($usuario['email']); ?></div>
+                                        <div class="mt-2 d-flex gap-2 flex-wrap">
+                                            <a href="./editar-usuario.php?id=<?php echo $usuario['id']; ?>"
+                                               class="btn btn-sm btn-outline-secondary" title="Visualizar">
+                                                <i class="bi bi-eye"></i> Visualizar
                                             </a>
-                                            <?php 
-                                                $telefone_limpo = preg_replace('/\D/','', $usuario['telefone'] ?? '');
-                                                if ($telefone_limpo && (strlen($telefone_limpo) === 10 || strlen($telefone_limpo) === 11)):
-                                                    $wa_link = 'https://wa.me/55' . $telefone_limpo; 
-                                            ?>
+                                            <?php if ($wa_link): ?>
                                                 <a href="<?php echo $wa_link; ?>" target="_blank" rel="noopener" 
                                                    class="btn btn-sm btn-outline-success" title="WhatsApp">
-                                                    <i class="bi bi-whatsapp"></i>
+                                                    <i class="bi bi-whatsapp"></i> WhatsApp
                                                 </a>
                                             <?php endif; ?>
-                                        <?php else: ?>
-                                            <a href="./editar-usuario.php?id=<?php echo $usuario['id']; ?>" 
-                                               class="btn btn-sm btn-outline-secondary" title="Visualizar">
-                                                <i class="bi bi-eye"></i>
-                                            </a>
-                                        <?php endif; ?>
+                                        </div>
                                     </div>
                                 </td>
                             </tr>
@@ -182,8 +172,9 @@ function aplicarFiltros() {
         }
     });
 
-    // Atualizar contador
-    document.getElementById('totalUsuarios').textContent = totalVisiveis;
+    // Atualizar contador (se existir no layout)
+    const totalEl = document.getElementById('totalUsuarios');
+    if (totalEl) totalEl.textContent = totalVisiveis;
 }
 
 function excluirUsuario(id, nome) {
