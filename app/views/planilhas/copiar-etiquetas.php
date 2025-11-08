@@ -22,7 +22,7 @@ try {
     $sql_dependencias = "
         SELECT DISTINCT d.descricao as dependencia FROM produtos p
         LEFT JOIN dependencias d ON COALESCE(p.editado_dependencia_id, p.dependencia_id) = d.id
-        WHERE p.id_planilha = :id_planilha AND d.descricao IS NOT NULL
+        WHERE p.planilha_id = :id_planilha AND d.descricao IS NOT NULL
         ORDER BY dependencia
     ";
     $stmt_dependencias = $conexao->prepare($sql_dependencias);
@@ -39,7 +39,7 @@ try {
                      FROM produtos p 
                      LEFT JOIN dependencias d_orig ON p.dependencia_id = d_orig.id
                      LEFT JOIN dependencias d_edit ON p.editado_dependencia_id = d_edit.id
-                     WHERE p.id_planilha = :id_planilha AND COALESCE(p.imprimir_etiqueta, 0) = 1";
+                     WHERE p.planilha_id = :id_planilha AND COALESCE(p.imprimir_etiqueta, 0) = 1";
     if (!empty($dependencia_selecionada)) {
         $sql_produtos .= " AND (
             (COALESCE(d_edit.descricao, d_orig.descricao) = :dependencia)
