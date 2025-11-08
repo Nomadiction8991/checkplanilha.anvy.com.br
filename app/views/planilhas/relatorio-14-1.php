@@ -258,12 +258,16 @@ ob_start();
                                 trim(($row['doador_endereco_estado'] ?? ''))
                             ])));
                             $end_doador_cep = trim($row['doador_endereco_cep'] ?? '');
-                            $endereco_doador_final = trim(implode(' | ', array_filter([
-                                $end_doador,
-                                $end_doador_comp,
-                                $end_doador_local,
-                                $end_doador_cep
-                            ])));
+                            // Formatação amigável: Partes principais separadas por vírgula; cidade-UF agrupadas; CEP no final se existir.
+                            $partesEnd = [];
+                            if ($end_doador) $partesEnd[] = $end_doador; // Rua + número
+                            if ($end_doador_comp) $partesEnd[] = $end_doador_comp; // Complemento - Bairro
+                            if ($end_doador_local) $partesEnd[] = $end_doador_local; // Cidade - UF
+                            $endereco_doador_final = implode(', ', $partesEnd);
+                            if ($end_doador_cep) {
+                                $endereco_doador_final = rtrim($endereco_doador_final, ', ');
+                                $endereco_doador_final .= ($endereco_doador_final ? ' - ' : '') . $end_doador_cep;
+                            }
 
                             // Doador: nome, CPF, RG, Endereço
                             $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input17', (string)($row['doador_nome'] ?? ''));
@@ -320,12 +324,15 @@ ob_start();
                                     trim(($row['doador_endereco_estado'] ?? ''))
                                 ])));
                                 $end_conj_cep = trim($row['doador_endereco_cep'] ?? '');
-                                $endereco_conjuge_final = trim(implode(' | ', array_filter([
-                                    $end_conj,
-                                    $end_conj_comp,
-                                    $end_conj_local,
-                                    $end_conj_cep
-                                ])));
+                                $partesConj = [];
+                                if ($end_conj) $partesConj[] = $end_conj;
+                                if ($end_conj_comp) $partesConj[] = $end_conj_comp;
+                                if ($end_conj_local) $partesConj[] = $end_conj_local;
+                                $endereco_conjuge_final = implode(', ', $partesConj);
+                                if ($end_conj_cep) {
+                                    $endereco_conjuge_final = rtrim($endereco_conjuge_final, ', ');
+                                    $endereco_conjuge_final .= ($endereco_conjuge_final ? ' - ' : '') . $end_conj_cep;
+                                }
                                 if (!empty($endereco_conjuge_final)) {
                                     $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input20', $endereco_conjuge_final);
                                 }
