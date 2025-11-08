@@ -13,30 +13,47 @@ if (!$id_planilha) {
 
 // Buscar produtos que podem ser assinados (imprimir_14_1 = 1)
 $sql = "SELECT 
-            pc.id,
-            pc.descricao_completa,
-            pc.tipo_ben,
+            p.id_produto,
+            p.descricao_completa,
+            p.tipo_bem_id,
+            p.condicao_14_1,
+            p.doador_conjugue_id,
             tb.descricao as tipo_descricao,
-            COALESCE(a.status, 'pendente') as status_assinatura,
-            a.id as id_assinatura
-        FROM produtos_cadastro pc
-        LEFT JOIN tipos_bens tb ON pc.id_tipo_ben = tb.id
-        LEFT JOIN assinaturas_14_1 a ON a.id_produto = pc.id
-        WHERE pc.id_planilha = :id_planilha 
-        AND pc.imprimir_14_1 = 1
-        ORDER BY pc.id ASC";
+            u.nome as doador_nome
+        FROM produtos p
+        LEFT JOIN tipos_bens tb ON p.tipo_bem_id = tb.id
+        LEFT JOIN usuarios u ON p.doador_conjugue_id = u.id
+        WHERE p.planilha_id = :id_planilha 
+        AND p.imprimir_14_1 = 1
+        ORDER BY p.id_produto ASC";
 
 $stmt = $conexao->prepare($sql);
 $stmt->bindValue(':id_planilha', $id_planilha);
 $stmt->execute();
 $produtos = $stmt->fetchAll();
 
+// Calcular estatísticas
+$total_produtos = count($produtos);
+$produtos_assinados = 0;
+$doacoes_por_pessoa = [];
+
+foreach ($produtos as $produto) {
+    if (!empty($produto['doador_conjugue_id'])) {
+        $produtos_assinados++;
+        $nome_doador = $produto['doador_nome'] ?? 'Sem nome';
+        if (!isset($doacoes_por_pessoa[$nome_doador])) {
+            $doacoes_por_pessoa[$nome_doador] = 0;
+        }
+        $doacoes_por_pessoa[$nome_doador]++;
+    }
+}
+
+// Ordenar por quantidade de doações
+arsort($doacoes_por_pessoa);
+
 $pageTitle = 'Assinar Documentos 14.1';
 $backUrl = 'relatorio-14-1.php?id=' . urlencode($id_planilha);
 $headerActions = '';
-
-ob_start();
-$form_url = base_url('app/views/planilhas/assinatura-14-1-form.php');
 
 ob_start();
 ?>
@@ -54,162 +71,159 @@ ob_start();
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.produto-card.status-pendente {
-    border-left-color: #ffc107;
+.produto-card.assinado {
+    border-left-color: #28a745;
 }
 
-.produto-card.status-assinado {
-    border-left-color: #28a745;
+.produto-card.pendente {
+    border-left-color: #ffc107;
 }
 
 .produto-card.selected {
     background-color: #e7f3ff;
+    border-color: #007bff !important;
     border-left-color: #007bff !important;
-    box-shadow: 0 0 0 2px #007bff;
 }
 
-.checkbox-produto {
-    width: 1.25rem;
-    height: 1.25rem;
-    cursor: pointer;
-}
-
-.selection-toolbar {
-    position: sticky;
-    top: 60px;
-    z-index: 100;
-    background: white;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    padding: 1rem;
-    border-radius: 0.375rem;
-    margin-bottom: 1rem;
-    display: none;
-}
-
-.selection-toolbar.active {
-    display: block;
-}
-
-.selection-toolbar .d-flex {
-    flex-direction: column !important;
-    gap: 1rem;
-}
-
-.selection-toolbar .d-flex > div {
-    width: 100%;
-}
-
-.selection-toolbar button {
-    width: 100%;
-    display: block;
-}
-
-.legenda-status {
-    display: flex;
-    gap: 1.5rem;
-    flex-wrap: wrap;
-    align-items: center;
-}
-
-.legenda-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+.doador-tag {
+    display: inline-block;
+    background: #28a745;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
     font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
 }
 
-.legenda-cor {
-    width: 30px;
-    height: 20px;
-    border-radius: 3px;
-    border-left: 4px solid;
+.stats-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
 }
 
-.legenda-cor.pendente {
-    border-left-color: #ffc107;
+.stats-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    line-height: 1;
 }
 
-.legenda-cor.assinado {
-    border-left-color: #28a745;
+.doacoes-list {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.doacao-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+.doacao-item:last-child {
+    border-bottom: none;
 }
 </style>
 
-<div class="card mb-3">
-    <div class="card-header bg-primary text-white">
-        <i class="bi bi-pen me-2"></i>
-        Selecione os Produtos para Assinar
-    </div>
-    <div class="card-body">
-        <p class="mb-3">
-            <i class="bi bi-info-circle me-1"></i>
-            Clique no produto para selecioná-lo. Você pode selecionar vários produtos para assinar todos de uma vez.
-        </p>
-        <!-- Legenda de Status -->
-        <div class="legenda-status">
-            <div class="legenda-item">
-                <div class="legenda-cor pendente"></div>
-                <span>Pendente</span>
+<!-- Resumo no topo -->
+<div class="row mb-4">
+    <div class="col-md-4 mb-3">
+        <div class="stats-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="text-white-50 mb-2">Total de Produtos</div>
+                    <div class="stats-number"><?php echo $total_produtos; ?></div>
+                </div>
+                <i class="bi bi-box-seam" style="font-size: 3rem; opacity: 0.3;"></i>
             </div>
-            <div class="legenda-item">
-                <div class="legenda-cor assinado"></div>
-                <span>Assinado</span>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-3">
+        <div class="stats-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="text-white-50 mb-2">Assinados</div>
+                    <div class="stats-number"><?php echo $produtos_assinados; ?></div>
+                </div>
+                <i class="bi bi-check-circle" style="font-size: 3rem; opacity: 0.3;"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-3">
+        <div class="stats-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="text-white-50 mb-2">Pendentes</div>
+                    <div class="stats-number"><?php echo $total_produtos - $produtos_assinados; ?></div>
+                </div>
+                <i class="bi bi-clock-history" style="font-size: 3rem; opacity: 0.3;"></i>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Barra de ferramentas flutuante -->
-<div class="selection-toolbar" id="selectionToolbar">
-    <div class="d-flex justify-content-between align-items-center">
-        <div>
-            <strong><span id="countSelected">0</span> produto(s) selecionado(s)</strong>
+<?php if (!empty($doacoes_por_pessoa)): ?>
+<div class="card mb-4">
+    <div class="card-header bg-white">
+        <h6 class="mb-0"><i class="bi bi-people-fill me-2"></i>Doações por Pessoa</h6>
+    </div>
+    <div class="card-body">
+        <div class="doacoes-list">
+            <?php foreach ($doacoes_por_pessoa as $nome => $quantidade): ?>
+            <div class="doacao-item">
+                <span><i class="bi bi-person me-2"></i><?php echo htmlspecialchars($nome); ?></span>
+                <span class="badge bg-primary"><?php echo $quantidade; ?> <?php echo $quantidade == 1 ? 'doação' : 'doações'; ?></span>
+            </div>
+            <?php endforeach; ?>
         </div>
-        <div class="d-flex gap-2">
-            <button type="button" class="btn btn-success" onclick="assinarSelecionados()">
-                <i class="bi bi-pen-fill me-1"></i>
-                Assinar Selecionados
-            </button>
-            <button type="button" class="btn btn-outline-secondary" onclick="limparSelecao()">
-                <i class="bi bi-x me-1"></i>
-                Cancelar
-            </button>
-        </div>
+    </div>
+</div>
+<?php endif; ?>
+
+<div class="card mb-3">
+    <div class="card-header bg-primary text-white">
+        <i class="bi bi-pen me-2"></i>
+        Produtos para Assinar
+    </div>
+    <div class="card-body">
+        <p class="mb-0">
+            <i class="bi bi-info-circle me-1"></i>
+            Clique em um produto para assinar e definir as condições do relatório 14.1
+        </p>
     </div>
 </div>
 
 <?php if (count($produtos) > 0): ?>
     <div class="row g-3">
-        <?php foreach ($produtos as $produto): ?>
+        <?php foreach ($produtos as $produto): 
+            $assinado = !empty($produto['doador_conjugue_id']);
+            $status_class = $assinado ? 'assinado' : 'pendente';
+        ?>
             <div class="col-12">
-                <div class="card produto-card status-<?php echo $produto['status_assinatura']; ?>" 
-                     data-produto-id="<?php echo $produto['id']; ?>"
-                     onclick="toggleProduto(<?php echo $produto['id']; ?>)">
+                <div class="card produto-card <?php echo $status_class; ?>" 
+                     data-produto-id="<?php echo $produto['id_produto']; ?>"
+                     onclick="abrirAssinatura(<?php echo $produto['id_produto']; ?>)"
+                     style="cursor: pointer;">
                     <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div class="d-flex align-items-start gap-3 flex-grow-1">
-                                <div class="form-check">
-                                    <input class="form-check-input checkbox-produto" 
-                                           type="checkbox" 
-                                           id="produto_<?php echo $produto['id']; ?>"
-                                           value="<?php echo $produto['id']; ?>"
-                                           onclick="event.stopPropagation();">
-                                </div>
-                                <div class="flex-grow-1">
-                                    <h6 class="card-title mb-2">
-                                        <i class="bi bi-box-seam me-1"></i>
-                                        Produto
-                                    </h6>
-                                    <p class="card-text small mb-2">
-                                        <strong>Tipo:</strong> 
-                                        <?php echo htmlspecialchars($produto['tipo_descricao'] ?? 'N/A'); ?>
-                                    </p>
-                                    <p class="card-text small text-muted mb-0" style="max-height: 3em; overflow: hidden;">
-                                        <?php echo htmlspecialchars(substr($produto['descricao_completa'], 0, 150)); ?>
-                                        <?php if (strlen($produto['descricao_completa']) > 150): ?>...<?php endif; ?>
-                                    </p>
-                                </div>
-                            </div>
+                        <?php if ($assinado): ?>
+                        <div class="doador-tag">
+                            <i class="bi bi-check-circle-fill me-1"></i>
+                            Doado por: <?php echo htmlspecialchars($produto['doador_nome']); ?>
                         </div>
+                        <?php endif; ?>
+                        
+                        <h6 class="card-title mb-2">
+                            <i class="bi bi-box-seam me-1"></i>
+                            <?php echo htmlspecialchars($produto['tipo_descricao'] ?? 'Produto'); ?>
+                        </h6>
+                        <p class="card-text small text-muted mb-0">
+                            <?php echo htmlspecialchars(substr($produto['descricao_completa'], 0, 150)); ?>
+                            <?php if (strlen($produto['descricao_completa']) > 150): ?>...<?php endif; ?>
+                        </p>
                     </div>
                 </div>
             </div>
@@ -228,89 +242,9 @@ ob_start();
 <?php endif; ?>
 
 <script>
-let produtosSelecionados = new Set();
-
-function toggleProduto(id) {
-    const checkbox = document.getElementById('produto_' + id);
-    const card = document.querySelector('[data-produto-id="' + id + '"]');
-    
-    if (checkbox.checked) {
-        checkbox.checked = false;
-        produtosSelecionados.delete(id);
-        card.classList.remove('selected');
-    } else {
-        checkbox.checked = true;
-        produtosSelecionados.add(id);
-        card.classList.add('selected');
-    }
-    
-    atualizarToolbar();
+function abrirAssinatura(id) {
+    window.location.href = 'assinatura-14-1-form.php?id=' + id + '&id_planilha=<?php echo $id_planilha; ?>';
 }
-
-function atualizarToolbar() {
-    const toolbar = document.getElementById('selectionToolbar');
-    const counter = document.getElementById('countSelected');
-    const count = produtosSelecionados.size;
-    
-    console.log('Produtos selecionados:', count);
-    counter.textContent = count;
-    
-    if (count > 0) {
-        toolbar.classList.add('active');
-        toolbar.style.display = 'block';
-        console.log('Toolbar ativada!');
-    } else {
-        toolbar.classList.remove('active');
-        toolbar.style.display = 'none';
-        console.log('Toolbar desativada!');
-    }
-}
-
-function limparSelecao() {
-    const checkboxes = document.querySelectorAll('.checkbox-produto');
-    checkboxes.forEach(cb => {
-        cb.checked = false;
-        const card = document.querySelector('[data-produto-id="' + cb.value + '"]');
-        if (card) card.classList.remove('selected');
-    });
-    produtosSelecionados.clear();
-    atualizarToolbar();
-}
-
-function assinarSelecionados() {
-    if (produtosSelecionados.size === 0) {
-        alert('Selecione pelo menos um produto para assinar.');
-        return;
-    }
-    
-    const ids = Array.from(produtosSelecionados).join(',');
-    window.location.href = '<?php echo $form_url; ?>?ids=' + ids + '&id_planilha=<?php echo $id_planilha; ?>';
-}
-
-// Listener nos checkboxes para sincronizar com a seleção
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Página carregada! Buscando checkboxes...');
-    const checkboxes = document.querySelectorAll('.checkbox-produto');
-    console.log('Checkboxes encontrados:', checkboxes.length);
-    
-    checkboxes.forEach(cb => {
-        cb.addEventListener('change', function(e) {
-            const id = parseInt(this.value);
-            console.log('Checkbox clicado! ID:', id, 'Checked:', this.checked);
-            const card = document.querySelector('[data-produto-id="' + id + '"]');
-            
-            if (this.checked) {
-                produtosSelecionados.add(id);
-                if (card) card.classList.add('selected');
-            } else {
-                produtosSelecionados.delete(id);
-                if (card) card.classList.remove('selected');
-            }
-            
-            atualizarToolbar();
-        });
-    });
-});
 </script>
 
 <?php
