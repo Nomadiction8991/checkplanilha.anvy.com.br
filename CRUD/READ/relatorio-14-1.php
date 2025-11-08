@@ -7,7 +7,7 @@ require_once __DIR__ . '/../conexao.php';
 $id_planilha = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
 // Buscar dados da planilha com JOIN na tabela comums
-$sql_planilha = "SELECT c.descricao as comum, c.cnpj, c.administracao, c.cidade 
+$sql_planilha = "SELECT c.descricao as comum, c.cnpj, c.administracao, c.cidade, c.codigo as comum_codigo, c.descricao as comum_descricao 
                  FROM planilhas p
                  LEFT JOIN comums c ON p.comum_id = c.id
                  WHERE p.id = :id_planilha";
@@ -20,6 +20,8 @@ $comum_planilha = $planilha ? ($planilha['comum'] ?? '') : '';
 $cnpj_planilha = $planilha ? ($planilha['cnpj'] ?? '') : '';
 $administracao_planilha = $planilha ? ($planilha['administracao'] ?? '') : '';
 $cidade_planilha = $planilha ? ($planilha['cidade'] ?? '') : '';
+$comum_codigo = $planilha ? ($planilha['comum_codigo'] ?? '') : '';
+$comum_descricao = $planilha ? ($planilha['comum_descricao'] ?? '') : '';
 
 // Derivar número do relatório e casa de oração a partir de "comum"
 // Regra: número do relatório = apenas dígitos antes do segundo '-' ; casa de oração = texto após o segundo '-'
@@ -48,6 +50,14 @@ if (!empty($comum_planilha)) {
         // Rejuntar tudo a partir da terceira parte para manter possíveis '-' internos após o segundo
         $casa_oracao_auto = trim(implode(' - ', array_slice($partes, 2)));
     }
+}
+
+// Regra solicitada: número do relatório = código da comum; casa de oração = descrição da comum
+if (!empty($comum_codigo)) {
+    $numero_relatorio_auto = (string)$comum_codigo;
+}
+if (!empty($comum_descricao)) {
+    $casa_oracao_auto = (string)$comum_descricao;
 }
 
 // Consultar produtos que devem imprimir o relatório 14.1
