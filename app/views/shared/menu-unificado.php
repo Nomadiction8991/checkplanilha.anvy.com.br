@@ -90,9 +90,11 @@ ob_start();
                 <a href="../planilhas/copiar-etiquetas.php?id=<?php echo $id_planilha; ?>" class="list-group-item list-group-item-action">
                     <i class="bi bi-tags me-2"></i>Copiar Etiquetas
                 </a>
+                <?php if (isAdmin()): ?>
                 <a href="../planilhas/editar-planilha.php?id=<?php echo $id_planilha; ?>" class="list-group-item list-group-item-action">
                     <i class="bi bi-pencil me-2"></i>Editar Planilha
                 </a>
+                <?php endif; ?>
             <?php endif; ?>
         <?php endif; ?>
         
@@ -103,9 +105,11 @@ ob_start();
             <a href="../planilhas/view-planilha.php?id=<?php echo $id_planilha; ?>" class="list-group-item list-group-item-action">
                 <i class="bi bi-eye me-2"></i>Ver Planilha
             </a>
+            <?php if (isAdmin()): ?>
             <a href="../planilhas/editar-planilha.php?id=<?php echo $id_planilha; ?>" class="list-group-item list-group-item-action">
                 <i class="bi bi-pencil me-2"></i>Editar Planilha
             </a>
+            <?php endif; ?>
             <div class="list-group-item bg-light text-muted small fw-semibold">
                 <i class="bi bi-pen me-1"></i> ASSINATURAS
             </div>

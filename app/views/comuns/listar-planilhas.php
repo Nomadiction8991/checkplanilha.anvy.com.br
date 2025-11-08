@@ -232,9 +232,11 @@ ob_start();
                                             <a href="../planilhas/view-planilha.php?id=<?php echo $planilha['id']; ?>" class="btn btn-sm btn-primary" title="Visualizar">
                                                 <i class="bi bi-eye"></i>
                                             </a>
-                                            <a href="../planilhas/editar-planilha.php?id=<?php echo $planilha['id']; ?>" class="btn btn-sm btn-warning" title="Editar">
-                                                <i class="bi bi-pencil"></i>
-                                            </a>
+                                                <?php if (isAdmin()): ?>
+                                                <a href="../planilhas/editar-planilha.php?id=<?php echo $planilha['id']; ?>" class="btn btn-sm btn-warning" title="Editar">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <?php endif; ?>
                                         </div>
                                     </td>
                                 </tr>
