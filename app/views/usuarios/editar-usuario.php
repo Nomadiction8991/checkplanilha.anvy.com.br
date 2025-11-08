@@ -21,8 +21,8 @@ if (!$isSelf && !isAdmin()) {
 include __DIR__ . '/../../../CRUD/UPDATE/usuario.php';
 
 $pageTitle = $isSelf ? 'Editar Usuário' : 'Visualizar Usuário';
-// Voltar: self vai para index, admin vendo outro volta para listagem
-$backUrl = $isSelf ? '../../../index.php' : './read-usuario.php';
+// Voltar: self e admin vão para listagem; outros vão para index
+$backUrl = (isAdmin() || $isSelf) ? './read-usuario.php' : '../../../index.php';
 
 ob_start();
 ?>

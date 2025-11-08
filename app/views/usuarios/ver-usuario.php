@@ -56,14 +56,6 @@ ob_start();
 </style>
 
 <?php if (isset($usuario)): ?>
-<div class="mb-3">
-    <?php if ($isSelf): ?>
-    <a href="./editar-usuario.php?id=<?php echo $usuario['id']; ?>" class="btn btn-primary">
-        <i class="bi bi-pencil me-1"></i>
-        Editar Meu Perfil
-    </a>
-    <?php endif; ?>
-</div>
 
 <!-- Card 1: Dados Básicos -->
 <div class="card mb-3">
