@@ -6,8 +6,11 @@ require_once __DIR__ . '/../conexao.php';
 // Pegar o ID da planilha via GET
 $id_planilha = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
-// Buscar dados da planilha para obter os valores das colunas necessárias
-$sql_planilha = "SELECT comum, cnpj, administracao, cidade FROM planilhas WHERE id = :id_planilha";
+// Buscar dados da planilha com JOIN na tabela comums
+$sql_planilha = "SELECT c.descricao as comum, c.cnpj, c.administracao, c.cidade 
+                 FROM planilhas p
+                 LEFT JOIN comums c ON p.comum_id = c.id
+                 WHERE p.id = :id_planilha";
 $stmt_planilha = $conexao->prepare($sql_planilha);
 $stmt_planilha->bindValue(':id_planilha', $id_planilha);
 $stmt_planilha->execute();
