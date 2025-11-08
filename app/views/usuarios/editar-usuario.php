@@ -1,23 +1,28 @@
 <?php
 require_once __DIR__ . '/../../../auth.php'; // Autenticação
 
-// Permissões:
-// - Admin: pode editar qualquer usuário
-// - Doador/Cônjuge: pode editar apenas o próprio cadastro
-if (!isAdmin()) {
-    $idParam = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-    $loggedId = isset($_SESSION['usuario_id']) ? (int)$_SESSION['usuario_id'] : 0;
-    if (!$idParam || !$loggedId || $idParam !== $loggedId || !isDoador()) {
-        header('Location: ../../../index.php');
-        exit;
-    }
+// Visualizar / Editar lógica:
+// - Qualquer usuário acessa sua própria página em modo edição
+// - Administrador pode visualizar outros usuários em modo somente leitura
+// - Doador/Cônjuge não tem listagem, então só verá seu próprio usuário
+$idParam = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$loggedId = isset($_SESSION['usuario_id']) ? (int)$_SESSION['usuario_id'] : 0;
+$isSelf = ($idParam && $loggedId && $idParam === $loggedId);
+if (!$idParam) {
+    header('Location: ../../../index.php');
+    exit;
+}
+// Se não for self e não for admin, bloquear
+if (!$isSelf && !isAdmin()) {
+    header('Location: ../../../index.php');
+    exit;
 }
 
 include __DIR__ . '/../../../CRUD/UPDATE/usuario.php';
 
-$pageTitle = 'Editar Usuário';
-// Voltar para a listagem se admin, senão voltar para o index
-$backUrl = isAdmin() ? './read-usuario.php' : '../../../index.php';
+$pageTitle = $isSelf ? 'Editar Usuário' : 'Visualizar Usuário';
+// Voltar: self vai para index, admin vendo outro volta para listagem
+$backUrl = $isSelf ? '../../../index.php' : './read-usuario.php';
 
 ob_start();
 ?>
@@ -268,12 +273,18 @@ ob_start();
         </div>
     </div>
 
+    <?php if ($isSelf): ?>
     <div class="d-grid gap-2">
         <button type="submit" class="btn btn-primary w-100">
             <i class="bi bi-check-lg me-1"></i>
             Atualizar
         </button>
     </div>
+    <?php else: ?>
+    <div class="alert alert-secondary mt-2 mb-0 small">
+        <i class="bi bi-eye me-1"></i> Modo de visualização (somente leitura)
+    </div>
+    <?php endif; ?>
 </form>
 
 <!-- Modal fullscreen para assinatura -->
@@ -657,9 +668,24 @@ document.addEventListener('DOMContentLoaded', function() {
     if (existingSignature) drawImageOnCanvas('canvas_usuario', existingSignature);
     const existingConjuge = document.getElementById('assinatura_conjuge').value;
     if (existingConjuge) drawImageOnCanvas('canvas_conjuge', existingConjuge);
+    // Se não é o próprio usuário, desabilitar todos campos
+    <?php if (!$isSelf): ?>
+    Array.from(document.querySelectorAll('#formUsuario input, #formUsuario select, #formUsuario button.btn-primary')).forEach(el => {
+        // Manter botões de fechar modal ocultos caso abram; impedir abrir modal
+        if (el.tagName === 'BUTTON') {
+            el.disabled = true;
+        } else {
+            el.setAttribute('disabled','disabled');
+        }
+    });
+    // Evitar submissão
+    const form = document.getElementById('formUsuario');
+    form.addEventListener('submit', e => { e.preventDefault(); });
+    <?php endif; ?>
 });
 
 // ========== VALIDAÇÃO E ENVIO DO FORMULÁRIO ==========
+<?php if ($isSelf): ?>
 document.getElementById('formUsuario').addEventListener('submit', function(e) {
     const senha = document.getElementById('senha').value;
     const confirmar = document.getElementById('confirmar_senha').value;
@@ -694,6 +720,7 @@ document.getElementById('formUsuario').addEventListener('submit', function(e) {
     }
     // Assinaturas já estão salvas nos campos hidden
 });
+<?php endif; ?>
 </script>
 <?php endif; ?>
 

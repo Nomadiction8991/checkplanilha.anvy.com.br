@@ -11,6 +11,13 @@ if (!$id) {
     exit;
 }
 
+// Nova regra: qualquer usuário só pode alterar o PRÓPRIO cadastro
+$loggedId = isset($_SESSION['usuario_id']) ? (int)$_SESSION['usuario_id'] : 0;
+if ((int)$id !== $loggedId) {
+    header('Location: ../../../index.php');
+    exit;
+}
+
 // Buscar usuário
 try {
     $stmt = $conexao->prepare('SELECT * FROM usuarios WHERE id = :id');
