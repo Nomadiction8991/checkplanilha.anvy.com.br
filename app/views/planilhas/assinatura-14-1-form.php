@@ -33,7 +33,14 @@ if (empty($produtos)) {
     exit;
 }
 
-$pageTitle = $multiplo ? 'Assinar ' . count($produtos) . ' Produtos' : 'Assinar Produto';
+$todos_assinados = !empty($produtos) && array_reduce($produtos, function($carry, $p){
+    return $carry && !is_null($p['doador_conjugue_id']) && $p['doador_conjugue_id'] > 0;
+}, true);
+
+// Ajustar título conforme estado (todos assinados => desfazer)
+$pageTitle = $todos_assinados
+    ? ($multiplo ? 'Desfazer Assinatura de ' . count($produtos) . ' Produtos' : 'Desfazer Assinatura do Produto')
+    : ($multiplo ? 'Assinar ' . count($produtos) . ' Produtos' : 'Assinar Produto');
 $backUrl = 'assinatura-14-1.php?id=' . urlencode($id_planilha);
 ob_start();
 ?>
@@ -50,7 +57,7 @@ ob_start();
 .produto-info { background: #e9ecef; border-radius: 0.5rem; padding: 1rem; margin-bottom: 1rem; border-left: 4px solid #007bff; }
 </style>
 
-<?php if ($multiplo): ?>
+<?php if ($multiplo && !$todos_assinados): ?>
 <div class="alert alert-info mb-3">
     <h5 class="mb-2"><i class="bi bi-info-circle-fill me-2"></i>Assinatura Múltipla</h5>
     <p class="mb-0">Você está assinando <strong><?php echo count($produtos); ?> produtos</strong> de uma vez. As mesmas condições serão aplicadas a todos.</p>
@@ -68,20 +75,32 @@ ob_start();
         </ul>
     </div>
 </div>
-<?php else: ?>
+<?php elseif(!$multiplo && !$todos_assinados): ?>
 <?php $produto = $produtos[0]; ?>
 <div class="produto-info">
     <h6 class="mb-2"><i class="bi bi-box-seam me-2"></i><?php echo htmlspecialchars($produto['tipo_descricao']); ?></h6>
     <p class="mb-0 small"><?php echo htmlspecialchars($produto['descricao_completa']); ?></p>
 </div>
 <?php endif; ?>
+<?php if($todos_assinados && $multiplo): ?>
+<div class="alert alert-warning mb-3">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    Todos os produtos selecionados já estão assinados. Você pode desfazer a assinatura abaixo.
+</div>
+<?php elseif($todos_assinados && !$multiplo): ?>
+<div class="alert alert-warning mb-3">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    Este produto já está assinado. Você pode desfazer a assinatura abaixo.
+</div>
+<?php endif; ?>
 
-<form id="formAssinatura" method="POST" action="../../../CRUD/UPDATE/assinar-produto-14-1.php">
+<form id="formAssinatura" method="POST" action="../../../CRUD/UPDATE/<?php echo $todos_assinados ? 'desassinar-produto-14-1.php' : 'assinar-produto-14-1.php'; ?>">
     <?php foreach ($produtos_ids as $pid): ?>
     <input type="hidden" name="ids_produtos[]" value="<?php echo $pid; ?>">
     <?php endforeach; ?>
     <input type="hidden" name="id_planilha" value="<?php echo $id_planilha; ?>">
     
+    <?php if(!$todos_assinados): ?>
     <div class="card mb-4">
         <div class="card-header bg-primary text-white"><i class="bi bi-check2-square me-2"></i>Selecione a Condição do Bem</div>
         <div class="card-body">
@@ -106,7 +125,7 @@ ob_start();
         </div>
     </div>
     
-    <div class="card mb-4 campos-nota" id="camposNota">
+    <div class="card mb-4 campos-nota" id="camposNota" <?php if($todos_assinados): ?>style="display:none"<?php endif; ?>>
         <div class="card-header bg-info text-white"><i class="bi bi-receipt me-2"></i>Dados da Nota Fiscal</div>
         <div class="card-body">
             <div class="row">
@@ -129,11 +148,23 @@ ob_start();
             </div>
         </div>
     </div>
+    <?php endif; ?>
     
-    <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-success flex-fill"><i class="bi bi-check-lg me-2"></i>Salvar e Assinar</button>
-        <a href="<?php echo $backUrl; ?>" class="btn btn-outline-secondary"><i class="bi bi-x-lg me-2"></i>Cancelar</a>
-    </div>
+    <?php if(!$todos_assinados): ?>
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-success flex-fill"><i class="bi bi-check-lg me-2"></i>Salvar e Assinar</button>
+            <a href="<?php echo $backUrl; ?>" class="btn btn-outline-secondary"><i class="bi bi-x-lg me-2"></i>Cancelar</a>
+        </div>
+    <?php else: ?>
+        <div class="alert alert-warning mb-3">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            Estes produto(s) já estão assinados. Clique abaixo para desfazer a assinatura e limpar os dados de nota.
+        </div>
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-danger flex-fill"><i class="bi bi-arrow-counterclockwise me-2"></i>Desfazer Assinatura</button>
+            <a href="<?php echo $backUrl; ?>" class="btn btn-outline-secondary"><i class="bi bi-x-lg me-2"></i>Cancelar</a>
+        </div>
+    <?php endif; ?>
 </form>
 
 <script>
@@ -151,6 +182,12 @@ function selecionarCondicao(v) {
         ins.forEach(i => { i.required = false; i.value = ''; });
     }
 }
+// Se todos assinados não há seleção de condição
+<?php if($todos_assinados): ?>
+document.addEventListener('DOMContentLoaded', ()=>{
+    document.querySelectorAll('.radio-card input[type="radio"]').forEach(r=>r.disabled = true);
+});
+<?php endif; ?>
 </script>
 
 <?php

@@ -244,10 +244,36 @@ ob_start();
                             }
 
                             // Preencher campos do doador/cônjuge diretamente do produto (doador_conjugue_id)
-                            // Doador
+                            // Montagem de endereço completo do doador: logradouro, número, complemento, bairro - cidade/UF - CEP
+                            $end_doador = trim(implode(' ', array_filter([
+                                $row['doador_endereco_logradouro'] ?? '',
+                                $row['doador_endereco_numero'] ?? ''
+                            ])));
+                            $end_doador_comp = trim(implode(' - ', array_filter([
+                                $row['doador_endereco_complemento'] ?? '',
+                                $row['doador_endereco_bairro'] ?? ''
+                            ])));
+                            $end_doador_local = trim(implode(' - ', array_filter([
+                                trim(($row['doador_endereco_cidade'] ?? '')),
+                                trim(($row['doador_endereco_estado'] ?? ''))
+                            ])));
+                            $end_doador_cep = trim($row['doador_endereco_cep'] ?? '');
+                            $endereco_doador_final = trim(implode(' | ', array_filter([
+                                $end_doador,
+                                $end_doador_comp,
+                                $end_doador_local,
+                                $end_doador_cep
+                            ])));
+
+                            // Doador: nome, CPF, RG, Endereço
                             $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input17', (string)($row['doador_nome'] ?? ''));
+                            // CPF e RG: se vierem separados, manter; o template tem campos distintos
                             $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input21', (string)($row['doador_cpf'] ?? ''));
                             $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input23', (string)($row['doador_rg'] ?? ''));
+                            // Endereço do doador
+                            if (!empty($endereco_doador_final)) {
+                                $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input19', $endereco_doador_final);
+                            }
                             // Repetir nome do doador no termo de aceite
                             $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input29', (string)($row['doador_nome'] ?? ''));
                             
@@ -268,6 +294,29 @@ ob_start();
                                 $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input18', (string)($row['doador_nome_conjuge'] ?? ''));
                                 $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input22', (string)($row['doador_cpf_conjuge'] ?? ''));
                                 $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input24', (string)($row['doador_rg_conjuge'] ?? ''));
+                                // Endereço do cônjuge (utiliza os mesmos campos do doador; se houver específicos, ajustar aqui)
+                                $end_conj = trim(implode(' ', array_filter([
+                                    $row['doador_endereco_logradouro'] ?? '',
+                                    $row['doador_endereco_numero'] ?? ''
+                                ])));
+                                $end_conj_comp = trim(implode(' - ', array_filter([
+                                    $row['doador_endereco_complemento'] ?? '',
+                                    $row['doador_endereco_bairro'] ?? ''
+                                ])));
+                                $end_conj_local = trim(implode(' - ', array_filter([
+                                    trim(($row['doador_endereco_cidade'] ?? '')),
+                                    trim(($row['doador_endereco_estado'] ?? ''))
+                                ])));
+                                $end_conj_cep = trim($row['doador_endereco_cep'] ?? '');
+                                $endereco_conjuge_final = trim(implode(' | ', array_filter([
+                                    $end_conj,
+                                    $end_conj_comp,
+                                    $end_conj_local,
+                                    $end_conj_cep
+                                ])));
+                                if (!empty($endereco_conjuge_final)) {
+                                    $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input20', $endereco_conjuge_final);
+                                }
                                 
                                 // Assinatura do cônjuge
                                 $sigConjuge = (string)($row['doador_assinatura_conjuge'] ?? '');

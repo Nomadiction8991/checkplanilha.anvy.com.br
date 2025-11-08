@@ -198,9 +198,13 @@ ob_start();
             <strong><span id="contadorSelecionados">0</span> produto(s) selecionado(s)</strong>
         </div>
         <div>
-            <button type="button" class="btn btn-success btn-sm" onclick="assinarSelecionados()">
+            <button type="button" class="btn btn-success btn-sm" id="btnAssinarSelecionados" onclick="assinarSelecionados()">
                 <i class="bi bi-check2-all me-1"></i>
                 Assinar Selecionados
+            </button>
+            <button type="button" class="btn btn-danger btn-sm" id="btnDesfazerSelecionados" style="display:none" onclick="desfazerSelecionados()">
+                <i class="bi bi-arrow-counterclockwise me-1"></i>
+                Desfazer Assinatura
             </button>
             <button type="button" class="btn btn-outline-secondary btn-sm" onclick="limparSelecao()">
                 <i class="bi bi-x-lg me-1"></i>
@@ -228,6 +232,7 @@ ob_start();
                                        type="checkbox" 
                                        id="check_<?php echo $produto['id_produto']; ?>"
                                        value="<?php echo $produto['id_produto']; ?>"
+                                       data-assinado="<?php echo $assinado ? '1' : '0'; ?>"
                                        onchange="atualizarSelecao()"
                                        style="width: 1.25rem; height: 1.25rem; cursor: pointer;">
                             </div>
@@ -279,13 +284,27 @@ function atualizarSelecao() {
     
     const toolbar = document.getElementById('toolbarSelecao');
     const contador = document.getElementById('contadorSelecionados');
+    const btnAssinar = document.getElementById('btnAssinarSelecionados');
+    const btnDesfazer = document.getElementById('btnDesfazerSelecionados');
     
     contador.textContent = produtosSelecionados.size;
     
     if (produtosSelecionados.size > 0) {
         toolbar.style.display = 'block';
+        // Se todos selecionados estão assinados, mostra apenas Desfazer; caso contrário, mostra Assinar
+        const todosAssinados = Array.from(document.querySelectorAll('.form-check-input:checked'))
+            .every(cb => cb.getAttribute('data-assinado') === '1');
+        if (todosAssinados) {
+            btnDesfazer.style.display = 'inline-block';
+            btnAssinar.style.display = 'none';
+        } else {
+            btnDesfazer.style.display = 'none';
+            btnAssinar.style.display = 'inline-block';
+        }
     } else {
         toolbar.style.display = 'none';
+        btnDesfazer.style.display = 'none';
+        btnAssinar.style.display = 'inline-block';
     }
 }
 
@@ -308,6 +327,20 @@ function assinarSelecionados() {
 
 function abrirAssinatura(id) {
     window.location.href = 'assinatura-14-1-form.php?id=' + id + '&id_planilha=<?php echo $id_planilha; ?>';
+}
+
+function desfazerSelecionados(){
+    if (produtosSelecionados.size === 0) return;
+    if (!confirm('Deseja desfazer a assinatura dos itens selecionados e limpar os dados de nota?')) return;
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '../../../CRUD/UPDATE/desassinar-produto-14-1.php';
+    produtosSelecionados.forEach(id=>{
+        const inp = document.createElement('input'); inp.type='hidden'; inp.name='ids_produtos[]'; inp.value=id; form.appendChild(inp);
+    });
+    const pid = document.createElement('input'); pid.type='hidden'; pid.name='id_planilha'; pid.value='<?php echo htmlspecialchars($id_planilha, ENT_QUOTES); ?>'; form.appendChild(pid);
+    document.body.appendChild(form);
+    form.submit();
 }
 </script>
 

@@ -77,7 +77,14 @@ $sql = "SELECT
             doador.nome_conjuge as doador_nome_conjuge,
             doador.cpf_conjuge as doador_cpf_conjuge,
             doador.rg_conjuge as doador_rg_conjuge,
-            doador.assinatura_conjuge as doador_assinatura_conjuge
+            doador.assinatura_conjuge as doador_assinatura_conjuge,
+            doador.endereco_cep as doador_endereco_cep,
+            doador.endereco_logradouro as doador_endereco_logradouro,
+            doador.endereco_numero as doador_endereco_numero,
+            doador.endereco_complemento as doador_endereco_complemento,
+            doador.endereco_bairro as doador_endereco_bairro,
+            doador.endereco_cidade as doador_endereco_cidade,
+            doador.endereco_estado as doador_endereco_estado
         FROM produtos p
         LEFT JOIN tipos_bens tb ON p.tipo_bem_id = tb.id
         LEFT JOIN dependencias d ON p.dependencia_id = d.id
