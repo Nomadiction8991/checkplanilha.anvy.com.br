@@ -1,10 +1,30 @@
 <?php
-require_once __DIR__ . '/../../../auth.php'; // Autenticação
-
-// Apenas admins podem criar usuários via sistema interno
-if (!isAdmin() && !defined('PUBLIC_REGISTER')) {
-    header('Location: ../../../index.php');
-    exit;
+// Apenas incluir autenticação se NÃO for registro público
+if (!defined('PUBLIC_REGISTER')) {
+    require_once __DIR__ . '/../../../auth.php'; // Autenticação
+    
+    // Apenas admins podem criar usuários via sistema interno
+    if (!isAdmin()) {
+        header('Location: ../../../index.php');
+        exit;
+    }
+} else {
+    // Registro público - iniciar sessão se não existir
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    
+    // Definir funções auxiliares caso não estejam disponíveis
+    if (!function_exists('isAdmin')) {
+        function isAdmin() {
+            return isset($_SESSION['usuario_tipo']) && $_SESSION['usuario_tipo'] === 'Administrador/Acessor';
+        }
+    }
+    if (!function_exists('isDoador')) {
+        function isDoador() {
+            return isset($_SESSION['usuario_tipo']) && $_SESSION['usuario_tipo'] === 'Doador/Ministerio';
+        }
+    }
 }
 
 include __DIR__ . '/../../../CRUD/CREATE/usuario.php';
