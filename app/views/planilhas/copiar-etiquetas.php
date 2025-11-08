@@ -40,8 +40,8 @@ $dependencia_selecionada = $_GET['dependencia'] ?? '';
 try {
     $sql_produtos = "SELECT p.codigo, COALESCE(pc.dependencia, p.dependencia) as dependencia
                      FROM produtos p 
-                     INNER JOIN produtos_check pc ON p.id = pc.produto_id 
-                     WHERE p.id_planilha = :id_planilha AND pc.imprimir = 1";
+                     LEFT JOIN produtos_check pc ON p.id = pc.produto_id 
+                     WHERE p.id_planilha = :id_planilha AND COALESCE(p.imprimir_etiqueta, 0) = 1";
     if (!empty($dependencia_selecionada)) {
         $sql_produtos .= " AND (
             (CAST(pc.editado AS SIGNED) = 1 AND pc.dependencia = :dependencia) OR
