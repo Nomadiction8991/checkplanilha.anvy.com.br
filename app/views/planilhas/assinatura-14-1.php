@@ -127,62 +127,36 @@ ob_start();
 }
 </style>
 
-<!-- Resumo no topo -->
-<div class="row mb-4">
-    <div class="col-md-4 mb-3">
-        <div class="stats-card">
-            <div class="d-flex align-items-center justify-content-between">
-                <div>
-                    <div class="text-white-50 mb-2">Total de Produtos</div>
-                    <div class="stats-number"><?php echo $total_produtos; ?></div>
-                </div>
-                <i class="bi bi-box-seam" style="font-size: 3rem; opacity: 0.3;"></i>
-            </div>
-        </div>
+<!-- Resumo Informativo -->
+<div class="alert alert-info mb-4">
+    <h5 class="alert-heading mb-3">
+        <i class="bi bi-info-circle-fill me-2"></i>
+        Informações sobre as Assinaturas
+    </h5>
+    
+    <div class="mb-3">
+        <strong>Total de produtos nesta planilha:</strong> <?php echo $total_produtos; ?> 
+        (<?php echo $produtos_assinados; ?> assinados, <?php echo $total_produtos - $produtos_assinados; ?> pendentes)
     </div>
     
-    <div class="col-md-4 mb-3">
-        <div class="stats-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-            <div class="d-flex align-items-center justify-content-between">
-                <div>
-                    <div class="text-white-50 mb-2">Assinados</div>
-                    <div class="stats-number"><?php echo $produtos_assinados; ?></div>
-                </div>
-                <i class="bi bi-check-circle" style="font-size: 3rem; opacity: 0.3;"></i>
-            </div>
-        </div>
+    <?php if (!empty($doacoes_por_pessoa)): ?>
+    <div class="mb-2">
+        <strong>Produtos já assinados por:</strong>
     </div>
-    
-    <div class="col-md-4 mb-3">
-        <div class="stats-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-            <div class="d-flex align-items-center justify-content-between">
-                <div>
-                    <div class="text-white-50 mb-2">Pendentes</div>
-                    <div class="stats-number"><?php echo $total_produtos - $produtos_assinados; ?></div>
-                </div>
-                <i class="bi bi-clock-history" style="font-size: 3rem; opacity: 0.3;"></i>
-            </div>
-        </div>
+    <ul class="mb-0">
+        <?php foreach ($doacoes_por_pessoa as $nome => $quantidade): ?>
+        <li>
+            <strong><?php echo htmlspecialchars($nome); ?></strong> - 
+            <?php echo $quantidade; ?> <?php echo $quantidade == 1 ? 'produto' : 'produtos'; ?>
+        </li>
+        <?php endforeach; ?>
+    </ul>
+    <?php else: ?>
+    <div class="text-muted">
+        <em>Nenhum produto foi assinado ainda.</em>
     </div>
+    <?php endif; ?>
 </div>
-
-<?php if (!empty($doacoes_por_pessoa)): ?>
-<div class="card mb-4">
-    <div class="card-header bg-white">
-        <h6 class="mb-0"><i class="bi bi-people-fill me-2"></i>Doações por Pessoa</h6>
-    </div>
-    <div class="card-body">
-        <div class="doacoes-list">
-            <?php foreach ($doacoes_por_pessoa as $nome => $quantidade): ?>
-            <div class="doacao-item">
-                <span><i class="bi bi-person me-2"></i><?php echo htmlspecialchars($nome); ?></span>
-                <span class="badge bg-primary"><?php echo $quantidade; ?> <?php echo $quantidade == 1 ? 'doação' : 'doações'; ?></span>
-            </div>
-            <?php endforeach; ?>
-        </div>
-    </div>
-</div>
-<?php endif; ?>
 
 <div class="card mb-3">
     <div class="card-header bg-primary text-white">
@@ -190,10 +164,32 @@ ob_start();
         Produtos para Assinar
     </div>
     <div class="card-body">
-        <p class="mb-0">
+        <p class="mb-2">
             <i class="bi bi-info-circle me-1"></i>
-            Clique em um produto para assinar e definir as condições do relatório 14.1
+            <strong>Selecione</strong> um ou mais produtos e clique em "Assinar Selecionados" para assinar todos de uma vez.
         </p>
+        <p class="mb-0 text-muted small">
+            Ou clique diretamente em um produto individual para assiná-lo separadamente.
+        </p>
+    </div>
+</div>
+
+<!-- Barra de ações para produtos selecionados -->
+<div class="alert alert-success mb-3" id="toolbarSelecao" style="display: none;">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <strong><span id="contadorSelecionados">0</span> produto(s) selecionado(s)</strong>
+        </div>
+        <div>
+            <button type="button" class="btn btn-success btn-sm" onclick="assinarSelecionados()">
+                <i class="bi bi-check2-all me-1"></i>
+                Assinar Selecionados
+            </button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="limparSelecao()">
+                <i class="bi bi-x-lg me-1"></i>
+                Limpar Seleção
+            </button>
+        </div>
     </div>
 </div>
 
@@ -205,25 +201,38 @@ ob_start();
         ?>
             <div class="col-12">
                 <div class="card produto-card <?php echo $status_class; ?>" 
-                     data-produto-id="<?php echo $produto['id_produto']; ?>"
-                     onclick="abrirAssinatura(<?php echo $produto['id_produto']; ?>)"
-                     style="cursor: pointer;">
+                     data-produto-id="<?php echo $produto['id_produto']; ?>">
                     <div class="card-body">
-                        <?php if ($assinado): ?>
-                        <div class="doador-tag">
-                            <i class="bi bi-check-circle-fill me-1"></i>
-                            Doado por: <?php echo htmlspecialchars($produto['doador_nome']); ?>
+                        <div class="d-flex gap-3">
+                            <!-- Checkbox de seleção -->
+                            <div class="form-check">
+                                <input class="form-check-input" 
+                                       type="checkbox" 
+                                       id="check_<?php echo $produto['id_produto']; ?>"
+                                       value="<?php echo $produto['id_produto']; ?>"
+                                       onchange="atualizarSelecao()"
+                                       style="width: 1.25rem; height: 1.25rem; cursor: pointer;">
+                            </div>
+                            
+                            <!-- Conteúdo do produto -->
+                            <div class="flex-grow-1" onclick="abrirAssinatura(<?php echo $produto['id_produto']; ?>)" style="cursor: pointer;">
+                                <?php if ($assinado): ?>
+                                <div class="doador-tag">
+                                    <i class="bi bi-check-circle-fill me-1"></i>
+                                    Doado por: <?php echo htmlspecialchars($produto['doador_nome']); ?>
+                                </div>
+                                <?php endif; ?>
+                                
+                                <h6 class="card-title mb-2">
+                                    <i class="bi bi-box-seam me-1"></i>
+                                    <?php echo htmlspecialchars($produto['tipo_descricao'] ?? 'Produto'); ?>
+                                </h6>
+                                <p class="card-text small text-muted mb-0">
+                                    <?php echo htmlspecialchars(substr($produto['descricao_completa'], 0, 150)); ?>
+                                    <?php if (strlen($produto['descricao_completa']) > 150): ?>...<?php endif; ?>
+                                </p>
+                            </div>
                         </div>
-                        <?php endif; ?>
-                        
-                        <h6 class="card-title mb-2">
-                            <i class="bi bi-box-seam me-1"></i>
-                            <?php echo htmlspecialchars($produto['tipo_descricao'] ?? 'Produto'); ?>
-                        </h6>
-                        <p class="card-text small text-muted mb-0">
-                            <?php echo htmlspecialchars(substr($produto['descricao_completa'], 0, 150)); ?>
-                            <?php if (strlen($produto['descricao_completa']) > 150): ?>...<?php endif; ?>
-                        </p>
                     </div>
                 </div>
             </div>
@@ -242,6 +251,43 @@ ob_start();
 <?php endif; ?>
 
 <script>
+let produtosSelecionados = new Set();
+
+function atualizarSelecao() {
+    produtosSelecionados.clear();
+    document.querySelectorAll('.form-check-input:checked').forEach(checkbox => {
+        produtosSelecionados.add(parseInt(checkbox.value));
+    });
+    
+    const toolbar = document.getElementById('toolbarSelecao');
+    const contador = document.getElementById('contadorSelecionados');
+    
+    contador.textContent = produtosSelecionados.size;
+    
+    if (produtosSelecionados.size > 0) {
+        toolbar.style.display = 'block';
+    } else {
+        toolbar.style.display = 'none';
+    }
+}
+
+function limparSelecao() {
+    document.querySelectorAll('.form-check-input').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    atualizarSelecao();
+}
+
+function assinarSelecionados() {
+    if (produtosSelecionados.size === 0) {
+        alert('Selecione pelo menos um produto para assinar.');
+        return;
+    }
+    
+    const ids = Array.from(produtosSelecionados).join(',');
+    window.location.href = 'assinatura-14-1-form.php?ids=' + ids + '&id_planilha=<?php echo $id_planilha; ?>';
+}
+
 function abrirAssinatura(id) {
     window.location.href = 'assinatura-14-1-form.php?id=' + id + '&id_planilha=<?php echo $id_planilha; ?>';
 }

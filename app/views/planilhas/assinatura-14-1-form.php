@@ -3,25 +3,37 @@ require_once __DIR__ . '/../../../auth.php';
 require_once __DIR__ . '/../../../CRUD/conexao.php';
 
 $id_produto = $_GET['id'] ?? null;
+$ids_produtos = $_GET['ids'] ?? null;
 $id_planilha = $_GET['id_planilha'] ?? null;
 
-if (!$id_produto || !$id_planilha) {
+// Determinar se é múltiplo ou único
+$produtos_ids = [];
+if ($ids_produtos) {
+    $produtos_ids = array_map('intval', explode(',', $ids_produtos));
+} elseif ($id_produto) {
+    $produtos_ids = [intval($id_produto)];
+}
+
+if (empty($produtos_ids) || !$id_planilha) {
     header('Location: ../../../index.php');
     exit;
 }
 
-$sql = "SELECT p.id_produto, p.descricao_completa, p.condicao_14_1, p.nota_numero, p.nota_data, p.nota_valor, p.nota_fornecedor, p.doador_conjugue_id, tb.descricao as tipo_descricao, u.nome as doador_nome FROM produtos p LEFT JOIN tipos_bens tb ON p.tipo_bem_id = tb.id LEFT JOIN usuarios u ON p.doador_conjugue_id = u.id WHERE p.id_produto = :id_produto";
-$stmt = $conexao->prepare($sql);
-$stmt->bindValue(':id_produto', $id_produto);
-$stmt->execute();
-$produto = $stmt->fetch();
+$multiplo = count($produtos_ids) > 1;
 
-if (!$produto) {
+// Buscar dados dos produtos
+$placeholders = implode(',', array_fill(0, count($produtos_ids), '?'));
+$sql = "SELECT p.id_produto, p.descricao_completa, p.condicao_14_1, p.nota_numero, p.nota_data, p.nota_valor, p.nota_fornecedor, p.doador_conjugue_id, tb.descricao as tipo_descricao, u.nome as doador_nome FROM produtos p LEFT JOIN tipos_bens tb ON p.tipo_bem_id = tb.id LEFT JOIN usuarios u ON p.doador_conjugue_id = u.id WHERE p.id_produto IN ($placeholders)";
+$stmt = $conexao->prepare($sql);
+$stmt->execute($produtos_ids);
+$produtos = $stmt->fetchAll();
+
+if (empty($produtos)) {
     header('Location: assinatura-14-1.php?id=' . urlencode($id_planilha));
     exit;
 }
 
-$pageTitle = 'Assinar Produto';
+$pageTitle = $multiplo ? 'Assinar ' . count($produtos) . ' Produtos' : 'Assinar Produto';
 $backUrl = 'assinatura-14-1.php?id=' . urlencode($id_planilha);
 ob_start();
 ?>
@@ -35,17 +47,39 @@ ob_start();
 .campos-nota { display: none; animation: fadeIn 0.3s; }
 .campos-nota.show { display: block; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-.produto-info { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 2rem; }
+.produto-info { background: #e9ecef; border-radius: 0.5rem; padding: 1rem; margin-bottom: 1rem; border-left: 4px solid #007bff; }
 </style>
 
-<div class="produto-info">
-    <h5 class="mb-3"><i class="bi bi-box-seam me-2"></i>Informações do Produto</h5>
-    <p class="mb-2"><strong>Tipo:</strong> <?php echo htmlspecialchars($produto['tipo_descricao']); ?></p>
-    <p class="mb-0"><strong>Descrição:</strong> <?php echo htmlspecialchars($produto['descricao_completa']); ?></p>
+<?php if ($multiplo): ?>
+<div class="alert alert-info mb-3">
+    <h5 class="mb-2"><i class="bi bi-info-circle-fill me-2"></i>Assinatura Múltipla</h5>
+    <p class="mb-0">Você está assinando <strong><?php echo count($produtos); ?> produtos</strong> de uma vez. As mesmas condições serão aplicadas a todos.</p>
 </div>
 
+<div class="card mb-3">
+    <div class="card-header bg-light">
+        <strong>Produtos Selecionados:</strong>
+    </div>
+    <div class="card-body">
+        <ul class="mb-0">
+            <?php foreach ($produtos as $p): ?>
+            <li><?php echo htmlspecialchars($p['tipo_descricao'] . ' - ' . substr($p['descricao_completa'], 0, 80)); ?><?php if (strlen($p['descricao_completa']) > 80): ?>...<?php endif; ?></li>
+            <?php endforeach; ?>
+        </ul>
+    </div>
+</div>
+<?php else: ?>
+<?php $produto = $produtos[0]; ?>
+<div class="produto-info">
+    <h6 class="mb-2"><i class="bi bi-box-seam me-2"></i><?php echo htmlspecialchars($produto['tipo_descricao']); ?></h6>
+    <p class="mb-0 small"><?php echo htmlspecialchars($produto['descricao_completa']); ?></p>
+</div>
+<?php endif; ?>
+
 <form id="formAssinatura" method="POST" action="../../../CRUD/UPDATE/assinar-produto-14-1.php">
-    <input type="hidden" name="id_produto" value="<?php echo $produto['id_produto']; ?>">
+    <?php foreach ($produtos_ids as $pid): ?>
+    <input type="hidden" name="ids_produtos[]" value="<?php echo $pid; ?>">
+    <?php endforeach; ?>
     <input type="hidden" name="id_planilha" value="<?php echo $id_planilha; ?>">
     
     <div class="card mb-4">
