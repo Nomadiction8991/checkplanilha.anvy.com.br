@@ -40,7 +40,7 @@ if (isAdmin()) {
                 </a>
             </li>';
 } else {
-    // Doador/Ministerio: apenas relatórios
+    // Doador/Cônjuge: apenas relatórios
     $headerActions .= '
             <li>
                 <a class="dropdown-item" href="../planilhas/relatorio-14-1.php?id=' . $id_planilha . '">

@@ -212,7 +212,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $tipo_mensagem = 'success';
 
         // Redirecionar após sucesso
-        header('Location: ../../app/views/usuarios/read-usuario.php?success=1');
+        if (defined('PUBLIC_REGISTER')) {
+            // Registro público: redireciona para login com mensagem de sucesso
+            header('Location: ../../../login.php?registered=1');
+        } else {
+            // Admin criando usuário: redireciona para listagem
+            header('Location: ../../app/views/usuarios/read-usuario.php?success=1');
+        }
         exit;
 
     } catch (Exception $e) {

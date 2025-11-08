@@ -27,7 +27,7 @@ if (!defined('PUBLIC_REGISTER')) {
     }
     if (!function_exists('isDoador')) {
         function isDoador() {
-            return isset($_SESSION['usuario_tipo']) && $_SESSION['usuario_tipo'] === 'Doador/Ministerio';
+              return isset($_SESSION['usuario_tipo']) && $_SESSION['usuario_tipo'] === 'Doador/Cônjuge';
         }
     }
 }
@@ -61,7 +61,7 @@ ob_start();
 
 <form method="POST" id="formUsuario">
     <!-- Campo oculto: tipo de usuário -->
-    <input type="hidden" name="tipo" value="<?php echo defined('PUBLIC_REGISTER') ? 'Doador/Ministerio' : 'Administrador/Acessor'; ?>">
+        <input type="hidden" name="tipo" value="<?php echo defined('PUBLIC_REGISTER') ? 'Doador/Cônjuge' : 'Administrador/Acessor'; ?>">
     
     <!-- Card 1: Dados Básicos -->
     <div class="card mb-3">

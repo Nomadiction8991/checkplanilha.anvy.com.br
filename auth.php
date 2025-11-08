@@ -66,7 +66,7 @@ function isAdmin() {
     return isset($_SESSION['usuario_tipo']) && $_SESSION['usuario_tipo'] === 'Administrador/Acessor';
 }
 
-// Função para verificar se o usuário é Doador/Ministerio
+// Função para verificar se o usuário é Doador/Cônjuge
 function isDoador() {
-    return isset($_SESSION['usuario_tipo']) && $_SESSION['usuario_tipo'] === 'Doador/Ministerio';
+    return isset($_SESSION['usuario_tipo']) && $_SESSION['usuario_tipo'] === 'Doador/Cônjuge';
 }
