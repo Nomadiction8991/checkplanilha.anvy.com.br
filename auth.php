@@ -60,3 +60,13 @@ if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > 
     header('Location: ' . getLoginUrl() . '?timeout=1');
     exit;
 }
+
+// Função para verificar se o usuário é Administrador/Acessor
+function isAdmin() {
+    return isset($_SESSION['usuario_tipo']) && $_SESSION['usuario_tipo'] === 'Administrador/Acessor';
+}
+
+// Função para verificar se o usuário é Doador/Ministerio
+function isDoador() {
+    return isset($_SESSION['usuario_tipo']) && $_SESSION['usuario_tipo'] === 'Doador/Ministerio';
+}

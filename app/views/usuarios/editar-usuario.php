@@ -1,5 +1,12 @@
 <?php
 require_once __DIR__ . '/../../../auth.php'; // Autenticação
+
+// Apenas admins podem editar usuários
+if (!isAdmin()) {
+    header('Location: ../../../index.php');
+    exit;
+}
+
 include __DIR__ . '/../../../CRUD/UPDATE/usuario.php';
 
 $pageTitle = 'Editar Usuário';
@@ -105,7 +112,92 @@ ob_start();
         </div>
     </div>
 
-    <!-- Card 2: Endereço -->
+    <!-- Card 2: Assinatura Digital -->
+    <div class="card mb-3">
+        <div class="card-header">
+            <i class="bi bi-pen me-2"></i>
+            Assinatura Digital
+        </div>
+        <div class="card-body">
+            <p class="text-muted small mb-3">
+                <i class="bi bi-info-circle me-1"></i>
+                Clique no botão abaixo para atualizar sua assinatura digital.
+            </p>
+            
+            <!-- Container de Preview da Assinatura -->
+            <div class="signature-preview-container mb-3">
+                <canvas id="canvas_usuario" width="800" height="160" class="signature-preview-canvas" style="border:1px solid #dee2e6; border-radius:0.375rem; width:100%; height:auto; background:#f8f9fa;"></canvas>
+            </div>
+            
+            <!-- Botão para abrir modal -->
+            <button type="button" class="btn btn-primary w-100" onclick="abrirModalAssinatura('usuario')">
+                <i class="bi bi-pen me-2"></i>
+                Fazer Assinatura
+            </button>
+            
+            <!-- Campo hidden para armazenar assinatura em base64 -->
+            <input type="hidden" id="assinatura_usuario" name="assinatura" value="<?php echo htmlspecialchars($usuario['assinatura'] ?? ''); ?>">
+        </div>
+    </div>
+
+    <!-- Card 3: Estado civil -->
+    <div class="card mb-3">
+        <div class="card-header">
+            <i class="bi bi-person-hearts me-2"></i>
+            Estado civil
+        </div>
+        <div class="card-body">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="casado" name="casado" value="1" <?php echo !empty($usuario['casado']) ? 'checked' : ''; ?>>
+                <label class="form-check-label" for="casado">Sou casado(a)</label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 4: Dados do Cônjuge (condicional) -->
+    <div id="cardConjuge" class="card mb-3" style="display: <?php echo !empty($usuario['casado']) ? '' : 'none'; ?>;">
+        <div class="card-header">
+            <i class="bi bi-people-fill me-2"></i>
+            Dados do Cônjuge
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label for="nome_conjuge" class="form-label">Nome Completo do Cônjuge</label>
+                <input type="text" class="form-control" id="nome_conjuge" name="nome_conjuge" value="<?php echo htmlspecialchars($usuario['nome_conjuge'] ?? ''); ?>">
+            </div>
+            <div class="row g-3">
+                <div class="col-12">
+                    <label for="cpf_conjuge" class="form-label">CPF do Cônjuge</label>
+                    <input type="text" class="form-control" id="cpf_conjuge" name="cpf_conjuge" value="<?php echo htmlspecialchars($usuario['cpf_conjuge'] ?? ''); ?>" placeholder="000.000.000-00">
+                </div>
+                <div class="col-12">
+                    <label for="rg_conjuge" class="form-label">RG do Cônjuge</label>
+                    <input type="text" class="form-control" id="rg_conjuge" name="rg_conjuge" value="<?php echo htmlspecialchars($usuario['rg_conjuge'] ?? ''); ?>" placeholder="Digite os dígitos do RG">
+                    <div class="form-check mt-1">
+                        <input class="form-check-input" type="checkbox" id="rg_conjuge_igual_cpf" name="rg_conjuge_igual_cpf" value="1" <?php echo !empty($usuario['rg_conjuge_igual_cpf']) ? 'checked' : ''; ?>>
+                        <label class="form-check-label" for="rg_conjuge_igual_cpf">RG do cônjuge igual ao CPF do cônjuge</label>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <label for="telefone_conjuge" class="form-label">Telefone do Cônjuge</label>
+                    <input type="text" class="form-control" id="telefone_conjuge" name="telefone_conjuge" value="<?php echo htmlspecialchars($usuario['telefone_conjuge'] ?? ''); ?>" placeholder="(00) 00000-0000">
+                </div>
+            </div>
+
+            <hr>
+            <div class="mb-2 fw-semibold">Assinatura Digital do Cônjuge</div>
+            <div class="signature-preview-container mb-3">
+                <canvas id="canvas_conjuge" width="800" height="160" class="signature-preview-canvas" style="border:1px solid #dee2e6; border-radius:0.375rem; width:100%; height:auto; background:#f8f9fa;"></canvas>
+            </div>
+            <button type="button" class="btn btn-primary w-100" onclick="abrirModalAssinatura('conjuge')">
+                <i class="bi bi-pen me-2"></i>
+                Fazer Assinatura do Cônjuge
+            </button>
+            <input type="hidden" id="assinatura_conjuge" name="assinatura_conjuge" value="<?php echo htmlspecialchars($usuario['assinatura_conjuge'] ?? ''); ?>">
+        </div>
+    </div>
+
+    <!-- Card 5: Endereço -->
     <div class="card mb-3">
         <div class="card-header">
             <i class="bi bi-geo-alt me-2"></i>
@@ -166,91 +258,6 @@ ob_start();
                     </select>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Card 2.1: Estado civil -->
-    <div class="card mb-3">
-        <div class="card-header">
-            <i class="bi bi-person-hearts me-2"></i>
-            Estado civil
-        </div>
-        <div class="card-body">
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="casado" name="casado" value="1" <?php echo !empty($usuario['casado']) ? 'checked' : ''; ?>>
-                <label class="form-check-label" for="casado">Sou casado(a)</label>
-            </div>
-        </div>
-    </div>
-
-    <!-- Card 3: Dados do Cônjuge (condicional) -->
-    <div id="cardConjuge" class="card mb-3" style="display: <?php echo !empty($usuario['casado']) ? '' : 'none'; ?>;">
-        <div class="card-header">
-            <i class="bi bi-people-fill me-2"></i>
-            Dados do Cônjuge
-        </div>
-        <div class="card-body">
-            <div class="mb-3">
-                <label for="nome_conjuge" class="form-label">Nome Completo do Cônjuge</label>
-                <input type="text" class="form-control" id="nome_conjuge" name="nome_conjuge" value="<?php echo htmlspecialchars($usuario['nome_conjuge'] ?? ''); ?>">
-            </div>
-            <div class="row g-3">
-                <div class="col-12">
-                    <label for="cpf_conjuge" class="form-label">CPF do Cônjuge</label>
-                    <input type="text" class="form-control" id="cpf_conjuge" name="cpf_conjuge" value="<?php echo htmlspecialchars($usuario['cpf_conjuge'] ?? ''); ?>" placeholder="000.000.000-00">
-                </div>
-                <div class="col-12">
-                    <label for="rg_conjuge" class="form-label">RG do Cônjuge</label>
-                    <input type="text" class="form-control" id="rg_conjuge" name="rg_conjuge" value="<?php echo htmlspecialchars($usuario['rg_conjuge'] ?? ''); ?>" placeholder="Digite os dígitos do RG">
-                    <div class="form-check mt-1">
-                        <input class="form-check-input" type="checkbox" id="rg_conjuge_igual_cpf" name="rg_conjuge_igual_cpf" value="1" <?php echo !empty($usuario['rg_conjuge_igual_cpf']) ? 'checked' : ''; ?>>
-                        <label class="form-check-label" for="rg_conjuge_igual_cpf">RG do cônjuge igual ao CPF do cônjuge</label>
-                    </div>
-                </div>
-                <div class="col-12">
-                    <label for="telefone_conjuge" class="form-label">Telefone do Cônjuge</label>
-                    <input type="text" class="form-control" id="telefone_conjuge" name="telefone_conjuge" value="<?php echo htmlspecialchars($usuario['telefone_conjuge'] ?? ''); ?>" placeholder="(00) 00000-0000">
-                </div>
-            </div>
-
-            <hr>
-            <div class="mb-2 fw-semibold">Assinatura Digital do Cônjuge</div>
-            <div class="signature-preview-container mb-3">
-                <canvas id="canvas_conjuge" width="800" height="160" class="signature-preview-canvas" style="border:1px solid #dee2e6; border-radius:0.375rem; width:100%; height:auto; background:#f8f9fa;"></canvas>
-            </div>
-            <button type="button" class="btn btn-primary w-100" onclick="abrirModalAssinatura('conjuge')">
-                <i class="bi bi-pen me-2"></i>
-                Fazer Assinatura do Cônjuge
-            </button>
-            <input type="hidden" id="assinatura_conjuge" name="assinatura_conjuge" value="<?php echo htmlspecialchars($usuario['assinatura_conjuge'] ?? ''); ?>">
-        </div>
-    </div>
-
-    <!-- Card 4: Assinatura Digital -->
-    <div class="card mb-3">
-        <div class="card-header">
-            <i class="bi bi-pen me-2"></i>
-            Assinatura Digital
-        </div>
-        <div class="card-body">
-            <p class="text-muted small mb-3">
-                <i class="bi bi-info-circle me-1"></i>
-                Clique no botão abaixo para atualizar sua assinatura digital.
-            </p>
-            
-            <!-- Container de Preview da Assinatura -->
-            <div class="signature-preview-container mb-3">
-                <canvas id="canvas_usuario" width="800" height="160" class="signature-preview-canvas" style="border:1px solid #dee2e6; border-radius:0.375rem; width:100%; height:auto; background:#f8f9fa;"></canvas>
-            </div>
-            
-            <!-- Botão para abrir modal -->
-            <button type="button" class="btn btn-primary w-100" onclick="abrirModalAssinatura('usuario')">
-                <i class="bi bi-pen me-2"></i>
-                Fazer Assinatura
-            </button>
-            
-            <!-- Campo hidden para armazenar assinatura em base64 -->
-            <input type="hidden" id="assinatura_usuario" name="assinatura" value="<?php echo htmlspecialchars($usuario['assinatura'] ?? ''); ?>">
         </div>
     </div>
 

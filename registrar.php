@@ -1,10 +1,92 @@
 <?php
-// Se for registro público, não exige autenticação
-if (!defined('PUBLIC_REGISTER')) {
-    require_once __DIR__ . '/../../auth.php'; // Autenticação apenas para admins
+session_start();
+
+// Se já está logado, redireciona para o index
+if (isset($_SESSION['usuario_id'])) {
+    header('Location: index.php');
+    exit;
 }
 
-require_once __DIR__ . '/../conexao.php';
+// Define que é um registro público - permite criar usuário sem autenticação
+define('PUBLIC_REGISTER', true);
+
+// Inclui o processamento do backend de criação
+$pageTitle = 'Cadastro';
+$backUrl = 'login.php';
+
+ob_start();
+?>
+
+<!-- Inclui o formulário de usuário -->
+<?php include __DIR__ . '/app/views/usuarios/create-usuario.php'; ?>
+
+<div class="text-center mt-3">
+    <a href="login.php" class="text-decoration-none">
+        <i class="bi bi-arrow-left me-1"></i>
+        Voltar para o login
+    </a>
+</div>
+
+<?php
+$contentHtml = ob_get_clean();
+?>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro - Sistema de Planilhas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+        .register-container {
+            max-width: 400px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 15px;
+        }
+        .register-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 2rem;
+            margin-bottom: 20px;
+        }
+        .card {
+            border: none;
+            box-shadow: none;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+            font-weight: 600;
+        }
+        h4 {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <div class="register-card">
+            <h4 class="text-center mb-4">
+                <i class="bi bi-person-plus me-2"></i>
+                Cadastro
+            </h4>
+            
+            <?php echo $contentHtml; ?>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
 
 $mensagem = '';
 $tipo_mensagem = '';
@@ -14,14 +96,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email'] ?? '');
     $senha = trim($_POST['senha'] ?? '');
     $confirmar_senha = trim($_POST['confirmar_senha'] ?? '');
-    $ativo = isset($_POST['ativo']) ? 1 : 0;
     
     // Novos campos
     $cpf = trim($_POST['cpf'] ?? '');
     $rg = trim($_POST['rg'] ?? '');
     $rg_igual_cpf = isset($_POST['rg_igual_cpf']) ? 1 : 0;
     $telefone = trim($_POST['telefone'] ?? '');
-    $tipo = trim($_POST['tipo'] ?? 'Administrador/Acessor');
+    $tipo = 'Doador/Ministerio'; // Tipo fixo para registro público
     $assinatura = trim($_POST['assinatura'] ?? '');
     
     // Estado civil e cônjuge
@@ -105,22 +186,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception('Telefone inválido.');
         }
 
-        // Verificar se email já existe
-        $stmt = $conexao->prepare('SELECT id FROM usuarios WHERE email = :email');
-        $stmt->bindValue(':email', $email);
-        $stmt->execute();
-        if ($stmt->fetch()) {
-            throw new Exception('Este email já está cadastrado.');
-        }
-        
-        // Verificar se CPF já existe
-        $stmt = $conexao->prepare('SELECT id FROM usuarios WHERE cpf = :cpf');
-        $stmt->bindValue(':cpf', $cpf);
-        $stmt->execute();
-        if ($stmt->fetch()) {
-            throw new Exception('Este CPF já está cadastrado.');
-        }
-
         // Endereço obrigatório (CEP, logradouro, numero, bairro, cidade, estado)
         if (empty($endereco_cep) || empty($endereco_logradouro) || empty($endereco_numero) || empty($endereco_bairro) || empty($endereco_cidade) || empty($endereco_estado)) {
             throw new Exception('Todos os campos de endereço (CEP, logradouro, número, bairro, cidade e estado) são obrigatórios.');
@@ -165,17 +230,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $rg_conjuge_igual_cpf = 0;
         }
 
+        // Verificar se email já existe
+        $stmt = $conexao->prepare('SELECT id FROM usuarios WHERE email = :email');
+        $stmt->bindValue(':email', $email);
+        $stmt->execute();
+        if ($stmt->fetch()) {
+            throw new Exception('Este email já está cadastrado.');
+        }
+        
+        // Verificar se CPF já existe
+        $stmt = $conexao->prepare('SELECT id FROM usuarios WHERE cpf = :cpf');
+        $stmt->bindValue(':cpf', $cpf);
+        $stmt->execute();
+        if ($stmt->fetch()) {
+            throw new Exception('Este CPF já está cadastrado.');
+        }
+
         // Criptografar senha
         $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
 
-        // Inserir usuário com todos os campos
+        // Inserir usuário com todos os campos - usuário público sempre ativo
         $sql = "INSERT INTO usuarios (
                     nome, email, senha, ativo, cpf, rg, rg_igual_cpf, telefone, tipo, assinatura,
                     endereco_cep, endereco_logradouro, endereco_numero, endereco_complemento,
                     endereco_bairro, endereco_cidade, endereco_estado,
                     casado, nome_conjuge, cpf_conjuge, rg_conjuge, rg_conjuge_igual_cpf, telefone_conjuge, assinatura_conjuge
                 ) VALUES (
-                    :nome, :email, :senha, :ativo, :cpf, :rg, :rg_igual_cpf, :telefone, :tipo, :assinatura,
+                    :nome, :email, :senha, 1, :cpf, :rg, :rg_igual_cpf, :telefone, :tipo, :assinatura,
                     :endereco_cep, :endereco_logradouro, :endereco_numero, :endereco_complemento,
                     :endereco_bairro, :endereco_cidade, :endereco_estado,
                     :casado, :nome_conjuge, :cpf_conjuge, :rg_conjuge, :rg_conjuge_igual_cpf, :telefone_conjuge, :assinatura_conjuge
@@ -185,10 +266,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bindValue(':nome', $nome);
         $stmt->bindValue(':email', $email);
         $stmt->bindValue(':senha', $senha_hash);
-        $stmt->bindValue(':ativo', $ativo, PDO::PARAM_INT);
         $stmt->bindValue(':cpf', $cpf);
-    $stmt->bindValue(':rg', $rg);
-    $stmt->bindValue(':rg_igual_cpf', $rg_igual_cpf, PDO::PARAM_INT);
+        $stmt->bindValue(':rg', $rg);
+        $stmt->bindValue(':rg_igual_cpf', $rg_igual_cpf, PDO::PARAM_INT);
         $stmt->bindValue(':telefone', $telefone);
         $stmt->bindValue(':tipo', $tipo);
         $stmt->bindValue(':assinatura', $assinatura);
@@ -199,20 +279,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bindValue(':endereco_bairro', $endereco_bairro);
         $stmt->bindValue(':endereco_cidade', $endereco_cidade);
         $stmt->bindValue(':endereco_estado', $endereco_estado);
-    $stmt->bindValue(':casado', $casado, PDO::PARAM_INT);
-    $stmt->bindValue(':nome_conjuge', $nome_conjuge);
-    $stmt->bindValue(':cpf_conjuge', $cpf_conjuge);
-    $stmt->bindValue(':rg_conjuge', $rg_conjuge);
-    $stmt->bindValue(':rg_conjuge_igual_cpf', $rg_conjuge_igual_cpf, PDO::PARAM_INT);
-    $stmt->bindValue(':telefone_conjuge', $telefone_conjuge);
-    $stmt->bindValue(':assinatura_conjuge', $assinatura_conjuge);
+        $stmt->bindValue(':casado', $casado, PDO::PARAM_INT);
+        $stmt->bindValue(':nome_conjuge', $nome_conjuge);
+        $stmt->bindValue(':cpf_conjuge', $cpf_conjuge);
+        $stmt->bindValue(':rg_conjuge', $rg_conjuge);
+        $stmt->bindValue(':rg_conjuge_igual_cpf', $rg_conjuge_igual_cpf, PDO::PARAM_INT);
+        $stmt->bindValue(':telefone_conjuge', $telefone_conjuge);
+        $stmt->bindValue(':assinatura_conjuge', $assinatura_conjuge);
         $stmt->execute();
 
-        $mensagem = 'Usuário cadastrado com sucesso!';
+        $mensagem = 'Cadastro realizado com sucesso! Faça login para continuar.';
         $tipo_mensagem = 'success';
 
         // Redirecionar após sucesso
-        header('Location: ../../app/views/usuarios/read-usuario.php?success=1');
+        header('Location: login.php?registered=1');
         exit;
 
     } catch (Exception $e) {
@@ -221,3 +301,80 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro - Sistema de Planilhas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <!-- jQuery e InputMask -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/inputmask@5.0.8/dist/inputmask.min.js"></script>
+    <!-- SignaturePad -->
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+        .register-container {
+            max-width: 400px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 15px;
+        }
+        .register-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 2rem;
+            margin-bottom: 20px;
+        }
+        .signature-preview-canvas {
+            pointer-events: none;
+        }
+        .card {
+            border: none;
+            box-shadow: none;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <div class="register-card">
+            <h4 class="text-center mb-4">
+                <i class="bi bi-person-plus me-2"></i>
+                Cadastro
+            </h4>
+            
+            <?php if ($mensagem): ?>
+                <div class="alert alert-<?php echo $tipo_mensagem === 'success' ? 'success' : 'danger'; ?> alert-dismissible fade show">
+                    <?php echo $mensagem; ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            <?php endif; ?>
+            
+            <?php include __DIR__ . '/app/views/usuarios/create-usuario.php'; ?>
+            
+            <div class="text-center mt-3">
+                <a href="login.php" class="text-decoration-none">
+                    <i class="bi bi-arrow-left me-1"></i>
+                    Voltar para o login
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

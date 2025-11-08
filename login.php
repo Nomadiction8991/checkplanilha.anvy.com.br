@@ -10,6 +10,12 @@ if (isset($_SESSION['usuario_id'])) {
 require_once __DIR__ . '/CRUD/conexao.php';
 
 $erro = '';
+$sucesso = '';
+
+// Mensagem de sucesso ao registrar
+if (isset($_GET['registered'])) {
+    $sucesso = 'Cadastro realizado com sucesso! Faça login para continuar.';
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email'] ?? '');
@@ -39,6 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['usuario_id'] = $usuario['id'];
         $_SESSION['usuario_nome'] = $usuario['nome'];
         $_SESSION['usuario_email'] = $usuario['email'];
+        $_SESSION['usuario_tipo'] = $usuario['tipo'] ?? 'Administrador/Acessor';
 
         header('Location: index.php');
         exit;
@@ -102,12 +109,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     <div class="login-container">
         <div class="login-card">
-            <div class="login-header">
-                <i class="bi bi-file-earmark-spreadsheet"></i>
-                <h4 class="mb-0">Sistema de Planilhas</h4>
-                <small>Faça login para continuar</small>
-            </div>
             <div class="login-body">
+                <?php if ($sucesso): ?>
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="bi bi-check-circle me-2"></i>
+                        <?php echo htmlspecialchars($sucesso); ?>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                <?php endif; ?>
+                
                 <?php if ($erro): ?>
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
                         <i class="bi bi-exclamation-triangle me-2"></i>
@@ -118,6 +128,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <form method="POST">
                     <div class="mb-3">
+                        <h4 class="text-center mb-4">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>
+                            Login
+                        </h4>
                         <label for="email" class="form-label">
                             <i class="bi bi-envelope me-1"></i>
                             Email
@@ -147,9 +161,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
         
         <div class="text-center mt-3">
-            <a href="public/assinar.php" class="btn btn-light w-100 mb-2">
-                <i class="bi bi-pen me-2"></i>
-                Assinar documentos sem login
+            <a href="registrar.php" class="btn btn-light w-100 mb-2">
+                <i class="bi bi-person-plus me-2"></i>
+                Cadastre-se
             </a>
             <small class="text-white">
                 <i class="bi bi-shield-check me-1"></i>

@@ -1,5 +1,12 @@
 <?php
 require_once __DIR__ . '/../../../auth.php'; // Autenticação
+
+// Apenas admins podem acessar gestão de usuários
+if (!isAdmin()) {
+    header('Location: ../../../index.php');
+    exit;
+}
+
 include __DIR__ . '/../../../CRUD/READ/usuario.php';
 
 $pageTitle = 'Usuários';

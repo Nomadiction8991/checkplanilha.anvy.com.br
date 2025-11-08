@@ -6,12 +6,18 @@ require_once __DIR__ . '/../../../CRUD/READ/view-planilha.php';
 // Configurações da página
 $pageTitle = htmlspecialchars($planilha['comum_descricao'] ?? 'Visualizar Planilha');
 $backUrl = '../comuns/listar-planilhas.php?comum_id=' . urlencode($planilha['comum_id'] ?? '');
+
+// Menu diferenciado para Admin e Doador
 $headerActions = '
     <div class="dropdown">
         <button class="btn-header-action" type="button" id="menuPlanilha" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="bi bi-list fs-5"></i>
         </button>
-        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="menuPlanilha">
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="menuPlanilha">';
+
+// Administrador/Acessor: menu completo
+if (isAdmin()) {
+    $headerActions .= '
             <li>
                 <a class="dropdown-item" href="../produtos/read-produto.php?id=' . $id_planilha . '">
                     <i class="bi bi-list-ul me-2"></i>Listagem de Produtos
@@ -32,7 +38,18 @@ $headerActions = '
                 <a class="dropdown-item" href="../planilhas/imprimir-alteracao.php?id=' . $id_planilha . '">
                     <i class="bi bi-printer me-2"></i>Imprimir Alteração
                 </a>
-            </li>
+            </li>';
+} else {
+    // Doador/Ministerio: apenas relatórios
+    $headerActions .= '
+            <li>
+                <a class="dropdown-item" href="../planilhas/relatorio-14-1.php?id=' . $id_planilha . '">
+                    <i class="bi bi-file-earmark-pdf me-2"></i>Relatório 14.1
+                </a>
+            </li>';
+}
+
+$headerActions .= '
             <li><hr class="dropdown-divider"></li>
             <li>
                 <a class="dropdown-item" href="../../../logout.php">
@@ -433,7 +450,8 @@ ob_start();
                     <?php echo htmlspecialchars($p['descricao_completa']); ?><br>
                 </div>
                 
-                <!-- Ações -->
+                <!-- Ações - Apenas para Administrador/Acessor -->
+                <?php if (isAdmin()): ?>
                 <div class="acao-container">
                     <!-- Check -->
                     <?php if ($show_check): ?>
@@ -504,6 +522,7 @@ ob_start();
                     </form>
                     <?php endif; ?>
                 </div>
+                <?php endif; // fim do if isAdmin() ?>
             </div>
             <?php endforeach; ?>
         <?php else: ?>
