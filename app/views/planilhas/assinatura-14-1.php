@@ -38,7 +38,8 @@ $produtos_assinados = 0;
 $doacoes_por_pessoa = [];
 
 foreach ($produtos as $produto) {
-    if (!empty($produto['doador_conjugue_id'])) {
+    // Verificar se está assinado: doador_conjugue_id diferente de NULL e diferente de 0
+    if (!is_null($produto['doador_conjugue_id']) && $produto['doador_conjugue_id'] > 0) {
         $produtos_assinados++;
         $nome_doador = $produto['doador_nome'] ?? 'Sem nome';
         if (!isset($doacoes_por_pessoa[$nome_doador])) {
@@ -127,6 +128,22 @@ ob_start();
 }
 </style>
 
+<?php if (isset($_SESSION['sucesso'])): ?>
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="bi bi-check-circle-fill me-2"></i>
+    <?php echo htmlspecialchars($_SESSION['sucesso']); ?>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+<?php unset($_SESSION['sucesso']); endif; ?>
+
+<?php if (isset($_SESSION['erro'])): ?>
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    <?php echo htmlspecialchars($_SESSION['erro']); ?>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+<?php unset($_SESSION['erro']); endif; ?>
+
 <!-- Resumo Informativo -->
 <div class="alert alert-info mb-4">
     <h5 class="alert-heading mb-3">
@@ -196,7 +213,8 @@ ob_start();
 <?php if (count($produtos) > 0): ?>
     <div class="row g-3">
         <?php foreach ($produtos as $produto): 
-            $assinado = !empty($produto['doador_conjugue_id']);
+            // Verificar se está assinado: doador_conjugue_id diferente de NULL e diferente de 0
+            $assinado = (!is_null($produto['doador_conjugue_id']) && $produto['doador_conjugue_id'] > 0);
             $status_class = $assinado ? 'assinado' : 'pendente';
         ?>
             <div class="col-12">

@@ -50,7 +50,10 @@ try {
             $stmt->bindValue(':id_usuario', $id_usuario, PDO::PARAM_INT);
             $stmt->bindValue(':id_produto', $id_produto, PDO::PARAM_INT);
             $stmt->execute();
-            $produtos_assinados++;
+            
+            if ($stmt->rowCount() > 0) {
+                $produtos_assinados++;
+            }
         } 
         // Se for condição 1 ou 3 (com nota), validar e salvar campos de nota
         else {
@@ -81,8 +84,15 @@ try {
             $stmt->bindValue(':nota_fornecedor', $nota_fornecedor);
             $stmt->bindValue(':id_produto', $id_produto, PDO::PARAM_INT);
             $stmt->execute();
-            $produtos_assinados++;
+            
+            if ($stmt->rowCount() > 0) {
+                $produtos_assinados++;
+            }
         }
+    }
+    
+    if ($produtos_assinados == 0) {
+        throw new Exception('Nenhum produto foi atualizado. Verifique se os produtos existem.');
     }
     
     $conexao->commit();
