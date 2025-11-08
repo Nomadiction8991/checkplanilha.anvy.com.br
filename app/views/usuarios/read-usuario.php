@@ -96,21 +96,21 @@ ob_start();
                                     <div class="d-flex flex-column">
                                         <div class="fw-semibold text-wrap"><?php echo htmlspecialchars($usuario['nome']); ?></div>
                                         <div class="small text-muted text-wrap"><?php echo htmlspecialchars($usuario['email']); ?></div>
-                                        <div class="mt-2 d-flex gap-2 flex-wrap">
+                                        <div class="mt-2 d-flex gap-1 flex-wrap">
                                             <a href="./editar-usuario.php?id=<?php echo $usuario['id']; ?>"
                                                class="btn btn-sm btn-outline-secondary" title="Visualizar">
-                                                <i class="bi bi-eye"></i> Visualizar
+                                                <i class="bi bi-eye"></i>
                                             </a>
                                             <?php if ($is_self): ?>
                                                 <a href="./editar-usuario.php?id=<?php echo $usuario['id']; ?>"
                                                    class="btn btn-sm btn-outline-primary" title="Editar meu perfil">
-                                                    <i class="bi bi-pencil"></i> Editar
+                                                    <i class="bi bi-pencil"></i>
                                                 </a>
                                             <?php endif; ?>
                                             <?php if ($wa_link): ?>
                                                 <a href="<?php echo $wa_link; ?>" target="_blank" rel="noopener" 
                                                    class="btn btn-sm btn-outline-success" title="WhatsApp">
-                                                    <i class="bi bi-whatsapp"></i> WhatsApp
+                                                    <i class="bi bi-whatsapp"></i>
                                                 </a>
                                             <?php endif; ?>
                                         </div>

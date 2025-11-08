@@ -161,7 +161,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
         
         <div class="text-center mt-3">
-            <a href="registrar.php" class="btn btn-light w-100 mb-2">
+            <a href="app/views/usuarios/create-usuario.php?public=1" class="btn btn-light w-100 mb-2">
                 <i class="bi bi-person-plus me-2"></i>
                 Cadastre-se
             </a>
