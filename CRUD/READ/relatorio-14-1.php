@@ -52,25 +52,39 @@ if (!empty($comum_planilha)) {
 
 // Consultar produtos que devem imprimir o relatório 14.1
 $sql = "SELECT 
-            pc.id,
-            pc.tipo_ben,
-            pc.complemento,
-            pc.quantidade,
-            pc.descricao_completa,
-            pc.condicao_141,
-            pc.numero_nota,
-            pc.data_emissao,
-            pc.valor_nota,
-            pc.fornecedor_nota,
-            pc.imprimir_14_1,
+            p.id_produto,
+            p.tipo_bem_id,
+            p.complemento,
+            p.descricao_completa,
+            p.condicao_14_1,
+            p.nota_numero,
+            p.nota_data,
+            p.nota_valor,
+            p.nota_fornecedor,
+            p.imprimir_14_1,
             tb.codigo as tipo_codigo,
             tb.descricao as tipo_descricao,
-            d.descricao as dependencia_descricao
-        FROM produtos_cadastro pc
-        LEFT JOIN tipos_bens tb ON pc.id_tipo_ben = tb.id
-        LEFT JOIN dependencias d ON pc.id_dependencia = d.id
-        WHERE pc.imprimir_14_1 = 1 AND pc.id_planilha = :id_planilha
-        ORDER BY pc.id ASC";
+            d.descricao as dependencia_descricao,
+            admin.nome as administrador_nome,
+            admin.cpf as administrador_cpf,
+            admin.rg as administrador_rg,
+            admin.assinatura as administrador_assinatura,
+            doador.nome as doador_nome,
+            doador.cpf as doador_cpf,
+            doador.rg as doador_rg,
+            doador.assinatura as doador_assinatura,
+            doador.casado as doador_casado,
+            doador.nome_conjuge as doador_nome_conjuge,
+            doador.cpf_conjuge as doador_cpf_conjuge,
+            doador.rg_conjuge as doador_rg_conjuge,
+            doador.assinatura_conjuge as doador_assinatura_conjuge
+        FROM produtos p
+        LEFT JOIN tipos_bens tb ON p.tipo_bem_id = tb.id
+        LEFT JOIN dependencias d ON p.dependencia_id = d.id
+        LEFT JOIN usuarios admin ON p.administrador_acessor_id = admin.id
+        LEFT JOIN usuarios doador ON p.doador_conjugue_id = doador.id
+        WHERE p.imprimir_14_1 = 1 AND p.planilha_id = :id_planilha
+        ORDER BY p.id_produto ASC";
 $stmt = $conexao->prepare($sql);
 $stmt->bindValue(':id_planilha', $id_planilha);
 $stmt->execute();
