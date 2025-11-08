@@ -163,26 +163,32 @@ ob_start();
 <?php if (count($produtos) > 0): ?>
 <?php
     // Pré-carregar assinaturas para todos os produtos desta planilha em um único SELECT
-    $assinaturasByProduto = [];
-    try {
-        $idsProdutos = array_column($produtos, 'id');
-        if (!empty($idsProdutos)) {
-            $placeholders = implode(',', array_fill(0, count($idsProdutos), '?'));
-            $sqlAss = "SELECT * FROM assinaturas_14_1 WHERE id_planilha = ? AND id_produto IN ($placeholders)";
-            $stmtAss = $conexao->prepare($sqlAss);
-            // bind id_planilha + ids
-            $bindIdx = 1;
-            $stmtAss->bindValue($bindIdx++, $id_planilha, PDO::PARAM_INT);
-            foreach ($idsProdutos as $pid) { $stmtAss->bindValue($bindIdx++, $pid, PDO::PARAM_INT); }
-            $stmtAss->execute();
-            $assinaturas = $stmtAss->fetchAll();
-            foreach ($assinaturas as $ass) {
-                $assinaturasByProduto[$ass['id_produto']] = $ass;
-            }
-        }
-    } catch (Exception $e) {
-        // mantém vazio em caso de erro
-    }
+      $assinaturasByProduto = [];
+      try {
+          // Coletar ids de produtos de forma defensiva (suporta tanto 'id_produto' quanto 'id')
+          $idsProdutos = array_values(array_filter(array_map(function($p){
+              if (isset($p['id_produto'])) return $p['id_produto'];
+              if (isset($p['id'])) return $p['id'];
+              return null;
+          }, $produtos)));
+
+          if (!empty($idsProdutos)) {
+              $placeholders = implode(',', array_fill(0, count($idsProdutos), '?'));
+              $sqlAss = "SELECT * FROM assinaturas_14_1 WHERE id_planilha = ? AND id_produto IN ($placeholders)";
+              $stmtAss = $conexao->prepare($sqlAss);
+              // bind id_planilha + ids
+              $bindIdx = 1;
+              $stmtAss->bindValue($bindIdx++, $id_planilha, PDO::PARAM_INT);
+              foreach ($idsProdutos as $pid) { $stmtAss->bindValue($bindIdx++, $pid, PDO::PARAM_INT); }
+              $stmtAss->execute();
+              $assinaturas = $stmtAss->fetchAll();
+              foreach ($assinaturas as $ass) {
+                  $assinaturasByProduto[$ass['id_produto']] = $ass;
+              }
+          }
+      } catch (Exception $e) {
+          // mantém vazio em caso de erro
+      }
     // Descobrir imagem de fundo, se existir
     $bgCandidates = [
         '/relatorios/relatorio-14-1-bg.png',
@@ -252,7 +258,9 @@ ob_start();
                             $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input16', $local_data_with_placeholder);
 
                             // Preencher campos do doador/cônjuge/administrador a partir de assinaturas_14_1 (se existir)
-                            $ass = $assinaturasByProduto[$row['id']] ?? null;
+                              // Ajuste: chave correta do produto (suporta 'id_produto' ou 'id')
+                              $prodId = isset($row['id_produto']) ? $row['id_produto'] : (isset($row['id']) ? $row['id'] : null);
+                              $ass = ($prodId !== null) ? ($assinaturasByProduto[$prodId] ?? null) : null;
                             if ($ass) {
                                 // Doador
                                 $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input17', (string)($ass['nome_doador'] ?? ''));
@@ -299,12 +307,12 @@ ob_start();
                             }
 
                             // Preencher campos de nota fiscal e marcar checkbox baseado em condicao_141
-                            if (isset($row['condicao_141']) && ($row['condicao_141'] == 1 || $row['condicao_141'] == 3)) {
-                                // Preencher campos de nota fiscal
-                                $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input9', (string)($row['numero_nota'] ?? ''));
-                                $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input10', (string)($row['data_emissao'] ?? ''));
-                                $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input11', (string)($row['valor_nota'] ?? ''));
-                                $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input12', (string)($row['fornecedor_nota'] ?? ''));
+                            if (isset($row['condicao_14_1']) && ($row['condicao_14_1'] == 1 || $row['condicao_14_1'] == 3)) {
+                                // Preencher campos de nota fiscal com novos nomes de colunas
+                                $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input9', (string)($row['nota_numero'] ?? ''));
+                                $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input10', (string)($row['nota_data'] ?? ''));
+                                $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input11', (string)($row['nota_valor'] ?? ''));
+                                $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input12', (string)($row['nota_fornecedor'] ?? ''));
                             }
 
                             // Opcional: injetar imagem de fundo se detectada
@@ -347,12 +355,12 @@ ob_start();
 <?php endif;
 
 // Preparar dados dos produtos para JavaScript
-$produtosDataJS = json_encode(array_map(function($p){ 
-    return [
-        'id' => (int)$p['id'],
-        'condicao_141' => isset($p['condicao_141']) ? (int)$p['condicao_141'] : 0
-    ]; 
-}, $produtos));
+  $produtosDataJS = json_encode(array_map(function($p){ 
+     return [
+         'id_produto' => (int)($p['id_produto'] ?? ($p['id'] ?? 0)),
+         'condicao_14_1' => isset($p['condicao_14_1']) ? (int)$p['condicao_14_1'] : 0
+     ]; 
+ }, $produtos));
 
 $script = <<<JS
 <script>
@@ -409,7 +417,8 @@ $script = <<<JS
                 const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
                 if(!iframeDoc) return;
                 
-                const condicao = produtosData[idx]?.condicao_141;
+                // Ajuste para novo nome da condição
+                const condicao = produtosData[idx]?.condicao_14_1;
                 if(!condicao) return;
                 
                 // IDs dos checkboxes no template: input13, input14, input15
