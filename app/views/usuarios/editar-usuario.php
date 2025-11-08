@@ -1,16 +1,23 @@
 <?php
 require_once __DIR__ . '/../../../auth.php'; // Autenticação
 
-// Apenas admins podem editar usuários
+// Permissões:
+// - Admin: pode editar qualquer usuário
+// - Doador/Cônjuge: pode editar apenas o próprio cadastro
 if (!isAdmin()) {
-    header('Location: ../../../index.php');
-    exit;
+    $idParam = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+    $loggedId = isset($_SESSION['usuario_id']) ? (int)$_SESSION['usuario_id'] : 0;
+    if (!$idParam || !$loggedId || $idParam !== $loggedId || !isDoador()) {
+        header('Location: ../../../index.php');
+        exit;
+    }
 }
 
 include __DIR__ . '/../../../CRUD/UPDATE/usuario.php';
 
 $pageTitle = 'Editar Usuário';
-$backUrl = './read-usuario.php';
+// Voltar para a listagem se admin, senão voltar para o index
+$backUrl = isAdmin() ? './read-usuario.php' : '../../../index.php';
 
 ob_start();
 ?>

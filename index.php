@@ -23,6 +23,16 @@ if (isAdmin()) {
             </li>';
 }
 
+// Doador/Cônjuge: adicionar opção "Editar Meu Usuário"
+if (isDoador() && isset($_SESSION['usuario_id'])) {
+    $headerActions .= '
+            <li>
+                <a class="dropdown-item" href="app/views/usuarios/editar-usuario.php?id=' . (int)$_SESSION['usuario_id'] . '">
+                    <i class="bi bi-pencil-square me-2"></i>Editar Meu Usuário
+                </a>
+            </li>';
+}
+
 // Mostrar "Importar Planilha" apenas para Administrador/Acessor
 if (isAdmin()) {
     $headerActions .= '
