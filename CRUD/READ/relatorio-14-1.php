@@ -72,11 +72,13 @@ $sql = "SELECT
             doador.nome as doador_nome,
             doador.cpf as doador_cpf,
             doador.rg as doador_rg,
+            doador.rg_igual_cpf as doador_rg_igual_cpf,
             doador.assinatura as doador_assinatura,
             doador.casado as doador_casado,
             doador.nome_conjuge as doador_nome_conjuge,
             doador.cpf_conjuge as doador_cpf_conjuge,
             doador.rg_conjuge as doador_rg_conjuge,
+            doador.rg_conjuge_igual_cpf as doador_rg_conjuge_igual_cpf,
             doador.assinatura_conjuge as doador_assinatura_conjuge,
             doador.endereco_cep as doador_endereco_cep,
             doador.endereco_logradouro as doador_endereco_logradouro,
@@ -96,6 +98,23 @@ $stmt = $conexao->prepare($sql);
 $stmt->bindValue(':id_planilha', $id_planilha);
 $stmt->execute();
 $produtos = $stmt->fetchAll();
+
+// Se o usuário marcou que o RG é igual ao CPF e o campo RG estiver vazio,
+// reaproveitamos o CPF para garantir que o relatório saia preenchido.
+if (!empty($produtos)) {
+    foreach ($produtos as &$produto) {
+        $rgDoadorVazio = !isset($produto['doador_rg']) || trim((string)$produto['doador_rg']) === '';
+        if ($rgDoadorVazio && !empty($produto['doador_rg_igual_cpf']) && !empty($produto['doador_cpf'])) {
+            $produto['doador_rg'] = $produto['doador_cpf'];
+        }
+
+        $rgConjugeVazio = !isset($produto['doador_rg_conjuge']) || trim((string)$produto['doador_rg_conjuge']) === '';
+        if ($rgConjugeVazio && !empty($produto['doador_rg_conjuge_igual_cpf']) && !empty($produto['doador_cpf_conjuge'])) {
+            $produto['doador_rg_conjuge'] = $produto['doador_cpf_conjuge'];
+        }
+    }
+    unset($produto);
+}
 
 // As variáveis $produtos e $comum_planilha estarão disponíveis para o HTML
 // Expor variáveis adicionais: $cnpj_planilha, $numero_relatorio_auto, $casa_oracao_auto

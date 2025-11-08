@@ -267,9 +267,15 @@ ob_start();
 
                             // Doador: nome, CPF, RG, Endereço
                             $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input17', (string)($row['doador_nome'] ?? ''));
-                            // CPF e RG: se vierem separados, manter; o template tem campos distintos
-                            $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input21', (string)($row['doador_cpf'] ?? ''));
-                            $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input23', (string)($row['doador_rg'] ?? ''));
+                            $cpfDoador = (string)($row['doador_cpf'] ?? '');
+                            $rgDoadorOriginal = (string)($row['doador_rg'] ?? '');
+                            $rgDoador = $rgDoadorOriginal;
+                            if (empty($rgDoador) || (!empty($row['doador_rg_igual_cpf']) && $row['doador_rg_igual_cpf'])) {
+                                // Fallback: RG recebe CPF quando marcado ou RG vazio
+                                $rgDoador = $cpfDoador;
+                            }
+                            $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input21', $cpfDoador);
+                            $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input23', $rgDoador);
                             // Endereço do doador
                             if (!empty($endereco_doador_final)) {
                                 $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input19', $endereco_doador_final);
@@ -292,8 +298,14 @@ ob_start();
                             // Cônjuge (se o doador for casado)
                             if (!empty($row['doador_casado']) && $row['doador_casado'] == 1) {
                                 $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input18', (string)($row['doador_nome_conjuge'] ?? ''));
-                                $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input22', (string)($row['doador_cpf_conjuge'] ?? ''));
-                                $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input24', (string)($row['doador_rg_conjuge'] ?? ''));
+                                $cpfConj = (string)($row['doador_cpf_conjuge'] ?? '');
+                                $rgConjOriginal = (string)($row['doador_rg_conjuge'] ?? '');
+                                $rgConj = $rgConjOriginal;
+                                if (empty($rgConj) || (!empty($row['doador_rg_conjuge_igual_cpf']) && $row['doador_rg_conjuge_igual_cpf'])) {
+                                    $rgConj = $cpfConj;
+                                }
+                                $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input22', $cpfConj);
+                                $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input24', $rgConj);
                                 // Endereço do cônjuge (utiliza os mesmos campos do doador; se houver específicos, ajustar aqui)
                                 $end_conj = trim(implode(' ', array_filter([
                                     $row['doador_endereco_logradouro'] ?? '',
