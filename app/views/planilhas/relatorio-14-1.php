@@ -267,6 +267,9 @@ ob_start();
                             if ($end_doador_cep) {
                                 $endereco_doador_final = rtrim($endereco_doador_final, ', ');
                                 $endereco_doador_final .= ($endereco_doador_final ? ' - ' : '') . $end_doador_cep;
+                            } else {
+                                // Se não houver CEP, remover traço final se existir
+                                $endereco_doador_final = rtrim($endereco_doador_final, ' -');
                             }
 
                             // Doador: nome, CPF, RG, Endereço
@@ -332,6 +335,9 @@ ob_start();
                                 if ($end_conj_cep) {
                                     $endereco_conjuge_final = rtrim($endereco_conjuge_final, ', ');
                                     $endereco_conjuge_final .= ($endereco_conjuge_final ? ' - ' : '') . $end_conj_cep;
+                                } else {
+                                    // Se não houver CEP, remover traço final se existir
+                                    $endereco_conjuge_final = rtrim($endereco_conjuge_final, ' -');
                                 }
                                 if (!empty($endereco_conjuge_final)) {
                                     $htmlPreenchido = r141_fillFieldById($htmlPreenchido, 'input20', $endereco_conjuge_final);
