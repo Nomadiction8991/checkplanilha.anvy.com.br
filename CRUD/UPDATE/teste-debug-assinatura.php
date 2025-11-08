@@ -53,7 +53,8 @@ try {
 // Verificar dados da sessão
 echo "<h3>Dados da Sessão:</h3>";
 echo "<pre>";
-echo "ID Usuário: " . ($_SESSION['id_usuario'] ?? 'NÃO DEFINIDO') . "\n";
-echo "Tipo Usuário: " . ($_SESSION['tipo_usuario'] ?? 'NÃO DEFINIDO') . "\n";
+echo "ID Usuário: " . ($_SESSION['usuario_id'] ?? 'NÃO DEFINIDO') . "\n";
+echo "Tipo Usuário: " . ($_SESSION['usuario_tipo'] ?? 'NÃO DEFINIDO') . "\n";
+echo "Nome Usuário: " . ($_SESSION['usuario_nome'] ?? 'NÃO DEFINIDO') . "\n";
 echo "</pre>";
 ?>

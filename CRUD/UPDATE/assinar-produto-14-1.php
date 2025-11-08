@@ -18,7 +18,7 @@ if (empty($ids_produtos) || !$id_planilha || !$condicao_14_1) {
 }
 
 $condicao = intval($condicao_14_1);
-$id_usuario = $_SESSION['id_usuario'] ?? null;
+$id_usuario = $_SESSION['usuario_id'] ?? null;
 
 if (!$id_usuario) {
     $_SESSION['erro'] = 'Usuário não autenticado.';
