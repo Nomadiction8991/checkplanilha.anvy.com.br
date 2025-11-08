@@ -20,16 +20,13 @@ try {
 // Dependências disponíveis
 try {
     $sql_dependencias = "
-        SELECT DISTINCT dependencia FROM produtos WHERE id_planilha = :id_planilha1
-        UNION
-        SELECT DISTINCT pc.dependencia FROM produtos_check pc
-        INNER JOIN produtos p ON pc.produto_id = p.id
-        WHERE p.id_planilha = :id_planilha2 AND pc.editado = 1 AND pc.dependencia IS NOT NULL
+        SELECT DISTINCT d.descricao as dependencia FROM produtos p
+        LEFT JOIN dependencias d ON COALESCE(p.editado_dependencia_id, p.dependencia_id) = d.id
+        WHERE p.id_planilha = :id_planilha AND d.descricao IS NOT NULL
         ORDER BY dependencia
     ";
     $stmt_dependencias = $conexao->prepare($sql_dependencias);
-    $stmt_dependencias->bindValue(':id_planilha1', $id_planilha);
-    $stmt_dependencias->bindValue(':id_planilha2', $id_planilha);
+    $stmt_dependencias->bindValue(':id_planilha', $id_planilha);
     $stmt_dependencias->execute();
     $dependencias = $stmt_dependencias->fetchAll(PDO::FETCH_COLUMN);
 } catch (Exception $e) { $dependencias = []; }
@@ -38,14 +35,14 @@ $dependencia_selecionada = $_GET['dependencia'] ?? '';
 
 // Produtos marcados para imprimir (produtos checados)
 try {
-    $sql_produtos = "SELECT p.codigo, COALESCE(pc.dependencia, p.dependencia) as dependencia
+    $sql_produtos = "SELECT p.codigo, COALESCE(d_edit.descricao, d_orig.descricao, '') as dependencia
                      FROM produtos p 
-                     LEFT JOIN produtos_check pc ON p.id = pc.produto_id 
+                     LEFT JOIN dependencias d_orig ON p.dependencia_id = d_orig.id
+                     LEFT JOIN dependencias d_edit ON p.editado_dependencia_id = d_edit.id
                      WHERE p.id_planilha = :id_planilha AND COALESCE(p.imprimir_etiqueta, 0) = 1";
     if (!empty($dependencia_selecionada)) {
         $sql_produtos .= " AND (
-            (CAST(pc.editado AS SIGNED) = 1 AND pc.dependencia = :dependencia) OR
-            (CAST(pc.editado AS SIGNED) IS NULL OR CAST(pc.editado AS SIGNED) = 0) AND p.dependencia = :dependencia
+            (COALESCE(d_edit.descricao, d_orig.descricao) = :dependencia)
         )";
     }
     $sql_produtos .= " ORDER BY p.codigo";
@@ -56,21 +53,24 @@ try {
     $produtos = $stmt_produtos->fetchAll(PDO::FETCH_ASSOC);
     
     // Buscar também produtos cadastrados (novos) com código preenchido
-    $sql_novos = "SELECT pc.codigo, d.descricao as dependencia
-                  FROM produtos_cadastro pc
-                  LEFT JOIN dependencias d ON pc.id_dependencia = d.id
-                  WHERE pc.id_planilha = :id_planilha 
-                  AND pc.codigo IS NOT NULL 
-                  AND pc.codigo != ''";
-    if (!empty($dependencia_selecionada)) {
-        $sql_novos .= " AND d.descricao = :dependencia";
-    }
-    $sql_novos .= " ORDER BY pc.codigo";
-    $stmt_novos = $conexao->prepare($sql_novos);
-    $stmt_novos->bindValue(':id_planilha', $id_planilha);
-    if (!empty($dependencia_selecionada)) { $stmt_novos->bindValue(':dependencia', $dependencia_selecionada); }
-    $stmt_novos->execute();
-    $produtos_novos = $stmt_novos->fetchAll(PDO::FETCH_ASSOC);
+    // Nota: tabela produtos_cadastro não existe no schema atual, então comentado
+    // $sql_novos = "SELECT pc.codigo, d.descricao as dependencia
+    // FROM produtos_cadastro pc
+    // LEFT JOIN dependencias d ON pc.id_dependencia = d.id
+    // WHERE pc.id_planilha = :id_planilha 
+    // AND pc.codigo IS NOT NULL 
+    // AND pc.codigo != ''";
+    // if (!empty($dependencia_selecionada)) {
+    //     $sql_novos .= " AND d.descricao = :dependencia";
+    // }
+    // $sql_novos .= " ORDER BY pc.codigo";
+    // $stmt_novos = $conexao->prepare($sql_novos);
+    // $stmt_novos->bindValue(':id_planilha', $id_planilha);
+    // if (!empty($dependencia_selecionada)) { $stmt_novos->bindValue(':dependencia', $dependencia_selecionada); }
+    // $stmt_novos->execute();
+    // $produtos_novos = $stmt_novos->fetchAll(PDO::FETCH_ASSOC);
+    
+    $produtos_novos = []; // Temporariamente vazio até tabela existir
     
     // Combinar produtos checados e novos
     $produtos = array_merge($produtos, $produtos_novos);
