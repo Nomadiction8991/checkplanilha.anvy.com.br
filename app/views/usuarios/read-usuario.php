@@ -97,7 +97,7 @@ ob_start();
                                         <div class="fw-semibold text-wrap"><?php echo htmlspecialchars($usuario['nome']); ?></div>
                                         <div class="small text-muted text-wrap"><?php echo htmlspecialchars($usuario['email']); ?></div>
                                         <div class="mt-2 d-flex gap-1 flex-wrap">
-                                            <a href="./editar-usuario.php?id=<?php echo $usuario['id']; ?>"
+                                            <a href="./ver-usuario.php?id=<?php echo $usuario['id']; ?>"
                                                class="btn btn-sm btn-outline-secondary" title="Visualizar">
                                                 <i class="bi bi-eye"></i>
                                             </a>
