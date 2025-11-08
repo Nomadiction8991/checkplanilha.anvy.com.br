@@ -87,6 +87,8 @@ ob_start();
                                 $wa_link = ($telefone_limpo && (strlen($telefone_limpo) === 10 || strlen($telefone_limpo) === 11))
                                     ? ('https://wa.me/55' . $telefone_limpo)
                                     : null;
+                                $loggedId = isset($_SESSION['usuario_id']) ? (int)$_SESSION['usuario_id'] : 0;
+                                $is_self = $loggedId === (int)$usuario['id'];
                             ?>
                             <tr data-nome="<?php echo strtolower(htmlspecialchars($usuario['nome'])); ?>" 
                                 data-status="<?php echo $usuario['ativo']; ?>">
@@ -99,6 +101,12 @@ ob_start();
                                                class="btn btn-sm btn-outline-secondary" title="Visualizar">
                                                 <i class="bi bi-eye"></i> Visualizar
                                             </a>
+                                            <?php if ($is_self): ?>
+                                                <a href="./editar-usuario.php?id=<?php echo $usuario['id']; ?>"
+                                                   class="btn btn-sm btn-outline-primary" title="Editar meu perfil">
+                                                    <i class="bi bi-pencil"></i> Editar
+                                                </a>
+                                            <?php endif; ?>
                                             <?php if ($wa_link): ?>
                                                 <a href="<?php echo $wa_link; ?>" target="_blank" rel="noopener" 
                                                    class="btn btn-sm btn-outline-success" title="WhatsApp">
