@@ -3,7 +3,7 @@ name: Date-based Versioning
 on:
   push:
     branches:
-      - main
+      - dev
 
 jobs:
   tag:
