@@ -1,0 +1,19 @@
+name: Date-based Versioning
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cria tag com data
+        run: |
+          TAG_NAME=$(date +'%Y.%m.%d.%H%M')
+          git tag $TAG_NAME
+          git push origin $TAG_NAME
