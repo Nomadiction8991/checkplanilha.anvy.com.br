@@ -30,12 +30,7 @@ ob_start();
     <div class="card-body">
         <form method="POST" action="">
             <div class="row g-3">
-                <div class="col-md-6">
-                    <label for="codigo" class="form-label">Código</label>
-                    <input type="text" class="form-control" id="codigo" name="codigo"
-                           placeholder="Digite o código único (opcional)">
-                    <div class="form-text">O código deve ser único, se informado.</div>
-                </div>
+                <!-- campo codigo removido conforme solicitado -->
                 <div class="col-md-6">
                     <label for="descricao" class="form-label">Descrição <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="descricao" name="descricao" required
@@ -47,10 +42,7 @@ ob_start();
                     <i class="bi bi-check-lg me-2"></i>
                     Cadastrar Dependência
                 </button>
-                <a href="./read-dependencia.php" class="btn btn-secondary ms-2">
-                    <i class="bi bi-arrow-left me-2"></i>
-                    Voltar
-                </a>
+                <!-- botão Voltar removido conforme solicitado -->
             </div>
         </form>
     </div>

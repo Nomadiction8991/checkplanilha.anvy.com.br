@@ -63,6 +63,8 @@ require_once __DIR__ . '/../conexao.php';
 if (!isAdmin()) {
     header('Location: ../../../index.php');
     exit;
+        // Redirecionar para a listagem de dependências (caminho absoluto para evitar ambiguidade)
+        header('Location: /app/views/dependencias/read-dependencia.php?success=1');
 }
 
 $mensagem = '';
