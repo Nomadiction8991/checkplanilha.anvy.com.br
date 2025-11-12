@@ -13,6 +13,11 @@ $limite = 20;
 $offset = ($pagina - 1) * $limite;
 
 try {
+    // Verificar se conexão existe
+    if (!$conexao) {
+        throw new Exception("Falha na conexão com o banco de dados");
+    }
+
     // Contagem total
     $sql_count = "SELECT COUNT(*) FROM dependencias";
     $total_registros = (int)$conexao->query($sql_count)->fetchColumn();
@@ -25,7 +30,7 @@ try {
     $stmt->bindValue(':offset',$offset,PDO::PARAM_INT);
     $stmt->execute();
     $dependencias = $stmt->fetchAll();
-} catch (Exception $e) {
+} catch (Throwable $e) {
     // Em caso de erro, definir valores padrão
     $dependencias = [];
     $total_registros = 0;
