@@ -123,7 +123,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Verificar se houve realmente alguma alteração
         $houve_alteracao = false;
         if ($novo_tipo_bem_id !== '' && (int)$novo_tipo_bem_id !== $orig_tipo_id) $houve_alteracao = true;
-        if ($novo_bem !== '' && $novo_bem !== strtoupper($orig_ben)) $houve_alteracao = true;
+        if ($novo_bem !== '' && $novo_bem !== strtoupper($orig_bem)) $houve_alteracao = true;
         if ($novo_complemento !== '' && $novo_complemento !== strtoupper($orig_comp)) $houve_alteracao = true;
         if ($nova_dependencia_id !== '' && (int)$nova_dependencia_id !== $orig_dep_id) $houve_alteracao = true;
 
@@ -157,7 +157,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Montar descrição completa editada usando fallback para originais se campo editado em branco
         // Determinar valores finais (se não enviados, usa original)
         $final_tipo_id = ($novo_tipo_bem_id !== '') ? (int)$novo_tipo_bem_id : $orig_tipo_id;
-        $final_ben = ($novo_bem !== '') ? $novo_bem : strtoupper($orig_ben);
+        $final_bem = ($novo_bem !== '') ? $novo_bem : strtoupper($orig_bem);
         $final_comp = ($novo_complemento !== '') ? $novo_complemento : strtoupper($orig_comp);
         $final_dep_id = ($nova_dependencia_id !== '') ? (int)$nova_dependencia_id : $orig_dep_id;
 
