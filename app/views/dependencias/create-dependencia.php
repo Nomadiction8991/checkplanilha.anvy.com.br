@@ -58,6 +58,10 @@ ob_start();
 
 <?php
 $contentHtml = ob_get_clean();
+$tempFile = sys_get_temp_dir() . '/temp_create_dependencia_' . uniqid() . '.php';
+file_put_contents($tempFile, $contentHtml);
+$contentFile = $tempFile;
 include __DIR__ . '/../layouts/app-wrapper.php';
-?></content>
+unlink($tempFile);
+?>
 <parameter name="filePath">/home/weverton/Documentos/Github-Gitlab/GitHub/checkplanilha.anvy.com.br/app/views/dependencias/create-dependencia.php

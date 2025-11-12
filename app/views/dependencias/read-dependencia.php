@@ -137,7 +137,7 @@ function deletarDependencia(id) {
 
 <?php
 $contentHtml = ob_get_clean();
-$tempFile = __DIR__ . '/../../../temp_read_dependencia_' . uniqid() . '.php';
+$tempFile = sys_get_temp_dir() . '/temp_read_dependencia_' . uniqid() . '.php';
 file_put_contents($tempFile, $contentHtml);
 $contentFile = $tempFile;
 include __DIR__ . '/../layouts/app-wrapper.php';
