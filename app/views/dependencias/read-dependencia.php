@@ -137,6 +137,10 @@ function deletarDependencia(id) {
 
 <?php
 $contentHtml = ob_get_clean();
+$tempFile = __DIR__ . '/../../../temp_read_dependencia_' . uniqid() . '.php';
+file_put_contents($tempFile, $contentHtml);
+$contentFile = $tempFile;
 include __DIR__ . '/../layouts/app-wrapper.php';
-?></content>
+unlink($tempFile);
+?>
 <parameter name="filePath">/home/weverton/Documentos/Github-Gitlab/GitHub/checkplanilha.anvy.com.br/app/views/dependencias/read-dependencia.php
