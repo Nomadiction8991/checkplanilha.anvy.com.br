@@ -63,7 +63,8 @@ if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > 
 
 // Função para verificar se o usuário é Administrador/Acessor
 function isAdmin() {
-    return isset($_SESSION['usuario_tipo']) && $_SESSION['usuario_tipo'] === 'Administrador/Acessor';
+    $tipo = isset($_SESSION['usuario_tipo']) ? $_SESSION['usuario_tipo'] : '';
+    return $tipo === 'Administrador/Acessor' || stripos($tipo, 'administrador') !== false;
 }
 
 // Função para verificar se o usuário é Doador/Cônjuge

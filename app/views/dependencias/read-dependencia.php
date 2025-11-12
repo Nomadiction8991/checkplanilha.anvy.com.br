@@ -7,7 +7,15 @@ if (!isAdmin()) {
     exit;
 }
 
-include __DIR__ . '/../../../CRUD/READ/dependencia.php';
+try {
+    include __DIR__ . '/../../../CRUD/READ/dependencia.php';
+} catch (Exception $e) {
+    // Se houver erro no include, definir valores padrão
+    $dependencias = [];
+    $total_registros = 0;
+    $total_paginas = 0;
+    $pagina = 1;
+}
 
 $pageTitle = 'Dependências';
 $backUrl = '../../../index.php';

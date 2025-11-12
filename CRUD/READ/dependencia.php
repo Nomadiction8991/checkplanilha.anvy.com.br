@@ -12,17 +12,26 @@ $pagina = isset($_GET['pagina']) ? max(1,(int)$_GET['pagina']) : 1;
 $limite = 20;
 $offset = ($pagina - 1) * $limite;
 
-// Contagem total
-$sql_count = "SELECT COUNT(*) FROM dependencias";
-$total_registros = (int)$conexao->query($sql_count)->fetchColumn();
-$total_paginas = (int)ceil($total_registros / $limite);
+try {
+    // Contagem total
+    $sql_count = "SELECT COUNT(*) FROM dependencias";
+    $total_registros = (int)$conexao->query($sql_count)->fetchColumn();
+    $total_paginas = (int)ceil($total_registros / $limite);
 
-// Buscar página de dependências
-$sql = "SELECT * FROM dependencias ORDER BY codigo ASC LIMIT :limite OFFSET :offset";
-$stmt = $conexao->prepare($sql);
-$stmt->bindValue(':limite',$limite,PDO::PARAM_INT);
-$stmt->bindValue(':offset',$offset,PDO::PARAM_INT);
-$stmt->execute();
-$dependencias = $stmt->fetchAll();
+    // Buscar página de dependências
+    $sql = "SELECT * FROM dependencias ORDER BY codigo ASC LIMIT :limite OFFSET :offset";
+    $stmt = $conexao->prepare($sql);
+    $stmt->bindValue(':limite',$limite,PDO::PARAM_INT);
+    $stmt->bindValue(':offset',$offset,PDO::PARAM_INT);
+    $stmt->execute();
+    $dependencias = $stmt->fetchAll();
+} catch (Exception $e) {
+    // Em caso de erro, definir valores padrão
+    $dependencias = [];
+    $total_registros = 0;
+    $total_paginas = 0;
+    $pagina = 1;
+    error_log("Erro ao carregar dependências: " . $e->getMessage());
+}
 ?></content>
 <parameter name="filePath">/home/weverton/Documentos/Github-Gitlab/GitHub/checkplanilha.anvy.com.br/CRUD/READ/dependencia.php
