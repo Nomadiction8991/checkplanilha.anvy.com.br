@@ -220,6 +220,10 @@ ob_start();
                                            onclick="event.stopPropagation();">
                                 </div>
                                 <div class="flex-grow-1">
+                                    <h6 class="card-title mb-2">
+                                        <i class="bi bi-box-seam me-1"></i>
+                                        Produto #<?php echo $produto['id']; ?>
+                                    </h6>
                                     <p class="card-text small mb-2">
                                         <strong>Tipo:</strong> 
                                         <?php echo htmlspecialchars($produto['tipo_descricao'] ?? 'N/A'); ?>
