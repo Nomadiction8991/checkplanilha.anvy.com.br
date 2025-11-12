@@ -133,8 +133,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
-        $sql_update = "UPDATE produtos SET imprimir_etiqueta = 1, editado = 1";
-        $params = [':id_produto' => $id_produto, ':planilha_id' => $id_planilha];
+        $sql_update = "UPDATE produtos SET imprimir_etiqueta = 1, editado = 1, administrador_acessor_id = :administrador_acessor_id";
+        $params = [':id_produto' => $id_produto, ':planilha_id' => $id_planilha, ':administrador_acessor_id' => isset($_SESSION['usuario_id']) ? (int)$_SESSION['usuario_id'] : null];
 
         // Persistir tipo de bem editado
         if ($novo_tipo_bem_id !== '') {
@@ -190,7 +190,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $sql_update .= " WHERE id_produto = :id_produto AND planilha_id = :planilha_id";
         $stmt_update = $conexao->prepare($sql_update);
         foreach ($params as $key => $value) {
-            $stmt_update->bindValue($key, $value);
+            if ($key === ':administrador_acessor_id') {
+                $stmt_update->bindValue($key, $value, $value !== null ? PDO::PARAM_INT : PDO::PARAM_NULL);
+            } else {
+                $stmt_update->bindValue($key, $value);
+            }
         }
         $stmt_update->execute();
 
