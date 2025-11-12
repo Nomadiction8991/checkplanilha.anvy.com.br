@@ -19,18 +19,6 @@ ob_start();
   </div>
 <?php endif; ?>
 
-<div class="card mb-3">
-  <div class="card-header">
-    <i class="bi bi-box-seam me-2"></i>
-    Editar Produto
-  </div>
-  <div class="card-body small text-muted">
-    <div><strong>Código:</strong> <?php echo htmlspecialchars($produto['codigo'] ?? ''); ?></div>
-    <div><strong>Nome atual:</strong> <?php echo htmlspecialchars($produto['nome'] ?? ''); ?></div>
-    <div><strong>Dependência atual:</strong> <?php echo htmlspecialchars($produto['dependencia'] ?? ''); ?></div>
-  </div>
-</div>
-
 <form method="POST" id="form-produto" class="needs-validation" novalidate>
   <div class="card mb-3">
     <div class="card-body">
@@ -46,7 +34,7 @@ ob_start();
           <option value="">Selecione um tipo de bem</option>
           <?php foreach ($tipos_bens as $tipo): ?>
             <option value="<?php echo $tipo['id']; ?>" data-descricao="<?php echo htmlspecialchars($tipo['descricao']); ?>"
-              <?php echo ($produto['id_tipo_ben'] == $tipo['id']) ? 'selected' : ''; ?>>
+              <?php echo ($produto['tipo_bem_id'] == $tipo['id']) ? 'selected' : ''; ?>>
               <?php echo htmlspecialchars($tipo['codigo'] . ' - ' . $tipo['descricao']); ?>
             </option>
           <?php endforeach; ?>
@@ -73,7 +61,7 @@ ob_start();
         <select id="id_dependencia" name="id_dependencia" class="form-select" required>
           <option value="">Selecione uma dependência</option>
           <?php foreach ($dependencias as $dep): ?>
-            <option value="<?php echo $dep['id']; ?>" <?php echo ($produto['id_dependencia'] == $dep['id']) ? 'selected' : ''; ?>>
+            <option value="<?php echo $dep['id']; ?>" <?php echo ($produto['dependencia_id'] == $dep['id']) ? 'selected' : ''; ?>>
               <?php echo htmlspecialchars($dep['descricao']); ?>
             </option>
           <?php endforeach; ?>
@@ -100,7 +88,7 @@ ob_start();
 <script>
   const selectTipoBen = document.getElementById('id_tipo_ben');
   const selectBem = document.getElementById('tipo_ben');
-  const produtoBem = <?php echo json_encode($produto['tipo_ben'] ?? ''); ?>;
+  const produtoBem = <?php echo json_encode($produto['bem'] ?? ''); ?>;
 
   function separarOpcoesPorBarra(descricao) {
     return descricao.split('/').map(item => item.trim()).filter(item => item !== '');
