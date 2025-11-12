@@ -17,19 +17,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         // Validações
-        if (empty($codigo)) {
-            throw new Exception('O código é obrigatório.');
-        }
         if (empty($descricao)) {
             throw new Exception('A descrição é obrigatória.');
         }
 
-        // Verificar se código já existe
-        $stmt = $conexao->prepare('SELECT id FROM dependencias WHERE codigo = :codigo');
-        $stmt->bindValue(':codigo', $codigo);
-        $stmt->execute();
-        if ($stmt->fetch()) {
-            throw new Exception('Este código já está cadastrado.');
+        // Se código fornecido, verificar unicidade
+        if (!empty($codigo)) {
+            $stmt = $conexao->prepare('SELECT id FROM dependencias WHERE codigo = :codigo');
+            $stmt->bindValue(':codigo', $codigo);
+            $stmt->execute();
+            if ($stmt->fetch()) {
+                throw new Exception('Este código já está cadastrado.');
+            }
         }
 
         // Inserir dependência

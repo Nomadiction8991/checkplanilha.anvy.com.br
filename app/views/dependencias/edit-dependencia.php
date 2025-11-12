@@ -37,10 +37,10 @@ ob_start();
         </div>
         <div class="card-body">
             <div class="mb-3">
-                <label for="codigo" class="form-label">Código <span class="text-danger">*</span></label>
+                <label for="codigo" class="form-label">Código</label>
                 <input type="text" class="form-control" id="codigo" name="codigo" 
-                       value="<?php echo htmlspecialchars($dependencia['codigo']); ?>" required maxlength="50">
-                <small class="text-muted">Código único da dependência</small>
+                       value="<?php echo htmlspecialchars($dependencia['codigo']); ?>" maxlength="50">
+                <small class="text-muted">Código único da dependência (opcional)</small>
             </div>
 
             <div class="mb-3">
@@ -62,14 +62,7 @@ ob_start();
 <script>
 // Validação do formulário
 document.getElementById('formDependencia').addEventListener('submit', function(e) {
-    const codigo = document.getElementById('codigo').value.trim();
     const descricao = document.getElementById('descricao').value.trim();
-    
-    if (!codigo) {
-        e.preventDefault();
-        alert('O código é obrigatório!');
-        return false;
-    }
     
     if (!descricao) {
         e.preventDefault();

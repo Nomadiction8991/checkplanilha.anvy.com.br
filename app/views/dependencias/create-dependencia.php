@@ -31,10 +31,10 @@ ob_start();
         <form method="POST" action="">
             <div class="row g-3">
                 <div class="col-md-6">
-                    <label for="codigo" class="form-label">Código <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="codigo" name="codigo" required
-                           placeholder="Digite o código único">
-                    <div class="form-text">O código deve ser único.</div>
+                    <label for="codigo" class="form-label">Código</label>
+                    <input type="text" class="form-control" id="codigo" name="codigo"
+                           placeholder="Digite o código único (opcional)">
+                    <div class="form-text">O código deve ser único, se informado.</div>
                 </div>
                 <div class="col-md-6">
                     <label for="descricao" class="form-label">Descrição <span class="text-danger">*</span></label>

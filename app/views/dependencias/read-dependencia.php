@@ -9,12 +9,13 @@ if (!isAdmin()) {
 
 try {
     include __DIR__ . '/../../../CRUD/READ/dependencia.php';
-} catch (Exception $e) {
+} catch (Throwable $e) {
     // Se houver erro no include, definir valores padrão
     $dependencias = [];
     $total_registros = 0;
     $total_paginas = 0;
     $pagina = 1;
+    error_log("Erro na view dependencias: " . $e->getMessage());
 }
 
 $pageTitle = 'Dependências';
