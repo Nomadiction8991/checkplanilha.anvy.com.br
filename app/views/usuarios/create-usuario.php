@@ -60,8 +60,10 @@ ob_start();
 </style>
 
 <form method="POST" id="formUsuario">
-    <!-- Campo oculto: tipo de usuário -->
-        <input type="hidden" name="tipo" value="<?php echo defined('PUBLIC_REGISTER') ? 'Doador/Cônjuge' : 'Administrador/Acessor'; ?>">
+    <!-- Campo oculto: tipo de usuário (apenas para registro público) -->
+    <?php if (defined('PUBLIC_REGISTER')): ?>
+        <input type="hidden" name="tipo" value="Doador/Cônjuge">
+    <?php endif; ?>
     
     <!-- Card 1: Dados Básicos -->
     <div class="card mb-3">
@@ -130,6 +132,16 @@ ob_start();
                     Usuário Ativo
                 </label>
             </div>
+
+            <?php if (!defined('PUBLIC_REGISTER')): ?>
+            <div class="mb-3 mt-3">
+                <label for="tipo" class="form-label">Tipo de Usuário <span class="text-danger">*</span></label>
+                <select class="form-select" id="tipo" name="tipo" required>
+                    <option value="Administrador/Acessor" <?php echo ($_POST['tipo'] ?? 'Administrador/Acessor') === 'Administrador/Acessor' ? 'selected' : ''; ?>>Administrador/Acessor</option>
+                    <option value="Doador/Cônjuge" <?php echo ($_POST['tipo'] ?? '') === 'Doador/Cônjuge' ? 'selected' : ''; ?>>Doador/Cônjuge</option>
+                </select>
+            </div>
+            <?php endif; ?>
         </div>
     </div>
 

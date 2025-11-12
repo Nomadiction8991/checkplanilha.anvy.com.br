@@ -213,10 +213,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Redirecionar após sucesso
         if (defined('PUBLIC_REGISTER')) {
-            // Registro público: redireciona para login com mensagem de sucesso
+            // Registro público (doador se cadastrando): redireciona para login
             header('Location: ../../../login.php?registered=1');
         } else {
-            // Admin criando usuário: redireciona para listagem
+            // Admin cadastrando usuário: redireciona para listagem, independente do tipo
             header('Location: ../../app/views/usuarios/read-usuario.php?success=1');
         }
         exit;
