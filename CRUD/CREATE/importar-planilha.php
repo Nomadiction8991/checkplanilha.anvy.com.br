@@ -319,6 +319,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt_prod->bindValue(':bem', $ben);
                 $stmt_prod->bindValue(':complemento', $complemento_limpo);
                 $stmt_prod->bindValue(':dependencia_id', $dependencia_id, PDO::PARAM_INT);
+                $stmt_prod->bindValue(':imprimir_14_1', 0, PDO::PARAM_INT);
                 $stmt_prod->bindValue(':observacao', $obs_prefix);
                 // Condição 14.1 padrão para atender NOT NULL (definida como '2' por padrão)
                 $stmt_prod->bindValue(':condicao_14_1', '2');
@@ -334,6 +335,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             } catch (Exception $e) {
                 $registros_erros++;
+                $erro_msg = "Linha $linha_atual: " . $e->getMessage();
+                $erros_produtos[] = $erro_msg;
                 error_log("Erro linha $linha_atual: " . $e->getMessage());
             }
         }
