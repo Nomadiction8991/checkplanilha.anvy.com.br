@@ -1,4 +1,7 @@
 <?php
+ini_set('display_errors', 0);
+error_reporting(E_ERROR);
+
 require_once __DIR__ . '/../../auth.php'; // Autenticação
 require_once __DIR__ . '/../conexao.php';
 
