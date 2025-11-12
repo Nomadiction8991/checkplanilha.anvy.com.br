@@ -1,17 +1,14 @@
 <?php
-ini_set('display_errors', 0);
-error_reporting(0);
+declare(strict_types=1);
+require_once __DIR__ . '/../../../auth.php';
 
-require_once __DIR__ . '/../../../auth.php'; // Autenticação
-
-// Verificar se é admin
 if (!isAdmin()) {
     header('Location: ../../../index.php');
     exit;
 }
 
 $idParam = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-if (!$idParam) {
+if ($idParam <= 0) {
     header('Location: ./read-dependencia.php');
     exit;
 }

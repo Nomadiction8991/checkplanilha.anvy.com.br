@@ -1,10 +1,7 @@
 <?php
-ini_set('display_errors', 0);
-error_reporting(0);
+declare(strict_types=1);
+require_once __DIR__ . '/../../../auth.php';
 
-require_once __DIR__ . '/../../../auth.php'; // Autenticação
-
-// Apenas admins podem criar dependências
 if (!isAdmin()) {
     header('Location: ../../../index.php');
     exit;

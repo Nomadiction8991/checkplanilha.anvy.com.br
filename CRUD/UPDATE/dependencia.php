@@ -1,21 +1,18 @@
 <?php
-ini_set('display_errors', 0);
-error_reporting(0);
-
-require_once __DIR__ . '/../../auth.php'; // Autenticação
+declare(strict_types=1);
+require_once __DIR__ . '/../../auth.php';
 require_once __DIR__ . '/../conexao.php';
 
-// Apenas admins podem editar
 if (!isAdmin()) {
     header('Location: ../../../index.php');
     exit;
 }
 
-$id = $_GET['id'] ?? null;
+$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $mensagem = '';
 $tipo_mensagem = '';
 
-if (!$id) {
+if ($id <= 0) {
     header('Location: ./read-dependencia.php');
     exit;
 }
@@ -23,68 +20,61 @@ if (!$id) {
 // Buscar dependência
 try {
     $stmt = $conexao->prepare('SELECT * FROM dependencias WHERE id = :id');
-    $stmt->bindValue(':id', $id);
+    $stmt->bindValue(':id', $id, PDO::PARAM_INT);
     $stmt->execute();
-    $dependencia = $stmt->fetch();
+    $dependencia = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$dependencia) {
         throw new Exception('Dependência não encontrada.');
     }
-} catch (Exception $e) {
+} catch (Throwable $e) {
     $mensagem = 'Erro: ' . $e->getMessage();
-    $tipo_mensagem = 'error';
+    $tipo_mensagem = 'danger';
 }
 
 // Processar formulário
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $codigo = trim($_POST['codigo'] ?? '');
-    $descricao = trim($_POST['descricao'] ?? '');
+    $codigo = isset($_POST['codigo']) ? trim((string)$_POST['codigo']) : '';
+    $descricao = isset($_POST['descricao']) ? trim((string)$_POST['descricao']) : '';
 
     try {
-        // Validações
-        if (empty($descricao)) {
+        if ($descricao === '') {
             throw new Exception('A descrição é obrigatória.');
         }
 
-        // Se código fornecido, verificar unicidade
-        if (!empty($codigo)) {
-            $stmt = $conexao->prepare('SELECT id FROM dependencias WHERE codigo = :codigo AND id != :id');
-            $stmt->bindValue(':codigo', $codigo);
-            $stmt->bindValue(':id', $id);
-            $stmt->execute();
-            if ($stmt->fetch()) {
+        // Validar unicidade se código informado
+        if ($codigo !== '') {
+            $chk = $conexao->prepare('SELECT id FROM dependencias WHERE codigo = :codigo AND id != :id');
+            $chk->bindValue(':codigo', $codigo);
+            $chk->bindValue(':id', $id, PDO::PARAM_INT);
+            $chk->execute();
+            if ($chk->fetch()) {
                 throw new Exception('Este código já está cadastrado.');
             }
         }
 
-        // Atualizar dependência
-        $setParts = ['descricao = :descricao'];
-        $values = [':descricao' => $descricao, ':id' => $id];
-
-        if (!empty($codigo)) {
-            $setParts[] = 'codigo = :codigo';
-            $values[':codigo'] = $codigo;
+        if ($codigo === '') {
+            $sql = 'UPDATE dependencias SET codigo = NULL, descricao = :descricao WHERE id = :id';
+            $stmt = $conexao->prepare($sql);
+            $stmt->bindValue(':descricao', $descricao);
+            $stmt->bindValue(':id', $id, PDO::PARAM_INT);
         } else {
-            $setParts[] = 'codigo = NULL';
+            $sql = 'UPDATE dependencias SET codigo = :codigo, descricao = :descricao WHERE id = :id';
+            $stmt = $conexao->prepare($sql);
+            $stmt->bindValue(':codigo', $codigo);
+            $stmt->bindValue(':descricao', $descricao);
+            $stmt->bindValue(':id', $id, PDO::PARAM_INT);
         }
 
-        $sql = "UPDATE dependencias SET " . implode(', ', $setParts) . " WHERE id = :id";
-        $stmt = $conexao->prepare($sql);
-        foreach ($values as $key => $value) {
-            $stmt->bindValue($key, $value);
-        }
         $stmt->execute();
 
         $mensagem = 'Dependência atualizada com sucesso!';
         $tipo_mensagem = 'success';
-
-        // Redirecionar para listagem
         header('Location: ../../app/views/dependencias/read-dependencia.php?success=1');
         exit;
-
-    } catch (Exception $e) {
+    } catch (Throwable $e) {
         $mensagem = 'Erro: ' . $e->getMessage();
-        $tipo_mensagem = 'error';
+        $tipo_mensagem = 'danger';
     }
 }
 ?></content>

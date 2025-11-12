@@ -1,31 +1,26 @@
 <?php
-ini_set('display_errors', 0);
-error_reporting(0);
+declare(strict_types=1);
+require_once __DIR__ . '/../../../auth.php';
 
-require_once __DIR__ . '/../../../auth.php'; // Autenticação
-
-// Apenas admins podem acessar gestão de dependências
 if (!isAdmin()) {
     header('Location: ../../../index.php');
     exit;
 }
 
+// Incluir lógica de leitura (preparada em CRUD)
 try {
     include __DIR__ . '/../../../CRUD/READ/dependencia.php';
 } catch (Throwable $e) {
-    // Se houver erro no include, definir valores padrão
     $dependencias = [];
     $total_registros = 0;
     $total_paginas = 0;
     $pagina = 1;
-    error_log("Erro na view dependencias: " . $e->getMessage());
+    error_log('Erro na view dependencias: ' . $e->getMessage());
 }
 
 $pageTitle = 'Dependências';
 $backUrl = '../../../index.php';
-$headerActions = '
-    <a href="./create-dependencia.php" class="btn-header-action" title="Nova Dependência"><i class="bi bi-plus-lg"></i></a>
-';
+$headerActions = '<a href="./create-dependencia.php" class="btn-header-action" title="Nova Dependência"><i class="bi bi-plus-lg"></i></a>';
 
 ob_start();
 ?>
@@ -64,8 +59,8 @@ ob_start();
                     <tbody>
                         <?php foreach ($dependencias as $dependencia): ?>
                             <tr>
-                                <td><?php echo htmlspecialchars($dependencia['codigo']); ?></td>
-                                <td><?php echo htmlspecialchars($dependencia['descricao']); ?></td>
+                                <td><?php echo htmlspecialchars((string)($dependencia['codigo'] ?? '')); ?></td>
+                                <td><?php echo htmlspecialchars((string)($dependencia['descricao'] ?? '')); ?></td>
                                 <td>
                                     <div class="btn-group" role="group">
                                         <a href="./edit-dependencia.php?id=<?php echo $dependencia['id']; ?>"
@@ -147,4 +142,3 @@ $contentFile = $tempFile;
 include __DIR__ . '/../layouts/app-wrapper.php';
 unlink($tempFile);
 ?>
-<parameter name="filePath">/home/weverton/Documentos/Github-Gitlab/GitHub/checkplanilha.anvy.com.br/app/views/dependencias/read-dependencia.php

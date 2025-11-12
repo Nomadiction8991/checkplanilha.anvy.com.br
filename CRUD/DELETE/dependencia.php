@@ -1,34 +1,27 @@
 <?php
-ini_set('display_errors', 0);
-error_reporting(0);
-
-require_once __DIR__ . '/../../auth.php'; // Autenticação
+declare(strict_types=1);
+require_once __DIR__ . '/../../auth.php';
 require_once __DIR__ . '/../conexao.php';
 
-// Apenas admins podem deletar
+header('Content-Type: application/json; charset=utf-8');
+
 if (!isAdmin()) {
-    header('Content-Type: application/json');
     echo json_encode(['success' => false, 'message' => 'Acesso negado']);
     exit;
 }
 
-$id = $_POST['id'] ?? null;
-
-header('Content-Type: application/json');
-
-if (!$id) {
+$id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+if ($id <= 0) {
     echo json_encode(['success' => false, 'message' => 'ID não informado']);
     exit;
 }
 
 try {
     $stmt = $conexao->prepare('DELETE FROM dependencias WHERE id = :id');
-    $stmt->bindValue(':id', $id);
+    $stmt->bindValue(':id', $id, PDO::PARAM_INT);
     $stmt->execute();
-
     echo json_encode(['success' => true, 'message' => 'Dependência excluída com sucesso']);
-} catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => 'Erro ao excluir: ' . $e->getMessage()]);
+} catch (Throwable $e) {
+    error_log('Erro ao excluir dependência: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'Erro ao excluir dependência']);
 }
-?></content>
-<parameter name="filePath">/home/weverton/Documentos/Github-Gitlab/GitHub/checkplanilha.anvy.com.br/CRUD/DELETE/dependencia.php
