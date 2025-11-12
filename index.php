@@ -20,6 +20,11 @@ if (isAdmin()) {
                 <a class="dropdown-item" href="app/views/usuarios/read-usuario.php">
                     <i class="bi bi-people me-2"></i>Listagem de Usuários
                 </a>
+            </li>
+            <li>
+                <a class="dropdown-item" href="app/views/dependencias/read-dependencia.php">
+                    <i class="bi bi-diagram-3 me-2"></i>Listagem de Dependências
+                </a>
             </li>';
 }
 
