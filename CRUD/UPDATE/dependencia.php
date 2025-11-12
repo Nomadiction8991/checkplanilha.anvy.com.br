@@ -55,11 +55,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Atualizar dependência
-        $sql = "UPDATE dependencias SET codigo = :codigo, descricao = :descricao WHERE id = :id";
+        $setParts = ['descricao = :descricao'];
+        $values = [':descricao' => $descricao, ':id' => $id];
+
+        if (!empty($codigo)) {
+            $setParts[] = 'codigo = :codigo';
+            $values[':codigo'] = $codigo;
+        } else {
+            $setParts[] = 'codigo = NULL';
+        }
+
+        $sql = "UPDATE dependencias SET " . implode(', ', $setParts) . " WHERE id = :id";
         $stmt = $conexao->prepare($sql);
-        $stmt->bindValue(':codigo', $codigo);
-        $stmt->bindValue(':descricao', $descricao);
-        $stmt->bindValue(':id', $id);
+        foreach ($values as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
         $stmt->execute();
 
         $mensagem = 'Dependência atualizada com sucesso!';

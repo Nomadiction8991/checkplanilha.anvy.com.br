@@ -32,10 +32,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Inserir dependência
-        $sql = "INSERT INTO dependencias (codigo, descricao) VALUES (:codigo, :descricao)";
+        $fields = ['descricao'];
+        $placeholders = [':descricao'];
+        $values = [':descricao' => $descricao];
+
+        if (!empty($codigo)) {
+            $fields[] = 'codigo';
+            $placeholders[] = ':codigo';
+            $values[':codigo'] = $codigo;
+        }
+
+        $sql = "INSERT INTO dependencias (" . implode(', ', $fields) . ") VALUES (" . implode(', ', $placeholders) . ")";
         $stmt = $conexao->prepare($sql);
-        $stmt->bindValue(':codigo', $codigo);
-        $stmt->bindValue(':descricao', $descricao);
+        foreach ($values as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
         $stmt->execute();
 
         $mensagem = 'Dependência cadastrada com sucesso!';
