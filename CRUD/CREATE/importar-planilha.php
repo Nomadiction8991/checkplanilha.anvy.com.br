@@ -157,6 +157,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $registros_importados = 0;
         $registros_erros = 0;
         $linha_atual = 0;
+        $id_produto_sequencial = 1; // Sequencial por planilha
+        $erros_produtos = []; // Para coletar erros específicos
 
         foreach ($linhas as $linha) {
             $linha_atual++;
@@ -294,20 +296,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $obs_prefix = $tem_erro_parsing ? '[REVISAR] ' : '';
                 // Inserção agora contempla a coluna 'novo' (0 = importado) e mantém flags iniciais neutras
                 $sql_produto = "INSERT INTO produtos (
-                               planilha_id, codigo, descricao_completa, editado_descricao_completa,
+                               planilha_id, id_produto, codigo, descricao_completa, editado_descricao_completa,
                                tipo_bem_id, editado_tipo_bem_id, bem, editado_bem,
                                complemento, editado_complemento, dependencia_id, editado_dependencia_id,
                                checado, editado, imprimir_etiqueta, imprimir_14_1,
-                               observacao, ativo, novo, condicao_14_1
+                               observacao, ativo, novo, condicao_14_1,
+                               administrador_acessor_id, doador_conjugue_id
                                ) VALUES (
-                               :planilha_id, :codigo, :descricao_completa, '',
+                               :planilha_id, :id_produto, :codigo, :descricao_completa, '',
                                :tipo_bem_id, 0, :bem, '',
                                :complemento, '', :dependencia_id, 0,
                                0, 0, 0, :imprimir_14_1,
-                               :observacao, 1, 0, :condicao_14_1
+                               :observacao, 1, 0, :condicao_14_1,
+                               0, 0
                                )";
                 $stmt_prod = $conexao->prepare($sql_produto);
                 $stmt_prod->bindValue(':planilha_id', $id_planilha, PDO::PARAM_INT);
+                $stmt_prod->bindValue(':id_produto', $id_produto_sequencial, PDO::PARAM_INT);
                 $stmt_prod->bindValue(':codigo', $codigo);
                 $stmt_prod->bindValue(':descricao_completa', $descricao_completa_calc);
                 $stmt_prod->bindValue(':tipo_bem_id', $tipo_bem_id, PDO::PARAM_INT);
@@ -315,13 +320,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt_prod->bindValue(':complemento', $complemento_limpo);
                 $stmt_prod->bindValue(':dependencia_id', $dependencia_id, PDO::PARAM_INT);
                 $stmt_prod->bindValue(':observacao', $obs_prefix);
-                // Condição 14.1 padrão para atender NOT NULL (definida como 2 por padrão)
-                $stmt_prod->bindValue(':condicao_14_1', 2, PDO::PARAM_INT);
+                // Condição 14.1 padrão para atender NOT NULL (definida como '2' por padrão)
+                $stmt_prod->bindValue(':condicao_14_1', '2');
                 if ($stmt_prod->execute()) {
                     $registros_importados++;
+                    $id_produto_sequencial++;
                 } else {
                     $registros_erros++;
                     $err = $stmt_prod->errorInfo();
+                    $erro_msg = "Linha $linha_atual: " . ($err[2] ?? 'Erro desconhecido no INSERT');
+                    $erros_produtos[] = $erro_msg;
                     error_log('ERRO INSERT PRODUTO: ' . json_encode($err));
                 }
             } catch (Exception $e) {
@@ -338,7 +346,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $sucesso = true;
         } else {
             if ($conexao->inTransaction()) { $conexao->rollBack(); }
-            $mensagem = "Importação cancelada: apenas {$registros_importados} de {$registros_candidatos} produtos foram importados. A planilha não foi salva. Os dados do Comum foram salvos.";
+            $mensagem_extra = '';
+            if ($registros_importados == 0 && !empty($erros_produtos)) {
+                $mensagem_extra = ' Erros encontrados: ' . implode('; ', array_slice($erros_produtos, 0, 5)); // Mostra até 5 erros
+            }
+            $mensagem = "Importação cancelada: apenas {$registros_importados} de {$registros_candidatos} produtos foram importados. A planilha não foi salva. Os dados do Comum foram salvos.{$mensagem_extra}";
             $tipo_mensagem = 'danger';
             $sucesso = false;
         }
