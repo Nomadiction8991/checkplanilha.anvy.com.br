@@ -1,6 +1,6 @@
 <?php
 ini_set('display_errors', 0);
-error_reporting(E_ERROR);
+error_reporting(0);
 
 // auth.php - Middleware de autenticação
 // Incluir este arquivo no início de todas as páginas que precisam de autenticação

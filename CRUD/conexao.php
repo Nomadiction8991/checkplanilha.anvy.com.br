@@ -1,6 +1,6 @@
 <?php
 ini_set('display_errors', 0);
-error_reporting(E_ERROR);
+error_reporting(0);
 
 class Database {
     private $host = 'anvy.com.br';

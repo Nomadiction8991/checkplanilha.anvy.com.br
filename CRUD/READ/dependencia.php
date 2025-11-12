@@ -1,6 +1,6 @@
 <?php
 ini_set('display_errors', 0);
-error_reporting(E_ERROR);
+error_reporting(0);
 
 require_once __DIR__ . '/../../auth.php'; // Autenticação
 require_once __DIR__ . '/../conexao.php';
@@ -27,7 +27,7 @@ try {
     $total_paginas = (int)ceil($total_registros / $limite);
 
     // Buscar página de dependências
-    $sql = "SELECT * FROM dependencias ORDER BY codigo ASC LIMIT :limite OFFSET :offset";
+    $sql = "SELECT * FROM dependencias ORDER BY COALESCE(codigo, '') ASC, id ASC LIMIT :limite OFFSET :offset";
     $stmt = $conexao->prepare($sql);
     $stmt->bindValue(':limite',$limite,PDO::PARAM_INT);
     $stmt->bindValue(':offset',$offset,PDO::PARAM_INT);
