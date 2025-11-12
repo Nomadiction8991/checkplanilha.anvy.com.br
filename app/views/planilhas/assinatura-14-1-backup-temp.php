@@ -11,19 +11,19 @@ if (!$id_planilha) {
 
 // Buscar produtos que podem ser assinados (imprimir_14_1 = 1)
 $sql = "SELECT 
-            pc.id,
-            pc.descricao_completa,
-            pc.tipo_ben,
+            p.id_produto as id,
+            p.descricao_completa,
+            p.bem as tipo_ben,
             tb.descricao as tipo_descricao,
             COALESCE(a.status, 'pendente') as status_assinatura,
             a.token,
             a.id as id_assinatura
-        FROM produtos_cadastro pc
-        LEFT JOIN tipos_bens tb ON pc.id_tipo_ben = tb.id
-        LEFT JOIN assinaturas_14_1 a ON a.id_produto = pc.id
-        WHERE pc.id_planilha = :id_planilha 
-        AND pc.imprimir_14_1 = 1
-        ORDER BY pc.id ASC";
+        FROM produtos p
+        LEFT JOIN tipos_bens tb ON p.tipo_bem_id = tb.id
+        LEFT JOIN assinaturas_14_1 a ON a.id_produto = p.id_produto
+        WHERE p.planilha_id = :id_planilha 
+        AND p.imprimir_14_1 = 1
+        ORDER BY p.id_produto ASC";
 
 $stmt = $conexao->prepare($sql);
 $stmt->bindValue(':id_planilha', $id_planilha);
@@ -235,6 +235,19 @@ ob_start();
                                 </div>
                             </div>
                             <div class="ms-3">
+                                <!-- Espaço reservado para conteúdo adicional se necessário -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    </div>
+<?php else: ?>
+    <div class="alert alert-warning">
+        <i class="bi bi-info-circle me-2"></i> Nenhum produto encontrado para assinatura.
+    </div>
+<?php endif; ?>
 
 <script>
 let produtosSelecionados = new Set();

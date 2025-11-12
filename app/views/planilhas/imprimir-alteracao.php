@@ -53,22 +53,22 @@ try {
     $stmt_produtos->execute();
     $todos_produtos = $stmt_produtos->fetchAll();
     
-    // Buscar produtos novos cadastrados manualmente (tabela produtos_cadastro)
-    $sql_novos = "SELECT pc.id, pc.id_planilha, pc.descricao_completa as nome, '' as codigo, pc.complemento as dependencia, 
-                  pc.quantidade, pc.tipo_ben, pc.imprimir_14_1 as imprimir_cadastro, 'cadastro' as origem,
-                  NULL as checado, 1 as ativo, NULL as imprimir, NULL as observacoes, NULL as editado, NULL as nome_editado, NULL as dependencia_editada
-                  FROM produtos_cadastro pc 
-                  WHERE pc.id_planilha = :id_planilha";
-    $params_novos = [':id_planilha' => $id_planilha];
-    if (!empty($filtro_dependencia)) { $sql_novos .= " AND pc.complemento LIKE :dependencia"; $params_novos[':dependencia'] = '%' . $filtro_dependencia . '%'; }
-    $sql_novos .= " ORDER BY pc.id";
-    $stmt_novos = $conexao->prepare($sql_novos);
-    foreach ($params_novos as $k => $v) { $stmt_novos->bindValue($k, $v); }
-    $stmt_novos->execute();
-    $produtos_cadastrados = $stmt_novos->fetchAll();
-    
-    // Combinar ambos os arrays
-    $todos_produtos = array_merge($todos_produtos, $produtos_cadastrados);
+    // Buscar produtos novos cadastrados manualmente (tabela produtos_cadastro não existe no schema atual)
+    // $sql_novos = "SELECT pc.id, pc.id_planilha, pc.descricao_completa as nome, '' as codigo, pc.complemento as dependencia,
+    //               pc.quantidade, pc.tipo_ben, pc.imprimir_14_1 as imprimir_cadastro, 'cadastro' as origem,
+    //               NULL as checado, 1 as ativo, NULL as imprimir, NULL as observacoes, NULL as editado, NULL as nome_editado, NULL as dependencia_editada
+    //               FROM produtos_cadastro pc
+    //               WHERE pc.id_planilha = :id_planilha";
+    // $params_novos = [':id_planilha' => $id_planilha];
+    // if (!empty($filtro_dependencia)) { $sql_novos .= " AND pc.complemento LIKE :dependencia"; $params_novos[':dependencia'] = '%' . $filtro_dependencia . '%'; }
+    // $sql_novos .= " ORDER BY pc.id";
+    // $stmt_novos = $conexao->prepare($sql_novos);
+    // foreach ($params_novos as $k => $v) { $stmt_novos->bindValue($k, $v); }
+    // $stmt_novos->execute();
+    // $produtos_cadastrados = $stmt_novos->fetchAll();
+
+    // Combinar ambos os arrays (removido pois tabela produtos_cadastro não existe)
+    // $todos_produtos = array_merge($todos_produtos, $produtos_cadastrados);
 } catch (Exception $e) { die("Erro ao carregar produtos: " . $e->getMessage()); }
 
 try {

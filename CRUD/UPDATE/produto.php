@@ -12,7 +12,7 @@ if (!$id_produto || !$id_planilha) {
 
 // Buscar dados do produto
 try {
-    $sql_produto = "SELECT * FROM produtos_cadastro WHERE id = :id AND id_planilha = :id_planilha";
+    $sql_produto = "SELECT * FROM produtos WHERE id_produto = :id AND planilha_id = :id_planilha";
     $stmt_produto = $conexao->prepare($sql_produto);
     $stmt_produto->bindValue(':id', $id_produto);
     $stmt_produto->bindValue(':id_planilha', $id_planilha);
@@ -122,34 +122,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Montar descrição completa (mantendo quantidade = 1)
             $descricao_completa = "1x [" . $tipo_bem['codigo'] . " - " . $tipo_bem['descricao'] . "] " . $tipo_ben . " - " . $complemento . " - (" . $dependencia['descricao'] . ")";
             
-            $sql_atualizar = "UPDATE produtos_cadastro 
+            $sql_atualizar = "UPDATE produtos 
                              SET codigo = :codigo,
-                                 id_tipo_ben = :id_tipo_ben,
-                                 tipo_ben = :tipo_ben,
+                                 tipo_bem_id = :tipo_bem_id,
+                                 bem = :bem,
                                  complemento = :complemento,
-                                 id_dependencia = :id_dependencia,
+                                 dependencia_id = :dependencia_id,
                                  descricao_completa = :descricao_completa,
-                                 numero_nota = :numero_nota,
-                                 data_emissao = :data_emissao,
-                                 valor_nota = :valor_nota,
-                                 fornecedor_nota = :fornecedor_nota,
+                                 nota_numero = :nota_numero,
+                                 nota_data = :nota_data,
+                                 nota_valor = :nota_valor,
+                                 nota_fornecedor = :nota_fornecedor,
                                  imprimir_14_1 = :imprimir_14_1,
-                                 condicao_141 = :condicao_141
-                             WHERE id = :id AND id_planilha = :id_planilha";
+                                 condicao_14_1 = :condicao_14_1
+                             WHERE id_produto = :id AND planilha_id = :id_planilha";
             
             $stmt_atualizar = $conexao->prepare($sql_atualizar);
             $stmt_atualizar->bindValue(':codigo', !empty($codigo) ? $codigo : null);
-            $stmt_atualizar->bindValue(':id_tipo_ben', $id_tipo_ben);
-            $stmt_atualizar->bindValue(':tipo_ben', $tipo_ben);
+            $stmt_atualizar->bindValue(':tipo_bem_id', $id_tipo_ben);
+            $stmt_atualizar->bindValue(':bem', $tipo_ben);
             $stmt_atualizar->bindValue(':complemento', $complemento);
-            $stmt_atualizar->bindValue(':id_dependencia', $id_dependencia);
+            $stmt_atualizar->bindValue(':dependencia_id', $id_dependencia);
             $stmt_atualizar->bindValue(':descricao_completa', $descricao_completa);
-            $stmt_atualizar->bindValue(':numero_nota', $numero_nota);
-            $stmt_atualizar->bindValue(':data_emissao', $data_emissao);
-            $stmt_atualizar->bindValue(':valor_nota', $valor_nota);
-            $stmt_atualizar->bindValue(':fornecedor_nota', $fornecedor_nota);
+            $stmt_atualizar->bindValue(':nota_numero', $numero_nota);
+            $stmt_atualizar->bindValue(':nota_data', $data_emissao);
+            $stmt_atualizar->bindValue(':nota_valor', $valor_nota);
+            $stmt_atualizar->bindValue(':nota_fornecedor', $fornecedor_nota);
             $stmt_atualizar->bindValue(':imprimir_14_1', $imprimir_14_1);
-            $stmt_atualizar->bindValue(':condicao_141', $condicao_141, PDO::PARAM_INT);
+            $stmt_atualizar->bindValue(':condicao_14_1', $condicao_141, PDO::PARAM_INT);
             $stmt_atualizar->bindValue(':id', $id_produto);
             $stmt_atualizar->bindValue(':id_planilha', $id_planilha);
             
