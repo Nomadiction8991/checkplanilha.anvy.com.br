@@ -356,6 +356,33 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
         .fade-in {
             animation: fadeIn 0.3s ease-out;
         }
+
+        /* Overlay que força instalação do PWA (bloqueia interação até instalado) */
+        #pwaForceOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+
+        #pwaForceOverlay .panel {
+            background: #fff;
+            border-radius: 12px;
+            max-width: 480px;
+            width: 100%;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+
+        #pwaForceOverlay h3 { margin-top: 0; }
+        #pwaForceOverlay p { color: #444; }
+        #pwaForceOverlay .btn-install { min-width: 160px; }
+        #pwaForceOverlay .manual-instructions { text-align: left; margin-top: 12px; display:none; }
     </style>
     
     <?php if (isset($customCss)): ?>
@@ -489,6 +516,26 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
         <script><?php echo $customJs; ?></script>
     <?php endif; ?>
 
+    <!-- Overlay que força instalação do PWA -->
+    <div id="pwaForceOverlay" role="dialog" aria-modal="true">
+        <div class="panel">
+            <h3>Instalar Aplicativo</h3>
+            <p>Para continuar usando este sistema, instale o aplicativo no seu dispositivo.</p>
+            <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                <button id="pwaInstallBtn" class="btn btn-primary btn-install">Instalar Aplicativo</button>
+                <button id="pwaCheckInstalledBtn" class="btn btn-outline-secondary">Já instalei / Rechecar</button>
+            </div>
+            <div class="manual-instructions mt-3" id="pwaManual">
+                <strong>Instruções:</strong>
+                <ol>
+                    <li>Se estiver no Android/Chrome: abra o menu do navegador e toque em "Adicionar à tela inicial".</li>
+                    <li>Se estiver no iOS/Safari: toque no botão de compartilhar e escolha "Adicionar à tela de início".</li>
+                </ol>
+                <p class="text-muted"><small>Após instalar, toque em "Já instalei / Rechecar" para liberar o acesso.</small></p>
+            </div>
+        </div>
+    </div>
+
     <!-- PWA client script: registra SW e cria subscription automaticamente se houver VAPID public key -->
     <?php
     $vapidPath = __DIR__ . '/../../pwa/vapid.json';
@@ -521,5 +568,87 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
             })();
         </script>
     <?php endif; ?>
+    <!-- Script que gerencia o overlay de instalação obrigatória -->
+    <script>
+        (function(){
+            const overlay = document.getElementById('pwaForceOverlay');
+            const installBtn = document.getElementById('pwaInstallBtn');
+            const checkBtn = document.getElementById('pwaCheckInstalledBtn');
+            const manual = document.getElementById('pwaManual');
+
+            function isInPWA() {
+                try { return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; } catch (e) { return false; }
+            }
+
+            // Mostrar overlay se NÃO estiver em PWA
+            function showOverlay() {
+                if (!overlay) return;
+                overlay.style.display = 'flex';
+                document.documentElement.style.overflow = 'hidden';
+            }
+
+            function hideOverlay() {
+                if (!overlay) return;
+                overlay.style.display = 'none';
+                document.documentElement.style.overflow = '';
+            }
+
+            // Se já instalado, não bloquear
+            if (isInPWA()) {
+                hideOverlay();
+                return;
+            }
+
+            // força mostrar overlay inicial
+            showOverlay();
+
+            let deferredPrompt = null;
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e; // salvar evento para uso posterior
+                // habilita botão de instalar e oculta instruções manuais
+                if (manual) manual.style.display = 'none';
+            });
+
+            window.addEventListener('appinstalled', function() {
+                // quando instalado, esconder overlay
+                hideOverlay();
+            });
+
+            if (installBtn) installBtn.addEventListener('click', async function(){
+                if (deferredPrompt) {
+                    try {
+                        deferredPrompt.prompt();
+                        const choice = await deferredPrompt.userChoice;
+                        deferredPrompt = null;
+                        if (choice && choice.outcome === 'accepted') {
+                            // usuário aceitou, esperar evento appinstalled ou recheck
+                            console.log('Usuário aceitou instalar PWA');
+                        } else {
+                            // usuário rejeitou ou fechou -> mostrar instruções manuais
+                            if (manual) manual.style.display = 'block';
+                        }
+                    } catch (err) {
+                        console.error('Erro ao chamar prompt:', err);
+                        if (manual) manual.style.display = 'block';
+                    }
+                } else {
+                    // Não há antes do evento -> mostrar instruções manuais
+                    if (manual) manual.style.display = 'block';
+                }
+            });
+
+            if (checkBtn) checkBtn.addEventListener('click', function(){
+                // Rechecar se o app está agora em standalone (após instalar manualmente)
+                setTimeout(function(){
+                    if (isInPWA()) {
+                        hideOverlay();
+                    } else {
+                        alert('Aplicativo ainda não detectado como instalado. Siga as instruções manuais ou tente novamente.');
+                    }
+                }, 500);
+            });
+        })();
+    </script>
 </body>
 </html>
