@@ -536,38 +536,7 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
         </div>
     </div>
 
-    <!-- PWA client script: registra SW e cria subscription automaticamente se houver VAPID public key -->
-    <?php
-    $vapidPath = __DIR__ . '/../../pwa/vapid.json';
-    $publicVapid = null;
-    if (file_exists($vapidPath)) {
-        $v = json_decode(file_get_contents($vapidPath), true) ?: [];
-        $publicVapid = $v['publicKey'] ?? null;
-    }
-    if ($publicVapid): ?>
-        <script src="/app/pwa/pwa-client.js"></script>
-        <script>
-            // Tenta automaticamente registrar e criar subscription quando a chave pública VAPID estiver disponível
-            (function(){
-                const PUBLIC_VAPID = <?php echo json_encode($publicVapid); ?>;
-                function isInPWA() {
-                    try { return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; } catch (e) { return false; }
-                }
-                window.addEventListener('load', function(){
-                    if (isInPWA()) return; // não registrar dentro do app
-                    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
-                    // se permissão negada, não solicitar
-                    if (window.Notification && Notification.permission === 'denied') return;
-                    try {
-                        if (window.PWAClient && typeof window.PWAClient.registerAndSubscribe === 'function') {
-                            // registra e cria subscription (client cuidará de enviar ao servidor)
-                            window.PWAClient.registerAndSubscribe(PUBLIC_VAPID).catch(err => console.warn('PWA subscribe error', err));
-                        }
-                    } catch (e) { console.error('PWA auto-subscribe error', e); }
-                });
-            })();
-        </script>
-    <?php endif; ?>
+    <!-- NOTIFICATIONS removed: auto-subscribe client was disabled per user request -->
     <!-- Script que gerencia o overlay de instalação obrigatória -->
     <script>
         (function(){

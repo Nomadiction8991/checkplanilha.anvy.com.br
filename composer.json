@@ -4,7 +4,6 @@
         "setasign/fpdf": "^1.8",
         "setasign/fpdi": "^2.6",
         "voku/portable-ascii": "^2.0",
-        "symfony/string": "^6.4",
-        "minishlink/web-push": "^9.0"
+        "symfony/string": "^6.4"
     }
 }
