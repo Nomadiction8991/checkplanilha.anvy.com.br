@@ -11,13 +11,15 @@ jobs:
   gerar-schema:
     runs-on: ubuntu-latest
     env:
-      # se true, o workflow irá commitar o arquivo `database/schema.sql` em um branch separado
-      COMMIT_SCHEMA: 'false'
-      TARGET_SCHEMA_PATH: database/schema.sql
+      # se true, o workflow irá commitar o arquivo `estrutura-banco-de-dados.sql` diretamente na branch dev
+      COMMIT_SCHEMA: 'true'
+      # arquivo alvo no repositório (será substituído toda vez que o workflow rodar)
+      TARGET_SCHEMA_PATH: estrutura-banco-de-dados.sql
     steps:
-      - name: Checkout
+      - name: Checkout (com histórico completo)
         uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           persist-credentials: true
 
       - name: Instalar cliente mysql
@@ -62,17 +64,23 @@ jobs:
           name: db-schema
           path: schema.sql
 
-      - name: Commitar schema no repositório (opcional)
+      - name: Commitar schema no repositório (substituir em dev)
         if: env.COMMIT_SCHEMA == 'true'
         env:
           TARGET_PATH: ${{ env.TARGET_SCHEMA_PATH }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          BRANCH_NAME="schema-update-${{ github.sha }}"
-          git checkout -b "$BRANCH_NAME"
-          mkdir -p "$(dirname "$TARGET_PATH")"
+
+          # garantir que estamos na branch dev e atualizados
+          git checkout dev || git fetch origin dev && git checkout dev
+          git pull origin dev
+
+          # mover/colocar o schema no caminho alvo e commitar
           mv schema.sql "$TARGET_PATH"
           git add "$TARGET_PATH"
-          git commit -m "chore(schema): atualizar schema do banco (automatizado)" || echo "nothing to commit"
-          git push --set-upstream origin "$BRANCH_NAME"
+          if git diff --staged --quiet; then
+            echo "Nenhuma alteração no schema para commitar." && exit 0
+          fi
+          git commit -m "chore(schema): atualizar estrutura do banco (automático)"
+          git push origin dev
