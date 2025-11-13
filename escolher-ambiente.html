@@ -208,43 +208,37 @@
         
         <div class="cards">
             <!-- Card Produção -->
-            <div class="card card-prod" onclick="window.location.href='/install-prod.html'">
+            <div class="card card-prod" onclick="window.location.href='/prod/index.php'">
                 <div class="card-icon">🚀</div>
                 <h2>Produção</h2>
                 <span class="badge">ESTÁVEL</span>
                 <p>Ambiente oficial para uso diário. Dados reais e funcionalidades testadas.</p>
                 
                 <div class="card-actions">
-                    <a href="/install-prod.html" class="btn btn-primary" onclick="event.stopPropagation()">
-                        📲 Instalar App
-                    </a>
-                    <a href="/prod/index.php" class="btn btn-outline" onclick="event.stopPropagation()">
-                        🌐 Acessar no Navegador
+                    <a href="/prod/index.php" class="btn btn-primary" onclick="event.stopPropagation()">
+                        🌐 Acessar Produção
                     </a>
                 </div>
             </div>
             
             <!-- Card Desenvolvimento -->
-            <div class="card card-dev" onclick="window.location.href='/install-dev.html'">
+            <div class="card card-dev" onclick="window.location.href='/dev/index.php'">
                 <div class="card-icon">🔧</div>
                 <h2>Desenvolvimento</h2>
                 <span class="badge">TESTES</span>
                 <p>Ambiente de testes com novas funcionalidades. Use para experimentar!</p>
                 
                 <div class="card-actions">
-                    <a href="/install-dev.html" class="btn btn-warning" onclick="event.stopPropagation()">
-                        📲 Instalar App DEV
-                    </a>
-                    <a href="/dev/index.php" class="btn btn-outline" onclick="event.stopPropagation()">
-                        🌐 Acessar no Navegador
+                    <a href="/dev/index.php" class="btn btn-warning" onclick="event.stopPropagation()">
+                        🌐 Acessar Desenvolvimento
                     </a>
                 </div>
             </div>
         </div>
         
         <div class="info">
-            <strong>💡 Você sabia?</strong> É possível instalar ambos os aplicativos simultaneamente! 
-            Cada um terá seu próprio ícone na tela inicial do seu dispositivo.
+            <strong>💡 Nota</strong> A instalação do PWA está disponível apenas no ambiente de Produção.
+            Use a opção "Acessar Produção" para abrir o aplicativo e, se disponível, instalar a partir da tela de login.
         </div>
     </div>
 </body>

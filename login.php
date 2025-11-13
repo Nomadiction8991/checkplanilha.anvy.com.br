@@ -8,7 +8,9 @@ if (isset($_SESSION['usuario_id'])) {
 }
 
 require_once __DIR__ . '/CRUD/conexao.php';
-
+ 
+// Checar se ambiente é produção (variável de ambiente ANVY_ENV = 'prod')
+$isProdInstall = (getenv('ANVY_ENV') === 'prod');
 $erro = '';
 $sucesso = '';
 
@@ -157,6 +159,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </button>
                     </div>
                 </form>
+                    <?php if ($isProdInstall): ?>
+                        <div id="pwa-install-container" class="d-grid mt-3" style="display:none;">
+                            <button id="btn-install-pwa" type="button" class="btn btn-success">
+                                <i class="bi bi-phone me-2"></i>
+                                📲 Instalar Aplicativo
+                            </button>
+                        </div>
+                    <?php endif; ?>
             </div>
         </div>
         
@@ -173,5 +183,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Variável definida no servidor para controlar se estamos em produção
+        const IS_PROD = <?php echo $isProdInstall ? 'true' : 'false'; ?>;
+
+        function isInPWA() {
+            try {
+                return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        (function() {
+            if (!IS_PROD) return; // não ativa nada em ambientes que não sejam produção
+
+            let deferredPrompt = null;
+            const container = document.getElementById('pwa-install-container');
+            const btn = document.getElementById('btn-install-pwa');
+
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                // só mostrar o botão se não estivermos já em modo PWA
+                if (!isInPWA() && container) {
+                    container.style.display = 'block';
+                }
+            });
+
+            // Se já estivermos em standalone, esconde imediatamente (fallback)
+            if (isInPWA() && container) {
+                container.style.display = 'none';
+            }
+
+            if (btn) {
+                btn.addEventListener('click', async () => {
+                    if (!deferredPrompt) return;
+                    deferredPrompt.prompt();
+                    const choice = await deferredPrompt.userChoice;
+                    // ocultar botão após escolha do usuário
+                    if (container) container.style.display = 'none';
+                    deferredPrompt = null;
+                });
+            }
+        })();
+    </script>
 </body>
 </html>
