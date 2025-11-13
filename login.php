@@ -160,10 +160,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </form>
                                     <div id="pwa-install-container" class="d-grid mt-3" style="display:none;">
-                                            <button id="btn-install-pwa" type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#installModal">
-                                                    <i class="bi bi-phone me-2"></i>
-                                                    📲 Instalar Aplicativo
-                                            </button>
+                                        <button id="btn-install-pwa" type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#installModal">
+                                            Instalar Aplicativo
+                                        </button>
                                     </div>
 
                                     <!-- Modal para escolher ambiente de instalação -->
@@ -176,12 +175,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                                 </div>
                                                 <div class="modal-body">
                                                     <p>Escolha o ambiente que você deseja instalar:</p>
-                                                    <div class="d-grid gap-2">
-                                                        <button id="install-prod" type="button" class="btn btn-primary">Instalar Produção</button>
-                                                        <button id="install-dev" type="button" class="btn btn-outline-secondary">Instalar Desenvolvimento</button>
-                                                    </div>
-                                                    <hr>
-                                                    <small class="text-muted">Se o navegador não suportar instalação automática (ex.: iOS), você será redirecionado para a página de login do ambiente escolhido com instruções.</small>
+                                                                            <div class="d-grid gap-2">
+                                                                                <button id="install-prod" type="button" class="btn btn-primary">Instalação Normal</button>
+                                                                                <button id="install-dev" type="button" class="btn btn-outline-secondary">Instalação Beta</button>
+                                                                            </div>
+                                                                            <hr>
+                                                                            <p class="mb-2"><small class="text-muted">Se o navegador não suportar instalação automática (ex.: iOS), você será redirecionado para a página de login do ambiente escolhido com instruções.</small></p>
+                                                                            <p class="mb-0"><small class="text-warning">Observação: a versão Beta pode ser instável e conter funcionalidades experimentais. Use com cautela.</small></p>
                                                 </div>
                                             </div>
                                         </div>
