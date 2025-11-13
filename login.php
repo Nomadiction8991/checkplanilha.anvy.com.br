@@ -203,9 +203,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Variável definida no servidor para controlar se estamos em produção
-        const IS_PROD = <?php echo $isProdInstall ? 'true' : 'false'; ?>;
+        // Ambiente corrente vindo do servidor ('' | 'dev' | 'prod')
+        const CURRENT_ENV = <?php echo json_encode($CURRENT_ENV); ?>;
 
+        // Helper para detectar se já estamos rodando como PWA/native
         function isInPWA() {
             try {
                 return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
@@ -215,84 +216,66 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         (function() {
-            if (!IS_PROD) return; // não ativa nada em ambientes que não sejam produção
-
-            let deferredPrompt = null;
+            // container e botões da UI
             const container = document.getElementById('pwa-install-container');
-            const btn = document.getElementById('btn-install-pwa');
+            const btnProd = document.getElementById('install-prod');
+            const btnDev = document.getElementById('install-dev');
+            const installModalEl = document.getElementById('installModal');
 
+            // estado do evento beforeinstallprompt
+            let deferredPrompt = null;
+            // se o usuário abriu a página com ?auto_install=1
+            const urlParams = new URLSearchParams(window.location.search);
+            const autoInstall = urlParams.get('auto_install') === '1';
+
+            // mostra/hide container dependendo se já estamos em PWA
+            function updateContainerVisibility() {
+                if (!container) return;
+                container.style.display = isInPWA() ? 'none' : 'block';
+            }
+
+            updateContainerVisibility();
+
+            // Quando o navegador dispara beforeinstallprompt, guardamos o evento
             window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault();
                 deferredPrompt = e;
-                // só mostrar o botão se não estivermos já em modo PWA
-                if (!isInPWA() && container) {
-                    container.style.display = 'block';
+                updateContainerVisibility();
+
+                if (autoInstall && deferredPrompt) {
+                    // disparar prompt assim que possível
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.finally(() => { deferredPrompt = null; updateContainerVisibility(); });
                 }
             });
 
-            // Se já estivermos em standalone, esconde imediatamente (fallback)
-            <script>
-                // Ambiente corrente e flags do servidor
-                const CURRENT_ENV = <?php echo json_encode($CURRENT_ENV); ?>;
-
-                function isInPWA() {
-                    try {
-                        return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-                    } catch (e) {
-                        return false;
+            // fallback: se o navegador não enviar beforeinstallprompt, deixamos o botão visível
+            // e no clique redirecionamos para a página do ambiente escolhido com ?auto_install=1
+            function installForEnv(targetEnv) {
+                // se o ambiente escolhido é o atual e temos o prompt salvo, usamos
+                if (targetEnv === CURRENT_ENV && deferredPrompt) {
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.finally(() => { deferredPrompt = null; updateContainerVisibility(); });
+                    // fechar modal
+                    if (installModalEl) {
+                        const modal = bootstrap.Modal.getInstance(installModalEl) || new bootstrap.Modal(installModalEl);
+                        modal.hide();
                     }
+                    return;
                 }
 
-                (function() {
-                    let deferredPrompt = null;
-                    const container = document.getElementById('pwa-install-container');
-                    const btnProd = document.getElementById('install-prod');
-                    const btnDev = document.getElementById('install-dev');
+                // Caso contrário, redireciona para o login do ambiente desejado com instrução para auto_install
+                const targetPath = targetEnv === 'prod' ? '/prod/login.php?auto_install=1' : '/dev/login.php?auto_install=1';
+                window.location.href = targetPath;
+            }
 
-                    // Mostrar o botão principal se não estivermos em modo PWA
-                    if (!isInPWA() && container) {
-                        container.style.display = 'block';
-                    }
+            if (btnProd) btnProd.addEventListener('click', () => installForEnv('prod'));
+            if (btnDev) btnDev.addEventListener('click', () => installForEnv('dev'));
 
-                    // Flag para auto-install quando chegarmos por ?auto_install=1
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const autoInstall = urlParams.get('auto_install') === '1';
-
-                    window.addEventListener('beforeinstallprompt', (e) => {
-                        e.preventDefault();
-                        deferredPrompt = e;
-                        // se chegamos via ?auto_install=1, disparar prompt automaticamente
-                        if (autoInstall) {
-                            deferredPrompt.prompt();
-                            deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
-                            return;
-                        }
-                    });
-
-                    // Função auxiliar que tenta usar deferredPrompt ou redireciona para a página de login do ambiente
-                    function installForEnv(targetEnv) {
-                        // Se o usuário escolheu o ambiente atual e temos prompt salvo, usar prompt
-                        if (targetEnv === CURRENT_ENV && deferredPrompt) {
-                            deferredPrompt.prompt();
-                            deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
-                            // fechar modal (Bootstrap)
-                            const modalEl = document.getElementById('installModal');
-                            const modal = bootstrap.Modal.getInstance(modalEl);
+            // Se já estivermos em standalone, esconde o container imediatamente
+            if (isInPWA() && container) {
+                container.style.display = 'none';
+            }
+        })();
+    </script>
                             if (modal) modal.hide();
-                            return;
-                        }
-
-                        // Caso contrário, redirecionar para o login do ambiente desejado com auto_install=1
-                        const targetPath = targetEnv === 'prod' ? '/prod/login.php?auto_install=1' : '/dev/login.php?auto_install=1';
-                        window.location.href = targetPath;
-                    }
-
-                    if (btnProd) btnProd.addEventListener('click', () => installForEnv('prod'));
-                    if (btnDev) btnDev.addEventListener('click', () => installForEnv('dev'));
-
-                    // Se já estivermos em standalone esconder o container
-                    if (isInPWA() && container) {
-                        container.style.display = 'none';
-                    }
-                })();
-            </script>

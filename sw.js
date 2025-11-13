@@ -3,7 +3,10 @@ const CACHE_NAME = 'checkplanilha-v2';
 const urlsToCache = [
   '/',
   '/index.php',
+  // Manifests: manter compatibilidade com /manifest.json e adicionar paths específicos de prod/dev
   '/manifest.json',
+  '/manifest-prod.json',
+  '/dev/manifest-dev.json',
   'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css',
   'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css',
   'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js'
