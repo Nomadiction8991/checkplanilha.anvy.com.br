@@ -1,0 +1,36 @@
+name: Versionamento por data
+
+on:
+  push:
+    branches: [ dev ]
+
+permissions:
+  contents: write
+
+jobs:
+  criar-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (com histórico completo)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Configurar git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Criar e enviar tag baseada na data
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG_NAME=$(date +'%Y.%m.%d.%H%M')
+          echo "Criando tag: $TAG_NAME"
+          # evita erro se tag já existir
+          if git rev-parse "refs/tags/$TAG_NAME" >/dev/null 2>&1; then
+            echo "Tag $TAG_NAME já existe, saindo." && exit 0
+          fi
+          git tag "$TAG_NAME"
+          git push origin "$TAG_NAME"

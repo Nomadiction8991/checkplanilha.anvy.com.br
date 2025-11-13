@@ -1,4 +1,4 @@
-name: Deploy FTP (dev e prod)
+name: Deploy via FTP (ANVY)
 
 on:
   push:
@@ -27,8 +27,6 @@ jobs:
           protocol: ftps
           port: 21
           local-dir: ./
-          # Se ao logar você já cai DENTRO de "pegacorrida.anvy.com.br",
-          # troque para: /public_html/dev/
           server-dir: /checkplanilha.anvy.com.br/dev/
           state-name: ftp-state-dev.json
           log-level: verbose
