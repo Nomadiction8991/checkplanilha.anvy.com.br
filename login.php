@@ -8,9 +8,9 @@ if (isset($_SESSION['usuario_id'])) {
 }
 
 require_once __DIR__ . '/CRUD/conexao.php';
- 
-// Checar se ambiente é produção (variável de ambiente ANVY_ENV = 'prod')
-$isProdInstall = (getenv('ANVY_ENV') === 'prod');
+
+// Ambiente atual (podemos usar ANVY_ENV para identificar 'dev' ou 'prod')
+$CURRENT_ENV = getenv('ANVY_ENV') ?: '';
 $erro = '';
 $sucesso = '';
 
@@ -159,14 +159,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </button>
                     </div>
                 </form>
-                    <?php if ($isProdInstall): ?>
-                        <div id="pwa-install-container" class="d-grid mt-3" style="display:none;">
-                            <button id="btn-install-pwa" type="button" class="btn btn-success">
-                                <i class="bi bi-phone me-2"></i>
-                                📲 Instalar Aplicativo
-                            </button>
-                        </div>
-                    <?php endif; ?>
+                                    <div id="pwa-install-container" class="d-grid mt-3" style="display:none;">
+                                            <button id="btn-install-pwa" type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#installModal">
+                                                    <i class="bi bi-phone me-2"></i>
+                                                    📲 Instalar Aplicativo
+                                            </button>
+                                    </div>
+
+                                    <!-- Modal para escolher ambiente de instalação -->
+                                    <div class="modal fade" id="installModal" tabindex="-1" aria-labelledby="installModalLabel" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="installModalLabel">Instalar Aplicativo</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p>Escolha o ambiente que você deseja instalar:</p>
+                                                    <div class="d-grid gap-2">
+                                                        <button id="install-prod" type="button" class="btn btn-primary">Instalar Produção</button>
+                                                        <button id="install-dev" type="button" class="btn btn-outline-secondary">Instalar Desenvolvimento</button>
+                                                    </div>
+                                                    <hr>
+                                                    <small class="text-muted">Se o navegador não suportar instalação automática (ex.: iOS), você será redirecionado para a página de login do ambiente escolhido com instruções.</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
             </div>
         </div>
         
@@ -212,21 +231,68 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             });
 
             // Se já estivermos em standalone, esconde imediatamente (fallback)
-            if (isInPWA() && container) {
-                container.style.display = 'none';
-            }
+            <script>
+                // Ambiente corrente e flags do servidor
+                const CURRENT_ENV = <?php echo json_encode($CURRENT_ENV); ?>;
 
-            if (btn) {
-                btn.addEventListener('click', async () => {
-                    if (!deferredPrompt) return;
-                    deferredPrompt.prompt();
-                    const choice = await deferredPrompt.userChoice;
-                    // ocultar botão após escolha do usuário
-                    if (container) container.style.display = 'none';
-                    deferredPrompt = null;
-                });
-            }
-        })();
-    </script>
-</body>
-</html>
+                function isInPWA() {
+                    try {
+                        return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+                    } catch (e) {
+                        return false;
+                    }
+                }
+
+                (function() {
+                    let deferredPrompt = null;
+                    const container = document.getElementById('pwa-install-container');
+                    const btnProd = document.getElementById('install-prod');
+                    const btnDev = document.getElementById('install-dev');
+
+                    // Mostrar o botão principal se não estivermos em modo PWA
+                    if (!isInPWA() && container) {
+                        container.style.display = 'block';
+                    }
+
+                    // Flag para auto-install quando chegarmos por ?auto_install=1
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const autoInstall = urlParams.get('auto_install') === '1';
+
+                    window.addEventListener('beforeinstallprompt', (e) => {
+                        e.preventDefault();
+                        deferredPrompt = e;
+                        // se chegamos via ?auto_install=1, disparar prompt automaticamente
+                        if (autoInstall) {
+                            deferredPrompt.prompt();
+                            deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
+                            return;
+                        }
+                    });
+
+                    // Função auxiliar que tenta usar deferredPrompt ou redireciona para a página de login do ambiente
+                    function installForEnv(targetEnv) {
+                        // Se o usuário escolheu o ambiente atual e temos prompt salvo, usar prompt
+                        if (targetEnv === CURRENT_ENV && deferredPrompt) {
+                            deferredPrompt.prompt();
+                            deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
+                            // fechar modal (Bootstrap)
+                            const modalEl = document.getElementById('installModal');
+                            const modal = bootstrap.Modal.getInstance(modalEl);
+                            if (modal) modal.hide();
+                            return;
+                        }
+
+                        // Caso contrário, redirecionar para o login do ambiente desejado com auto_install=1
+                        const targetPath = targetEnv === 'prod' ? '/prod/login.php?auto_install=1' : '/dev/login.php?auto_install=1';
+                        window.location.href = targetPath;
+                    }
+
+                    if (btnProd) btnProd.addEventListener('click', () => installForEnv('prod'));
+                    if (btnDev) btnDev.addEventListener('click', () => installForEnv('dev'));
+
+                    // Se já estivermos em standalone esconder o container
+                    if (isInPWA() && container) {
+                        container.style.display = 'none';
+                    }
+                })();
+            </script>
