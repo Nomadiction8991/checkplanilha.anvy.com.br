@@ -193,4 +193,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             });
         }
     </script>
-                            if (modal) modal.hide();
