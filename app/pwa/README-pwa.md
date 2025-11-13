@@ -7,8 +7,22 @@ Este diretório contém utilitários e instruções para integrar Push Notificat
 --------------------------------
 - Endpoint de exemplo: `app/pwa/generate_vapid.php`
 - Acesse via navegador: `https://seu-host/app/pwa/generate_vapid.php` para obter um par `publicKey` / `privateKey`.
+ 
+Armazene essas chaves com segurança. Duas opções:
 
-Armazene essas chaves com segurança (variáveis de ambiente ou config não versionada).
+- Variáveis de ambiente (recomendado):
+  - VAPID_PUBLIC e VAPID_PRIVATE
+- Arquivo local (apenas para desenvolvimento):
+  - Crie `app/pwa/vapid.json` com o formato:
+
+```json
+{
+  "publicKey": "SUA_PUBLIC_KEY",
+  "privateKey": "SUA_PRIVATE_KEY"
+}
+```
+
+> Importante: nunca commite `app/pwa/vapid.json` com chaves reais em um repositório público.
 
 2) Fluxo cliente (JS)
 ----------------------
