@@ -65,6 +65,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Login - Sistema de Planilhas</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <!-- PWA manifest apenas para a página de login (produção) -->
+    <link rel="manifest" href="/prod/manifest.json">
     <style>
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -277,5 +279,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 container.style.display = 'none';
             }
         })();
+    </script>
+    <script>
+        // Registrar service worker apenas nesta página (produção)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function(){
+                navigator.serviceWorker.register('/prod/sw.js')
+                    .then(reg => console.log('SW /prod/sw.js registrado:', reg.scope))
+                    .catch(err => console.warn('Falha ao registrar SW /prod/sw.js:', err));
+            });
+        }
     </script>
                             if (modal) modal.hide();

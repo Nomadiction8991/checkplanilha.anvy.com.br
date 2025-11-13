@@ -15,13 +15,7 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title><?php echo $pageTitle ?? 'Anvy - Gestão de Planilhas'; ?></title>
     
-    <!-- PWA - Progressive Web App -->
-    <link rel="manifest" href="<?php echo $manifest_path; ?>">
-    <meta name="theme-color" content="#667eea">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="CheckPlanilha">
-    <link rel="apple-touch-icon" href="<?php echo ($ambiente_manifest === 'dev') ? '/dev/logo.png' : '/logo.png'; ?>">
+    <!-- PWA removed from global layout: manifest and service-worker are registered only on login page -->
     
     <!-- Bootstrap 5.3 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -357,32 +351,7 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
             animation: fadeIn 0.3s ease-out;
         }
 
-        /* Overlay que força instalação do PWA (bloqueia interação até instalado) */
-        #pwaForceOverlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.7);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-            padding: 20px;
-        }
-
-        #pwaForceOverlay .panel {
-            background: #fff;
-            border-radius: 12px;
-            max-width: 480px;
-            width: 100%;
-            padding: 20px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-            text-align: center;
-        }
-
-        #pwaForceOverlay h3 { margin-top: 0; }
-        #pwaForceOverlay p { color: #444; }
-        #pwaForceOverlay .btn-install { min-width: 160px; }
-        #pwaForceOverlay .manual-instructions { text-align: left; margin-top: 12px; display:none; }
+        /* Global PWA overlay removed; PWA is initialized only on the login page */
     </style>
     
     <?php if (isset($customCss)): ?>
@@ -497,127 +466,8 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
         })();
     </script>
 
-    <!-- PWA Service Worker Registration -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                const swPath = '<?php echo ($ambiente_manifest === "dev") ? "/dev/sw.js" : "/sw.js"; ?>';
-                navigator.serviceWorker.register(swPath)
-                    .then(registration => {
-                        console.log('Service Worker registrado com sucesso:', registration.scope);
-                        console.log('Ambiente:', '<?php echo $ambiente_manifest; ?>');
-                    })
-                    .catch(err => console.error('Falha ao registrar Service Worker:', err));
-            });
-        }
-    </script>
-    
     <?php if (isset($customJs)): ?>
         <script><?php echo $customJs; ?></script>
     <?php endif; ?>
-
-    <!-- Overlay que força instalação do PWA -->
-    <div id="pwaForceOverlay" role="dialog" aria-modal="true">
-        <div class="panel">
-            <h3>Instalar Aplicativo</h3>
-            <p>Para continuar usando este sistema, instale o aplicativo no seu dispositivo.</p>
-            <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
-                <button id="pwaInstallBtn" class="btn btn-primary btn-install">Instalar Aplicativo</button>
-                <button id="pwaCheckInstalledBtn" class="btn btn-outline-secondary">Já instalei / Rechecar</button>
-            </div>
-            <div class="manual-instructions mt-3" id="pwaManual">
-                <strong>Instruções:</strong>
-                <ol>
-                    <li>Se estiver no Android/Chrome: abra o menu do navegador e toque em "Adicionar à tela inicial".</li>
-                    <li>Se estiver no iOS/Safari: toque no botão de compartilhar e escolha "Adicionar à tela de início".</li>
-                </ol>
-                <p class="text-muted"><small>Após instalar, toque em "Já instalei / Rechecar" para liberar o acesso.</small></p>
-            </div>
-        </div>
-    </div>
-
-    <!-- NOTIFICATIONS removed: auto-subscribe client was disabled per user request -->
-    <!-- Script que gerencia o overlay de instalação obrigatória -->
-    <script>
-        (function(){
-            const overlay = document.getElementById('pwaForceOverlay');
-            const installBtn = document.getElementById('pwaInstallBtn');
-            const checkBtn = document.getElementById('pwaCheckInstalledBtn');
-            const manual = document.getElementById('pwaManual');
-
-            function isInPWA() {
-                try { return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; } catch (e) { return false; }
-            }
-
-            // Mostrar overlay se NÃO estiver em PWA
-            function showOverlay() {
-                if (!overlay) return;
-                overlay.style.display = 'flex';
-                document.documentElement.style.overflow = 'hidden';
-            }
-
-            function hideOverlay() {
-                if (!overlay) return;
-                overlay.style.display = 'none';
-                document.documentElement.style.overflow = '';
-            }
-
-            // Se já instalado, não bloquear
-            if (isInPWA()) {
-                hideOverlay();
-                return;
-            }
-
-            // força mostrar overlay inicial
-            showOverlay();
-
-            let deferredPrompt = null;
-            window.addEventListener('beforeinstallprompt', (e) => {
-                e.preventDefault();
-                deferredPrompt = e; // salvar evento para uso posterior
-                // habilita botão de instalar e oculta instruções manuais
-                if (manual) manual.style.display = 'none';
-            });
-
-            window.addEventListener('appinstalled', function() {
-                // quando instalado, esconder overlay
-                hideOverlay();
-            });
-
-            if (installBtn) installBtn.addEventListener('click', async function(){
-                if (deferredPrompt) {
-                    try {
-                        deferredPrompt.prompt();
-                        const choice = await deferredPrompt.userChoice;
-                        deferredPrompt = null;
-                        if (choice && choice.outcome === 'accepted') {
-                            // usuário aceitou, esperar evento appinstalled ou recheck
-                            console.log('Usuário aceitou instalar PWA');
-                        } else {
-                            // usuário rejeitou ou fechou -> mostrar instruções manuais
-                            if (manual) manual.style.display = 'block';
-                        }
-                    } catch (err) {
-                        console.error('Erro ao chamar prompt:', err);
-                        if (manual) manual.style.display = 'block';
-                    }
-                } else {
-                    // Não há antes do evento -> mostrar instruções manuais
-                    if (manual) manual.style.display = 'block';
-                }
-            });
-
-            if (checkBtn) checkBtn.addEventListener('click', function(){
-                // Rechecar se o app está agora em standalone (após instalar manualmente)
-                setTimeout(function(){
-                    if (isInPWA()) {
-                        hideOverlay();
-                    } else {
-                        alert('Aplicativo ainda não detectado como instalado. Siga as instruções manuais ou tente novamente.');
-                    }
-                }, 500);
-            });
-        })();
-    </script>
 </body>
 </html>
