@@ -161,33 +161,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </button>
                     </div>
                 </form>
-                                    <div id="pwa-install-container" class="d-grid mt-3" style="display:none;">
-                                        <button id="btn-install-pwa" type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#installModal">
-                                            Instalar Aplicativo
-                                        </button>
-                                    </div>
-
-                                    <!-- Modal para escolher ambiente de instalação -->
-                                    <div class="modal fade" id="installModal" tabindex="-1" aria-labelledby="installModalLabel" aria-hidden="true">
-                                        <div class="modal-dialog modal-dialog-centered">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title" id="installModalLabel">Instalar Aplicativo</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <p>Escolha o ambiente que você deseja instalar:</p>
-                                                                            <div class="d-grid gap-2">
-                                                                                <button id="install-prod" type="button" class="btn btn-primary">Instalação Normal</button>
-                                                                                <button id="install-dev" type="button" class="btn btn-outline-secondary">Instalação Beta</button>
-                                                                            </div>
-                                                                            <hr>
-                                                                            <p class="mb-2"><small class="text-muted">Se o navegador não suportar instalação automática (ex.: iOS), você será redirecionado para a página de login do ambiente escolhido com instruções.</small></p>
-                                                                            <p class="mb-0"><small class="text-warning">Observação: a versão Beta pode ser instável e conter funcionalidades experimentais. Use com cautela.</small></p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <!-- Botão/modal de instalação removido conforme solicitado -->
             </div>
         </div>
         
@@ -207,78 +181,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script>
         // Ambiente corrente vindo do servidor ('' | 'dev' | 'prod')
         const CURRENT_ENV = <?php echo json_encode($CURRENT_ENV); ?>;
-
-        // Helper para detectar se já estamos rodando como PWA/native
-        function isInPWA() {
-            try {
-                return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-            } catch (e) {
-                return false;
-            }
-        }
-
-        (function() {
-            // container e botões da UI
-            const container = document.getElementById('pwa-install-container');
-            const btnProd = document.getElementById('install-prod');
-            const btnDev = document.getElementById('install-dev');
-            const installModalEl = document.getElementById('installModal');
-
-            // estado do evento beforeinstallprompt
-            let deferredPrompt = null;
-            // se o usuário abriu a página com ?auto_install=1
-            const urlParams = new URLSearchParams(window.location.search);
-            const autoInstall = urlParams.get('auto_install') === '1';
-
-            // mostra/hide container dependendo se já estamos em PWA
-            function updateContainerVisibility() {
-                if (!container) return;
-                container.style.display = isInPWA() ? 'none' : 'block';
-            }
-
-            updateContainerVisibility();
-
-            // Quando o navegador dispara beforeinstallprompt, guardamos o evento
-            window.addEventListener('beforeinstallprompt', (e) => {
-                e.preventDefault();
-                deferredPrompt = e;
-                updateContainerVisibility();
-
-                if (autoInstall && deferredPrompt) {
-                    // disparar prompt assim que possível
-                    deferredPrompt.prompt();
-                    deferredPrompt.userChoice.finally(() => { deferredPrompt = null; updateContainerVisibility(); });
-                }
-            });
-
-            // fallback: se o navegador não enviar beforeinstallprompt, deixamos o botão visível
-            // e no clique redirecionamos para a página do ambiente escolhido com ?auto_install=1
-            function installForEnv(targetEnv) {
-                // se o ambiente escolhido é o atual e temos o prompt salvo, usamos
-                if (targetEnv === CURRENT_ENV && deferredPrompt) {
-                    deferredPrompt.prompt();
-                    deferredPrompt.userChoice.finally(() => { deferredPrompt = null; updateContainerVisibility(); });
-                    // fechar modal
-                    if (installModalEl) {
-                        const modal = bootstrap.Modal.getInstance(installModalEl) || new bootstrap.Modal(installModalEl);
-                        modal.hide();
-                    }
-                    return;
-                }
-
-                // Caso contrário, redireciona para o login do ambiente desejado com instrução para auto_install
-                const targetPath = targetEnv === 'prod' ? '/prod/login.php?auto_install=1' : '/dev/login.php?auto_install=1';
-                window.location.href = targetPath;
-            }
-
-            if (btnProd) btnProd.addEventListener('click', () => installForEnv('prod'));
-            if (btnDev) btnDev.addEventListener('click', () => installForEnv('dev'));
-
-            // Se já estivermos em standalone, esconde o container imediatamente
-            if (isInPWA() && container) {
-                container.style.display = 'none';
-            }
-        })();
+        // A lógica de instalação manual foi removida; o service worker e manifest permanecem registrados.
     </script>
     <script>
         // Registrar service worker apenas nesta página (produção)
