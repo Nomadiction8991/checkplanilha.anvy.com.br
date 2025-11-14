@@ -1,7 +1,0 @@
-{
-    "github-actions.workflows.pinned.workflows": [
-        ".github/workflows/versionamento-data.yml",
-        ".github/workflows/publicacao-ftp.yml",
-        ".github/workflows/gerar-schema.yml"
-    ]
-}

@@ -1,7 +1,10 @@
-<?php
-require_once __DIR__ . '/bootstrap.php';
-require_once PROJECT_ROOT . '/auth.php';
-require_once PROJECT_ROOT . '/CRUD/conexao.php';
+<?php<?php
+
+// Redirecionamento para ambiente de produçãorequire_once __DIR__ . '/bootstrap.php';
+
+header('Location: prod/');require_once PROJECT_ROOT . '/auth.php';
+
+exit;require_once PROJECT_ROOT . '/CRUD/conexao.php';
 require_once PROJECT_ROOT . '/app/functions/comum_functions.php';
 
 $pageTitle = 'Comuns';

@@ -2,7 +2,7 @@ name: Publicação via FTP (ANVY)
 
 on:
   push:
-    branches: [ "dev", "main" ]
+    branches: ["main"]
   workflow_dispatch:
 
 concurrency:
@@ -10,37 +10,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  publicar-dev:
-    name: Publicar (DEV)
-    if: github.ref_name == 'dev'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Enviar para DEV (FTP)
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.ANVY_HOST }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps
-          port: 21
-          local-dir: ./
-          server-dir: /checkplanilha.anvy.com.br/dev/
-          state-name: ftp-state-dev.json
-          log-level: verbose
-          exclude: |
-            **/.git/**
-            **/.git*
-            **/.github/**
-            **/node_modules/**
-            **/*.md
-            **/.env*
-            **/docker-compose*
-            **/README*
-            **/LICENSE*
-
   publicar-prod:
     name: Publicar (PROD)
     if: github.ref_name == 'main'
@@ -58,7 +27,7 @@ jobs:
           protocol: ftps
           port: 21
           local-dir: ./
-          server-dir: /checkplanilha.anvy.com.br/prod/
+          server-dir: /checkplanilha.anvy.com.br/
           state-name: ftp-state-prod.json
           log-level: verbose
           exclude: |
