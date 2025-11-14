@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/../../../auth.php'; // Autenticação
-include __DIR__ . '/../../../CRUD/READ/produto.php';
+require_once PROJECT_ROOT . '/auth.php'; // Autenticação
+include PROJECT_ROOT . '/CRUD/READ/produto.php';
 
 $pageTitle = 'Visualizar Produtos';
 $backUrl = '../planilhas/view-planilha.php?id=' . urlencode($id_planilha);
@@ -317,9 +317,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <?php
 $contentHtml = ob_get_clean();
-$tempFile = __DIR__ . '/../../../temp_read_produto_' . uniqid() . '.php';
+$tempFile = PROJECT_ROOT . '/temp_read_produto_' . uniqid() . '.php';
 file_put_contents($tempFile, $contentHtml);
 $contentFile = $tempFile;
-include __DIR__ . '/../layouts/app-wrapper.php';
+include PROJECT_ROOT . '/layouts/app-wrapper.php';
 unlink($tempFile);
 ?>

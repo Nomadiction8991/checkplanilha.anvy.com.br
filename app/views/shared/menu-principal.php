@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../../../auth.php'; // Autenticação
+require_once PROJECT_ROOT . '/auth.php'; // Autenticação
 // Menu principal (sem necessidade de ID de planilha)
 
 // Configurações da página
@@ -66,12 +66,12 @@ ob_start();
 $contentHtml = ob_get_clean();
 
 // Criar arquivo temporário com o conteúdo
-$tempFile = __DIR__ . '/../../../temp_menu_principal_' . uniqid() . '.php';
+$tempFile = PROJECT_ROOT . '/temp_menu_principal_' . uniqid() . '.php';
 file_put_contents($tempFile, $contentHtml);
 $contentFile = $tempFile;
 
 // Renderizar o layout
-include __DIR__ . '/../layouts/app-wrapper.php';
+include PROJECT_ROOT . '/layouts/app-wrapper.php';
 
 // Limpar arquivo temporário
 unlink($tempFile);

@@ -6,7 +6,7 @@ if (isset($_GET['public']) && $_GET['public'] == '1') {
 
 // Apenas incluir autenticação se NÃO for registro público
 if (!defined('PUBLIC_REGISTER')) {
-    require_once __DIR__ . '/../../../auth.php'; // Autenticação
+    require_once PROJECT_ROOT . '/auth.php'; // Autenticação
     
     // Apenas admins podem criar usuários via sistema interno
     if (!isAdmin()) {
@@ -32,7 +32,7 @@ if (!defined('PUBLIC_REGISTER')) {
     }
 }
 
-include __DIR__ . '/../../../CRUD/CREATE/usuario.php';
+include PROJECT_ROOT . '/CRUD/CREATE/usuario.php';
 
 $pageTitle = defined('PUBLIC_REGISTER') ? 'Cadastro' : 'Novo Usuário';
 $backUrl = defined('PUBLIC_REGISTER') ? '../../../login.php' : './read-usuario.php';
@@ -763,9 +763,9 @@ document.getElementById('formUsuario').addEventListener('submit', function(e) {
 
 <?php
 $contentHtml = ob_get_clean();
-$tempFile = __DIR__ . '/../../../temp_create_usuario_' . uniqid() . '.php';
+$tempFile = PROJECT_ROOT . '/temp_create_usuario_' . uniqid() . '.php';
 file_put_contents($tempFile, $contentHtml);
 $contentFile = $tempFile;
-include __DIR__ . '/../layouts/app-wrapper.php';
+include PROJECT_ROOT . '/layouts/app-wrapper.php';
 unlink($tempFile);
 ?>

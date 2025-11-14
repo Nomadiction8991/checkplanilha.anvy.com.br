@@ -1,8 +1,8 @@
 <?php
 declare(strict_types=1);
 // CRUD/READ/dependencia.php - implementação limpa
-require_once __DIR__ . '/../../auth.php';
-require_once __DIR__ . '/../conexao.php';
+require_once PROJECT_ROOT . '/auth.php';
+require_once PROJECT_ROOT . '/conexao.php';
 
 if (!isAdmin()) {
     header('Location: ../../../index.php');

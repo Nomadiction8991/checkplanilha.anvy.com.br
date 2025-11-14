@@ -1,10 +1,10 @@
 <?php
 // Se for registro público, não exige autenticação
 if (!defined('PUBLIC_REGISTER')) {
-    require_once __DIR__ . '/../../auth.php'; // Autenticação apenas para admins
+    require_once PROJECT_ROOT . '/auth.php'; // Autenticação apenas para admins
 }
 
-require_once __DIR__ . '/../conexao.php';
+require_once PROJECT_ROOT . '/conexao.php';
 
 $mensagem = '';
 $tipo_mensagem = '';
@@ -214,7 +214,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Redirecionar após sucesso
         if (defined('PUBLIC_REGISTER')) {
             // Registro público (doador se cadastrando): redireciona para login
-            header('Location: ../../../login.php?registered=1');
+            header('Location: ' . getLoginUrl('registered=1'));
         } else {
             // Admin cadastrando usuário: redireciona para listagem, independente do tipo
             header('Location: ../../app/views/usuarios/read-usuario.php?success=1');

@@ -1,6 +1,7 @@
 <?php
+require_once __DIR__ . '/../../bootstrap.php';
 /**
- * Funções para manipulação de dados da tabela COMUMS
+ * Funções para manipulação de dados da tabela COMUNS
  * Extrai código e descrição do formato: "BR 09-0040 - SIBIPIRUNAS"
  */
 

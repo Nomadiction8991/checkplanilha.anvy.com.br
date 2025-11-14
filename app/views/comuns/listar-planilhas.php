@@ -1,7 +1,7 @@
 <?php
-require_once __DIR__ . '/../../../auth.php';
-require_once __DIR__ . '/../../../CRUD/conexao.php';
-require_once __DIR__ . '/../../../app/functions/comum_functions.php';
+require_once PROJECT_ROOT . '/auth.php';
+require_once PROJECT_ROOT . '/CRUD/conexao.php';
+require_once PROJECT_ROOT . '/app/functions/comum_functions.php';
 
 $comum_id = $_GET['comum_id'] ?? null;
 
@@ -271,11 +271,11 @@ ob_start();
 
 <?php
 $contentHtml = ob_get_clean();
-$contentFile = __DIR__ . '/../../../temp_content.php';
+$contentFile = PROJECT_ROOT . '/temp_content.php';
 file_put_contents($contentFile, $contentHtml);
 
 // Incluir layout app-wrapper (padronizado)
-require_once __DIR__ . '/../layouts/app-wrapper.php';
+require_once PROJECT_ROOT . '/app/views/layouts/app-wrapper.php';
 
 // Limpar arquivo temporário
 @unlink($contentFile);

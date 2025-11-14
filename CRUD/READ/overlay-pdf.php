@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../../auth.php'; // Autenticação
+require_once PROJECT_ROOT . '/auth.php'; // Autenticação
 /**
  * Sobrepõe textos em um PDF existente usando FPDI (100% via Composer)
  *
@@ -17,7 +17,7 @@ require_once __DIR__ . '/../../auth.php'; // Autenticação
  *   /CRUD/READ/overlay-pdf.php?file=relatorio-14-1.pdf&map=... 
  */
 
-$autoloadPath = __DIR__ . '/../../vendor/autoload.php';
+$autoloadPath = PROJECT_ROOT . '/vendor/autoload.php';
 if (!file_exists($autoloadPath)) {
     http_response_code(500);
     echo "Autoloader do Composer não encontrado. Instale as dependências com:\n";
@@ -29,7 +29,7 @@ require_once $autoloadPath;
 use setasign\Fpdi\Fpdi;
 
 // Localizar o PDF na pasta relatorios
-$baseDir = realpath(__DIR__ . '/../../relatorios');
+$baseDir = realpath(PROJECT_ROOT . '/relatorios');
 if (!$baseDir) {
     http_response_code(404);
     echo 'Pasta relatorios/ não encontrada.';

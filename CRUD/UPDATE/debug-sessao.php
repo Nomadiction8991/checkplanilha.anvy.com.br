@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../../auth.php';
+require_once PROJECT_ROOT . '/auth.php';
 
 header('Content-Type: text/plain; charset=utf-8');
 

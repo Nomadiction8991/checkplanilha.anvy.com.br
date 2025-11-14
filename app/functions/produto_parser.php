@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../../bootstrap.php';
 
 // Funções utilitárias para parsing de produtos na importação
 

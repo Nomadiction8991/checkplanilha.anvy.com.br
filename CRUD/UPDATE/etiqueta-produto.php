@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/../../auth.php'; // Autenticação
-require_once __DIR__ . '/../conexao.php';
+require_once PROJECT_ROOT . '/auth.php'; // Autenticação
+require_once PROJECT_ROOT . '/conexao.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $produto_id = $_POST['produto_id'] ?? null;

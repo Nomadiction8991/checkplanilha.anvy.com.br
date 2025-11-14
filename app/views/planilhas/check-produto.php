@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../../../auth.php'; // Autenticação
+require_once PROJECT_ROOT . '/auth.php'; // Autenticação
 // Endpoint público para processar o check do produto
 // Inclui a lógica do CRUD e ajusta os redirecionamentos para o contexto correto
 
@@ -8,7 +8,7 @@ $_POST_BACKUP = $_POST;
 $_REQUEST_METHOD = $_SERVER['REQUEST_METHOD'];
 
 // Incluir conexão
-require_once __DIR__ . '/../../../CRUD/conexao.php';
+require_once PROJECT_ROOT . '/CRUD/conexao.php';
 
 if ($_REQUEST_METHOD === 'POST') {
     $produto_id = $_POST_BACKUP['produto_id'] ?? null;

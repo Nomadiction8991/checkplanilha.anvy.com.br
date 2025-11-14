@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/../../../auth.php';
-require_once __DIR__ . '/../../../CRUD/conexao.php';
+require_once PROJECT_ROOT . '/auth.php';
+require_once PROJECT_ROOT . '/CRUD/conexao.php';
 
 $id_produto = $_GET['id'] ?? null;
 $ids_produtos = $_GET['ids'] ?? null;
@@ -192,9 +192,9 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
 <?php
 $contentHtml = ob_get_clean();
-$tempFile = __DIR__ . '/../../../temp_assinatura_form_' . uniqid() . '.php';
+$tempFile = PROJECT_ROOT . '/temp_assinatura_form_' . uniqid() . '.php';
 file_put_contents($tempFile, $contentHtml);
 $contentFile = $tempFile;
-include __DIR__ . '/../layouts/app-wrapper.php';
+include PROJECT_ROOT . '/layouts/app-wrapper.php';
 unlink($tempFile);
 ?>

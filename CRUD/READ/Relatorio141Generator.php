@@ -91,7 +91,7 @@ class Relatorio141Generator {
         
         // Incluir o template
         ob_start();
-        include __DIR__ . '/../../app/views/planilhas/relatorio-14-1-template.php';
+        include PROJECT_ROOT . '/app/views/planilhas/relatorio-14-1-template.php';
         return ob_get_clean();
     }
     

@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../../../auth.php';
+require_once PROJECT_ROOT . '/auth.php';
 
 $id_planilha = $_GET['id'] ?? null;
 $contexto = $_GET['contexto'] ?? 'auto';
@@ -150,9 +150,9 @@ ob_start();
 
 <?php
 $contentHtml = ob_get_clean();
-$tempFile = __DIR__ . '/../../../temp_menu_' . uniqid() . '.php';
+$tempFile = PROJECT_ROOT . '/temp_menu_' . uniqid() . '.php';
 file_put_contents($tempFile, $contentHtml);
 $contentFile = $tempFile;
-include __DIR__ . '/../layouts/app-wrapper.php';
+include PROJECT_ROOT . '/layouts/app-wrapper.php';
 unlink($tempFile);
 ?>

@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/../../../auth.php';
-require_once __DIR__ . '/../../../CRUD/conexao.php';
+require_once PROJECT_ROOT . '/auth.php';
+require_once PROJECT_ROOT . '/CRUD/conexao.php';
 
 $id_planilha = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if (!$id_planilha) {
@@ -249,9 +249,9 @@ function executarAcao(acao, produtos) {
 
 <?php
 $contentHtml = ob_get_clean();
-$tempFile = __DIR__ . '/../../../temp_assinar_produtos_' . uniqid() . '.php';
+$tempFile = PROJECT_ROOT . '/temp_assinar_produtos_' . uniqid() . '.php';
 file_put_contents($tempFile, $contentHtml);
 $contentFile = $tempFile;
-include __DIR__ . '/../layouts/app-wrapper.php';
+include PROJECT_ROOT . '/layouts/app-wrapper.php';
 unlink($tempFile);
 ?>

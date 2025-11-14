@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
-require_once __DIR__ . '/../../auth.php';
-require_once __DIR__ . '/../conexao.php';
+require_once PROJECT_ROOT . '/auth.php';
+require_once PROJECT_ROOT . '/conexao.php';
 
 // Só admin
 if (!isAdmin()) {
@@ -56,8 +56,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ini_set('display_errors', 0);
 error_reporting(0);
 
-require_once __DIR__ . '/../../auth.php'; // Autenticação
-require_once __DIR__ . '/../conexao.php';
+require_once PROJECT_ROOT . '/auth.php'; // Autenticação
+require_once PROJECT_ROOT . '/conexao.php';
 
 // Apenas admins podem criar
 if (!isAdmin()) {

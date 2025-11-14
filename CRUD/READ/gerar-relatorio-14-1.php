@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../../auth.php'; // Autenticação
+require_once PROJECT_ROOT . '/auth.php'; // Autenticação
 /**
  * Página para gerar Relatório 14.1 automaticamente
  * 
@@ -9,8 +9,8 @@ require_once __DIR__ . '/../../auth.php'; // Autenticação
  * - gerar-relatorio-14-1.php?em_branco=5      -> Gera 5 páginas em branco
  */
 
-require_once __DIR__ . '/../conexao.php';
-require_once __DIR__ . '/Relatorio141Generator.php';
+require_once PROJECT_ROOT . '/conexao.php';
+require_once PROJECT_ROOT . '/Relatorio141Generator.php';
 
 // Criar gerador
 $gerador = new Relatorio141Generator($pdo);
@@ -36,7 +36,7 @@ try {
     extract($dados);
     
     // Incluir o template
-    include __DIR__ . '/../../app/views/planilhas/relatorio-14-1-template.php';
+    include PROJECT_ROOT . '/app/views/planilhas/relatorio-14-1-template.php';
     
 } catch (Exception $e) {
     http_response_code(500);

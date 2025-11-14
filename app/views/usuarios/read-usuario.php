@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../../../auth.php'; // Autenticação
+require_once PROJECT_ROOT . '/auth.php'; // Autenticação
 
 // Apenas admins podem acessar gestão de usuários
 if (!isAdmin()) {
@@ -7,7 +7,7 @@ if (!isAdmin()) {
     exit;
 }
 
-include __DIR__ . '/../../../CRUD/READ/usuario.php';
+include PROJECT_ROOT . '/CRUD/READ/usuario.php';
 
 $pageTitle = 'Usuários';
 $backUrl = '../../../index.php';
@@ -215,9 +215,9 @@ function excluirUsuario(id, nome) {
 
 <?php
 $contentHtml = ob_get_clean();
-$tempFile = __DIR__ . '/../../../temp_read_usuario_' . uniqid() . '.php';
+$tempFile = PROJECT_ROOT . '/temp_read_usuario_' . uniqid() . '.php';
 file_put_contents($tempFile, $contentHtml);
 $contentFile = $tempFile;
-include __DIR__ . '/../layouts/app-wrapper.php';
+include PROJECT_ROOT . '/layouts/app-wrapper.php';
 unlink($tempFile);
 ?>

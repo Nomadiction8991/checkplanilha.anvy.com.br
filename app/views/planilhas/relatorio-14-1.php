@@ -1,9 +1,9 @@
 <?php
-require_once __DIR__ . '/../../../auth.php'; // Autenticação
-require_once __DIR__ . '/../../../CRUD/READ/relatorio-14-1.php';
+require_once PROJECT_ROOT . '/auth.php'; // Autenticação
+require_once PROJECT_ROOT . '/CRUD/READ/relatorio-14-1.php';
 
 // Carregar template completo com CSS inline
-$templatePath = __DIR__ . '/../../../relatorios/14-1.html';
+$templatePath = PROJECT_ROOT . '/relatorios/14-1.html';
 $templateCompleto = '';
 if (file_exists($templatePath)) {
     $templateCompleto = file_get_contents($templatePath);
@@ -54,7 +54,7 @@ $headerActions = '
 
 // CSS customizado para a interface da aplicação (não do formulário)
 $customCss = '';
-$customCssPath = __DIR__ . '/style/relatorio-14-1.css';
+$customCssPath = PROJECT_ROOT . '/style/relatorio-14-1.css';
 if (file_exists($customCssPath)) {
     $customCss .= file_get_contents($customCssPath);
 }
@@ -173,7 +173,7 @@ ob_start();
         '/relatorios/ralatorio14-1.jpg',
     ];
     $bgUrl = '';
-    $projectRoot = __DIR__ . '/../../../';
+    $projectRoot = PROJECT_ROOT . '/';
     foreach ($bgCandidates as $rel) {
         $abs = $projectRoot . ltrim($rel, '/');
         if (file_exists($abs)) { $bgUrl = $rel; break; }
@@ -528,9 +528,9 @@ echo $script;
 
 <?php
 $contentHtml = ob_get_clean();
-$tempFile = __DIR__ . '/../../../temp_relatorio_14_1_' . uniqid() . '.php';
+$tempFile = PROJECT_ROOT . '/temp_relatorio_14_1_' . uniqid() . '.php';
 file_put_contents($tempFile, $contentHtml);
 $contentFile = $tempFile;
-include __DIR__ . '/../layouts/app-wrapper.php';
+include PROJECT_ROOT . '/layouts/app-wrapper.php';
 unlink($tempFile);
 ?>

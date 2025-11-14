@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/CRUD/conexao.php';
+require_once PROJECT_ROOT . '/CRUD/conexao.php';
 
 if (!$conexao) {
     die("ERRO: Não foi possível conectar ao banco de dados\n");

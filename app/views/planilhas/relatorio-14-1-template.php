@@ -24,7 +24,7 @@
 -->
 
 <?php
-require_once __DIR__ . '/../../../auth.php'; // Autenticação
+require_once PROJECT_ROOT . '/auth.php'; // Autenticação
 // Se $produtos não foi definido, usar array vazio
 $produtos = $produtos ?? [];
 $cnpj = $cnpj ?? '{{CNPJ}}';

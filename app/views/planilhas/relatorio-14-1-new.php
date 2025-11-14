@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/../../../auth.php'; // Autenticação
-require_once __DIR__ . '/../../../CRUD/READ/relatorio-14-1.php';
+require_once PROJECT_ROOT . '/auth.php'; // Autenticação
+require_once PROJECT_ROOT . '/CRUD/READ/relatorio-14-1.php';
 
 $pageTitle = 'Relatório 14.1';
 $backUrl = '../shared/menu.php?id=' . urlencode($id_planilha);
@@ -384,9 +384,9 @@ window.addEventListener('beforeprint', () => {
 
 <?php
 $contentHtml = ob_get_clean();
-$tempFile = __DIR__ . '/../../../temp_relatorio_14_1_' . uniqid() . '.php';
+$tempFile = PROJECT_ROOT . '/temp_relatorio_14_1_' . uniqid() . '.php';
 file_put_contents($tempFile, $contentHtml);
 $contentFile = $tempFile;
-include __DIR__ . '/../layouts/app-wrapper.php';
+include PROJECT_ROOT . '/layouts/app-wrapper.php';
 unlink($tempFile);
 ?>

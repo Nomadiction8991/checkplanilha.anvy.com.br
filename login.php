@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/bootstrap.php';
 session_start();
 
 // Se já está logado, redireciona para o index
@@ -7,7 +8,7 @@ if (isset($_SESSION['usuario_id'])) {
     exit;
 }
 
-require_once __DIR__ . '/CRUD/conexao.php';
+require_once PROJECT_ROOT . '/CRUD/conexao.php';
 
 // Ambiente atual (podemos usar ANVY_ENV para identificar 'dev' ou 'prod')
 $CURRENT_ENV = getenv('ANVY_ENV') ?: '';

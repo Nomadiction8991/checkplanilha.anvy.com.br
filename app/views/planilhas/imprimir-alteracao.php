@@ -1,7 +1,7 @@
 <?php
-require_once __DIR__ . '/../../../auth.php'; // Autenticação
+require_once PROJECT_ROOT . '/auth.php'; // Autenticação
 // Agora: página integrada ao layout app-wrapper (Bootstrap 5, 400px)
-require_once __DIR__ . '/../../../CRUD/conexao.php';
+require_once PROJECT_ROOT . '/CRUD/conexao.php';
 
 $id_planilha = $_GET['id'] ?? null;
 if (!$id_planilha) { header('Location: ../../index.php'); exit; }
@@ -511,11 +511,11 @@ ob_start();
 
 <?php
 $contentHtml = ob_get_clean();
-$tempFile = __DIR__ . '/../../../temp_imprimir_alteracao_' . uniqid() . '.php';
+$tempFile = PROJECT_ROOT . '/temp_imprimir_alteracao_' . uniqid() . '.php';
 file_put_contents($tempFile, $contentHtml);
 $contentFile = $tempFile;
 
-include __DIR__ . '/../layouts/app-wrapper.php';
+include PROJECT_ROOT . '/layouts/app-wrapper.php';
 
 unlink($tempFile);
 ?>

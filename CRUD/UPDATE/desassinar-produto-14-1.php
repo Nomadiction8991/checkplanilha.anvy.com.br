@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/../../auth.php';
-require_once __DIR__ . '/../conexao.php';
+require_once PROJECT_ROOT . '/auth.php';
+require_once PROJECT_ROOT . '/conexao.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: ../../index.php');
@@ -19,7 +19,7 @@ if (empty($ids_produtos) || !$id_planilha) {
 $id_usuario = $_SESSION['usuario_id'] ?? null;
 if (!$id_usuario) {
     $_SESSION['erro'] = 'Usuário não autenticado.';
-    header('Location: ../../login.php');
+    header('Location: ' . getLoginUrl());
     exit;
 }
 

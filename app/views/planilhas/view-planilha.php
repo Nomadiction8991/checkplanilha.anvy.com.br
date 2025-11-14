@@ -1,7 +1,7 @@
 <?php
-require_once __DIR__ . '/../../../auth.php'; // Autenticação
+require_once PROJECT_ROOT . '/auth.php'; // Autenticação
 $id_planilha = $_GET['id'] ?? null;
-require_once __DIR__ . '/../../../CRUD/READ/view-planilha.php';
+require_once PROJECT_ROOT . '/CRUD/READ/view-planilha.php';
 
 // Configurações da página
 $pageTitle = htmlspecialchars($planilha['comum_descricao'] ?? 'Visualizar Planilha');
@@ -1291,12 +1291,12 @@ function initBarcodeScanner() {
 $contentHtml = ob_get_clean();
 
 // Criar arquivo temporário com o conteúdo
-$tempFile = __DIR__ . '/../../../temp_view_planilha_content_' . uniqid() . '.php';
+$tempFile = PROJECT_ROOT . '/temp_view_planilha_content_' . uniqid() . '.php';
 file_put_contents($tempFile, $contentHtml);
 $contentFile = $tempFile;
 
 // Renderizar o layout
-include __DIR__ . '/../layouts/app-wrapper.php';
+include PROJECT_ROOT . '/layouts/app-wrapper.php';
 
 // Limpar arquivo temporário
 unlink($tempFile);
