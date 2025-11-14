@@ -1,124 +1,207 @@
 <?php
-require_once __DIR__ . '/../conexao.php';
+require_once PROJECT_ROOT . '/auth.php'; // Autenticação
+require_once PROJECT_ROOT . '/conexao.php';
 
-$id_planilha = $_GET['id'] ?? null;
+$id_planilha = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
-if (!$id_planilha) {
+if ($id_planilha <= 0) {
     header('Location: ../index.php');
     exit;
 }
 
-// Verificar se há mensagem de erro
+// Verificar se há mensagem de erro recebida pela URL
 $erro = $_GET['erro'] ?? '';
-if (!empty($erro)) {
+if ($erro !== '') {
     echo "<script>alert('" . addslashes($erro) . "');</script>";
 }
 
-// Buscar dados da planilha
+// Buscar dados da planilha e, quando existir, a descrição do comum relacionado
 try {
-    $sql_planilha = "SELECT * FROM planilhas WHERE id = :id";
+    $sql_planilha = "SELECT pl.*, cm.descricao AS comum_descricao
+                     FROM planilhas pl
+                     LEFT JOIN comums cm ON cm.id = pl.comum_id
+                     WHERE pl.id = :id";
     $stmt_planilha = $conexao->prepare($sql_planilha);
-    $stmt_planilha->bindValue(':id', $id_planilha);
+    $stmt_planilha->bindValue(':id', $id_planilha, PDO::PARAM_INT);
     $stmt_planilha->execute();
-    $planilha = $stmt_planilha->fetch();
-    
+    $planilha = $stmt_planilha->fetch(PDO::FETCH_ASSOC);
+
     if (!$planilha) {
         throw new Exception('Planilha não encontrada.');
     }
 } catch (Exception $e) {
-    die("Erro ao carregar planilha: " . $e->getMessage());
+    die('Erro ao carregar planilha: ' . $e->getMessage());
 }
 
-// Parâmetros da paginação
+// Parâmetros de paginação
 $pagina = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
-$limite = 20; // 20 produtos por página
+$pagina = $pagina > 0 ? $pagina : 1;
+$limite = 20;
 $offset = ($pagina - 1) * $limite;
 
-// Filtros
-$filtro_nome = $_GET['nome'] ?? '';
-$filtro_dependencia = $_GET['dependencia'] ?? '';
-$filtro_codigo = $_GET['codigo'] ?? '';
-$filtro_status = $_GET['status'] ?? '';
+// Filtros recebidos pela tela
+$filtro_nome = trim($_GET['nome'] ?? '');
+$filtro_dependencia = trim($_GET['dependencia'] ?? '');
+$filtro_codigo = trim($_GET['codigo'] ?? '');
+$filtro_status = trim($_GET['status'] ?? '');
 
-// Construir a query base
-$sql = "SELECT p.*, 
-               COALESCE(pc.checado, 0) as checado,
-               COALESCE(pc.dr, 0) as dr,
-               COALESCE(pc.imprimir, 0) as imprimir,
-               COALESCE(pc.editado, 0) as editado,
-               pc.observacoes,
-               pc.nome as nome_editado,
-               pc.dependencia as dependencia_editada
-        FROM produtos p 
-        LEFT JOIN produtos_check pc ON p.id = pc.produto_id 
-        WHERE p.id_planilha = :id_planilha";
+// Query base usando a tabela produtos com as colunas REAIS do servidor
+$sql_base = "SELECT 
+                     p.id_produto,
+                     p.codigo,
+                     p.descricao_completa,
+                     p.editado_descricao_completa,
+                     p.complemento,
+                     p.editado_complemento,
+                     p.bem,
+                     p.editado_bem,
+                     p.tipo_bem_id,
+                     p.dependencia_id,
+                     p.editado_dependencia_id,
+                     p.observacao,
+                     COALESCE(p.checado, 0) AS checado,
+                     COALESCE(p.editado, 0) AS editado,
+                     COALESCE(p.imprimir_etiqueta, 0) AS imprimir,
+                     COALESCE(p.imprimir_14_1, 0) AS imprimir_141,
+                     COALESCE(p.novo, 0) AS novo,
+                     COALESCE(p.ativo, 1) AS ativo,
+                     -- Infos extras para montar descrição editada on-the-fly
+                    t1.codigo AS tipo_codigo,
+                    t1.descricao AS tipo_desc,
+                     d1.descricao AS dependencia_desc,
+                     d2.descricao AS editado_dependencia_desc
+                 FROM produtos p
+                 LEFT JOIN tipos_bens t1 ON p.tipo_bem_id = t1.id
+                 LEFT JOIN dependencias d1 ON p.dependencia_id = d1.id
+                 LEFT JOIN dependencias d2 ON p.editado_dependencia_id = d2.id
+                 WHERE p.planilha_id = :id_planilha AND COALESCE(p.novo,0) = 0";
+
 $params = [':id_planilha' => $id_planilha];
 
-if (!empty($filtro_nome)) {
-    $sql .= " AND p.nome LIKE :nome";
+if ($filtro_nome !== '') {
+    $sql_base .= " AND (p.descricao_completa LIKE :nome OR p.editado_descricao_completa LIKE :nome)";
     $params[':nome'] = '%' . $filtro_nome . '%';
 }
-if (!empty($filtro_dependencia)) {
-    $sql .= " AND p.dependencia LIKE :dependencia";
+
+if ($filtro_dependencia !== '') {
+    // Filtra por dependencia_id (considerar tanto original quanto editado)
+    $sql_base .= " AND (p.dependencia_id LIKE :dependencia OR p.editado_dependencia_id LIKE :dependencia)";
     $params[':dependencia'] = '%' . $filtro_dependencia . '%';
 }
-if (!empty($filtro_codigo)) {
-    // Normalizar código (remover espaços, traços, barras) para comparação
+
+if ($filtro_codigo !== '') {
     $codigo_normalizado = preg_replace('/[\s\-\/]/', '', $filtro_codigo);
-    $sql .= " AND REPLACE(REPLACE(REPLACE(p.codigo, ' ', ''), '-', ''), '/', '') LIKE :codigo";
+    $sql_base .= " AND REPLACE(REPLACE(REPLACE(p.codigo, ' ', ''), '-', ''), '/', '') LIKE :codigo";
     $params[':codigo'] = '%' . $codigo_normalizado . '%';
 }
 
-// Filtro de status
-if (!empty($filtro_status)) {
+if ($filtro_status !== '') {
     switch ($filtro_status) {
         case 'checado':
-            $sql .= " AND COALESCE(pc.checado, 0) = 1";
+            $sql_base .= " AND COALESCE(p.checado, 0) = 1";
             break;
         case 'observacao':
-            $sql .= " AND (pc.observacoes IS NOT NULL AND pc.observacoes != '')";
+            $sql_base .= " AND (p.observacao IS NOT NULL AND p.observacao <> '')";
             break;
         case 'etiqueta':
-            $sql .= " AND COALESCE(pc.imprimir, 0) = 1";
+            $sql_base .= " AND COALESCE(p.imprimir_etiqueta, 0) = 1";
             break;
         case 'pendente':
-            $sql .= " AND (COALESCE(pc.checado, 0) = 0 AND (pc.observacoes IS NULL OR pc.observacoes = '') AND COALESCE(pc.dr, 0) = 0 AND COALESCE(pc.imprimir, 0) = 0 AND COALESCE(pc.editado, 0) = 0)";
-            break;
-        case 'dr':
-            $sql .= " AND COALESCE(pc.dr, 0) = 1";
+            $sql_base .= " AND (COALESCE(p.checado, 0) = 0
+                                 AND (p.observacao IS NULL OR p.observacao = '')
+                                 AND COALESCE(p.imprimir_etiqueta, 0) = 0
+                                 AND COALESCE(p.editado, 0) = 0)";
             break;
         case 'editado':
-            $sql .= " AND COALESCE(pc.editado, 0) = 1";
+            $sql_base .= " AND COALESCE(p.editado, 0) = 1";
             break;
     }
 }
 
-// Contar total
-$sql_count = "SELECT COUNT(*) as total FROM ($sql) as count_table";
+// Total de registros para paginação - query COUNT simplificada
+$sql_count = "SELECT COUNT(*) AS total 
+              FROM produtos p 
+              WHERE p.planilha_id = :id_planilha AND COALESCE(p.novo,0) = 0";
+
+// Aplicar os mesmos filtros do $sql_base na query de contagem
+if ($filtro_nome !== '') {
+    $sql_count .= " AND (p.descricao_completa LIKE :nome OR p.editado_descricao_completa LIKE :nome)";
+}
+if ($filtro_dependencia !== '') {
+    $sql_count .= " AND (p.dependencia_id LIKE :dependencia OR p.editado_dependencia_id LIKE :dependencia)";
+}
+if ($filtro_codigo !== '') {
+    $sql_count .= " AND REPLACE(REPLACE(REPLACE(p.codigo, ' ', ''), '-', ''), '/', '') LIKE :codigo";
+}
+if ($filtro_status !== '') {
+    switch ($filtro_status) {
+        case 'checado':
+            $sql_count .= " AND COALESCE(p.checado, 0) = 1";
+            break;
+        case 'observacao':
+            $sql_count .= " AND (p.observacao IS NOT NULL AND p.observacao <> '')";
+            break;
+        case 'etiqueta':
+            $sql_count .= " AND COALESCE(p.imprimir_etiqueta, 0) = 1";
+            break;
+        case 'pendente':
+            $sql_count .= " AND (COALESCE(p.checado, 0) = 0
+                                 AND (p.observacao IS NULL OR p.observacao = '')
+                                 AND COALESCE(p.imprimir_etiqueta, 0) = 0
+                                 AND COALESCE(p.editado, 0) = 0)";
+            break;
+        case 'editado':
+            $sql_count .= " AND COALESCE(p.editado, 0) = 1";
+            break;
+    }
+}
+
 $stmt_count = $conexao->prepare($sql_count);
 foreach ($params as $key => $value) {
-    $stmt_count->bindValue($key, $value);
+    $stmt_count->bindValue($key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
 }
 $stmt_count->execute();
-$total_registros = $stmt_count->fetch()['total'];
-$total_paginas = ceil($total_registros / $limite);
+$total_registros = (int)$stmt_count->fetchColumn();
+$total_paginas = (int)ceil($total_registros / $limite);
 
-// Ordenação e paginação
-$sql .= " ORDER BY p.id DESC LIMIT :limite OFFSET :offset";
-$params[':limite'] = $limite;
-$params[':offset'] = $offset;
-
-$stmt = $conexao->prepare($sql);
-foreach ($params as $key => $value) {
-    $stmt->bindValue($key, $value, ($key === ':limite' || $key === ':offset') ? PDO::PARAM_INT : PDO::PARAM_STR);
+if ($total_paginas > 0 && $pagina > $total_paginas) {
+    $pagina = $total_paginas;
+    $offset = ($pagina - 1) * $limite;
 }
-$stmt->execute();
-$produtos = $stmt->fetchAll();
 
-// Filtros únicos
-$sql_filtros = "SELECT DISTINCT dependencia FROM produtos WHERE id_planilha = :id_planilha ORDER BY dependencia";
-$stmt_filtros = $conexao->prepare($sql_filtros);
-$stmt_filtros->bindValue(':id_planilha', $id_planilha);
-$stmt_filtros->execute();
-$dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
+// Busca efetiva dos produtos com ordenação e limites
+$sql_dados = $sql_base . " ORDER BY p.id_produto DESC LIMIT :limite OFFSET :offset";
+$stmt = $conexao->prepare($sql_dados);
+foreach ($params as $key => $value) {
+    $stmt->bindValue($key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+}
+$stmt->bindValue(':limite', $limite, PDO::PARAM_INT);
+$stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+$stmt->execute();
+$produtos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Dependências únicas para preencher o select de filtros
+try {
+    $sql_filtros = "SELECT DISTINCT dep FROM (
+                        SELECT p.dependencia_id AS dep
+                        FROM produtos p
+                        WHERE p.planilha_id = :id_dep_original
+                          AND p.dependencia_id IS NOT NULL
+                          AND p.dependencia_id <> 0
+                        UNION ALL
+                        SELECT p.editado_dependencia_id AS dep
+                        FROM produtos p
+                        WHERE p.planilha_id = :id_dep_editada
+                          AND p.editado_dependencia_id IS NOT NULL
+                          AND p.editado_dependencia_id <> 0
+                    ) deps
+                    ORDER BY dep";
+    $stmt_filtros = $conexao->prepare($sql_filtros);
+    $stmt_filtros->bindValue(':id_dep_original', $id_planilha, PDO::PARAM_INT);
+    $stmt_filtros->bindValue(':id_dep_editada', $id_planilha, PDO::PARAM_INT);
+    $stmt_filtros->execute();
+    $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
+} catch (Exception $e) {
+    $dependencia_options = [];
+}
 ?>

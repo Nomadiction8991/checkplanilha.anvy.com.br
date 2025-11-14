@@ -2,7 +2,7 @@
 
 use Complex\Complex as Complex;
 
-include(__DIR__ . '/../vendor/autoload.php');
+include(PROJECT_ROOT . '/vendor/autoload.php');
 
 echo 'Create', PHP_EOL;
 

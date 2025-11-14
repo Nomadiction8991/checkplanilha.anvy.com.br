@@ -192,46 +192,29 @@ select.form-control {
     font-size: 13px;
 }
 
-/* Responsividade - Padrão similar */
-@media (max-width: 768px) {
-    .conteudo {
-        padding: 15px;
-    }
-    
-    /* Cabeçalho já responsivo via base.css */
-    
-    .conteudo {
-        margin-top: 55px;
-    }
-    
-    .product-card {
-        padding: 15px;
-    }
-    
-    .btn {
-        width: 100%;
-        text-align: center;
-    }
+/* Estilos padrão mobile-first para todos os dispositivos */
+.conteudo {
+    padding: 10px;
+    margin-top: 55px;
 }
 
-@media (max-width: 480px) {
-    .conteudo {
-        padding: 10px;
-    }
-    
-    .product-card {
-        padding: 12px;
-    }
-    
-    .form-control {
-        padding: 8px 10px;
-    }
-    
-    .btn {
-        padding: 10px 20px;
-    }
-    
-    .campo-edicao {
-        padding: 12px;
-    }
+.product-card {
+    padding: 12px;
 }
+
+.btn {
+    width: 100%;
+    text-align: center;
+    padding: 10px 20px;
+}
+
+.form-control, .form-select {
+    font-size: 16px;
+    padding: 8px 10px;
+}
+
+.campo-edicao {
+    padding: 12px;
+}
+
+/* Já aplicado anteriormente como padrão mobile-first - removidas duplicatas de media queries */

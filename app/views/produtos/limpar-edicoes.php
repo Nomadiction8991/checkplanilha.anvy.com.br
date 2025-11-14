@@ -1,5 +1,6 @@
 <?php
-require_once __DIR__ . '/../../../CRUD/conexao.php';
+require_once PROJECT_ROOT . '/auth.php'; // Autenticação
+require_once PROJECT_ROOT . '/CRUD/conexao.php';
 
 // Parâmetros
 $id_produto = $_GET['id_produto'] ?? null;
@@ -31,21 +32,25 @@ if (!$id_produto || !$id_planilha) {
 }
 
 try {
-    // Verificar existência em produtos_check
-    $stmt = $conexao->prepare('SELECT COUNT(*) AS total FROM produtos_check WHERE produto_id = :pid');
-    $stmt->bindValue(':pid', $id_produto);
-    $stmt->execute();
-    $existe = $stmt->fetch()['total'] > 0;
-
-    if ($existe) {
-        // Limpar campos de edição e imprimir
-        $up = $conexao->prepare('UPDATE produtos_check SET nome = NULL, dependencia = NULL, imprimir = 0, editado = 0 WHERE produto_id = :pid');
-        $up->bindValue(':pid', $id_produto);
-        $up->execute();
-        $msg = 'Edições limpas com sucesso!';
-    } else {
-        $msg = 'Nenhuma edição encontrada para limpar.';
-    }
+    // Limpar campos de edição na tabela produtos - USANDO id_produto
+    // Importante: usar valores padrão válidos ('' ou 0) pois colunas são NOT NULL em alguns bancos
+    $sql_update = "UPDATE produtos 
+                   SET editado_tipo_bem_id = 0,
+                       editado_bem = '',
+                       editado_complemento = '',
+                       editado_dependencia_id = 0,
+                       editado_descricao_completa = '',
+                       imprimir_etiqueta = 0,
+                       editado = 0
+                   WHERE id_produto = :id_produto 
+                     AND planilha_id = :planilha_id";
+    
+    $stmt_update = $conexao->prepare($sql_update);
+    $stmt_update->bindValue(':id_produto', $id_produto);
+    $stmt_update->bindValue(':planilha_id', $id_planilha);
+    $stmt_update->execute();
+    
+    $msg = 'Edições limpas com sucesso!';
 
     redirectBack([
         'id' => $id_planilha,

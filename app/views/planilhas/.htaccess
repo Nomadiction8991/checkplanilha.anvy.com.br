@@ -1,0 +1,8 @@
+# Configurações para evitar erro 406 (Not Acceptable)
+<IfModule mod_security.c>
+    SecFilterEngine Off
+    SecFilterScanPOST Off
+</IfModule>
+
+# Charset UTF-8
+AddDefaultCharset UTF-8

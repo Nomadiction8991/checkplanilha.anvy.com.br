@@ -1,4 +1,5 @@
 <?php
+require_once PROJECT_ROOT . '/auth.php'; // Autenticação
 $id_planilha = $_GET['id'] ?? null;
 
 if (!$id_planilha) {
@@ -50,6 +51,18 @@ ob_start();
                     Cadastrar Produto
                 </h5>
                 <p class="card-text small text-muted">Adicionar novo produto manualmente</p>
+            </div>
+        </div>
+    </a>
+    
+    <a href="../planilhas/importar-planilha.php" class="text-decoration-none">
+        <div class="card menu-card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-file-earmark-arrow-up-fill me-2" style="color: #28a745;"></i>
+                    Importar Nova Planilha
+                </h5>
+                <p class="card-text small text-muted">Importar uma nova planilha CSV</p>
             </div>
         </div>
     </a>
@@ -106,12 +119,12 @@ ob_start();
 $contentHtml = ob_get_clean();
 
 // Criar arquivo temporário com o conteúdo
-$tempFile = __DIR__ . '/../../../temp_menu_content_' . uniqid() . '.php';
+$tempFile = PROJECT_ROOT . '/temp_menu_content_' . uniqid() . '.php';
 file_put_contents($tempFile, $contentHtml);
 $contentFile = $tempFile;
 
 // Renderizar o layout
-include __DIR__ . '/../layouts/app-wrapper.php';
+include PROJECT_ROOT . '/layouts/app-wrapper.php';
 
 // Limpar arquivo temporário
 unlink($tempFile);

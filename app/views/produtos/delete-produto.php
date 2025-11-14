@@ -1,5 +1,6 @@
 <?php
-include __DIR__ . '/../../../CRUD/DELETE/produto.php';
+require_once PROJECT_ROOT . '/auth.php'; // Autenticação
+include PROJECT_ROOT . '/CRUD/DELETE/produto.php';
 
 $pageTitle = 'Excluir Produto';
 $backUrl = './read-produto.php?id=' . urlencode($id_planilha) . '&' . gerarParametrosFiltro();
@@ -52,7 +53,7 @@ ob_start();
       <div class="mb-2">
         <label class="form-label">Status</label>
         <div class="d-flex gap-2">
-          <span class="badge bg-<?php echo ($produto['possui_nota'] == 1) ? 'warning text-dark' : 'secondary'; ?>">Nota</span>
+          <span class="badge bg-<?php echo (isset($produto['condicao_141']) && ($produto['condicao_141'] == 1 || $produto['condicao_141'] == 3)) ? 'warning text-dark' : 'secondary'; ?>">Nota</span>
           <span class="badge bg-<?php echo ($produto['imprimir_14_1'] == 1) ? 'primary' : 'secondary'; ?>">14.1</span>
         </div>
       </div>
@@ -67,9 +68,9 @@ ob_start();
 
 <?php
 $contentHtml = ob_get_clean();
-$tempFile = __DIR__ . '/../../../temp_delete_produto_' . uniqid() . '.php';
+$tempFile = PROJECT_ROOT . '/temp_delete_produto_' . uniqid() . '.php';
 file_put_contents($tempFile, $contentHtml);
 $contentFile = $tempFile;
-include __DIR__ . '/../layouts/app-wrapper.php';
+include PROJECT_ROOT . '/layouts/app-wrapper.php';
 unlink($tempFile);
 ?>

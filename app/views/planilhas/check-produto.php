@@ -1,4 +1,5 @@
 <?php
+require_once PROJECT_ROOT . '/auth.php'; // Autenticação
 // Endpoint público para processar o check do produto
 // Inclui a lógica do CRUD e ajusta os redirecionamentos para o contexto correto
 
@@ -7,7 +8,7 @@ $_POST_BACKUP = $_POST;
 $_REQUEST_METHOD = $_SERVER['REQUEST_METHOD'];
 
 // Incluir conexão
-require_once __DIR__ . '/../../../CRUD/conexao.php';
+require_once PROJECT_ROOT . '/CRUD/conexao.php';
 
 if ($_REQUEST_METHOD === 'POST') {
     $produto_id = $_POST_BACKUP['produto_id'] ?? null;
@@ -30,46 +31,34 @@ if ($_REQUEST_METHOD === 'POST') {
     }
     
     try {
-        // Validar se pode desmarcar o check (não pode estar no DR ou marcado para impressão)
-        if ($checado == 0) {
-            $sql_verifica = "SELECT COALESCE(pc.dr, 0) as dr, COALESCE(pc.imprimir, 0) as imprimir 
-                            FROM produtos_check pc 
-                            WHERE pc.produto_id = :produto_id";
-            $stmt_verifica = $conexao->prepare($sql_verifica);
-            $stmt_verifica->bindValue(':produto_id', $produto_id);
-            $stmt_verifica->execute();
-            $status = $stmt_verifica->fetch();
-            
-            if ($status && ($status['dr'] == 1 || $status['imprimir'] == 1)) {
-                $query_string = http_build_query(array_merge(
-                    ['id' => $id_planilha], 
-                    $filtros,
-                    ['erro' => 'Não é possível desmarcar o check se o produto estiver no DR ou marcado para impressão.']
-                ));
-                header('Location: ./view-planilha.php?' . $query_string);
-                exit;
-            }
+        // Buscar status atual no novo schema (produtos) - USANDO id_produto
+        $stmt_status = $conexao->prepare('SELECT checado, imprimir_etiqueta, imprimir_14_1 FROM produtos WHERE id_produto = :id_produto AND planilha_id = :planilha_id');
+        $stmt_status->bindValue(':id_produto', $produto_id, PDO::PARAM_INT);
+        $stmt_status->bindValue(':planilha_id', $id_planilha, PDO::PARAM_INT);
+        $stmt_status->execute();
+        $status = $stmt_status->fetch(PDO::FETCH_ASSOC);
+
+        if (!$status) {
+            throw new Exception('Produto não encontrado.');
         }
-        
-        // Verificar se já existe registro
-        $sql_check = "SELECT * FROM produtos_check WHERE produto_id = :produto_id";
-        $stmt_check = $conexao->prepare($sql_check);
-        $stmt_check->bindValue(':produto_id', $produto_id);
-        $stmt_check->execute();
-        $existe = $stmt_check->fetch();
-        
-        if ($existe) {
-            // Atualizar
-            $sql = "UPDATE produtos_check SET checado = :checado WHERE produto_id = :produto_id";
-        } else {
-            // Inserir
-            $sql = "INSERT INTO produtos_check (produto_id, checado) VALUES (:produto_id, :checado)";
+
+        // Regra: não pode desmarcar checado se estiver marcado para impressão
+        if ((int)$checado === 0 && (($status['imprimir_etiqueta'] ?? 0) == 1 || ($status['imprimir_14_1'] ?? 0) == 1)) {
+            $query_string = http_build_query(array_merge(
+                ['id' => $id_planilha], 
+                $filtros,
+                ['erro' => 'Não é possível desmarcar o check se o produto estiver marcado para impressão.']
+            ));
+            header('Location: ./view-planilha.php?' . $query_string);
+            exit;
         }
-        
-        $stmt = $conexao->prepare($sql);
-        $stmt->bindValue(':produto_id', $produto_id);
-        $stmt->bindValue(':checado', $checado, PDO::PARAM_INT);
-        $stmt->execute();
+
+        // Atualizar flag no próprio produto - USANDO id_produto
+        $stmt_up = $conexao->prepare('UPDATE produtos SET checado = :checado WHERE id_produto = :id_produto AND planilha_id = :planilha_id');
+        $stmt_up->bindValue(':checado', (int)$checado, PDO::PARAM_INT);
+        $stmt_up->bindValue(':id_produto', $produto_id, PDO::PARAM_INT);
+        $stmt_up->bindValue(':planilha_id', $id_planilha, PDO::PARAM_INT);
+        $stmt_up->execute();
         
         // Redirecionar de volta mantendo os filtros
         $query_string = http_build_query(array_merge(['id' => $id_planilha], $filtros));

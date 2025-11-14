@@ -1,6 +1,8 @@
 <?php
-require_once __DIR__ . '/../conexao.php';
-require_once __DIR__ . '/../../vendor/autoload.php';
+require_once PROJECT_ROOT . '/auth.php'; // Autenticação
+require_once PROJECT_ROOT . '/conexao.php';
+require_once PROJECT_ROOT . '/vendor/autoload.php';
+require_once PROJECT_ROOT . '/app/functions/comum_functions.php';
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
@@ -55,7 +57,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $localizacao_comum = trim($_POST['localizacao_comum'] ?? 'D16');
     $localizacao_data_posicao = trim($_POST['localizacao_data_posicao'] ?? 'D13');
     $localizacao_endereco = trim($_POST['localizacao_endereco'] ?? 'A4');
-    $localizacao_cnpj = trim($_POST['localizacao_cnpj'] ?? 'U8');
+    $localizacao_cnpj = trim($_POST['localizacao_cnpj'] ?? 'U5');
+    $endereco_post = isset($_POST['endereco']) ? trim($_POST['endereco']) : null;
+    // administracao (estado) e cidade
+    $administracao = trim($_POST['administracao'] ?? null);
+    $cidade = trim($_POST['cidade'] ?? null);
+    // Setor (opcional, numérico)
+    $setor = !empty($_POST['setor']) ? (int)$_POST['setor'] : null;
     
     // Mapeamento simplificado
     $mapeamento = [
@@ -69,14 +77,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception('A localização da célula comum é obrigatória.');
         }
 
-        if (empty($localizacao_data_posicao)) {
-            throw new Exception('A localização da célula data_posicao é obrigatória.');
-        }
-
-        if (empty($localizacao_endereco)) {
-            throw new Exception('A localização da célula endereço é obrigatória.');
-        }
-
         if (empty($localizacao_cnpj)) {
             throw new Exception('A localização da célula CNPJ é obrigatória.');
         }
@@ -84,11 +84,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Iniciar transação
         $conexao->beginTransaction();
 
-        // Se um novo arquivo foi enviado, processar para obter os novos valores
-        $novo_valor_comum = $planilha['comum']; // Manter o valor atual por padrão
-        $novo_valor_data_posicao = $planilha['data_posicao']; // Manter o valor atual por padrão
-        $novo_valor_endereco = $planilha['endereco']; // Manter o valor atual por padrão
-        $novo_valor_cnpj = $planilha['cnpj']; // Manter o valor atual por padrão
+    // Se um novo arquivo foi enviado, processar para obter os novos valores
+    $novo_valor_comum = $planilha['comum']; // Manter o valor atual por padrão
+    $novo_valor_data_posicao = $planilha['data_posicao']; // Manter o valor atual por padrão
+    $novo_valor_endereco = $planilha['endereco']; // Manter o valor atual por padrão
+    $novo_valor_cnpj = $planilha['cnpj']; // Manter o valor atual por padrão
+    $novo_administracao = $planilha['administracao'] ?? null;
+    $novo_cidade = $planilha['cidade'] ?? null;
         
         if (isset($_FILES['arquivo']) && $_FILES['arquivo']['error'] === UPLOAD_ERR_OK) {
             $arquivo_tmp = $_FILES['arquivo']['tmp_name'];
@@ -107,6 +109,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             if (empty($novo_valor_comum)) {
                 throw new Exception('A célula ' . $localizacao_comum . ' está vazia no arquivo CSV.');
+            }
+
+            // Processar e obter ID do comum
+            $comum_id = processar_comum($conexao, $novo_valor_comum);
+            if (empty($comum_id)) {
+                throw new Exception('Erro ao processar comum: ' . $novo_valor_comum);
             }
 
             // Obter o valor da célula data_posicao
@@ -145,6 +153,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
             $novo_valor_data_posicao = $data_mysql;
+
+            // Iniciar transação
+            $conexao->beginTransaction();
 
             // Apagar todos os produtos existentes desta planilha
             $sql_delete_produtos = "DELETE FROM produtos WHERE id_planilha = :id_planilha";
@@ -213,17 +224,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $nome = isset($linha[colunaParaIndice($mapeamento['nome'])]) ? corrigirEncoding(trim($linha[colunaParaIndice($mapeamento['nome'])])) : '';
                     $dependencia = isset($linha[colunaParaIndice($mapeamento['dependencia'])]) ? corrigirEncoding(trim($linha[colunaParaIndice($mapeamento['dependencia'])])) : '';
 
-                    // Inserir o produto (apenas campos necessários)
+                    // Inserir o produto com comum_id
                     $sql_produto = "INSERT INTO produtos 
-                        (codigo, nome, dependencia, id_planilha) 
+                        (codigo, nome, dependencia, id_planilha, comum_id) 
                     VALUES 
-                        (:codigo, :nome, :dependencia, :id_planilha)";
+                        (:codigo, :nome, :dependencia, :id_planilha, :comum_id)";
 
                     $stmt_produto = $conexao->prepare($sql_produto);
                     $stmt_produto->bindValue(':codigo', $codigo);
                     $stmt_produto->bindValue(':nome', $nome);
                     $stmt_produto->bindValue(':dependencia', $dependencia);
                     $stmt_produto->bindValue(':id_planilha', $id_planilha);
+                    $stmt_produto->bindValue(':comum_id', $comum_id, PDO::PARAM_INT);
 
                     if ($stmt_produto->execute()) {
                         $registros_importados++;
@@ -246,14 +258,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
+        // Validações de campos obrigatórios enviados pelo form
+        if (isset($_POST['administracao']) && trim($_POST['administracao']) === '') {
+            throw new Exception('O campo Administração é obrigatório.');
+        }
+        if (isset($_POST['cidade']) && trim($_POST['cidade']) === '') {
+            throw new Exception('O campo Cidade é obrigatório.');
+        }
+
+        // Se o usuário submeteu administracao/cidade via POST, sobrescrever as variáveis de update
+        if (!empty($administracao) || $administracao === "") {
+            $novo_administracao = $administracao;
+        }
+        if (!empty($cidade) || $cidade === "") {
+            $novo_cidade = $cidade;
+        }
+        
+        // Atualizar setor se foi fornecido
+        $novo_setor = $planilha['setor'] ?? null;
+        if (isset($_POST['setor'])) {
+            $novo_setor = $setor;
+        }
+
+        // Priorizar valor informado manualmente para Endereço
+        if ($endereco_post !== null && $endereco_post !== '') {
+            $novo_valor_endereco = $endereco_post;
+        }
+
         // Atualizar dados da planilha com os novos valores (se aplicável)
-        $sql_update_planilha = "UPDATE planilhas SET ativo = :ativo, comum = :comum, data_posicao = :data_posicao, endereco = :endereco, cnpj = :cnpj WHERE id = :id";
+    $sql_update_planilha = "UPDATE planilhas SET ativo = :ativo, comum = :comum, data_posicao = :data_posicao, endereco = :endereco, cnpj = :cnpj, administracao = :administracao, cidade = :cidade, setor = :setor WHERE id = :id";
         $stmt_update_planilha = $conexao->prepare($sql_update_planilha);
         $stmt_update_planilha->bindValue(':ativo', $ativo);
         $stmt_update_planilha->bindValue(':comum', $novo_valor_comum);
         $stmt_update_planilha->bindValue(':data_posicao', $novo_valor_data_posicao);
         $stmt_update_planilha->bindValue(':endereco', $novo_valor_endereco);
         $stmt_update_planilha->bindValue(':cnpj', $novo_valor_cnpj);
+    $stmt_update_planilha->bindValue(':administracao', $novo_administracao);
+    $stmt_update_planilha->bindValue(':cidade', $novo_cidade);
+    $stmt_update_planilha->bindValue(':setor', $novo_setor, PDO::PARAM_INT);
         $stmt_update_planilha->bindValue(':id', $id_planilha);
         $stmt_update_planilha->execute();
 

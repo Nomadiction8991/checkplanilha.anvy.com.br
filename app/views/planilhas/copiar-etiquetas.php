@@ -1,5 +1,6 @@
 <?php
-require_once __DIR__ . '/../../../CRUD/conexao.php';
+require_once PROJECT_ROOT . '/auth.php'; // Autenticação
+require_once PROJECT_ROOT . '/CRUD/conexao.php';
 
 $id_planilha = $_GET['id'] ?? null;
 if (!$id_planilha) { header('Location: ../../index.php'); exit; }
@@ -18,7 +19,12 @@ try {
 
 // Dependências disponíveis
 try {
-    $sql_dependencias = "SELECT DISTINCT dependencia FROM produtos WHERE id_planilha = :id_planilha ORDER BY dependencia";
+    $sql_dependencias = "
+        SELECT DISTINCT d.descricao as dependencia FROM produtos p
+        LEFT JOIN dependencias d ON COALESCE(p.editado_dependencia_id, p.dependencia_id) = d.id
+        WHERE p.planilha_id = :id_planilha AND d.descricao IS NOT NULL
+        ORDER BY dependencia
+    ";
     $stmt_dependencias = $conexao->prepare($sql_dependencias);
     $stmt_dependencias->bindValue(':id_planilha', $id_planilha);
     $stmt_dependencias->execute();
@@ -29,12 +35,15 @@ $dependencia_selecionada = $_GET['dependencia'] ?? '';
 
 // Produtos marcados para imprimir (produtos checados)
 try {
-    $sql_produtos = "SELECT p.codigo, p.dependencia 
+    $sql_produtos = "SELECT p.codigo, COALESCE(d_edit.descricao, d_orig.descricao, '') as dependencia
                      FROM produtos p 
-                     INNER JOIN produtos_check pc ON p.id = pc.produto_id 
-                     WHERE p.id_planilha = :id_planilha AND pc.imprimir = 1";
+                     LEFT JOIN dependencias d_orig ON p.dependencia_id = d_orig.id
+                     LEFT JOIN dependencias d_edit ON p.editado_dependencia_id = d_edit.id
+                     WHERE p.planilha_id = :id_planilha AND COALESCE(p.imprimir_etiqueta, 0) = 1";
     if (!empty($dependencia_selecionada)) {
-        $sql_produtos .= " AND p.dependencia = :dependencia";
+        $sql_produtos .= " AND (
+            (COALESCE(d_edit.descricao, d_orig.descricao) = :dependencia)
+        )";
     }
     $sql_produtos .= " ORDER BY p.codigo";
     $stmt_produtos = $conexao->prepare($sql_produtos);
@@ -44,21 +53,24 @@ try {
     $produtos = $stmt_produtos->fetchAll(PDO::FETCH_ASSOC);
     
     // Buscar também produtos cadastrados (novos) com código preenchido
-    $sql_novos = "SELECT pc.codigo, d.descricao as dependencia
-                  FROM produtos_cadastro pc
-                  LEFT JOIN dependencias d ON pc.id_dependencia = d.id
-                  WHERE pc.id_planilha = :id_planilha 
-                  AND pc.codigo IS NOT NULL 
-                  AND pc.codigo != ''";
-    if (!empty($dependencia_selecionada)) {
-        $sql_novos .= " AND d.descricao = :dependencia";
-    }
-    $sql_novos .= " ORDER BY pc.codigo";
-    $stmt_novos = $conexao->prepare($sql_novos);
-    $stmt_novos->bindValue(':id_planilha', $id_planilha);
-    if (!empty($dependencia_selecionada)) { $stmt_novos->bindValue(':dependencia', $dependencia_selecionada); }
-    $stmt_novos->execute();
-    $produtos_novos = $stmt_novos->fetchAll(PDO::FETCH_ASSOC);
+    // Nota: tabela produtos_cadastro não existe no schema atual, então comentado
+    // $sql_novos = "SELECT pc.codigo, d.descricao as dependencia
+    // FROM produtos_cadastro pc
+    // LEFT JOIN dependencias d ON pc.id_dependencia = d.id
+    // WHERE pc.id_planilha = :id_planilha 
+    // AND pc.codigo IS NOT NULL 
+    // AND pc.codigo != ''";
+    // if (!empty($dependencia_selecionada)) {
+    //     $sql_novos .= " AND d.descricao = :dependencia";
+    // }
+    // $sql_novos .= " ORDER BY pc.codigo";
+    // $stmt_novos = $conexao->prepare($sql_novos);
+    // $stmt_novos->bindValue(':id_planilha', $id_planilha);
+    // if (!empty($dependencia_selecionada)) { $stmt_novos->bindValue(':dependencia', $dependencia_selecionada); }
+    // $stmt_novos->execute();
+    // $produtos_novos = $stmt_novos->fetchAll(PDO::FETCH_ASSOC);
+    
+    $produtos_novos = []; // Temporariamente vazio até tabela existir
     
     // Combinar produtos checados e novos
     $produtos = array_merge($produtos, $produtos_novos);
@@ -73,7 +85,27 @@ try {
 }
 
 $pageTitle = 'Copiar Etiquetas';
-$backUrl = '../shared/menu.php?id=' . urlencode($id_planilha);
+$backUrl = '../planilhas/view-planilha.php?id=' . urlencode($id_planilha);
+$headerActions = '
+    <div class="dropdown">
+        <button class="btn-header-action" type="button" id="menuEtiquetas" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-list fs-5"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="menuEtiquetas">
+            <li>
+                <a class="dropdown-item" href="../planilhas/view-planilha.php?id=' . $id_planilha . '">
+                    <i class="bi bi-eye me-2"></i>Visualizar Planilha
+                </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <a class="dropdown-item" href="../../../logout.php">
+                    <i class="bi bi-box-arrow-right me-2"></i>Sair
+                </a>
+            </li>
+        </ul>
+    </div>
+';
 
 ob_start();
 ?>
@@ -165,10 +197,10 @@ function filtrarPorDependencia() {
 
 <?php
 $contentHtml = ob_get_clean();
-$tempFile = __DIR__ . '/../../../temp_copiar_etiquetas_' . uniqid() . '.php';
+$tempFile = PROJECT_ROOT . '/temp_copiar_etiquetas_' . uniqid() . '.php';
 file_put_contents($tempFile, $contentHtml);
 $contentFile = $tempFile;
 $headerActions = '';
-include __DIR__ . '/../layouts/app-wrapper.php';
+include PROJECT_ROOT . '/layouts/app-wrapper.php';
 unlink($tempFile);
 ?>

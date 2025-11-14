@@ -1,5 +1,6 @@
 <?php
-require_once __DIR__ . '/../conexao.php';
+require_once PROJECT_ROOT . '/auth.php'; // Autenticação
+require_once PROJECT_ROOT . '/conexao.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $produto_id = $_POST['produto_id'] ?? null;
@@ -22,41 +23,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     try {
-        // Se estiver marcando DR (dr = 1), limpar observações e desmarcar imprimir
+        // Se estiver marcando DR (dr = 1), limpar observações, desmarcar imprimir,
+        // desmarcar checado e marcar ativo=0
         if ($dr == 1) {
-            // Verificar se já existe registro
-            $sql_check = "SELECT * FROM produtos_check WHERE produto_id = :produto_id";
-            $stmt_check = $conexao->prepare($sql_check);
-            $stmt_check->bindValue(':produto_id', $produto_id);
-            $stmt_check->execute();
-            $existe = $stmt_check->fetch();
-            
-            if ($existe) {
-                // Atualizar - limpar observações e desmarcar imprimir
-                $sql = "UPDATE produtos_check SET dr = :dr, observacoes = '', imprimir = 0 WHERE produto_id = :produto_id";
-            } else {
-                // Inserir com valores padrão
-                $sql = "INSERT INTO produtos_check (produto_id, dr, observacoes, imprimir) VALUES (:produto_id, :dr, '', 0)";
-            }
+            // Marcar DR: limpar observações (string vazia), desmarcar imprimir, desmarcar checado e marcar como inativo
+            $stmt = $conexao->prepare('UPDATE produtos SET ativo = 0, checado = 0, observacao = :obs, imprimir_etiqueta = 0 WHERE id_produto = :id');
+            $stmt->bindValue(':id', $produto_id, PDO::PARAM_INT);
+            $stmt->bindValue(':obs', '', PDO::PARAM_STR);
+            $stmt->execute();
         } else {
-            // Se estiver desmarcando DR, manter outros valores
-            $sql_check = "SELECT * FROM produtos_check WHERE produto_id = :produto_id";
-            $stmt_check = $conexao->prepare($sql_check);
-            $stmt_check->bindValue(':produto_id', $produto_id);
-            $stmt_check->execute();
-            $existe = $stmt_check->fetch();
-            
-            if ($existe) {
-                $sql = "UPDATE produtos_check SET dr = :dr WHERE produto_id = :produto_id";
-            } else {
-                $sql = "INSERT INTO produtos_check (produto_id, dr) VALUES (:produto_id, :dr)";
-            }
+            // Desmarcar DR: marcar como ativo novamente
+            $stmt = $conexao->prepare('UPDATE produtos SET ativo = 1 WHERE id_produto = :id');
+            $stmt->bindValue(':id', $produto_id, PDO::PARAM_INT);
+            $stmt->execute();
         }
-        
-        $stmt = $conexao->prepare($sql);
-        $stmt->bindValue(':produto_id', $produto_id);
-        $stmt->bindValue(':dr', $dr, PDO::PARAM_INT);
-        $stmt->execute();
         
         // Redirecionar de volta mantendo os filtros
         $query_string = http_build_query(array_merge(['id' => $id_planilha], $filtros));

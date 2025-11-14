@@ -364,161 +364,101 @@ td:nth-child(2) {
 
 /* Media queries de telas grandes REMOVIDOS para manter 400px */
 
-/* Tablets pequenos - 2 colunas */
-@media (max-width: 768px) and (min-width: 481px) {
-    .form-pesquisa {
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-    }
-    
-    .pesquisa-container {
-        padding: 10px;
-    }
-    
-    .conteudo {
-        padding: 12px 10px;
-    }
-    
-    table {
-        font-size: 11px;
-    }
-    
-    th, td {
-        padding: 10px 6px;
-    }
-    
-    th:nth-child(1), td:nth-child(1) {
-        width: 12%;
-    }
-    
-    th:nth-child(2), td:nth-child(2) {
-        width: 48%;
-    }
-    
-    .btn-acao {
-        width: 32px;
-        height: 32px;
-        padding: 4px;
-    }
-    
-    .status-container,
-    .acoes-container {
-        gap: 6px;
-    }
-    
-    .paginacao {
-        flex-wrap: wrap;
-        gap: 6px;
-    }
-    
-    .pagina-item {
-        min-width: 32px;
-        height: 32px;
-        font-size: 12px;
-    }
+/* Estilos padrão mobile-first para todos os dispositivos */
+.form-pesquisa {
+    grid-template-columns: 1fr;
+    gap: 8px;
 }
 
-/* Celulares - 1 coluna */
-@media (max-width: 480px) {
-    .form-pesquisa {
-        grid-template-columns: 1fr;
-        gap: 8px;
-    }
-    
-    .pesquisa-container {
-        padding: 10px;
-        margin-top: 55px;
-    }
-    
-    .conteudo {
-        padding: 10px 8px;
-    }
-    
-    table {
-        font-size: 10px;
-        min-width: 400px;
-    }
-    
-    th, td {
-        padding: 8px 4px;
-    }
-    
-    th:nth-child(1), td:nth-child(1) {
-        width: 10%;
-    }
-    
-    th:nth-child(2), td:nth-child(2) {
-        width: 50%;
-    }
-    
-    .btn-acao {
-        width: 28px;
-        height: 28px;
-        padding: 3px;
-    }
-    
-    .btn-acao svg {
-        width: 18px;
-        height: 18px;
-    }
-    
-    .status-container svg,
-    .acoes-container svg {
-        width: 20px;
-        height: 20px;
-    }
-    
-    .paginacao {
-        gap: 4px;
-        padding: 10px;
-    }
-    
-    .pagina-item {
-        min-width: 28px;
-        height: 28px;
-        font-size: 11px;
-        padding: 0 6px;
-    }
-    
-    .cabecalho {
-        padding: 10px 12px;
-        height: 55px;
-    }
-    
-    .cabecalho h1 {
-        font-size: 16px;
-        max-width: 150px;
-    }
-    
-    .voltar,
-    .acoes a {
-        width: 32px;
-        height: 32px;
-    }
-    
-    .voltar svg,
-    .acoes a svg {
-        width: 36px;
-        height: 36px;
-    }
-    
-    /* Correção específica para inputs em mobile */
-    .campo-pesquisa input,
-    .campo-pesquisa select {
-        padding: 8px 10px;
-        font-size: 16px; /* Melhora a experiência de touch */
-        max-width: 100%;
-        box-sizing: border-box;
-    }
+.pesquisa-container {
+    padding: 10px;
+    margin-top: 55px;
+}
 
-    
-    /* Previne zoom em iOS */
-    @media (max-width: 480px) {
-        .campo-pesquisa input[type="text"],
-        .campo-pesquisa input[type="number"] {
-            font-size: 16px;
-        }
-    }
+.conteudo {
+    padding: 10px 8px;
+}
+
+table {
+    font-size: 10px;
+    min-width: 400px;
+}
+
+th, td {
+    padding: 8px 4px;
+}
+
+th:nth-child(1), td:nth-child(1) {
+    width: 10%;
+}
+
+th:nth-child(2), td:nth-child(2) {
+    width: 50%;
+}
+
+.btn-acao {
+    width: 28px;
+    height: 28px;
+    padding: 3px;
+}
+
+.btn-acao svg {
+    width: 18px;
+    height: 18px;
+}
+
+.status-container svg,
+.acoes-container svg {
+    width: 20px;
+    height: 20px;
+}
+
+.paginacao {
+    gap: 4px;
+    padding: 10px;
+}
+
+.pagina-item {
+    min-width: 28px;
+    height: 28px;
+    font-size: 11px;
+    padding: 0 6px;
+}
+
+.cabecalho {
+    padding: 10px 12px;
+    height: 55px;
+}
+
+.cabecalho h1 {
+    font-size: 16px;
+    max-width: 150px;
+}
+
+.voltar,
+.acoes a {
+    width: 32px;
+    height: 32px;
+}
+
+.voltar svg,
+.acoes a svg {
+    width: 36px;
+    height: 36px;
+}
+
+/* Correção específica para inputs em mobile */
+.campo-pesquisa input,
+.campo-pesquisa select {
+    padding: 8px 10px;
+    font-size: 16px; /* Melhora a experiência de touch */
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.campo-pesquisa input[type="text"],
+.campo-pesquisa input[type="number"] {
+    font-size: 16px;
 }
 
 /* Removido layout amplo; sempre mobile-only */

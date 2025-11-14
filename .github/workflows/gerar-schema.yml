@@ -1,0 +1,86 @@
+name: Gerar schema do banco
+
+on:
+  push:
+    branches: [ dev, main ]
+
+permissions:
+  contents: write
+
+jobs:
+  gerar-schema:
+    runs-on: ubuntu-latest
+    env:
+      # se true, o workflow irá commitar o arquivo `estrutura-banco-de-dados.sql` diretamente na branch dev
+      COMMIT_SCHEMA: 'true'
+      # arquivo alvo no repositório (será substituído toda vez que o workflow rodar)
+      TARGET_SCHEMA_PATH: estrutura-banco-de-dados.sql
+    steps:
+      - name: Checkout (com histórico completo)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Instalar cliente mysql
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y default-mysql-client
+
+      - name: Validar variáveis de conexão
+        id: validate
+        env:
+          DB_HOST: ${{ secrets.ANVY_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_PASS: ${{ secrets.DB_PASSWORD }}
+          DB_USER: ${{ secrets.DB_USER }}
+        run: |
+          if [ -z "$DB_HOST" ] || [ -z "$DB_NAME" ] || [ -z "$DB_PASS" ]; then
+            echo "Faltam secrets: ANVY_HOST, DB_NAME, DB_PASSWORD (opcional: DB_PORT, DB_USER)." >&2
+            exit 1
+          fi
+          echo "ok"
+
+      - name: Dump do schema (mysqldump --no-data)
+        env:
+          DB_HOST: ${{ secrets.ANVY_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASS: ${{ secrets.DB_PASSWORD }}
+        run: |
+          DB_PORT=${DB_PORT:-3306}
+          if [ -z "$DB_USER" ]; then
+            DB_USER="$DB_NAME"
+          fi
+          echo "Gerando schema a partir do host $DB_HOST:$DB_PORT (db: $DB_NAME, user: $DB_USER)"
+          mysqldump -h"${DB_HOST}" -P"${DB_PORT}" -u"${DB_USER}" -p"${DB_PASS}" --no-data "${DB_NAME}" > schema.sql
+          echo "schema.sql criado (tamanho: $(wc -c < schema.sql) bytes)"
+
+      - name: Upload schema artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-schema
+          path: schema.sql
+
+      - name: Commitar schema no repositório (substituir em dev)
+        if: env.COMMIT_SCHEMA == 'true'
+        env:
+          TARGET_PATH: ${{ env.TARGET_SCHEMA_PATH }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # garantir que estamos na branch dev e atualizados
+          git checkout dev || git fetch origin dev && git checkout dev
+          git pull origin dev
+
+          # mover/colocar o schema no caminho alvo e commitar
+          mv schema.sql "$TARGET_PATH"
+          git add "$TARGET_PATH"
+          if git diff --staged --quiet; then
+            echo "Nenhuma alteração no schema para commitar." && exit 0
+          fi
+          git commit -m "chore(schema): atualizar estrutura do banco (automático)"
+          git push origin dev

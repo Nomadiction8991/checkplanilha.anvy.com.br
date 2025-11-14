@@ -1,5 +1,6 @@
 <?php
-include __DIR__ . '/../../../CRUD/UPDATE/observacao-produto.php';
+require_once PROJECT_ROOT . '/auth.php'; // Autenticação
+include PROJECT_ROOT . '/CRUD/UPDATE/observacao-produto.php';
 
 $pageTitle = "Observações";
 $backUrl = getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, $filtro_codigo, $filtro_status);
@@ -21,9 +22,8 @@ ob_start();
     </div>
     <div class="card-body">
         <div class="row g-2 small">
-            <div class="col-12"><strong>Código:</strong> <?php echo htmlspecialchars($produto['codigo'] ?? ''); ?></div>
-            <div class="col-12"><strong>Nome:</strong> <?php echo htmlspecialchars($produto['nome'] ?? ''); ?></div>
-            <div class="col-12"><strong>Dependência:</strong> <?php echo htmlspecialchars($produto['dependencia'] ?? ''); ?></div>
+            <div class="col-12"><?php echo htmlspecialchars($produto['codigo'] ?? ''); ?></div>
+            <div class="col-12"><?php echo htmlspecialchars($produto['descricao_completa'] ?? ''); ?></div>
         </div>
         
         <div class="mt-2">
@@ -32,9 +32,6 @@ ob_start();
             <?php endif; ?>
             <?php if (!empty($check['observacoes'])): ?>
                 <span class="badge bg-warning">📜 Com Obs</span>
-            <?php endif; ?>
-            <?php if ($check['dr'] == 1): ?>
-                <span class="badge bg-danger">📦 DR</span>
             <?php endif; ?>
             <?php if ($check['imprimir'] == 1): ?>
                 <span class="badge bg-info">🏷️ Imprimir</span>
@@ -70,9 +67,9 @@ ob_start();
 
 <?php
 $contentHtml = ob_get_clean();
-$tempFile = __DIR__ . '/../../../temp_obs_produto_' . uniqid() . '.php';
+$tempFile = PROJECT_ROOT . '/temp_obs_produto_' . uniqid() . '.php';
 file_put_contents($tempFile, $contentHtml);
 $contentFile = $tempFile;
-include __DIR__ . '/../layouts/app-wrapper.php';
+include PROJECT_ROOT . '/layouts/app-wrapper.php';
 unlink($tempFile);
 ?>

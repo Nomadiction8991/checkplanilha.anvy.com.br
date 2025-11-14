@@ -1,8 +1,86 @@
 <?php
-require_once __DIR__ . '/../../../CRUD/UPDATE/editar-planilha.php';
+require_once PROJECT_ROOT . '/auth.php';
+require_once PROJECT_ROOT . '/CRUD/conexao.php';
 
-$pageTitle = "Editar Planilha";
-$backUrl = '../../../index.php';
+$id_planilha = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+if ($id_planilha <= 0) {
+    header('Location: ../../../index.php');
+    exit;
+}
+
+$mensagem = '';
+$tipo_mensagem = '';
+
+// Carregar dados da planilha e do comum associado
+function carregar_planilha($conexao, $id_planilha) {
+    $sql = "SELECT p.id, p.comum_id, p.ativo, p.data_posicao,
+                   c.descricao AS comum_descricao,
+                   c.administracao, c.cidade, c.setor
+            FROM planilhas p
+            LEFT JOIN comums c ON c.id = p.comum_id
+            WHERE p.id = :id";
+    $st = $conexao->prepare($sql);
+    $st->bindValue(':id', $id_planilha, PDO::PARAM_INT);
+    $st->execute();
+    return $st->fetch(PDO::FETCH_ASSOC) ?: null;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    try {
+        $ativo = isset($_POST['ativo']) ? 1 : 0;
+        $administracao = trim($_POST['administracao'] ?? '');
+        $cidade = trim($_POST['cidade'] ?? '');
+        $setor = isset($_POST['setor']) && $_POST['setor'] !== '' ? (int)$_POST['setor'] : null;
+
+        if ($administracao === '' || $cidade === '') {
+            throw new Exception('Administração e Cidade são obrigatórios.');
+        }
+
+        // Obter comum_id pela planilha
+        $planilha_atual = carregar_planilha($conexao, $id_planilha);
+        if (!$planilha_atual) {
+            throw new Exception('Planilha não encontrada.');
+        }
+
+        $conexao->beginTransaction();
+
+        // Atualizar status da planilha
+        $up1 = $conexao->prepare('UPDATE planilhas SET ativo = :ativo WHERE id = :id');
+        $up1->bindValue(':ativo', $ativo, PDO::PARAM_INT);
+        $up1->bindValue(':id', $id_planilha, PDO::PARAM_INT);
+        $up1->execute();
+
+        // Atualizar dados do comum relacionado
+        $up2 = $conexao->prepare('UPDATE comums SET administracao = :adm, cidade = :cid, setor = :setor WHERE id = :cid_comum');
+        $up2->bindValue(':adm', $administracao);
+        $up2->bindValue(':cid', $cidade);
+        if ($setor === null) {
+            $up2->bindValue(':setor', null, PDO::PARAM_NULL);
+        } else {
+            $up2->bindValue(':setor', $setor, PDO::PARAM_INT);
+        }
+        $up2->bindValue(':cid_comum', (int)$planilha_atual['comum_id'], PDO::PARAM_INT);
+        $up2->execute();
+
+        $conexao->commit();
+
+        $mensagem = 'Dados atualizados com sucesso!';
+        $tipo_mensagem = 'success';
+    } catch (Exception $e) {
+        if ($conexao->inTransaction()) { $conexao->rollBack(); }
+        $mensagem = 'Erro ao atualizar: ' . $e->getMessage();
+        $tipo_mensagem = 'error';
+    }
+}
+
+// Dados atualizados para exibição
+$planilha = carregar_planilha($conexao, $id_planilha);
+if (!$planilha) { 
+    die('Planilha não encontrada.');
+}
+
+$pageTitle = 'Editar Planilha';
+$backUrl = '../comuns/listar-planilhas.php?comum_id=' . urlencode((string)$planilha['comum_id']);
 
 ob_start();
 ?>
@@ -14,110 +92,91 @@ ob_start();
     </div>
 <?php endif; ?>
 
-<form method="POST" enctype="multipart/form-data">
-    <!-- Info Atual -->
+<form method="POST">
+    <!-- Card: Dados do Comum -->
     <div class="card mb-3">
         <div class="card-header">
-            <i class="bi bi-info-circle me-2"></i>
-            Informações Atuais
+            <i class="bi bi-building me-2"></i>
+            Dados do Comum
         </div>
         <div class="card-body">
             <div class="row g-3">
                 <div class="col-md-6">
-                    <label class="form-label">CNPJ</label>
-                    <input type="text" class="form-control" value="<?php echo htmlspecialchars($planilha['cnpj'] ?? ''); ?>" disabled>
+                    <label for="administracao" class="form-label">Administração <span class="text-danger">*</span></label>
+                    <?php 
+                        // Administração e cidade armazenadas como 'MT - NomeDaCidade'
+                        $administracao_atual = $planilha['administracao'] ?? '';
+                        $cidade_atual = $planilha['cidade'] ?? '';
+                        // Extrair somente nome após ' - '
+                        $nome_cidade_adm = '';
+                        if (strpos($administracao_atual,' - ') !== false) {
+                            $parts = explode(' - ',$administracao_atual,2);
+                            $nome_cidade_adm = $parts[1];
+                        }
+                        $nome_cidade_cid = '';
+                        if (strpos($cidade_atual,' - ') !== false) {
+                            $parts2 = explode(' - ',$cidade_atual,2);
+                            $nome_cidade_cid = $parts2[1];
+                        }
+                        // Definir base de cidades de MT (pode ser ampliado depois ou carregado de tabela auxiliar)
+                        $cidades_mt = [
+                            'Cuiabá','Várzea Grande','Rondonópolis','Sinop','Sorriso','Barra do Garças','Tangará da Serra','Lucas do Rio Verde','Primavera do Leste','Alta Floresta','Campo Verde','Cáceres','Colíder','Guarantã do Norte','Juína','Mirassol d’Oeste','Nova Mutum','Pontes e Lacerda','São Félix do Araguaia','Peixoto de Azevedo'
+                        ];
+                        sort($cidades_mt);
+                    ?>
+                    <select id="administracao" name="administracao" class="form-select" required>
+                        <?php if ($administracao_atual !== ''): ?>
+                            <option value="<?php echo htmlspecialchars($administracao_atual); ?>" selected><?php echo htmlspecialchars($administracao_atual); ?></option>
+                        <?php else: ?>
+                            <option value="" selected>Selecione...</option>
+                        <?php endif; ?>
+                        <?php foreach ($cidades_mt as $c): 
+                            $val = 'MT - ' . $c;
+                            if (strcasecmp($administracao_atual, $val) === 0) { continue; }
+                        ?>
+                            <option value="<?php echo htmlspecialchars($val); ?>"><?php echo htmlspecialchars($val); ?></option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
-                <div class="col-md-6">
-                    <label class="form-label">Comum</label>
-                    <input type="text" class="form-control" value="<?php echo htmlspecialchars($planilha['comum'] ?? ''); ?>" disabled>
+                <div class="col-md-3">
+                    <label for="cidade" class="form-label">Cidade <span class="text-danger">*</span></label>
+                    <select id="cidade" name="cidade" class="form-select" required>
+                        <?php if ($cidade_atual !== ''): ?>
+                            <option value="<?php echo htmlspecialchars($cidade_atual); ?>" selected><?php echo htmlspecialchars($cidade_atual); ?></option>
+                        <?php else: ?>
+                            <option value="" selected>Selecione...</option>
+                        <?php endif; ?>
+                        <?php foreach ($cidades_mt as $c): 
+                            $val = 'MT - ' . $c;
+                            if (strcasecmp($cidade_atual, $val) === 0) { continue; }
+                        ?>
+                            <option value="<?php echo htmlspecialchars($val); ?>"><?php echo htmlspecialchars($val); ?></option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
-                <div class="col-md-6">
-                    <label class="form-label">Endereço</label>
-                    <input type="text" class="form-control" value="<?php echo htmlspecialchars($planilha['endereco'] ?? ''); ?>" disabled>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Data Posição</label>
-                    <input type="text" class="form-control" value="<?php echo htmlspecialchars($planilha['data_posicao'] ?? ''); ?>" disabled>
+                <div class="col-md-3">
+                    <label for="setor" class="form-label">Setor</label>
+                    <input type="number" class="form-control" id="setor" name="setor" 
+                           value="<?php echo htmlspecialchars($planilha['setor'] ?? ''); ?>" min="0" step="1">
                 </div>
             </div>
-            
-            <div class="form-check mt-3">
+        </div>
+    </div>
+
+    <!-- Card: Dados da Planilha (apenas ativação) -->
+    <div class="card mb-3">
+        <div class="card-header">
+            <i class="bi bi-gear me-2"></i>
+            Dados da Planilha
+        </div>
+        <div class="card-body">
+            <div class="form-check">
                 <input class="form-check-input" type="checkbox" id="ativo" name="ativo" value="1" 
                        <?php echo ($planilha['ativo'] ?? 0) ? 'checked' : ''; ?>>
                 <label class="form-check-label" for="ativo">
                     Planilha Ativa
                 </label>
             </div>
-        </div>
-    </div>
-
-    <!-- Configurações -->
-    <div class="card mb-3">
-        <div class="card-header">
-            <i class="bi bi-gear me-2"></i>
-            Configurações de Importação
-        </div>
-        <div class="card-body">
-            <div class="mb-3">
-                <label for="linhas_pular" class="form-label">Linhas Iniciais a Pular</label>
-                <input type="number" class="form-control" id="linhas_pular" name="linhas_pular" 
-                       value="<?php echo $config['pulo_linhas'] ?? 25; ?>" min="0" required>
-            </div>
-
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label for="localizacao_cnpj" class="form-label">CNPJ</label>
-                    <input type="text" class="form-control" id="localizacao_cnpj" name="localizacao_cnpj" 
-                           value="<?php echo htmlspecialchars($config['cnpj'] ?? 'U5'); ?>" required>
-                </div>
-                <div class="col-md-6">
-                    <label for="localizacao_comum" class="form-label">Comum</label>
-                    <input type="text" class="form-control" id="localizacao_comum" name="localizacao_comum" 
-                           value="<?php echo htmlspecialchars($config['comum'] ?? 'D16'); ?>" required>
-                </div>
-                <div class="col-md-6">
-                    <label for="localizacao_endereco" class="form-label">Endereço</label>
-                    <input type="text" class="form-control" id="localizacao_endereco" name="localizacao_endereco" 
-                           value="<?php echo htmlspecialchars($config['endereco'] ?? 'A4'); ?>" required>
-                </div>
-                <div class="col-md-6">
-                    <label for="localizacao_data_posicao" class="form-label">Data Posição</label>
-                    <input type="text" class="form-control" id="localizacao_data_posicao" name="localizacao_data_posicao" 
-                           value="<?php echo htmlspecialchars($config['data_posicao'] ?? 'D13'); ?>" required>
-                </div>
-            </div>
-
-            <h6 class="mt-4 mb-3">Mapeamento de Colunas</h6>
-            <div class="row g-3">
-                <div class="col-4">
-                    <label for="codigo" class="form-label">Código</label>
-                    <input type="text" class="form-control text-center fw-bold" name="codigo" 
-                           value="<?php echo $mapeamento_array['codigo'] ?? 'A'; ?>" maxlength="3" required>
-                </div>
-                <div class="col-4">
-                    <label for="nome" class="form-label">Nome</label>
-                    <input type="text" class="form-control text-center fw-bold" name="nome" 
-                           value="<?php echo $mapeamento_array['nome'] ?? 'D'; ?>" maxlength="3" required>
-                </div>
-                <div class="col-4">
-                    <label for="dependencia" class="form-label">Dependência</label>
-                    <input type="text" class="form-control text-center fw-bold" name="dependencia" 
-                           value="<?php echo $mapeamento_array['dependencia'] ?? 'P'; ?>" maxlength="3" required>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Atualizar Dados -->
-    <div class="card mb-3">
-        <div class="card-header">
-            <i class="bi bi-arrow-repeat me-2"></i>
-            Atualizar Dados
-        </div>
-        <div class="card-body">
-            <label for="arquivo" class="form-label">Novo Arquivo CSV (opcional)</label>
-            <input type="file" class="form-control" id="arquivo" name="arquivo" accept=".csv">
-            <div class="form-text">Selecione apenas se desejar substituir os dados atuais</div>
         </div>
     </div>
 
@@ -129,9 +188,15 @@ ob_start();
 
 <?php
 $contentHtml = ob_get_clean();
-$tempFile = __DIR__ . '/../../../temp_editar_planilha_' . uniqid() . '.php';
-file_put_contents($tempFile, $contentHtml);
+
+// Script para captura de assinaturas e carregar assinaturas existentes
+// Reutiliza a mesma lógica do importar-planilha para modal, estados e cidades
+// Pre-encode any server values used by the script to avoid parsing issues
+// Render direto sem JS (prefill já feito via PHP)
+$contentHtmlFinal = $contentHtml;
+$tempFile = PROJECT_ROOT . '/temp_editar_planilha_' . uniqid() . '.php';
+file_put_contents($tempFile, $contentHtmlFinal);
 $contentFile = $tempFile;
-include __DIR__ . '/../layouts/app-wrapper.php';
+include PROJECT_ROOT . '/layouts/app-wrapper.php';
 unlink($tempFile);
 ?>

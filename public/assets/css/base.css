@@ -105,10 +105,13 @@ img, video, canvas, svg { max-width: 100%; height: auto; }
 .pagina-item { padding:8px 12px; border-radius:6px; border:1px solid #ddd; background:#fff; color:#333; font-weight:600; }
 .pagina-item.ativa { background:#007bff; color:#fff; border-color:#007bff; }
 
-/* Responsividade básica */
-@media (max-width:768px) { .filtros-content { grid-template-columns:1fr; } .cabecalho { height:55px; } .conteudo { margin-top:55px; padding:12px; } }
-
-@media (max-width:480px) { .cabecalho h1 { font-size:16px; max-width:150px; } input, select { font-size:16px; } .btn-filtrar { min-width:36px; height:36px; padding:0 8px; } }
+/* Estilos padrão mobile-first para todos os dispositivos */
+.filtros-content { grid-template-columns:1fr; }
+.cabecalho { height:55px; }
+.conteudo { margin-top:55px; padding:12px; }
+.cabecalho h1 { font-size:16px; max-width:150px; }
+input, select { font-size:16px; }
+.btn-filtrar { min-width:36px; height:36px; padding:0 8px; }
 
 /* Helpers */
 .hidden { display:none !important; }

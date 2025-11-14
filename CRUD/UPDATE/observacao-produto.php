@@ -1,5 +1,6 @@
 <?php
-require_once __DIR__ . '/../conexao.php';
+require_once PROJECT_ROOT . '/auth.php'; // Autenticação
+require_once PROJECT_ROOT . '/conexao.php';
 
 // Receber parâmetros via GET - AGORA USANDO ID
 $id_produto = $_GET['id_produto'] ?? null;
@@ -40,10 +41,10 @@ $check = [
 
 // Buscar dados do produto POR ID
 try {
-    $sql_produto = "SELECT * FROM produtos WHERE id = :id_produto AND id_planilha = :id_planilha";
+    $sql_produto = "SELECT * FROM produtos WHERE id_produto = :id_produto AND planilha_id = :planilha_id";
     $stmt_produto = $conexao->prepare($sql_produto);
     $stmt_produto->bindValue(':id_produto', $id_produto);
-    $stmt_produto->bindValue(':id_planilha', $id_planilha);
+    $stmt_produto->bindValue(':planilha_id', $id_planilha);
     $stmt_produto->execute();
     $produto = $stmt_produto->fetch();
     
@@ -51,17 +52,12 @@ try {
         throw new Exception('Produto não encontrado na planilha.');
     }
     
-    // Buscar dados do check (se existir)
-    $sql_check = "SELECT * FROM produtos_check WHERE produto_id = :produto_id";
-    $stmt_check = $conexao->prepare($sql_check);
-    $stmt_check->bindValue(':produto_id', $id_produto);
-    $stmt_check->execute();
-    $check_result = $stmt_check->fetch();
-
-    // Se existir registro, atualizar array $check
-    if ($check_result) {
-        $check = $check_result;
-    }
+    // Preencher informações do check com dados da própria tabela produtos
+    $check = [
+        'checado' => $produto['checado'] ?? 0,
+        'observacoes' => $produto['observacao'] ?? '',
+        'imprimir' => $produto['imprimir_etiqueta'] ?? 0
+    ];
     
 } catch (Exception $e) {
     $mensagem = "Erro ao carregar produto: " . $e->getMessage();
@@ -80,28 +76,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $filtro_status = $_POST['status'] ?? '';
     
     try {
-        // Verificar se já existe registro na tabela produtos_check
-        $sql_verificar = "SELECT COUNT(*) as total FROM produtos_check WHERE produto_id = :produto_id";
-        $stmt_verificar = $conexao->prepare($sql_verificar);
-        $stmt_verificar->bindValue(':produto_id', $id_produto);
-        $stmt_verificar->execute();
-        $existe_registro = $stmt_verificar->fetch()['total'] > 0;
-
-        if ($existe_registro) {
-            // Atualizar registro existente
-            $sql_update = "UPDATE produtos_check SET observacoes = :observacoes WHERE produto_id = :produto_id";
-            $stmt_update = $conexao->prepare($sql_update);
-            $stmt_update->bindValue(':observacoes', $observacoes);
-            $stmt_update->bindValue(':produto_id', $id_produto);
-            $stmt_update->execute();
-        } else {
-            // Inserir novo registro
-            $sql_insert = "INSERT INTO produtos_check (produto_id, observacoes) VALUES (:produto_id, :observacoes)";
-            $stmt_insert = $conexao->prepare($sql_insert);
-            $stmt_insert->bindValue(':produto_id', $id_produto);
-            $stmt_insert->bindValue(':observacoes', $observacoes);
-            $stmt_insert->execute();
-        }
+        // Atualizar observações diretamente na tabela produtos - USANDO id_produto
+        $sql_update = "UPDATE produtos SET observacao = :observacao WHERE id_produto = :id_produto AND planilha_id = :planilha_id";
+        $stmt_update = $conexao->prepare($sql_update);
+        $stmt_update->bindValue(':observacao', $observacoes);
+        $stmt_update->bindValue(':id_produto', $id_produto, PDO::PARAM_INT);
+        $stmt_update->bindValue(':planilha_id', $id_planilha, PDO::PARAM_INT);
+        $stmt_update->execute();
         
         // REDIRECIONAR PARA view-planilha.php APÓS SALVAR
         $query_string = http_build_query([

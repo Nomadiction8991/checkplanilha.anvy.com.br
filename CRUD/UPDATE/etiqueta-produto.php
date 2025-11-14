@@ -1,5 +1,6 @@
 <?php
-require_once __DIR__ . '/../conexao.php';
+require_once PROJECT_ROOT . '/auth.php'; // Autenticação
+require_once PROJECT_ROOT . '/conexao.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $produto_id = $_POST['produto_id'] ?? null;
@@ -22,46 +23,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     try {
-        // Validar se pode marcar para impressão (deve estar checado e não estar no DR)
+        // Validar se pode marcar para impressão (deve estar checado)
         if ($imprimir == 1) {
-            $sql_verifica = "SELECT p.*, COALESCE(pc.checado, 0) as checado, COALESCE(pc.dr, 0) as dr 
-                            FROM produtos p 
-                            LEFT JOIN produtos_check pc ON p.id = pc.produto_id 
-                            WHERE p.id = :produto_id";
-            $stmt_verifica = $conexao->prepare($sql_verifica);
-            $stmt_verifica->bindValue(':produto_id', $produto_id);
+            // Validar com flags da própria tabela produtos - USANDO id_produto
+            $stmt_verifica = $conexao->prepare('SELECT checado FROM produtos WHERE id_produto = :id_produto AND planilha_id = :planilha_id');
+            $stmt_verifica->bindValue(':id_produto', $produto_id, PDO::PARAM_INT);
+            $stmt_verifica->bindValue(':planilha_id', $id_planilha, PDO::PARAM_INT);
             $stmt_verifica->execute();
-            $produto_info = $stmt_verifica->fetch();
-            
-            if (!$produto_info || $produto_info['checado'] == 0 || $produto_info['dr'] == 1) {
+            $produto_info = $stmt_verifica->fetch(PDO::FETCH_ASSOC);
+
+            if (!$produto_info || ($produto_info['checado'] ?? 0) == 0) {
                 $query_string = http_build_query(array_merge(
                     ['id' => $id_planilha], 
                     $filtros,
-                    ['erro' => 'Só é possível marcar para impressão produtos que estão checados e não estão no DR.']
+                    ['erro' => 'Só é possível marcar para impressão produtos que estão checados.']
                 ));
                 header('Location: ../../app/views/planilhas/view-planilha.php?' . $query_string);
                 exit;
             }
         }
-        
-        // Verificar se já existe registro
-        $sql_check = "SELECT * FROM produtos_check WHERE produto_id = :produto_id";
-        $stmt_check = $conexao->prepare($sql_check);
-        $stmt_check->bindValue(':produto_id', $produto_id);
-        $stmt_check->execute();
-        $existe = $stmt_check->fetch();
-        
-        if ($existe) {
-            // Atualizar
-            $sql = "UPDATE produtos_check SET imprimir = :imprimir WHERE produto_id = :produto_id";
-        } else {
-            // Inserir
-            $sql = "INSERT INTO produtos_check (produto_id, imprimir) VALUES (:produto_id, :imprimir)";
-        }
-        
-        $stmt = $conexao->prepare($sql);
-        $stmt->bindValue(':produto_id', $produto_id);
-        $stmt->bindValue(':imprimir', $imprimir, PDO::PARAM_INT);
+        // Atualizar flag diretamente em produtos - USANDO id_produto
+        $stmt = $conexao->prepare('UPDATE produtos SET imprimir_etiqueta = :imprimir WHERE id_produto = :id_produto AND planilha_id = :planilha_id');
+        $stmt->bindValue(':imprimir', (int)$imprimir, PDO::PARAM_INT);
+        $stmt->bindValue(':id_produto', $produto_id, PDO::PARAM_INT);
+        $stmt->bindValue(':planilha_id', $id_planilha, PDO::PARAM_INT);
         $stmt->execute();
         
         // Redirecionar de volta mantendo os filtros

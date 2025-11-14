@@ -1,5 +1,6 @@
 <?php
-include __DIR__ . '/../../../CRUD/UPDATE/produto.php';
+require_once PROJECT_ROOT . '/auth.php'; // Autenticação
+include PROJECT_ROOT . '/CRUD/UPDATE/produto.php';
 
 $pageTitle = 'Editar Produto';
 $backUrl = './read-produto.php?id=' . urlencode($id_planilha) . '&' . gerarParametrosFiltro();
@@ -18,18 +19,6 @@ ob_start();
   </div>
 <?php endif; ?>
 
-<div class="card mb-3">
-  <div class="card-header">
-    <i class="bi bi-box-seam me-2"></i>
-    Produto #<?php echo htmlspecialchars($produto['id'] ?? ''); ?>
-  </div>
-  <div class="card-body small text-muted">
-    <div><strong>Código:</strong> <?php echo htmlspecialchars($produto['codigo'] ?? ''); ?></div>
-    <div><strong>Nome atual:</strong> <?php echo htmlspecialchars($produto['nome'] ?? ''); ?></div>
-    <div><strong>Dependência atual:</strong> <?php echo htmlspecialchars($produto['dependencia'] ?? ''); ?></div>
-  </div>
-</div>
-
 <form method="POST" id="form-produto" class="needs-validation" novalidate>
   <div class="card mb-3">
     <div class="card-body">
@@ -40,18 +29,12 @@ ob_start();
       </div>
 
       <div class="mb-3">
-        <label for="quantidade" class="form-label">Quantidade</label>
-        <input type="number" id="quantidade" name="quantidade" class="form-control" min="1" value="<?php echo htmlspecialchars($produto['quantidade'] ?? '1'); ?>" required>
-        <div class="invalid-feedback">Informe a quantidade.</div>
-      </div>
-
-      <div class="mb-3">
         <label for="id_tipo_ben" class="form-label">Tipos de Bens</label>
         <select id="id_tipo_ben" name="id_tipo_ben" class="form-select" required>
           <option value="">Selecione um tipo de bem</option>
           <?php foreach ($tipos_bens as $tipo): ?>
             <option value="<?php echo $tipo['id']; ?>" data-descricao="<?php echo htmlspecialchars($tipo['descricao']); ?>"
-              <?php echo ($produto['id_tipo_ben'] == $tipo['id']) ? 'selected' : ''; ?>>
+              <?php echo ($produto['tipo_bem_id'] == $tipo['id']) ? 'selected' : ''; ?>>
               <?php echo htmlspecialchars($tipo['codigo'] . ' - ' . $tipo['descricao']); ?>
             </option>
           <?php endforeach; ?>
@@ -78,7 +61,7 @@ ob_start();
         <select id="id_dependencia" name="id_dependencia" class="form-select" required>
           <option value="">Selecione uma dependência</option>
           <?php foreach ($dependencias as $dep): ?>
-            <option value="<?php echo $dep['id']; ?>" <?php echo ($produto['id_dependencia'] == $dep['id']) ? 'selected' : ''; ?>>
+            <option value="<?php echo $dep['id']; ?>" <?php echo ($produto['dependencia_id'] == $dep['id']) ? 'selected' : ''; ?>>
               <?php echo htmlspecialchars($dep['descricao']); ?>
             </option>
           <?php endforeach; ?>
@@ -88,10 +71,6 @@ ob_start();
 
       <div class="mb-2">
         <label class="form-label">Status</label>
-        <div class="form-check">
-          <input class="form-check-input" type="checkbox" id="possui_nota" name="possui_nota" value="1" <?php echo ($produto['possui_nota'] == 1) ? 'checked' : ''; ?>>
-          <label class="form-check-label" for="possui_nota">Possui Nota</label>
-        </div>
         <div class="form-check">
           <input class="form-check-input" type="checkbox" id="imprimir_14_1" name="imprimir_14_1" value="1" <?php echo ($produto['imprimir_14_1'] == 1) ? 'checked' : ''; ?>>
           <label class="form-check-label" for="imprimir_14_1">Imprimir 14.1</label>
@@ -109,7 +88,7 @@ ob_start();
 <script>
   const selectTipoBen = document.getElementById('id_tipo_ben');
   const selectBem = document.getElementById('tipo_ben');
-  const produtoBem = <?php echo json_encode($produto['tipo_ben'] ?? ''); ?>;
+  const produtoBem = <?php echo json_encode($produto['bem'] ?? ''); ?>;
 
   function separarOpcoesPorBarra(descricao) {
     return descricao.split('/').map(item => item.trim()).filter(item => item !== '');
@@ -163,9 +142,9 @@ ob_start();
 
 <?php
 $contentHtml = ob_get_clean();
-$tempFile = __DIR__ . '/../../../temp_update_produto_' . uniqid() . '.php';
+$tempFile = PROJECT_ROOT . '/temp_update_produto_' . uniqid() . '.php';
 file_put_contents($tempFile, $contentHtml);
 $contentFile = $tempFile;
-include __DIR__ . '/../layouts/app-wrapper.php';
+include PROJECT_ROOT . '/layouts/app-wrapper.php';
 unlink($tempFile);
 ?>

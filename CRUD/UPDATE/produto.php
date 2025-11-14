@@ -1,5 +1,6 @@
 <?php
-require_once __DIR__ . '/../conexao.php';
+require_once PROJECT_ROOT . '/auth.php'; // Autenticação
+require_once PROJECT_ROOT . '/conexao.php';
 
 $id_produto = $_GET['id_produto'] ?? null;
 $id_planilha = $_GET['id'] ?? null;
@@ -11,7 +12,7 @@ if (!$id_produto || !$id_planilha) {
 
 // Buscar dados do produto
 try {
-    $sql_produto = "SELECT * FROM produtos_cadastro WHERE id = :id AND id_planilha = :id_planilha";
+    $sql_produto = "SELECT * FROM produtos WHERE id_produto = :id AND planilha_id = :id_planilha";
     $stmt_produto = $conexao->prepare($sql_produto);
     $stmt_produto->bindValue(':id', $id_produto);
     $stmt_produto->bindValue(':id_planilha', $id_planilha);
@@ -45,8 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $tipo_ben = $_POST['tipo_ben'] ?? '';
     $complemento = $_POST['complemento'] ?? '';
     $id_dependencia = $_POST['id_dependencia'] ?? '';
-    $quantidade = $_POST['quantidade'] ?? 1;
-    $possui_nota = isset($_POST['possui_nota']) ? 1 : 0;
+    
     $imprimir_14_1 = isset($_POST['imprimir_14_1']) ? 1 : 0;
     
     // Validações básicas
@@ -68,10 +68,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $erros[] = "A dependência é obrigatória";
     }
     
-    if (empty($quantidade) || $quantidade < 1) {
-        $erros[] = "A quantidade deve ser pelo menos 1";
-    }
-    
     // Se não há erros, atualizar no banco
     if (empty($erros)) {
         try {
@@ -88,30 +84,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt_dep->execute();
             $dependencia = $stmt_dep->fetch();
             
-            // Montar descrição completa
-            $descricao_completa = $quantidade . "x [" . $tipo_bem['codigo'] . " - " . $tipo_bem['descricao'] . "] " . $tipo_ben . " - " . $complemento . " - (" . $dependencia['descricao'] . ")";
+            // Montar descrição completa (mantendo quantidade = 1)
+            $descricao_completa = "1x [" . $tipo_bem['codigo'] . " - " . $tipo_bem['descricao'] . "] " . $tipo_ben . " - " . $complemento . " - (" . $dependencia['descricao'] . ")";
             
-            $sql_atualizar = "UPDATE produtos_cadastro 
+            $sql_atualizar = "UPDATE produtos 
                              SET codigo = :codigo,
-                                 id_tipo_ben = :id_tipo_ben,
-                                 tipo_ben = :tipo_ben,
+                                 tipo_bem_id = :tipo_bem_id,
+                                 bem = :bem,
                                  complemento = :complemento,
-                                 id_dependencia = :id_dependencia,
-                                 quantidade = :quantidade,
+                                 dependencia_id = :dependencia_id,
                                  descricao_completa = :descricao_completa,
-                                 possui_nota = :possui_nota,
                                  imprimir_14_1 = :imprimir_14_1
-                             WHERE id = :id AND id_planilha = :id_planilha";
+                             WHERE id_produto = :id AND planilha_id = :id_planilha";
             
             $stmt_atualizar = $conexao->prepare($sql_atualizar);
             $stmt_atualizar->bindValue(':codigo', !empty($codigo) ? $codigo : null);
-            $stmt_atualizar->bindValue(':id_tipo_ben', $id_tipo_ben);
-            $stmt_atualizar->bindValue(':tipo_ben', $tipo_ben);
+            $stmt_atualizar->bindValue(':tipo_bem_id', $id_tipo_ben);
+            $stmt_atualizar->bindValue(':bem', $tipo_ben);
             $stmt_atualizar->bindValue(':complemento', $complemento);
-            $stmt_atualizar->bindValue(':id_dependencia', $id_dependencia);
-            $stmt_atualizar->bindValue(':quantidade', $quantidade);
+            $stmt_atualizar->bindValue(':dependencia_id', $id_dependencia);
             $stmt_atualizar->bindValue(':descricao_completa', $descricao_completa);
-            $stmt_atualizar->bindValue(':possui_nota', $possui_nota);
             $stmt_atualizar->bindValue(':imprimir_14_1', $imprimir_14_1);
             $stmt_atualizar->bindValue(':id', $id_produto);
             $stmt_atualizar->bindValue(':id_planilha', $id_planilha);

@@ -1,6 +1,7 @@
 <?php
+require_once PROJECT_ROOT . '/auth.php'; // Autenticação
 // Agora: página integrada ao layout app-wrapper (Bootstrap 5, 400px)
-require_once __DIR__ . '/../../../CRUD/conexao.php';
+require_once PROJECT_ROOT . '/CRUD/conexao.php';
 
 $id_planilha = $_GET['id'] ?? null;
 if (!$id_planilha) { header('Location: ../../index.php'); exit; }
@@ -28,47 +29,60 @@ $filtro_dependencia = $_GET['dependencia'] ?? '';
 try {
     // Buscar produtos da planilha importada (tabela produtos)
     $sql_produtos = "SELECT p.*, 
-                     CAST(pc.checado AS SIGNED) as checado, 
-                     CAST(pc.dr AS SIGNED) as dr, 
-                     CAST(pc.imprimir AS SIGNED) as imprimir, 
-                     pc.observacoes, 
-                     CAST(pc.editado AS SIGNED) as editado, 
-                     pc.nome as nome_editado, 
-                     pc.dependencia as dependencia_editada,
+                     CAST(p.checado AS SIGNED) as checado, 
+                     CAST(p.ativo AS SIGNED) as ativo, 
+                     CAST(p.imprimir_etiqueta AS SIGNED) as imprimir, 
+                     p.observacao as observacoes, 
+                     CAST(p.editado AS SIGNED) as editado, 
+                     p.editado_descricao_completa as nome_editado, 
+                     p.editado_dependencia_id as dependencia_editada,
                      'planilha' as origem
                      FROM produtos p 
-                     LEFT JOIN produtos_check pc ON p.id = pc.produto_id 
-                     WHERE p.id_planilha = :id_planilha";
+                     WHERE p.planilha_id = :id_planilha";
     $params = [':id_planilha' => $id_planilha];
-    if (!empty($filtro_dependencia)) { $sql_produtos .= " AND p.dependencia LIKE :dependencia"; $params[':dependencia'] = '%' . $filtro_dependencia . '%'; }
+    if (!empty($filtro_dependencia)) { 
+        $sql_produtos .= " AND (
+            (CAST(p.editado AS SIGNED) = 1 AND p.editado_dependencia_id LIKE :dependencia) OR
+            (CAST(p.editado AS SIGNED) IS NULL OR CAST(p.editado AS SIGNED) = 0) AND p.dependencia_id LIKE :dependencia
+        )"; 
+        $params[':dependencia'] = '%' . $filtro_dependencia . '%'; 
+    }
     $sql_produtos .= " ORDER BY p.codigo";
     $stmt_produtos = $conexao->prepare($sql_produtos);
     foreach ($params as $k => $v) { $stmt_produtos->bindValue($k, $v); }
     $stmt_produtos->execute();
     $todos_produtos = $stmt_produtos->fetchAll();
     
-    // Buscar produtos novos cadastrados manualmente (tabela produtos_cadastro)
-    $sql_novos = "SELECT pc.id, pc.id_planilha, pc.descricao_completa as nome, '' as codigo, pc.complemento as dependencia, 
-                  pc.quantidade, pc.tipo_ben, pc.imprimir_14_1 as imprimir_cadastro, 'cadastro' as origem,
-                  NULL as checado, NULL as dr, NULL as imprimir, NULL as observacoes, NULL as editado, NULL as nome_editado, NULL as dependencia_editada
-                  FROM produtos_cadastro pc 
-                  WHERE pc.id_planilha = :id_planilha";
-    $params_novos = [':id_planilha' => $id_planilha];
-    if (!empty($filtro_dependencia)) { $sql_novos .= " AND pc.complemento LIKE :dependencia"; $params_novos[':dependencia'] = '%' . $filtro_dependencia . '%'; }
-    $sql_novos .= " ORDER BY pc.id";
-    $stmt_novos = $conexao->prepare($sql_novos);
-    foreach ($params_novos as $k => $v) { $stmt_novos->bindValue($k, $v); }
-    $stmt_novos->execute();
-    $produtos_cadastrados = $stmt_novos->fetchAll();
-    
-    // Combinar ambos os arrays
-    $todos_produtos = array_merge($todos_produtos, $produtos_cadastrados);
+    // Buscar produtos novos cadastrados manualmente (tabela produtos_cadastro não existe no schema atual)
+    // $sql_novos = "SELECT pc.id, pc.id_planilha, pc.descricao_completa as nome, '' as codigo, pc.complemento as dependencia,
+    //               pc.quantidade, pc.tipo_ben, pc.imprimir_14_1 as imprimir_cadastro, 'cadastro' as origem,
+    //               NULL as checado, 1 as ativo, NULL as imprimir, NULL as observacoes, NULL as editado, NULL as nome_editado, NULL as dependencia_editada
+    //               FROM produtos_cadastro pc
+    //               WHERE pc.id_planilha = :id_planilha";
+    // $params_novos = [':id_planilha' => $id_planilha];
+    // if (!empty($filtro_dependencia)) { $sql_novos .= " AND pc.complemento LIKE :dependencia"; $params_novos[':dependencia'] = '%' . $filtro_dependencia . '%'; }
+    // $sql_novos .= " ORDER BY pc.id";
+    // $stmt_novos = $conexao->prepare($sql_novos);
+    // foreach ($params_novos as $k => $v) { $stmt_novos->bindValue($k, $v); }
+    // $stmt_novos->execute();
+    // $produtos_cadastrados = $stmt_novos->fetchAll();
+
+    // Combinar ambos os arrays (removido pois tabela produtos_cadastro não existe)
+    // $todos_produtos = array_merge($todos_produtos, $produtos_cadastrados);
 } catch (Exception $e) { die("Erro ao carregar produtos: " . $e->getMessage()); }
 
 try {
-    $sql_dependencias = "SELECT DISTINCT dependencia FROM produtos WHERE id_planilha = :id_planilha ORDER BY dependencia";
+    // Buscar dependências originais + dependências editadas
+    $sql_dependencias = "
+        SELECT DISTINCT p.dependencia_id as dependencia FROM produtos p WHERE p.planilha_id = :id_planilha1
+        UNION
+        SELECT DISTINCT p.editado_dependencia_id as dependencia FROM produtos p
+        WHERE p.planilha_id = :id_planilha2 AND p.editado = 1 AND p.editado_dependencia_id IS NOT NULL
+        ORDER BY dependencia
+    ";
     $stmt_dependencias = $conexao->prepare($sql_dependencias);
-    $stmt_dependencias->bindValue(':id_planilha', $id_planilha);
+    $stmt_dependencias->bindValue(':id_planilha1', $id_planilha);
+    $stmt_dependencias->bindValue(':id_planilha2', $id_planilha);
     $stmt_dependencias->execute();
     $dependencia_options = $stmt_dependencias->fetchAll(PDO::FETCH_COLUMN);
 } catch (Exception $e) { $dependencia_options = []; }
@@ -84,12 +98,12 @@ foreach ($todos_produtos as $produto) {
     // Produtos da planilha importada (tabela produtos)
     $tem_observacao = !empty($produto['observacoes']);
     $esta_checado = ($produto['checado'] ?? 0) == 1;
-    $esta_no_dr = ($produto['dr'] ?? 0) == 1;
+    $esta_no_dr = ($produto['ativo'] ?? 1) == 0;
     $esta_etiqueta = ($produto['imprimir'] ?? 0) == 1;
     // Usa APENAS a flag editado da tabela produtos_check (converte para int para comparação segura)
     $tem_alteracoes = (int)($produto['editado'] ?? 0) === 1;
     // Pendente = não tem registro em produtos_check (todos os campos são null)
-    $eh_pendente = is_null($produto['checado']) && is_null($produto['dr']) && is_null($produto['imprimir']) && is_null($produto['observacoes']) && is_null($produto['editado']);
+    $eh_pendente = is_null($produto['checado']) && ($produto['ativo'] ?? 1) == 1 && is_null($produto['imprimir']) && is_null($produto['observacoes']) && is_null($produto['editado']);
     
     if ($tem_alteracoes) $produtos_alteracoes[] = $produto;
     elseif ($esta_no_dr) $produtos_dr[] = $produto;
@@ -141,8 +155,27 @@ if ($mostrar_novos) $total_mostrar += $total_novos;
 
 // Cabeçalho do layout
 $pageTitle = 'Imprimir Alterações';
-$backUrl = '../shared/menu.php?id=' . $id_planilha;
-$headerActions = '<button class="btn-header-action" title="Imprimir" onclick="window.print()"><i class="bi bi-printer"></i></button>';
+$backUrl = '../planilhas/view-planilha.php?id=' . $id_planilha;
+$headerActions = '
+    <div class="dropdown">
+        <button class="btn-header-action" type="button" id="menuAlteracao" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-list fs-5"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="menuAlteracao">
+            <li>
+                <button class="dropdown-item" onclick="window.print()">
+                    <i class="bi bi-printer me-2"></i>Imprimir
+                </button>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <a class="dropdown-item" href="../../../logout.php">
+                    <i class="bi bi-box-arrow-right me-2"></i>Sair
+                </a>
+            </li>
+        </ul>
+    </div>
+';
 
 // CSS de impressão e ajustes para o wrapper mobile
 $customCss = '
@@ -308,12 +341,12 @@ ob_start();
                 
                 // Verificar alteração no nome
                 if (!empty($produto['nome_editado']) && $produto['nome_editado'] != $produto['nome']) {
-                    $antigo[] = '<strong>Nome:</strong> ' . htmlspecialchars($produto['nome']);
-                    $novo[] = '<strong>Nome:</strong> ' . htmlspecialchars($produto['nome_editado']);
+                    $antigo[] = htmlspecialchars($produto['nome']);
+                    $novo[] = htmlspecialchars($produto['nome_editado']);
                 } else {
                     // Se não mudou, mostrar o nome atual em ambas as colunas
-                    $antigo[] = '<strong>Nome:</strong> ' . htmlspecialchars($produto['nome']);
-                    $novo[] = '<strong>Nome:</strong> ' . htmlspecialchars($produto['nome']);
+                    $antigo[] = htmlspecialchars($produto['nome']);
+                    $novo[] = htmlspecialchars($produto['nome']);
                 }
                 
                 // Verificar alteração na dependência
@@ -478,11 +511,11 @@ ob_start();
 
 <?php
 $contentHtml = ob_get_clean();
-$tempFile = __DIR__ . '/../../../temp_imprimir_alteracao_' . uniqid() . '.php';
+$tempFile = PROJECT_ROOT . '/temp_imprimir_alteracao_' . uniqid() . '.php';
 file_put_contents($tempFile, $contentHtml);
 $contentFile = $tempFile;
 
-include __DIR__ . '/../layouts/app-wrapper.php';
+include PROJECT_ROOT . '/layouts/app-wrapper.php';
 
 unlink($tempFile);
 ?>

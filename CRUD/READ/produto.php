@@ -1,5 +1,6 @@
 <?php
-require_once __DIR__ . '/../conexao.php';
+require_once PROJECT_ROOT . '/auth.php'; // Autenticação
+require_once PROJECT_ROOT . '/conexao.php';
 
 $id_planilha = $_GET['id'] ?? null;
 
@@ -18,49 +19,50 @@ $filtro_status = $_GET['filtro_status'] ?? '';
 
 // Paginação
 $pagina = $_GET['pagina'] ?? 1;
-$produtos_por_pagina = 10;
+$produtos_por_pagina = 20;
 $offset = ($pagina - 1) * $produtos_por_pagina;
 
 // Construir a query base
 $sql = "SELECT 
-            pc.id,
-            pc.codigo,
-            pc.descricao_completa,
-            pc.quantidade,
-            pc.tipo_ben,
-            pc.complemento,
-            pc.possui_nota,
-            pc.imprimir_14_1,
-            d.descricao as dependencia_descricao
-        FROM produtos_cadastro pc
-        LEFT JOIN dependencias d ON pc.id_dependencia = d.id
-        WHERE pc.id_planilha = :id_planilha";
+            p.id_produto AS id,
+            p.codigo,
+            p.descricao_completa,
+            1 AS quantidade,
+            p.bem AS tipo_ben,
+            p.complemento,
+            COALESCE(p.condicao_14_1, 0) AS condicao_141,
+            COALESCE(p.imprimir_14_1, 0) AS imprimir_14_1,
+            d.descricao AS dependencia_descricao
+        FROM produtos p
+        LEFT JOIN dependencias d ON p.dependencia_id = d.id
+        WHERE p.planilha_id = :id_planilha AND COALESCE(p.novo,0) = 1";
 
 $sql_count = "SELECT COUNT(*) as total 
-              FROM produtos_cadastro pc
-              LEFT JOIN dependencias d ON pc.id_dependencia = d.id
-              WHERE pc.id_planilha = :id_planilha";
+              FROM produtos p
+              LEFT JOIN dependencias d ON p.dependencia_id = d.id
+              WHERE p.planilha_id = :id_planilha AND COALESCE(p.novo,0) = 1";
 
 // Buscar tipos de bens disponíveis para o select (SEM REPETIÇÕES)
 $sql_tipos_bens = "SELECT DISTINCT tb.id, tb.codigo, tb.descricao 
-                   FROM produtos_cadastro pc
-                   JOIN tipos_bens tb ON pc.id_tipo_ben = tb.id
-                   WHERE pc.id_planilha = :id_planilha
+                   FROM produtos p
+                   JOIN tipos_bens tb ON p.tipo_bem_id = tb.id
+                   WHERE p.planilha_id = :id_planilha AND COALESCE(p.novo,0) = 1
                    ORDER BY tb.codigo";
 
 // Buscar códigos bem disponíveis para o select (SEM REPETIÇÕES)
-$sql_bem_codigos = "SELECT DISTINCT pc.tipo_ben 
-                    FROM produtos_cadastro pc
-                    WHERE pc.id_planilha = :id_planilha 
-                    AND pc.tipo_ben IS NOT NULL 
-                    AND pc.tipo_ben != ''
-                    ORDER BY pc.tipo_ben";
+$sql_bem_codigos = "SELECT DISTINCT p.bem AS tipo_ben
+                    FROM produtos p
+                    WHERE p.planilha_id = :id_planilha 
+                    AND COALESCE(p.novo,0) = 1
+                    AND p.bem IS NOT NULL 
+                    AND p.bem != ''
+                    ORDER BY p.bem";
 
 // Buscar dependências disponíveis para o select (SEM REPETIÇÕES)
 $sql_dependencias = "SELECT DISTINCT d.id, d.descricao 
-                    FROM produtos_cadastro pc
-                    LEFT JOIN dependencias d ON pc.id_dependencia = d.id
-                    WHERE pc.id_planilha = :id_planilha AND d.id IS NOT NULL
+                    FROM produtos p
+                    LEFT JOIN dependencias d ON p.dependencia_id = d.id
+                    WHERE p.planilha_id = :id_planilha AND COALESCE(p.novo,0) = 1 AND d.id IS NOT NULL
                     ORDER BY d.descricao";
 
 try {
@@ -92,38 +94,38 @@ $condicoes = [];
 $params = [':id_planilha' => $id_planilha];
 
 if (!empty($pesquisa_id)) {
-    $condicoes[] = "pc.id = :pesquisa_id";
+    $condicoes[] = "p.id_produto = :pesquisa_id";
     $params[':pesquisa_id'] = $pesquisa_id;
 }
 
 if (!empty($filtro_tipo_ben)) {
-    $condicoes[] = "pc.id_tipo_ben = :filtro_tipo_ben";
+    $condicoes[] = "p.tipo_bem_id = :filtro_tipo_bem";
     $params[':filtro_tipo_ben'] = $filtro_tipo_ben;
 }
 
 // FILTRO BEM (nome alterado)
 if (!empty($filtro_bem)) {
-    $condicoes[] = "pc.tipo_ben = :filtro_bem";
+    $condicoes[] = "p.bem = :filtro_bem";
     $params[':filtro_bem'] = $filtro_bem;
 }
 
 if (!empty($filtro_complemento)) {
-    $condicoes[] = "pc.complemento LIKE :filtro_complemento";
+    $condicoes[] = "p.complemento LIKE :filtro_complemento";
     $params[':filtro_complemento'] = "%$filtro_complemento%";
 }
 
 if (!empty($filtro_dependencia)) {
-    $condicoes[] = "pc.id_dependencia = :filtro_dependencia";
+    $condicoes[] = "p.dependencia_id = :filtro_dependencia";
     $params[':filtro_dependencia'] = $filtro_dependencia;
 }
 
 if (!empty($filtro_status)) {
     if ($filtro_status === 'com_nota') {
-        $condicoes[] = "pc.possui_nota = 1";
-    } elseif ($filtro_status === 'com_14_1') {  // MUDADO AQUI
-        $condicoes[] = "pc.imprimir_14_1 = 1";  // MUDADO AQUI
+    $condicoes[] = "(COALESCE(p.condicao_14_1,0) = 1 OR COALESCE(p.condicao_14_1,0) = 3)";
+    } elseif ($filtro_status === 'com_14_1') {
+    $condicoes[] = "COALESCE(p.imprimir_14_1,0) = 1";
     } elseif ($filtro_status === 'sem_status') {
-        $condicoes[] = "pc.possui_nota = 0 AND pc.imprimir_14_1 = 0";  // MUDADO AQUI
+    $condicoes[] = "(p.condicao_14_1 IS NULL OR p.condicao_14_1 = 2) AND COALESCE(p.imprimir_14_1,0) = 0";
     }
 }
 
@@ -134,7 +136,7 @@ if (!empty($condicoes)) {
 }
 
 // Ordenação por ID do menor para o maior
-$sql .= " ORDER BY pc.id ASC LIMIT :limit OFFSET :offset";
+$sql .= " ORDER BY p.id_produto ASC LIMIT :limit OFFSET :offset";
 
 try {
     // Contar total de registros

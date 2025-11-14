@@ -1,5 +1,6 @@
 <?php
-include __DIR__ . '/../../../CRUD/CREATE/produto.php';
+require_once PROJECT_ROOT . '/auth.php'; // Autenticação
+include PROJECT_ROOT . '/CRUD/CREATE/produto.php';
 
 $pageTitle = 'Cadastrar Produto';
 $backUrl = './read-produto.php?id=' . urlencode($id_planilha) . '&' . gerarParametrosFiltro();
@@ -28,9 +29,9 @@ ob_start();
       </div>
 
       <div class="mb-3">
-        <label for="quantidade" class="form-label">Quantidade</label>
-        <input type="number" id="quantidade" name="quantidade" class="form-control" min="1" value="<?php echo htmlspecialchars($_POST['quantidade'] ?? '1'); ?>" required>
-        <div class="invalid-feedback">Informe a quantidade.</div>
+        <label for="multiplicador" class="form-label">Multiplicador</label>
+        <input type="number" id="multiplicador" name="multiplicador" class="form-control" min="1" value="<?php echo htmlspecialchars($_POST['multiplicador'] ?? '1'); ?>" required>
+        <div class="invalid-feedback">Informe o multiplicador.</div>
       </div>
 
       <div class="mb-3">
@@ -77,14 +78,12 @@ ob_start();
       <div class="mb-2">
         <label class="form-label">Status</label>
         <div class="form-check">
-          <input class="form-check-input" type="checkbox" id="possui_nota" name="possui_nota" value="1" <?php echo (isset($_POST['possui_nota']) && $_POST['possui_nota'] == 1) ? 'checked' : ''; ?>>
-          <label class="form-check-label" for="possui_nota">Possui Nota</label>
-        </div>
-        <div class="form-check">
           <input class="form-check-input" type="checkbox" id="imprimir_14_1" name="imprimir_14_1" value="1" <?php echo (isset($_POST['imprimir_14_1']) && $_POST['imprimir_14_1'] == 1) ? 'checked' : ''; ?>>
           <label class="form-check-label" for="imprimir_14_1">Imprimir 14.1</label>
         </div>
       </div>
+
+      <!-- Campos de Condição 14.1 e Nota Fiscal removidos a pedido -->
     </div>
   </div>
 
@@ -151,13 +150,14 @@ ob_start();
       }, false);
     });
   })();
+  
 </script>
 
 <?php
 $contentHtml = ob_get_clean();
-$tempFile = __DIR__ . '/../../../temp_create_produto_' . uniqid() . '.php';
+$tempFile = PROJECT_ROOT . '/temp_create_produto_' . uniqid() . '.php';
 file_put_contents($tempFile, $contentHtml);
 $contentFile = $tempFile;
-include __DIR__ . '/../layouts/app-wrapper.php';
+include PROJECT_ROOT . '/layouts/app-wrapper.php';
 unlink($tempFile);
 ?>

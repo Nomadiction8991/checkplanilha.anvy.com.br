@@ -453,117 +453,80 @@ td:nth-child(1) {
     }
 }
 
-/* Tablets pequenos */
-@media (max-width: 768px) and (min-width: 481px) {
-    .filtros-content {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .pesquisa-container {
-        padding: 10px;
-    }
-    
-    .conteudo {
-        padding: 12px 10px;
-    }
-    
-    table {
-        font-size: 11px;
-    }
-    
-    th, td {
-        padding: 10px 6px;
-    }
-    
-    /* Ajuste das colunas para tablet */
-    th:nth-child(1), td:nth-child(1) { width: 30%; }
-    th:nth-child(2), td:nth-child(2) { width: 20%; }
-    th:nth-child(3), td:nth-child(3) { width: 20%; }
-    th:nth-child(4), td:nth-child(4) { width: 30%; }
-    
-    .btn-acao {
-        width: 32px;
-        height: 32px;
-        padding: 4px;
-    }
-    
-    .acoes-container {
-        gap: 6px;
-    }
-    
-    .paginacao {
-        flex-wrap: wrap;
-        gap: 6px;
-    }
-    
-    .pagina-item {
-        min-width: 32px;
-        height: 32px;
-        font-size: 12px;
-    }
+/* Estilos padrão mobile-first para todos os dispositivos */
+.filtros-content {
+    grid-template-columns: 1fr;
 }
 
-/* Celulares */
-@media (max-width: 480px) {
-    /* Cabeçalho já responsivo via base.css */
-    .campo-comum {
-        flex-direction: row;
-        align-items: center;
-        gap: 8px;
-    }
-    .campo-comum input {
-        flex: 1;
-        min-width: 0;
-        padding: 8px 10px;
-        font-size: 16px;
-    }
-    .btn-filtrar {
-        min-width: 36px;
-        height: 36px;
-        padding: 0 8px;
-        margin-top: 0;
-        font-size: 16px;
-    }
-    .btn-filtrar svg {
-        width: 20px;
-        height: 20px;
-    }
-    .pesquisa-container {
-        padding: 10px;
-        margin-top: 55px;
-    }
-    .conteudo {
-        padding: 10px 8px;
-    }
-    table {
-        font-size: 10px;
-    }
-    th, td {
-        padding: 8px 4px;
-    }
-    th:nth-child(1), td:nth-child(1) { width: 25%; }
-    th:nth-child(2), td:nth-child(2) { width: 20%; }
-    th:nth-child(3), td:nth-child(3) { width: 25%; }
-    th:nth-child(4), td:nth-child(4) { width: 30%; }
-    .btn-acao {
-        width: 28px;
-        height: 28px;
-        padding: 3px;
-    }
-    .btn-acao svg {
-        width: 18px;
-        height: 18px;
-    }
-    .paginacao {
-        gap: 4px;
-        padding: 10px;
-    }
-    .pagina-item {
-        min-width: 28px;
-        height: 28px;
-        font-size: 11px;
-        padding: 0 6px;
-    }
+.campo-comum {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+}
+
+.campo-comum input {
+    flex: 1;
+    min-width: 0;
+    padding: 8px 10px;
+    font-size: 16px;
+}
+
+.btn-filtrar {
+    min-width: 36px;
+    height: 36px;
+    padding: 0 8px;
+    margin-top: 0;
+    font-size: 16px;
+}
+
+.btn-filtrar svg {
+    width: 20px;
+    height: 20px;
+}
+
+.pesquisa-container {
+    padding: 10px;
+    margin-top: 55px;
+}
+
+.conteudo {
+    padding: 10px 8px;
+}
+
+table {
+    font-size: 10px;
+}
+
+th, td {
+    padding: 8px 4px;
+}
+
+th:nth-child(1), td:nth-child(1) { width: 25%; }
+th:nth-child(2), td:nth-child(2) { width: 20%; }
+th:nth-child(3), td:nth-child(3) { width: 25%; }
+th:nth-child(4), td:nth-child(4) { width: 30%; }
+
+.btn-acao {
+    width: 28px;
+    height: 28px;
+    padding: 3px;
+}
+
+.btn-acao svg {
+    width: 18px;
+    height: 18px;
+}
+
+.paginacao {
+    gap: 4px;
+    padding: 10px;
+}
+
+.pagina-item {
+    min-width: 28px;
+    height: 28px;
+    font-size: 11px;
+    padding: 0 6px;
 }
 
 /* Ajustes para telas muito grandes - REMOVIDO para manter 400px */

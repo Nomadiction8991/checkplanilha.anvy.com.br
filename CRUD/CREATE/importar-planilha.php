@@ -1,253 +1,396 @@
 <?php
-require_once __DIR__ . '/../conexao.php';
-require_once __DIR__ . '/../../vendor/autoload.php';
+require_once PROJECT_ROOT . '/auth.php';
+require_once PROJECT_ROOT . '/conexao.php';
+require_once PROJECT_ROOT . '/vendor/autoload.php';
+require_once PROJECT_ROOT . '/app/functions/comum_functions.php';
+// Parser modular
+require_once PROJECT_ROOT . '/app/functions/produto_parser.php';
+// Configuração do parser (formato, sinônimos, etc.)
+$pp_config = require PROJECT_ROOT . '/app/config/produto_parser_config.php';
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
-use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use Symfony\Component\String\UnicodeString;
 
-// Processar o formulário quando enviado
+// Redirecionamento após sucesso
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $linhas_pular = (int)($_POST['linhas_pular'] ?? 25);
-    $localizacao_comum = trim($_POST['localizacao_comum'] ?? 'D16');
-    $localizacao_data_posicao = trim($_POST['localizacao_data_posicao'] ?? 'D13');
-    $localizacao_endereco = trim($_POST['localizacao_endereco'] ?? 'A4');
-    $localizacao_cnpj = trim($_POST['localizacao_cnpj'] ?? 'U8');
-    
-    // Mapeamento simplificado
-    $mapeamento = [
-        'codigo' => strtoupper($_POST['codigo'] ?? 'A'),
-        'nome' => strtoupper($_POST['nome'] ?? 'D'),
-        'dependencia' => strtoupper($_POST['dependencia'] ?? 'P'),
-    ];
+    $arquivo_csv = $_FILES['arquivo_csv'] ?? null;
+    $posicao_comum = trim($_POST['posicao_comum'] ?? 'D16');
+    $posicao_data = trim($_POST['posicao_data'] ?? 'D13');
+    $posicao_cnpj = trim($_POST['posicao_cnpj'] ?? 'U5');
+    $pulo_linhas = (int)($_POST['pulo_linhas'] ?? 25);
+    $mapeamento_codigo = strtoupper(trim($_POST['mapeamento_codigo'] ?? 'A'));
+    $mapeamento_complemento = strtoupper(trim($_POST['mapeamento_complemento'] ?? 'D'));
+    $administracao = trim($_POST['administracao'] ?? '');
+    $cidade = trim($_POST['cidade'] ?? '');
+    $setor = isset($_POST['setor']) && $_POST['setor'] !== '' ? (int)$_POST['setor'] : null;
+    $mapeamento_dependencia = strtoupper(trim($_POST['mapeamento_dependencia'] ?? 'P'));
+    // Flag opcional para log detalhado de parsing
+    $debug_import = isset($_POST['debug_import']);
+    $debug_lines = [];
 
     $mensagem = '';
     $tipo_mensagem = '';
+    $sucesso = false;
 
     try {
-        if (empty($localizacao_comum)) {
-            throw new Exception('A localização da célula comum é obrigatória.');
-        }
-
-        if (empty($localizacao_data_posicao)) {
-            throw new Exception('A localização da célula data_posicao é obrigatória.');
-        }
-
-        if (empty($localizacao_endereco)) {
-            throw new Exception('A localização da célula endereço é obrigatória.');
-        }
-
-        if (empty($localizacao_cnpj)) {
-            throw new Exception('A localização da célula CNPJ é obrigatória.');
-        }
-
-        if (!isset($_FILES['arquivo']) || $_FILES['arquivo']['error'] !== UPLOAD_ERR_OK) {
+        // Validações
+        if (!$arquivo_csv || $arquivo_csv['error'] !== UPLOAD_ERR_OK) {
             throw new Exception('Selecione um arquivo CSV válido.');
         }
+        if (empty($administracao) || empty($cidade)) {
+            throw new Exception('Administração e Cidade são obrigatórias.');
+        }
 
-        $arquivo_tmp = $_FILES['arquivo']['tmp_name'];
-        $extensao = strtolower(pathinfo($_FILES['arquivo']['name'], PATHINFO_EXTENSION));
-
+        $extensao = strtolower(pathinfo($arquivo_csv['name'], PATHINFO_EXTENSION));
         if ($extensao !== 'csv') {
             throw new Exception('Apenas arquivos CSV são permitidos.');
         }
 
-        // Processar o arquivo CSV para obter os valores das células
-        $planilha = IOFactory::load($arquivo_tmp);
-        $aba_ativa = $planilha->getActiveSheet();
-        
-        // Obter o valor da célula comum
-        $valor_comum = $aba_ativa->getCell($localizacao_comum)->getCalculatedValue();
-        
+        // Carregar arquivo
+        $planilha = IOFactory::load($arquivo_csv['tmp_name']);
+        $aba = $planilha->getActiveSheet();
+
+        // Obter valores das células
+        $valor_comum = trim($aba->getCell($posicao_comum)->getCalculatedValue());
+        $valor_data = trim($aba->getCell($posicao_data)->getCalculatedValue());
+        $valor_cnpj = trim($aba->getCell($posicao_cnpj)->getCalculatedValue());
+
         if (empty($valor_comum)) {
-            throw new Exception('A célula ' . $localizacao_comum . ' está vazia no arquivo CSV.');
+            throw new Exception('A célula ' . $posicao_comum . ' está vazia.');
         }
 
-        // Obter o valor da célula data_posicao
-        $valor_data_posicao = $aba_ativa->getCell($localizacao_data_posicao)->getCalculatedValue();
-        
-        if (empty($valor_data_posicao)) {
-            throw new Exception('A célula ' . $localizacao_data_posicao . ' está vazia no arquivo CSV.');
-        }
-
-        // Obter o valor da célula endereco
-        $valor_endereco = $aba_ativa->getCell($localizacao_endereco)->getCalculatedValue();
-        
-        if (empty($valor_endereco)) {
-            throw new Exception('A célula ' . $localizacao_endereco . ' está vazia no arquivo CSV.');
-        }
-
-        // Obter o valor da célula CNPJ e extrair apenas números
-        $valor_cnpj = $aba_ativa->getCell($localizacao_cnpj)->getCalculatedValue();
-        $cnpj_somente_numeros = preg_replace('/[^0-9]/', '', $valor_cnpj);
-
-        // Converter a data para formato MySQL (YYYY-MM-DD)
+        // Converter data
         $data_mysql = null;
-        if (!empty($valor_data_posicao)) {
-            if (is_numeric($valor_data_posicao)) {
-                // Se for um número serial do Excel, converter para data
-                $data_mysql = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($valor_data_posicao)->format('Y-m-d');
+        if (!empty($valor_data)) {
+            if (is_numeric($valor_data)) {
+                $data_mysql = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($valor_data)->format('Y-m-d');
             } else {
-                // Tentar converter string para data
-                $timestamp = strtotime($valor_data_posicao);
-                if ($timestamp !== false) {
-                    $data_mysql = date('Y-m-d', $timestamp);
-                } else {
-                    throw new Exception('Formato de data inválido na célula ' . $localizacao_data_posicao . ': ' . $valor_data_posicao);
+                $ts = strtotime($valor_data);
+                if ($ts !== false) {
+                    $data_mysql = date('Y-m-d', $ts);
                 }
             }
         }
 
-        // Iniciar transação
+    // Converter CNPJ
+    $cnpj_limpo = preg_replace('/[^0-9]/', '', $valor_cnpj);
+
+        // Procesar comum e obter ID (pode criar ou atualizar)
+        $dados_comum = [
+            'cnpj' => $cnpj_limpo,
+            'administracao' => $administracao,
+            'cidade' => $cidade,
+            'setor' => $setor
+        ];
+        $comum_processado_id = processar_comum($conexao, $valor_comum, $dados_comum);
+        if (!$comum_processado_id) {
+            throw new Exception('Erro ao processar comum.');
+        }
+
+        // Carregar todas as linhas e contar candidatas (linhas de produto com código preenchido)
+        $linhas = $aba->toArray();
+        $linha_atual = 0;
+        $registros_candidatos = 0;
+
+        // Mapeamento de colunas usando função do parser
+        $idx_codigo = pp_colunaParaIndice($mapeamento_codigo);
+        $idx_complemento = pp_colunaParaIndice($mapeamento_complemento);
+        $idx_dependencia = pp_colunaParaIndice($mapeamento_dependencia);
+
+        foreach ($linhas as $linha) {
+            $linha_atual++;
+            if ($linha_atual <= $pulo_linhas) { continue; }
+            if (empty(array_filter($linha))) { continue; }
+            $codigo_tmp = isset($linha[$idx_codigo]) ? trim((string)$linha[$idx_codigo]) : '';
+            if ($codigo_tmp !== '') { $registros_candidatos++; }
+        }
+
+        if ($registros_candidatos === 0) {
+            throw new Exception('Nenhuma linha de produto encontrada após o cabeçalho. Verifique o mapeamento de colunas e o número de linhas a pular.');
+        }
+
+        // Iniciar transação apenas para planilha+produtos; dados do Comum já foram persistidos
         $conexao->beginTransaction();
 
-        // Inserir a planilha na tabela planilhas com os valores obtidos do CSV
-        $sql_planilha = "INSERT INTO planilhas (comum, data_posicao, endereco, cnpj) VALUES (:comum, :data_posicao, :endereco, :cnpj)";
-        $stmt_planilha = $conexao->prepare($sql_planilha);
-        $stmt_planilha->bindValue(':comum', $valor_comum);
-        $stmt_planilha->bindValue(':data_posicao', $data_mysql);
-        $stmt_planilha->bindValue(':endereco', $valor_endereco);
-        $stmt_planilha->bindValue(':cnpj', $cnpj_somente_numeros);
-        $stmt_planilha->execute();
+        // Criar nova planilha vinculada ao comum
+        $sql_planilha = "INSERT INTO planilhas (comum_id, posicao_cnpj, posicao_comum, posicao_data, pulo_linhas, mapeamento_colunas, data_posicao, ativo) 
+                        VALUES (:comum_id, :posicao_cnpj, :posicao_comum, :posicao_data, :pulo_linhas, :mapeamento_colunas, :data_posicao, 1)";
+        $stmt = $conexao->prepare($sql_planilha);
+        $stmt->bindValue(':comum_id', $comum_processado_id, PDO::PARAM_INT);
+        $stmt->bindValue(':posicao_cnpj', $posicao_cnpj);
+        $stmt->bindValue(':posicao_comum', $posicao_comum);
+        $stmt->bindValue(':posicao_data', $posicao_data);
+        $stmt->bindValue(':pulo_linhas', $pulo_linhas);
+        $stmt->bindValue(':mapeamento_colunas', "codigo=$mapeamento_codigo;complemento=$mapeamento_complemento;dependencia=$mapeamento_dependencia");
+        $stmt->bindValue(':data_posicao', $data_mysql);
+        $stmt->execute();
         $id_planilha = $conexao->lastInsertId();
 
-        // Salvar configurações de mapeamento na tabela config_planilha
-        $mapeamento_string = '';
-        foreach ($mapeamento as $coluna_banco => $letra_planilha) {
-            $mapeamento_string .= "{$coluna_banco}={$letra_planilha};";
+        // Pré-carregar tipos de bens e dependências para matching
+        $tipos_bens = [];
+        $stmtTipos = $conexao->prepare("SELECT id, codigo, descricao FROM tipos_bens ORDER BY LENGTH(descricao) DESC");
+        if ($stmtTipos->execute()) {
+            $tipos_bens = $stmtTipos->fetchAll(PDO::FETCH_ASSOC);
         }
-        $mapeamento_string = rtrim($mapeamento_string, ';');
+        $dep_map = [];
+        $stmtDeps = $conexao->prepare("SELECT id, descricao FROM dependencias");
+        if ($stmtDeps->execute()) {
+            foreach ($stmtDeps->fetchAll(PDO::FETCH_ASSOC) as $d) {
+                $dep_map[] = [
+                    'id' => (int)$d['id'],
+                    'k' => null, // preenchido após normalização
+                    'descricao' => $d['descricao']
+                ];
+            }
+        }
 
-        $sql_config = "INSERT INTO config_planilha (id_planilha, pulo_linhas, mapeamento_colunas, comum, data_posicao, endereco, cnpj) 
-                      VALUES (:id_planilha, :pulo_linhas, :mapeamento_colunas, :comum, :data_posicao, :endereco, :cnpj)";
-        $stmt_config = $conexao->prepare($sql_config);
-        $stmt_config->bindValue(':id_planilha', $id_planilha);
-        $stmt_config->bindValue(':pulo_linhas', $linhas_pular);
-        $stmt_config->bindValue(':mapeamento_colunas', $mapeamento_string);
-        $stmt_config->bindValue(':comum', $localizacao_comum);
-        $stmt_config->bindValue(':data_posicao', $localizacao_data_posicao);
-        $stmt_config->bindValue(':endereco', $localizacao_endereco);
-        $stmt_config->bindValue(':cnpj', $localizacao_cnpj);
-        $stmt_config->execute();
+        // Construir aliases dos tipos via módulo parser
+        $tipos_aliases = pp_construir_aliases_tipos($tipos_bens);
 
-        // Processar as linhas de dados do CSV
-        $linhas = $aba_ativa->toArray();
+        // Construir chaves normalizadas para dependências
+        foreach ($dep_map as &$dep) {
+            $dep['k'] = pp_normaliza($dep['descricao']);
+        }
+        unset($dep);
 
+        // Processar linhas do CSV
         $registros_importados = 0;
         $registros_erros = 0;
         $linha_atual = 0;
-        $erro_detalhado = '';
-
-        // Função para converter letra da coluna para índice numérico
-        function colunaParaIndice($coluna) {
-            $coluna = strtoupper($coluna);
-            $indice = 0;
-            $tamanho = strlen($coluna);
-            
-            for ($i = 0; $i < $tamanho; $i++) {
-                $indice = $indice * 26 + (ord($coluna[$i]) - ord('A') + 1);
-            }
-            
-            return $indice - 1;
-        }
-
-        // Função para corrigir encoding dos textos
-        function corrigirEncoding($texto) {
-            if (empty($texto)) return $texto;
-            
-            $encoding = mb_detect_encoding($texto, ['UTF-8', 'ISO-8859-1', 'Windows-1252'], true);
-            
-            if ($encoding !== 'UTF-8') {
-                $texto = mb_convert_encoding($texto, 'UTF-8', $encoding);
-            }
-            
-            return $texto;
-        }
+        $id_produto_sequencial = 1; // Sequencial por planilha
+        $erros_produtos = []; // Para coletar erros específicos
 
         foreach ($linhas as $linha) {
             $linha_atual++;
 
-            // Pular linhas iniciais
-            if ($linha_atual <= $linhas_pular) {
+            if ($linha_atual <= $pulo_linhas) {
                 continue;
             }
 
-            // Verificar se a linha está vazia
-            if (empty(array_filter($linha, function($v) { return $v !== null && $v !== ''; }))) {
+            if (empty(array_filter($linha))) {
                 continue;
             }
 
             try {
-                // Obter valores baseado no mapeamento simplificado
-                $indice_codigo = colunaParaIndice($mapeamento['codigo']);
-                $codigo = isset($linha[$indice_codigo]) ? trim($linha[$indice_codigo]) : '';
-                
-                // Pular linha se não tiver código
+                $codigo = isset($linha[$idx_codigo]) ? trim($linha[$idx_codigo]) : '';
                 if (empty($codigo)) {
                     continue;
                 }
 
-                // Obter outros valores com correção de encoding
-                $nome = isset($linha[colunaParaIndice($mapeamento['nome'])]) ? corrigirEncoding(trim($linha[colunaParaIndice($mapeamento['nome'])])) : '';
-                $dependencia = isset($linha[colunaParaIndice($mapeamento['dependencia'])]) ? corrigirEncoding(trim($linha[colunaParaIndice($mapeamento['dependencia'])])) : '';
+                $complemento_original = isset($linha[$idx_complemento]) ? trim((string)$linha[$idx_complemento]) : '';
+                $dependencia_original = isset($linha[$idx_dependencia]) ? trim((string)$linha[$idx_dependencia]) : '';
 
-                // Inserir o produto (apenas campos necessários)
-                $sql_produto = "INSERT INTO produtos 
-                    (codigo, nome, dependencia, id_planilha) 
-                VALUES 
-                    (:codigo, :nome, :dependencia, :id_planilha)";
-
-                $stmt_produto = $conexao->prepare($sql_produto);
-                $stmt_produto->bindValue(':codigo', $codigo);
-                $stmt_produto->bindValue(':nome', $nome);
-                $stmt_produto->bindValue(':dependencia', $dependencia);
-                $stmt_produto->bindValue(':id_planilha', $id_planilha);
-
-                if ($stmt_produto->execute()) {
-                    $registros_importados++;
+                // Parsing avançado: detectar código, tipo de bem (por código ou nome), remover prefixos e extrair BEN e COMPLEMENTO
+                // Texto base para parsing: extrair BEN do complemento
+                $texto_base = $complemento_original;
+                // 1) Remover prefixo de código (ex: "68 - ")
+                [$codigo_detectado, $texto_sem_prefixo] = pp_extrair_codigo_prefixo($texto_base);
+                // 2) Detectar tipo (por código ou alias) mantendo texto original intacto
+                [$tipo_detectado, $texto_pos_tipo] = pp_detectar_tipo($texto_sem_prefixo, $codigo_detectado, $tipos_aliases);
+                $tipo_bem_id = (int)$tipo_detectado['id'];
+                $tipo_bem_codigo = $tipo_detectado['codigo'];
+                $tipo_bem_desc = $tipo_detectado['descricao'];
+                
+                // 3) Extrair BEM e COMPLEMENTO usando aliases do tipo (se disponível)
+                $aliases_tipo_atual = null;
+                $aliases_originais = null;
+                if ($tipo_bem_id) {
+                    foreach ($tipos_aliases as $tbTmp) { 
+                        if ($tbTmp['id'] === $tipo_bem_id) { 
+                            $aliases_tipo_atual = $tbTmp['aliases'];
+                            $aliases_originais = $tbTmp['aliases_originais'] ?? null;
+                            break; 
+                        } 
+                    }
+                }
+                
+                [$ben_raw, $comp_raw] = pp_extrair_ben_complemento($texto_pos_tipo, $aliases_tipo_atual ?: [], $aliases_originais, $tipo_bem_desc);
+                $ben = strtoupper(preg_replace('/\s+/', ' ', trim($ben_raw)));
+                $complemento_limpo = strtoupper(preg_replace('/\s+/', ' ', trim($comp_raw)));
+                
+                // Validação: BEM deve ser um dos aliases do tipo (com fuzzy match)
+                $ben_valido = false;
+                if ($ben !== '' && $tipo_bem_id > 0 && $aliases_tipo_atual) {
+                    $ben_norm = pp_normaliza($ben);
+                    foreach ($aliases_tipo_atual as $alias_norm) {
+                        if ($alias_norm === $ben_norm || pp_match_fuzzy($ben, $alias_norm)) {
+                            $ben_valido = true;
+                            break;
+                        }
+                    }
+                }
+                
+                // Se BEM inválido ou vazio, tentar forçar para primeiro alias do tipo
+                if (!$ben_valido && $tipo_bem_id > 0 && !empty($aliases_tipo_atual)) {
+                    // Pegar primeiro alias válido do tipo
+                    foreach ($aliases_tipo_atual as $alias_norm) {
+                        if ($alias_norm !== '') {
+                            // Encontrar correspondente em maiúscula da descrição do tipo
+                            $tokens = array_map('trim', preg_split('/\s*\/\s*/', $tipo_bem_desc));
+                            foreach ($tokens as $tok) {
+                                if (pp_normaliza($tok) === $alias_norm) {
+                                    $ben = strtoupper($tok);
+                                    $ben_valido = true;
+                                    break 2;
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Fallback completo: se ainda vazio, usar todo texto no complemento
+                if ($ben === '' && $complemento_limpo === '') {
+                    $complemento_limpo = strtoupper(trim($texto_sem_prefixo));
+                    if ($complemento_limpo === '') {
+                        $complemento_limpo = strtoupper(trim($complemento_original));
+                    }
+                }
+                
+                // Remover redundâncias do BEN no início do complemento
+                if ($ben !== '' && $complemento_limpo !== '') {
+                    $complemento_limpo = pp_remover_ben_do_complemento($ben, $complemento_limpo);
+                }
+                // 4) Encontrar dependência
+                $dependencia_id = 0;
+                $dep_key = pp_normaliza($dependencia_original);
+                if ($dep_key !== '') {
+                    foreach ($dep_map as $d) {
+                        if ($d['k'] === $dep_key) {
+                            $dependencia_id = $d['id'];
+                            break;
+                        }
+                    }
+                }
+                $dependencia_rotulo = '';
+                if ($dependencia_id > 0) {
+                    foreach ($dep_map as $d) {
+                        if ($d['id'] === $dependencia_id) { $dependencia_rotulo = $d['descricao']; break; }
+                    }
                 } else {
-                    $registros_erros++;
-                    $errorInfo = $stmt_produto->errorInfo();
-                    $erro_detalhado = "Erro SQL: " . $errorInfo[2] . " na linha " . $linha_atual;
-                    error_log($erro_detalhado);
+                    $dependencia_rotulo = $dependencia_original;
+                }
+                // 5) Montar descrição completa via parser (BEM pode estar vazio ou preenchido)
+                $descricao_completa_calc = pp_montar_descricao(1, $tipo_bem_codigo, $tipo_bem_desc, $ben, $complemento_limpo, $dependencia_rotulo, $pp_config);
+
+                // Marcar se houve problema na extração (tipo inválido OU BEM não validado quando tipo existe)
+                $tem_erro_parsing = ($tipo_bem_id === 0 && $codigo_detectado !== null) || ($tipo_bem_id > 0 && $ben !== '' && !$ben_valido);
+                
+                if ($debug_import) {
+                    $debug_lines[] = json_encode([
+                        'linha' => $linha_atual,
+                        'codigo' => $codigo,
+                        'tipo_id' => $tipo_bem_id,
+                        'tipo_codigo' => $tipo_bem_codigo,
+                        'tipo_desc' => $tipo_bem_desc,
+                        'ben' => $ben,
+                        'ben_valido' => $ben_valido,
+                        'complemento' => $complemento_limpo,
+                        'dependencia_id' => $dependencia_id,
+                        'dependencia' => $dependencia_rotulo,
+                        'descricao_final' => $descricao_completa_calc,
+                        'erro_parsing' => $tem_erro_parsing
+                    ], JSON_UNESCAPED_UNICODE);
                 }
 
+                // Inserir produto (usaremos observacao para flag temporária de erro se necessário)
+                $obs_prefix = $tem_erro_parsing ? '[REVISAR] ' : '';
+                // Inserção agora contempla a coluna 'novo' (0 = importado) e mantém flags iniciais neutras
+                $sql_produto = "INSERT INTO produtos (
+                               planilha_id, id_produto, codigo, descricao_completa, editado_descricao_completa,
+                               tipo_bem_id, editado_tipo_bem_id, bem, editado_bem,
+                               complemento, editado_complemento, dependencia_id, editado_dependencia_id,
+                               checado, editado, imprimir_etiqueta, imprimir_14_1,
+                               observacao, ativo, novo, condicao_14_1,
+                               administrador_acessor_id, doador_conjugue_id
+                               ) VALUES (
+                               :planilha_id, :id_produto, :codigo, :descricao_completa, '',
+                               :tipo_bem_id, 0, :bem, '',
+                               :complemento, '', :dependencia_id, 0,
+                               0, 0, 0, :imprimir_14_1,
+                               :observacao, 1, 0, :condicao_14_1,
+                               0, 0
+                               )";
+                $stmt_prod = $conexao->prepare($sql_produto);
+                $stmt_prod->bindValue(':planilha_id', $id_planilha, PDO::PARAM_INT);
+                $stmt_prod->bindValue(':id_produto', $id_produto_sequencial, PDO::PARAM_INT);
+                $stmt_prod->bindValue(':codigo', $codigo);
+                $stmt_prod->bindValue(':descricao_completa', $descricao_completa_calc);
+                $stmt_prod->bindValue(':tipo_bem_id', $tipo_bem_id, PDO::PARAM_INT);
+                $stmt_prod->bindValue(':bem', $ben);
+                $stmt_prod->bindValue(':complemento', $complemento_limpo);
+                $stmt_prod->bindValue(':dependencia_id', $dependencia_id, PDO::PARAM_INT);
+                $stmt_prod->bindValue(':imprimir_14_1', 0, PDO::PARAM_INT);
+                $stmt_prod->bindValue(':observacao', $obs_prefix);
+                // Condição 14.1 padrão para atender NOT NULL (definida como '2' por padrão)
+                $stmt_prod->bindValue(':condicao_14_1', '2');
+                if ($stmt_prod->execute()) {
+                    $registros_importados++;
+                    $id_produto_sequencial++;
+                } else {
+                    $registros_erros++;
+                    $err = $stmt_prod->errorInfo();
+                    $erro_msg = "Linha $linha_atual: " . ($err[2] ?? 'Erro desconhecido no INSERT');
+                    $erros_produtos[] = $erro_msg;
+                    error_log('ERRO INSERT PRODUTO: ' . json_encode($err));
+                }
             } catch (Exception $e) {
                 $registros_erros++;
-                $erro_detalhado = "Erro na linha {$linha_atual}: " . $e->getMessage();
-                error_log($erro_detalhado);
+                $erro_msg = "Linha $linha_atual: " . $e->getMessage();
+                $erros_produtos[] = $erro_msg;
+                error_log("Erro linha $linha_atual: " . $e->getMessage());
             }
         }
 
-        if ($registros_importados === 0 && $registros_erros > 0) {
-            throw new Exception("Nenhum registro foi importado. Erro: " . $erro_detalhado);
+        // Validar se todos os candidatos foram importados; se não, cancelar a planilha
+        if ($registros_importados === $registros_candidatos) {
+            $conexao->commit();
+            $mensagem = "Importação concluída! {$registros_importados} de {$registros_candidatos} produtos importados.";
+            $tipo_mensagem = 'success';
+            $sucesso = true;
+        } else {
+            if ($conexao->inTransaction()) { $conexao->rollBack(); }
+            $mensagem_extra = '';
+            if ($registros_importados == 0 && !empty($erros_produtos)) {
+                $mensagem_extra = ' Erros encontrados: ' . implode('; ', array_slice($erros_produtos, 0, 5)); // Mostra até 5 erros
+            }
+            $mensagem = "Importação cancelada: apenas {$registros_importados} de {$registros_candidatos} produtos foram importados. A planilha não foi salva. Os dados do Comum foram salvos.{$mensagem_extra}";
+            $tipo_mensagem = 'danger';
+            $sucesso = false;
         }
 
-        // Confirmar transação
-        $conexao->commit();
-
-        $mensagem = "Importação concluída com sucesso!<br>
-                    Valor obtido da célula " . htmlspecialchars($localizacao_comum) . ": " . htmlspecialchars($valor_comum) . "<br>
-                    Valor obtido da célula " . htmlspecialchars($localizacao_data_posicao) . ": " . htmlspecialchars($valor_data_posicao) . " (" . htmlspecialchars($data_mysql) . ")<br>
-                    Valor obtido da célula " . htmlspecialchars($localizacao_endereco) . ": " . htmlspecialchars($valor_endereco) . "<br>
-                    Valor obtido da célula " . htmlspecialchars($localizacao_cnpj) . ": " . htmlspecialchars($valor_cnpj) . " (" . htmlspecialchars($cnpj_somente_numeros) . ")<br>
-                    Registros importados: {$registros_importados}<br>
-                    Erros: {$registros_erros}";
-        
-        if (!empty($erro_detalhado)) {
-            $mensagem .= "<br><br>Detalhes do último erro:<br>" . $erro_detalhado;
+        // Persistir log de debug se solicitado
+        if ($debug_import && !empty($debug_lines)) {
+            $logDir = PROJECT_ROOT . '/app/tmp';
+            if (!is_dir($logDir)) { @mkdir($logDir, 0775, true); }
+            $logFile = $logDir . '/import_debug_' . date('Ymd_His') . '_' . uniqid() . '.log';
+            @file_put_contents($logFile, implode(PHP_EOL, $debug_lines));
+            $mensagem .= ' [DEBUG salvo em app/tmp/' . basename($logFile) . ']';
         }
-        
-        $tipo_mensagem = 'success';
 
     } catch (Exception $e) {
         if ($conexao->inTransaction()) {
             $conexao->rollBack();
         }
-        $mensagem = "Erro na importação: " . $e->getMessage();
+        $mensagem = "Erro: " . $e->getMessage();
         $tipo_mensagem = 'error';
-        
         error_log("ERRO IMPORTACAO: " . $e->getMessage());
-        error_log("Trace: " . $e->getTraceAsString());
     }
+
+    // Redirecionar com mensagem (sempre voltar para listagem de Comuns)
+    if ($sucesso) {
+        $_SESSION['mensagem'] = $mensagem;
+        $_SESSION['tipo_mensagem'] = 'success';
+    } else {
+        $_SESSION['mensagem'] = $mensagem ?: 'Não foi possível concluir a importação.';
+        $_SESSION['tipo_mensagem'] = 'danger';
+    }
+    header('Location: ../../index.php');
+    exit;
+}
+
+// Se for GET, redirecionar de volta
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Location: ../../index.php');
+    exit;
 }
 ?>

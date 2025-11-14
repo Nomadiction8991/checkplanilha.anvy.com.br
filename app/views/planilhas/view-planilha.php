@@ -1,14 +1,63 @@
 <?php
+require_once PROJECT_ROOT . '/auth.php'; // Autenticação
 $id_planilha = $_GET['id'] ?? null;
-require_once __DIR__ . '/../../../CRUD/READ/view-planilha.php';
+require_once PROJECT_ROOT . '/CRUD/READ/view-planilha.php';
 
 // Configurações da página
-$pageTitle = htmlspecialchars($planilha['comum'] ?? 'Visualizar Planilha');
-$backUrl = '../../../index.php';
+$pageTitle = htmlspecialchars($planilha['comum_descricao'] ?? 'Visualizar Planilha');
+$backUrl = '../comuns/listar-planilhas.php?comum_id=' . urlencode($planilha['comum_id'] ?? '');
+
+// Menu diferenciado para Admin e Doador
 $headerActions = '
-    <a href="../shared/menu.php?id=' . $id_planilha . '" class="btn-header-action" title="Menu">
-        <i class="bi bi-list fs-5"></i>
-    </a>
+    <div class="dropdown">
+        <button class="btn-header-action" type="button" id="menuPlanilha" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-list fs-5"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="menuPlanilha">';
+
+// Administrador/Acessor: menu completo
+if (isAdmin()) {
+    $headerActions .= '
+            <li>
+                <a class="dropdown-item" href="../produtos/read-produto.php?id=' . $id_planilha . '">
+                    <i class="bi bi-list-ul me-2"></i>Listagem de Produtos
+                </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <a class="dropdown-item" href="../planilhas/relatorio-14-1.php?id=' . $id_planilha . '">
+                    <i class="bi bi-file-earmark-pdf me-2"></i>Relatório 14.1
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item" href="../planilhas/copiar-etiquetas.php?id=' . $id_planilha . '">
+                    <i class="bi bi-tags me-2"></i>Copiar Etiquetas
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item" href="../planilhas/imprimir-alteracao.php?id=' . $id_planilha . '">
+                    <i class="bi bi-printer me-2"></i>Imprimir Alteração
+                </a>
+            </li>';
+} else {
+    // Doador/Cônjuge: apenas relatórios
+    $headerActions .= '
+            <li>
+                <a class="dropdown-item" href="../planilhas/relatorio-14-1.php?id=' . $id_planilha . '">
+                    <i class="bi bi-file-earmark-pdf me-2"></i>Relatório 14.1
+                </a>
+            </li>';
+}
+
+$headerActions .= '
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <a class="dropdown-item" href="../../../logout.php">
+                    <i class="bi bi-box-arrow-right me-2"></i>Sair
+                </a>
+            </li>
+        </ul>
+    </div>
 ';
 
 // Iniciar buffer para capturar o conteúdo
@@ -61,78 +110,67 @@ ob_start();
 }
 
 .mic-btn .material-icons-round {
-    font-size: 24px;
+    font-size: 20px;
     vertical-align: middle;
 }
 
-/* Cores das linhas baseadas no status */
-.linha-pendente { background-color: #ffffff; border-left: 4px solid #6c757d; }
-.linha-checado { background-color: #d4edda; border-left: 4px solid #28a745; }
-.linha-observacao { background-color: #fff3e0; border-left: 4px solid #ff9800; }
-.linha-imprimir { background-color: #d1ecf1; border-left: 4px solid #17a2b8; }
-.linha-dr { background-color: #f8d7da; border-left: 4px solid #dc3545; }
-.linha-editado { background-color: #e2d9f3; border-left: 4px solid #9c27b0; }
-
-/* Estilos para os botões de ação */
-.btn-acao {
-    padding: 0.25rem 0.5rem;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    opacity: 1;
-    transition: all 0.2s;
-    pointer-events: auto !important; /* garante clique mesmo em containers */
+/* Estilos padrão para todos os dispositivos (mobile-first) */
+.input-group { 
+    flex-wrap: nowrap !important; 
+    display: flex !important;
 }
 
-.btn-acao:hover {
-    opacity: 1;
-    transform: scale(1.1);
+.input-group .form-control { 
+    min-width: 0;
+    flex: 1 1 auto !important; /* Input preenche o espaço restante */
 }
 
-.btn-acao.active {
-    opacity: 1;
-    background: rgba(0, 0, 0, 0.05);
-    border-radius: 0.25rem;
+.input-group > .btn { 
+    flex: 0 0 15% !important; /* Botões ocupam 15% cada */
+    min-width: 45px !important;
+    max-width: 60px !important;
+    padding: 0.375rem 0.25rem !important;
+    font-size: 1.1rem !important;
 }
 
-.btn-acao svg {
-    width: 24px;
-    height: 24px;
+.input-group > .btn .material-icons-round,
+.input-group > .btn i {
+    font-size: 20px !important;
 }
 
-/* Garantir visibilidade do botão check */
-.check-form { 
-    display: inline-block !important; 
-    visibility: visible !important;
-    opacity: 1 !important;
+/* Cores das linhas baseadas no status - Paleta marcante e diferenciada */
+.linha-pendente { 
+    background-color: #ffffff; 
+    border-left: none; 
+}
+.linha-checado { 
+    background-color: #d4f4dd; 
+    border-left: 4px solid #10b759; 
+}
+.linha-observacao { 
+    background-color: #fff4e6; 
+    border-left: 4px solid #fb8c00; 
+}
+.linha-imprimir { 
+    background-color: #e3f2fd; 
+    border-left: 4px solid #1976d2; 
+}
+.linha-dr { 
+    background-color: #ffebee; 
+    border-left: 4px solid #e53935; 
+}
+.linha-editado { 
+    background-color: #f3e5f5; 
+    border-left: 4px solid #8e24aa; 
 }
 
-.btn-check {
-    display: inline-block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    width: auto !important;
-    height: auto !important;
-    position: relative !important;
-    z-index: 1 !important;
-    background: transparent !important;
-    padding: 0.25rem 0.5rem !important;
+/* Aviso de tipo não identificado - amarelo ouro forte */
+.tipo-nao-identificado {
+    border-left: 4px solid #fdd835 !important;
 }
 
-.btn-check i {
-    display: inline-block !important;
-    font-size: 24px !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    color: #198754 !important;
-}
-
-/* Garantir que o formulário do botão de check seja visível */
-.check-form button {
-    display: inline-block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-}
+/* Ações: usar padrão Bootstrap para botões */
+.acao-container .btn { padding: 0.25rem 0.5rem; }
 
 .edicao-pendente {
     background: #f3e5f5;
@@ -140,6 +178,14 @@ ob_start();
     border-radius: 0.25rem;
     margin-bottom: 0.5rem;
     border-left: 3px solid #9c27b0;
+}
+
+.observacao-produto {
+    background: #fff3e0;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    margin-bottom: 0.5rem;
+    border-left: 3px solid #ff9800;
 }
 
 .info-produto {
@@ -237,7 +283,6 @@ ob_start();
                                     <option value="observacao" <?php echo ($filtro_status ?? '')==='observacao'?'selected':''; ?>>Com Observação</option>
                                     <option value="etiqueta" <?php echo ($filtro_status ?? '')==='etiqueta'?'selected':''; ?>>Etiqueta para Imprimir</option>
                                     <option value="pendente" <?php echo ($filtro_status ?? '')==='pendente'?'selected':''; ?>>Pendentes</option>
-                                    <option value="dr" <?php echo ($filtro_status ?? '')==='dr'?'selected':''; ?>>No DR</option>
                                     <option value="editado" <?php echo ($filtro_status ?? '')==='editado'?'selected':''; ?>>Editados</option>
                                 </select>
                             </div>
@@ -262,12 +307,33 @@ ob_start();
 <div class="card mb-3">
     <div class="card-body p-2">
         <div class="d-flex flex-wrap gap-2 justify-content-center small">
-            <span class="badge" style="background-color: #6c757d;">Pendente</span>
-            <span class="badge" style="background-color: #28a745;">Checado</span>
-            <span class="badge" style="background-color: #ff9800;">Observação</span>
-            <span class="badge" style="background-color: #17a2b8;">Para Imprimir</span>
-            <span class="badge" style="background-color: #dc3545;">DR</span>
-            <span class="badge" style="background-color: #9c27b0;">Editado</span>
+            <span class="d-flex align-items-center gap-1">
+                <span style="width: 3px; height: 16px; background-color: #10b759; display: inline-block;"></span>
+                Checado
+            </span>
+            <span class="d-flex align-items-center gap-1">
+                <span style="width: 3px; height: 16px; background-color: #fb8c00; display: inline-block;"></span>
+                Observação
+            </span>
+            <span class="d-flex align-items-center gap-1">
+                <span style="width: 3px; height: 16px; background-color: #1976d2; display: inline-block;"></span>
+                Imprimir Etiqueta
+            </span>
+            <span class="d-flex align-items-center gap-1">
+                <span style="width: 3px; height: 16px; background-color: #e53935; display: inline-block;"></span>
+                DR
+            </span>
+            <span class="d-flex align-items-center gap-1">
+                <span style="width: 3px; height: 16px; background-color: #8e24aa; display: inline-block;"></span>
+                Editado
+            </span>
+        </div>
+        <hr class="my-2">
+        <div class="d-flex flex-wrap gap-2 justify-content-center small text-muted">
+            <span class="d-flex align-items-center gap-1">
+                <span style="width: 3px; height: 16px; background-color: #fdd835; display: inline-block;"></span>
+                Tipo de bem não identificado
+            </span>
         </div>
     </div>
 </div>
@@ -288,13 +354,13 @@ ob_start();
                 $classe = '';
                 $tem_edicao = $p['editado'] == 1;
                 
-                if ($p['dr'] == 1) {
+                if ($p['ativo'] == 0) {
                     $classe = 'linha-dr';
                 } elseif ($p['imprimir'] == 1 && $p['checado'] == 1) {
                     $classe = 'linha-imprimir';
                 } elseif ($p['checado'] == 1) {
                     $classe = 'linha-checado';
-                } elseif (!empty($p['observacoes'])) {
+                } elseif (!empty($p['observacao'])) {
                     $classe = 'linha-observacao';
                 } elseif ($tem_edicao) {
                     $classe = 'linha-editado';
@@ -303,49 +369,94 @@ ob_start();
                 }
                 
                 // Determinar quais botões mostrar
-                // Regra do botão de check: NÃO mostrar quando imprimir=1, editado=1 ou dr=1; caso contrário, mostrar
-                $show_check = !($p['imprimir'] == 1 || $p['editado'] == 1 || $p['dr'] == 1);
-                $show_imprimir = ($p['checado'] == 1 && $p['dr'] == 0 && $p['editado'] == 0);
-                $show_dr = !($p['checado'] == 1 || $p['imprimir'] == 1 || $p['editado'] == 1);
-                $show_obs = ($p['dr'] == 0);
-                $show_edit = ($p['checado'] == 0 && $p['dr'] == 0);
+                // Se estiver em DR (ativo=0), esconder todas as ações exceto o DR
+                if ($p['ativo'] == 0) {
+                    $show_check = false;
+                    $show_imprimir = false;
+                    $show_obs = false;
+                    $show_edit = false;
+                    $show_dr = true;
+                } else {
+                    // Regra do botão de check: NÃO mostrar quando imprimir=1 ou editado=1; caso contrário, mostrar
+                    $show_check = !($p['imprimir'] == 1 || $p['editado'] == 1);
+                    $show_imprimir = ($p['checado'] == 1 && $p['editado'] == 0);
+                    $show_obs = true; // Observação disponível quando ativo
+                    $show_edit = ($p['checado'] == 0);
+                    $show_dr = true; // Sempre mostrar DR
+                }
+            
+            $tipo_invalido = (!isset($p['tipo_bem_id']) || $p['tipo_bem_id'] == 0 || empty($p['tipo_bem_id']));
             ?>
-            <div class="list-group-item <?php echo $classe; ?>">
+            <div class="list-group-item <?php echo $classe; ?><?php echo $tipo_invalido ? ' tipo-nao-identificado' : ''; ?>" <?php echo $tipo_invalido ? 'title="Tipo de bem não identificado"' : ''; ?>>
                 <!-- Código -->
                 <div class="codigo-produto">
-                    <strong><?php echo htmlspecialchars($p['codigo']); ?></strong>
+                    <?php echo htmlspecialchars($p['codigo']); ?>
                 </div>
                 
                 <!-- Edição Pendente -->
                 <?php if ($tem_edicao): ?>
                 <div class="edicao-pendente">
-                    <strong>✍ Edição pendente:</strong><br>
-                    <?php if (!empty($p['nome_editado'])): ?>
-                        <strong>Nome:</strong> <?php echo htmlspecialchars($p['nome_editado']); ?><br>
-                    <?php endif; ?>
-                    <?php if (!empty($p['dependencia_editada'])): ?>
-                        <strong>Dep:</strong> <?php echo htmlspecialchars($p['dependencia_editada']); ?>
-                    <?php endif; ?>
+                    <strong>Edição:</strong><br>
+                    <?php
+                    // Mostrar editado_descricao_completa se existir; caso contrário montar uma versão dinâmica
+                    $desc_editada_visivel = trim($p['editado_descricao_completa'] ?? '');
+                    if ($desc_editada_visivel === '') {
+                        // Dados base (preferir editados)
+                        $tipo_codigo_final = $p['tipo_codigo'];
+                        $tipo_desc_final = $p['tipo_desc'];
+                        $ben_final = ($p['editado_bem'] !== '' ? $p['editado_bem'] : $p['bem']);
+                        $comp_final = ($p['editado_complemento'] !== '' ? $p['editado_complemento'] : $p['complemento']);
+                        $dep_final = ($p['editado_dependencia_desc'] ?: $p['dependencia_desc']);
+                        // Montagem simples (similar à função pp_montar_descricao mas sem quantidade)
+                        $partes = [];
+                        if ($tipo_codigo_final && $tipo_desc_final) {
+                            $partes[] = strtoupper($tipo_codigo_final . ' - ' . $tipo_desc_final);
+                        }
+                        if ($ben_final !== '') {
+                            $partes[] = strtoupper($ben_final);
+                        }
+                        if ($comp_final !== '') {
+                            // Evitar duplicação do ben no complemento (básico)
+                            $comp_tmp = strtoupper($comp_final);
+                            if ($ben_final !== '' && strpos($comp_tmp, strtoupper($ben_final)) === 0) {
+                                $comp_tmp = trim(substr($comp_tmp, strlen($ben_final)));
+                                $comp_tmp = preg_replace('/^[\s\-\/]+/','',$comp_tmp);
+                            }
+                            if ($comp_tmp !== '') $partes[] = $comp_tmp;
+                        }
+                        $desc_editada_visivel = implode(' - ', $partes);
+                        if ($dep_final) {
+                            $desc_editada_visivel .= ' (' . strtoupper($dep_final) . ')';
+                        }
+                        if ($desc_editada_visivel === '') {
+                            $desc_editada_visivel = 'EDIÇÃO SEM DESCRIÇÃO';
+                        }
+                    }
+                    echo htmlspecialchars($desc_editada_visivel);
+                    ?><br>
+                </div>
+                <?php endif; ?>
+                
+                <!-- Observação -->
+                <?php if (!empty($p['observacao'])): ?>
+                <div class="observacao-produto">
+                    <strong>Observação:</strong><br>
+                    <?php echo htmlspecialchars($p['observacao']); ?><br>
                 </div>
                 <?php endif; ?>
                 
                 <!-- Informações -->
                 <div class="info-produto">
-                    <strong>Nome:</strong> <?php echo htmlspecialchars($p['nome']); ?><br>
-                    <?php if (!empty($p['dependencia'])): ?>
-                    <strong>Dep:</strong> <?php echo htmlspecialchars($p['dependencia']); ?><br>
-                    <?php endif; ?>
-                    <?php if (!empty($p['observacoes'])): ?>
-                    <strong>Obs:</strong> <?php echo htmlspecialchars($p['observacoes']); ?><br>
-                    <?php endif; ?>
+                    <?php echo htmlspecialchars($p['descricao_completa']); ?><br>
                 </div>
                 
-                <!-- Ações -->
+                <!-- Ações - Apenas para Administrador/Acessor -->
+                <?php if (isAdmin()): ?>
                 <div class="acao-container">
                     <!-- Check -->
                     <?php if ($show_check): ?>
-                    <form method="POST" action="./check-produto.php" style="display: inline;" class="check-form">
-                        <input type="hidden" name="produto_id" value="<?php echo $p['id']; ?>">
+                    <form method="POST" action="./check-produto.php" style="display: inline;">
+                        <input type="hidden" name="produto_id" value="<?php echo $p['id_produto']; ?>">
                         <input type="hidden" name="id_planilha" value="<?php echo $id_planilha; ?>">
                         <input type="hidden" name="checado" value="<?php echo $p['checado'] ? '0' : '1'; ?>">
                         <input type="hidden" name="pagina" value="<?php echo $pagina ?? 1; ?>">
@@ -353,35 +464,18 @@ ob_start();
                         <input type="hidden" name="dependencia" value="<?php echo htmlspecialchars($filtro_dependencia ?? ''); ?>">
                         <input type="hidden" name="codigo" value="<?php echo htmlspecialchars($filtro_codigo ?? ''); ?>">
                         <input type="hidden" name="status" value="<?php echo htmlspecialchars($filtro_status ?? ''); ?>">
-                        <button type="submit" class="btn-acao btn-check <?php echo $p['checado'] == 1 ? 'active' : ''; ?>" title="<?php echo $p['checado'] ? 'Desmarcar checado' : 'Marcar como checado'; ?>">
-                            <i class="bi bi-check-circle-fill" style="color: #198754; font-size: 24px;"></i>
+                        <button type="submit" class="btn btn-outline-success btn-sm <?php echo $p['checado'] == 1 ? 'active' : ''; ?>" title="<?php echo $p['checado'] ? 'Desmarcar checado' : 'Marcar como checado'; ?>">
+                            <i class="bi bi-check-circle-fill"></i>
                         </button>
                     </form>
                     <?php else: ?>
                     <!-- DEBUG: show_check é FALSE -->
                     <?php endif; ?>
                     
-                    <!-- DR -->
-                    <?php if ($show_dr): ?>
-                    <form method="POST" action="../../../CRUD/UPDATE/dr-produto.php" style="display: inline;" onsubmit="return confirmarDR(this, <?php echo $p['dr']; ?>)">
-                        <input type="hidden" name="produto_id" value="<?php echo $p['id']; ?>">
-                        <input type="hidden" name="id_planilha" value="<?php echo $id_planilha; ?>">
-                        <input type="hidden" name="dr" value="<?php echo $p['dr'] ? '0' : '1'; ?>">
-                        <input type="hidden" name="pagina" value="<?php echo $pagina ?? 1; ?>">
-                        <input type="hidden" name="nome" value="<?php echo htmlspecialchars($filtro_nome ?? ''); ?>">
-                        <input type="hidden" name="dependencia" value="<?php echo htmlspecialchars($filtro_dependencia ?? ''); ?>">
-                        <input type="hidden" name="codigo" value="<?php echo htmlspecialchars($filtro_codigo ?? ''); ?>">
-                        <input type="hidden" name="status" value="<?php echo htmlspecialchars($filtro_status ?? ''); ?>">
-                        <button type="submit" class="btn-acao btn-dr <?php echo $p['dr'] == 1 ? 'active' : ''; ?>" title="DR">
-                            <i class="bi bi-bookmark-fill" style="color: #dc3545; font-size: 24px;"></i>
-                        </button>
-                    </form>
-                    <?php endif; ?>
-                    
                     <!-- Etiqueta -->
                     <?php if ($show_imprimir): ?>
                     <form method="POST" action="../../../CRUD/UPDATE/etiqueta-produto.php" style="display: inline;" onsubmit="return confirmarImprimir(this, <?php echo $p['imprimir']; ?>)">
-                        <input type="hidden" name="produto_id" value="<?php echo $p['id']; ?>">
+                        <input type="hidden" name="produto_id" value="<?php echo $p['id_produto']; ?>">
                         <input type="hidden" name="id_planilha" value="<?php echo $id_planilha; ?>">
                         <input type="hidden" name="imprimir" value="<?php echo $p['imprimir'] ? '0' : '1'; ?>">
                         <input type="hidden" name="pagina" value="<?php echo $pagina ?? 1; ?>">
@@ -389,28 +483,46 @@ ob_start();
                         <input type="hidden" name="dependencia" value="<?php echo htmlspecialchars($filtro_dependencia ?? ''); ?>">
                         <input type="hidden" name="codigo" value="<?php echo htmlspecialchars($filtro_codigo ?? ''); ?>">
                         <input type="hidden" name="status" value="<?php echo htmlspecialchars($filtro_status ?? ''); ?>">
-                        <button type="submit" class="btn-acao btn-etiqueta <?php echo $p['imprimir'] == 1 ? 'active' : ''; ?>" title="Etiqueta">
-                            <i class="bi bi-printer-fill" style="color: #17a2b8; font-size: 24px;"></i>
+                        <button type="submit" class="btn btn-outline-info btn-sm <?php echo $p['imprimir'] == 1 ? 'active' : ''; ?>" title="Etiqueta">
+                            <i class="bi bi-printer-fill"></i>
                         </button>
                     </form>
                     <?php endif; ?>
                     
                     <!-- Observação -->
                     <?php if ($show_obs): ?>
-                    <a href="../produtos/observacao-produto.php?id_produto=<?php echo $p['id']; ?>&id=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina ?? 1; ?>&nome=<?php echo urlencode($filtro_nome ?? ''); ?>&dependencia=<?php echo urlencode($filtro_dependencia ?? ''); ?>&filtro_codigo=<?php echo urlencode($filtro_codigo ?? ''); ?>&status=<?php echo urlencode($filtro_status ?? ''); ?>"
-                       class="btn-acao btn-observacao <?php echo !empty($p['observacoes']) ? 'active' : ''; ?>" title="Observação">
-                        <i class="bi bi-chat-square-text-fill" style="color: #ff9800; font-size: 24px;"></i>
+                    <a href="../produtos/observacao-produto.php?id_produto=<?php echo $p['id_produto']; ?>&id=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina ?? 1; ?>&nome=<?php echo urlencode($filtro_nome ?? ''); ?>&dependencia=<?php echo urlencode($filtro_dependencia ?? ''); ?>&filtro_codigo=<?php echo urlencode($filtro_codigo ?? ''); ?>&status=<?php echo urlencode($filtro_status ?? ''); ?>"
+                       class="btn btn-outline-warning btn-sm <?php echo !empty($p['observacao']) ? 'active' : ''; ?>" title="Observação">
+                        <i class="bi bi-chat-square-text-fill"></i>
                     </a>
                     <?php endif; ?>
                     
                     <!-- Editar -->
                     <?php if ($show_edit): ?>
-                    <a href="../produtos/editar-produto.php?id_produto=<?php echo $p['id']; ?>&id=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina ?? 1; ?>&nome=<?php echo urlencode($filtro_nome ?? ''); ?>&dependencia=<?php echo urlencode($filtro_dependencia ?? ''); ?>&filtro_codigo=<?php echo urlencode($filtro_codigo ?? ''); ?>&status=<?php echo urlencode($filtro_status ?? ''); ?>"
-                       class="btn-acao btn-editar <?php echo $tem_edicao ? 'active' : ''; ?>" title="Editar">
-                        <i class="bi bi-pencil-fill" style="color: #9c27b0; font-size: 24px;"></i>
+                    <a href="../produtos/editar-produto.php?id_produto=<?php echo $p['id_produto']; ?>&id=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina ?? 1; ?>&nome=<?php echo urlencode($filtro_nome ?? ''); ?>&dependencia=<?php echo urlencode($filtro_dependencia ?? ''); ?>&filtro_codigo=<?php echo urlencode($filtro_codigo ?? ''); ?>&status=<?php echo urlencode($filtro_status ?? ''); ?>"
+                       class="btn btn-outline-primary btn-sm <?php echo $tem_edicao ? 'active' : ''; ?>" title="Editar">
+                        <i class="bi bi-pencil-fill"></i>
                     </a>
                     <?php endif; ?>
+                    
+                    <!-- DR -->
+                    <?php if ($show_dr): ?>
+                    <form method="POST" action="../../../CRUD/UPDATE/dr-produto.php" style="display: inline;" onsubmit="return confirmarDR(this, <?php echo $p['ativo'] == 0 ? 1 : 0; ?>)">
+                        <input type="hidden" name="produto_id" value="<?php echo $p['id_produto']; ?>">
+                        <input type="hidden" name="id_planilha" value="<?php echo $id_planilha; ?>">
+                        <input type="hidden" name="dr" value="<?php echo $p['ativo'] == 0 ? '0' : '1'; ?>">
+                        <input type="hidden" name="pagina" value="<?php echo $pagina ?? 1; ?>">
+                        <input type="hidden" name="nome" value="<?php echo htmlspecialchars($filtro_nome ?? ''); ?>">
+                        <input type="hidden" name="dependencia" value="<?php echo htmlspecialchars($filtro_dependencia ?? ''); ?>">
+                        <input type="hidden" name="codigo" value="<?php echo htmlspecialchars($filtro_codigo ?? ''); ?>">
+                        <input type="hidden" name="status" value="<?php echo htmlspecialchars($filtro_status ?? ''); ?>">
+                        <button type="submit" class="btn btn-outline-danger btn-sm <?php echo $p['ativo'] == 0 ? 'active' : ''; ?>" title="DR">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                        </button>
+                    </form>
+                    <?php endif; ?>
                 </div>
+                <?php endif; // fim do if isAdmin() ?>
             </div>
             <?php endforeach; ?>
         <?php else: ?>
@@ -1179,12 +1291,12 @@ function initBarcodeScanner() {
 $contentHtml = ob_get_clean();
 
 // Criar arquivo temporário com o conteúdo
-$tempFile = __DIR__ . '/../../../temp_view_planilha_content_' . uniqid() . '.php';
+$tempFile = PROJECT_ROOT . '/temp_view_planilha_content_' . uniqid() . '.php';
 file_put_contents($tempFile, $contentHtml);
 $contentFile = $tempFile;
 
 // Renderizar o layout
-include __DIR__ . '/../layouts/app-wrapper.php';
+include PROJECT_ROOT . '/layouts/app-wrapper.php';
 
 // Limpar arquivo temporário
 unlink($tempFile);

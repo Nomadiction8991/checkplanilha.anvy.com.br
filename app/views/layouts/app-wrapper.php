@@ -12,22 +12,19 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title><?php echo $pageTitle ?? 'Anvy - Gestão de Planilhas'; ?></title>
     
-    <!-- PWA - Progressive Web App -->
-    <link rel="manifest" href="<?php echo $manifest_path; ?>">
-    <meta name="theme-color" content="#667eea">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="CheckPlanilha">
-    <link rel="apple-touch-icon" href="<?php echo ($ambiente_manifest === 'dev') ? '/dev/logo.png' : '/logo.png'; ?>">
+    <!-- PWA removed from global layout: manifest and service-worker are registered only on login page -->
     
     <!-- Bootstrap 5.3 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <!-- Mobile-First Global CSS - REMOVIDO: contradiz objetivo de CSS único para todos dispositivos -->
+    <!-- <link rel="stylesheet" href="<?php echo ($ambiente_manifest === 'dev') ? '/dev/public/assets/css/mobile-first.css' : '/public/assets/css/mobile-first.css'; ?>"> -->
     
     <!-- Custom CSS -->
     <style>
@@ -70,8 +67,12 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
             display: flex;
             align-items: center;
             justify-content: space-between;
-            position: sticky;
+            position: fixed;
             top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 400px;
             z-index: 1000;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
@@ -160,6 +161,8 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
         .app-content {
             flex: 1;
             padding: 20px;
+            /* Espaço dinâmico para o header fixo (altura calculada via JS) */
+            padding-top: calc(var(--header-height, 76px) + 8px);
             overflow-y: auto;
             background: #f8f9fa;
         }
@@ -347,6 +350,8 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
         .fade-in {
             animation: fadeIn 0.3s ease-out;
         }
+
+        /* Global PWA overlay removed; PWA is initialized only on the login page */
     </style>
     
     <?php if (isset($customCss)): ?>
@@ -364,7 +369,15 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
                             <i class="bi bi-arrow-left fs-5"></i>
                         </a>
                     <?php endif; ?>
-                    <h1 class="app-title"><?php echo $pageTitle ?? 'Anvy'; ?></h1>
+                    <div>
+                        <h1 class="app-title"><?php echo $pageTitle ?? 'Anvy'; ?></h1>
+                        <?php if (isset($_SESSION['usuario_nome'])): ?>
+                            <small style="font-size: 11px; opacity: 0.8;">
+                                <i class="bi bi-person-circle me-1"></i>
+                                <?php echo htmlspecialchars($_SESSION['usuario_nome']); ?>
+                            </small>
+                        <?php endif; ?>
+                    </div>
                 </div>
                 <div class="header-actions">
                     <?php if (isset($headerActions)): ?>
@@ -391,21 +404,68 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- PWA Service Worker Registration -->
+    <!-- Ajuste dinâmico do espaçamento do conteúdo baseado na altura do header -->
     <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                const swPath = '<?php echo ($ambiente_manifest === "dev") ? "/dev/sw.js" : "/sw.js"; ?>';
-                navigator.serviceWorker.register(swPath)
-                    .then(registration => {
-                        console.log('Service Worker registrado com sucesso:', registration.scope);
-                        console.log('Ambiente:', '<?php echo $ambiente_manifest; ?>');
-                    })
-                    .catch(err => console.error('Falha ao registrar Service Worker:', err));
-            });
-        }
+        (function() {
+            function setHeaderHeightVar() {
+                var header = document.querySelector('.app-header');
+                if (!header) return;
+                var h = header.getBoundingClientRect().height;
+                document.documentElement.style.setProperty('--header-height', h + 'px');
+            }
+
+            // Definir ao carregar e ao redimensionar
+            window.addEventListener('load', setHeaderHeightVar);
+            window.addEventListener('resize', setHeaderHeightVar);
+
+            // Pequeno debounce para mudanças de layout dinâmicas
+            var ro;
+            if ('ResizeObserver' in window) {
+                ro = new ResizeObserver(setHeaderHeightVar);
+                var header = document.querySelector('.app-header');
+                if (header) ro.observe(header);
+            }
+        })();
     </script>
     
+    <!-- Bloqueio de zoom global (pinch/double-tap) fora do viewer do relatório -->
+    <script>
+        (function(){
+            const isViewerOpen = () => {
+                const ov = document.getElementById('viewerOverlay');
+                return !!(ov && !ov.hasAttribute('hidden'));
+            };
+
+            // Evita pinch-zoom (2+ dedos) fora do viewer
+            document.addEventListener('touchstart', function(e){
+                if (isViewerOpen()) return; // permitir no viewer (zoom customizado)
+                if (e.touches && e.touches.length > 1) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
+            // Evita double-tap zoom fora do viewer
+            let lastTouchEnd = 0;
+            document.addEventListener('touchend', function(e){
+                if (isViewerOpen()) return;
+                const now = Date.now();
+                if (now - lastTouchEnd <= 300) {
+                    e.preventDefault();
+                }
+                lastTouchEnd = now;
+            }, { passive: false });
+
+            // Alguns navegadores disparam gesturestart (iOS antigos)
+            document.addEventListener('gesturestart', function(e){
+                if (isViewerOpen()) return;
+                e.preventDefault();
+            });
+
+            // Melhora em navegadores que suportam touch-action
+            document.body.style.touchAction = 'manipulation';
+        })();
+    </script>
+
     <?php if (isset($customJs)): ?>
         <script><?php echo $customJs; ?></script>
     <?php endif; ?>
