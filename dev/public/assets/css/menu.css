@@ -1,0 +1,166 @@
+@import url('base.css');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f5f5f5;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* Cabeçalho herda comportamento do base.css (centralizado e max 400px) */
+
+.titulo{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.cabecalho h1 {
+    font-size: 18px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+    flex-shrink: 1;
+}
+
+
+.voltar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    transition: background-color 0.3s;
+    flex-shrink: 0;
+}
+
+.voltar:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Conteúdo Principal */
+.conteudo {
+    padding: 20px;
+    max-width: 100%;
+    margin: 0 auto;
+    margin-top: 60px;
+}
+
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+.opcao {
+    display: block;
+    padding: 20px;
+    text-decoration: none;
+    color: #333;
+    background: #fff;
+    border-radius: 10px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 600;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Cores diferentes para cada opção */
+.op1 {
+    background: linear-gradient(135deg, #a3d3faff, #8bc5ff);
+    border-color: #007bff;
+    color: #004085;
+}
+
+.op2 {
+    background: linear-gradient(135deg, #a3d3faff, #8bc5ff);
+    border-color: #007bff;
+    color: #004085;
+}
+
+.op3 {
+    background: linear-gradient(135deg, #a3d3faff, #8bc5ff);
+    border-color: #007bff;
+    color: #004085;
+}
+
+.op4 {
+    background: linear-gradient(135deg, #f8d7daff, #f5c2c7);
+    border-color: #dc3545;
+    color: #721c24;
+}
+
+.op5 {
+    background: linear-gradient(135deg, #f8d7daff, #f5c2c7);
+    border-color: #dc3545;
+    color: #721c24;
+}
+
+.opcao:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    text-decoration: none;
+}
+
+.op1:hover {
+    background: linear-gradient(135deg, #8bc5ff, #79b8ff);
+}
+
+.op2:hover {
+    background: linear-gradient(135deg, #8bc5ff, #79b8ff);
+}
+
+.op3:hover {
+    background: linear-gradient(135deg, #8bc5ff, #79b8ff);
+}
+
+.op4:hover {
+    background: linear-gradient(135deg, #f5c2c7, #f1a8af);
+}
+
+.op5:hover {
+    background: linear-gradient(135deg, #f5c2c7, #f1a8af);
+}
+
+/* Estilos padrão mobile-first para todos os dispositivos */
+.voltar {
+    width: 32px;
+    height: 32px;
+}
+
+.voltar svg {
+    width: 36px;
+    height: 36px;
+}
+
+.cabecalho h1 {
+    font-size: 16px;
+    max-width: 150px;
+}
+
+.cabecalho {
+    padding: 10px 12px;
+    height: 55px;
+}
+
+.conteudo {
+    margin-top: 55px;
+}
+
+.voltar {
+    transition: all 0.2s ease-in-out;
+}
