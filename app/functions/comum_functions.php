@@ -121,28 +121,39 @@ function processar_comum($conexao, $comum_text, $dados = []) {
         }
         
         // Se não existe, inserir
-        $cnpj = $dados['cnpj'] ?? '';
+        $cnpj_original = $dados['cnpj'] ?? '';
+        // CNPJ final precisa ser único por conta do índice UNIQUE.
+        // Se vier vazio, criamos um placeholder para não colidir com outros vazios.
+        $cnpj_final = trim($cnpj_original);
+        $cnpj_final = preg_replace('/\s+/', '', $cnpj_final);
+        if ($cnpj_final === '') {
+            $cnpj_final = 'SEM-CNPJ-' . $codigo;
+        }
+        // Se já existir outro registro com o mesmo CNPJ mas outro código,
+        // criamos um sufixo para manter unicidade sem reaproveitar o ID.
+        $cnpj_existente = null;
+        $sql_cnpj = "SELECT id, codigo FROM comums WHERE cnpj = :cnpj";
+        $stmt_cnpj = $conexao->prepare($sql_cnpj);
+        $stmt_cnpj->bindValue(':cnpj', $cnpj_final);
+        $stmt_cnpj->execute();
+        $cnpj_existente = $stmt_cnpj->fetch();
+        if ($cnpj_existente) {
+            if ((int)$cnpj_existente['codigo'] === (int)$codigo) {
+                return (int)$cnpj_existente['id'];
+            }
+            // Ajusta para um valor único, preservando a origem.
+            $cnpj_final .= '-COD-' . $codigo;
+        }
+
         $administracao = $dados['administracao'] ?? '';
         $cidade = $dados['cidade'] ?? '';
         $setor = $dados['setor'] ?? 0;
-        
-        // Verificar se já existe pelo CNPJ para evitar erro de chave única
-        if (!empty($cnpj)) {
-            $sql_cnpj = "SELECT id FROM comums WHERE cnpj = :cnpj";
-            $stmt_cnpj = $conexao->prepare($sql_cnpj);
-            $stmt_cnpj->bindValue(':cnpj', $cnpj);
-            $stmt_cnpj->execute();
-            $res_cnpj = $stmt_cnpj->fetch();
-            if ($res_cnpj) {
-                return (int)$res_cnpj['id'];
-            }
-        }
         
         $sql_insert = "INSERT INTO comums (codigo, cnpj, descricao, administracao, cidade, setor) 
                        VALUES (:codigo, :cnpj, :descricao, :administracao, :cidade, :setor)";
         $stmt_insert = $conexao->prepare($sql_insert);
         $stmt_insert->bindValue(':codigo', $codigo);
-        $stmt_insert->bindValue(':cnpj', $cnpj);
+        $stmt_insert->bindValue(':cnpj', $cnpj_final);
         $stmt_insert->bindValue(':descricao', $descricao);
         $stmt_insert->bindValue(':administracao', $administracao);
         $stmt_insert->bindValue(':cidade', $cidade);
@@ -154,9 +165,9 @@ function processar_comum($conexao, $comum_text, $dados = []) {
     } catch (Exception $e) {
         // Tentar capturar duplicidade de CNPJ ou outros detalhes
         $msg = $e->getMessage();
-        if (stripos($msg, 'Duplicate') !== false && !empty($cnpj ?? '')) {
+        if (stripos($msg, 'Duplicate') !== false && !empty($cnpj_final ?? '')) {
             $stmt_dup = $conexao->prepare("SELECT id FROM comums WHERE cnpj = :cnpj");
-            $stmt_dup->bindValue(':cnpj', $cnpj);
+            $stmt_dup->bindValue(':cnpj', $cnpj_final);
             $stmt_dup->execute();
             $dup = $stmt_dup->fetch();
             if ($dup) {
