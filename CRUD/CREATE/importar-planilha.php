@@ -157,7 +157,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $registros_importados = 0;
         $registros_erros = 0;
         $linha_atual = 0;
-        $id_produto_sequencial = 1; // Sequencial por planilha
+        // Sequencial global para respeitar a PK (id_produto é único na tabela)
+        $stmtMaxId = $conexao->query("SELECT COALESCE(MAX(id_produto), 0) AS max_id FROM produtos");
+        $id_produto_sequencial = (int)($stmtMaxId->fetchColumn() ?? 0) + 1;
         $erros_produtos = []; // Para coletar erros específicos
 
         foreach ($linhas as $linha) {
