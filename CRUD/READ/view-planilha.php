@@ -85,9 +85,10 @@ if ($filtro_nome !== '') {
 }
 
 if ($filtro_dependencia !== '') {
-    // Filtra por dependencia_id (considerar tanto original quanto editado) - igualdade (IDs são inteiros)
-    $sql_base .= " AND (p.dependencia_id = :dependencia OR p.editado_dependencia_id = :dependencia)";
-    $params[':dependencia'] = $filtro_dependencia;
+    // Filtra por dependencia_id (considerar tanto original quanto editado) - placeholders distintos (PDO nativo não aceita nome repetido)
+    $sql_base .= " AND (p.dependencia_id = :dependencia1 OR p.editado_dependencia_id = :dependencia2)";
+    $params[':dependencia1'] = $filtro_dependencia;
+    $params[':dependencia2'] = $filtro_dependencia;
 }
 
 if ($filtro_codigo !== '') {
@@ -129,7 +130,7 @@ if ($filtro_nome !== '') {
     $sql_count .= " AND (p.descricao_completa LIKE :nome OR p.editado_descricao_completa LIKE :nome)";
 }
 if ($filtro_dependencia !== '') {
-    $sql_count .= " AND (p.dependencia_id = :dependencia OR p.editado_dependencia_id = :dependencia)";
+    $sql_count .= " AND (p.dependencia_id = :dependencia1 OR p.editado_dependencia_id = :dependencia2)";
 }
 if ($filtro_codigo !== '') {
     $sql_count .= " AND REPLACE(REPLACE(REPLACE(p.codigo, ' ', ''), '-', ''), '/', '') LIKE :codigo";
