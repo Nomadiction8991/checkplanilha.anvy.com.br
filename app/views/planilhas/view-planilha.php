@@ -267,9 +267,13 @@ ob_start();
                                 <select class="form-select" id="dependencia" name="dependencia">
                                     <option value="">Todas</option>
                                     <?php foreach ($dependencia_options as $dep): ?>
-                                    <option value="<?php echo htmlspecialchars($dep); ?>" 
-                                        <?php echo ($filtro_dependencia ?? '') === $dep ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($dep); ?>
+                                    <?php 
+                                        $depId = $dep['id'] ?? '';
+                                        $depDesc = $dep['descricao'] ?? $depId;
+                                    ?>
+                                    <option value="<?php echo htmlspecialchars($depId); ?>" 
+                                        <?php echo ($filtro_dependencia ?? '') == $depId ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($depDesc); ?>
                                     </option>
                                     <?php endforeach; ?>
                                 </select>

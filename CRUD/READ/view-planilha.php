@@ -182,7 +182,9 @@ $produtos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Dependências únicas para preencher o select de filtros
 try {
-    $sql_filtros = "SELECT DISTINCT dep FROM (
+    // Trazer ID e descrição da dependência (mostra descrição no select da view)
+    $sql_filtros = "SELECT DISTINCT d.id, d.descricao
+                    FROM (
                         SELECT p.dependencia_id AS dep
                         FROM produtos p
                         WHERE p.planilha_id = :id_dep_original
@@ -195,12 +197,13 @@ try {
                           AND p.editado_dependencia_id IS NOT NULL
                           AND p.editado_dependencia_id <> 0
                     ) deps
-                    ORDER BY dep";
+                    INNER JOIN dependencias d ON d.id = deps.dep
+                    ORDER BY d.descricao";
     $stmt_filtros = $conexao->prepare($sql_filtros);
     $stmt_filtros->bindValue(':id_dep_original', $id_planilha, PDO::PARAM_INT);
     $stmt_filtros->bindValue(':id_dep_editada', $id_planilha, PDO::PARAM_INT);
     $stmt_filtros->execute();
-    $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_COLUMN);
+    $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
     $dependencia_options = [];
 }
