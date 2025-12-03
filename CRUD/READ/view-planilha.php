@@ -41,7 +41,8 @@ $offset = ($pagina - 1) * $limite;
 
 // Filtros recebidos pela tela
 $filtro_nome = trim($_GET['nome'] ?? '');
-$filtro_dependencia = trim($_GET['dependencia'] ?? '');
+$filtro_dependencia_raw = $_GET['dependencia'] ?? '';
+$filtro_dependencia = ($filtro_dependencia_raw === '' ? '' : (int)$filtro_dependencia_raw);
 $filtro_codigo = trim($_GET['codigo'] ?? '');
 $filtro_status = trim($_GET['status'] ?? '');
 
@@ -84,9 +85,9 @@ if ($filtro_nome !== '') {
 }
 
 if ($filtro_dependencia !== '') {
-    // Filtra por dependencia_id (considerar tanto original quanto editado)
-    $sql_base .= " AND (p.dependencia_id LIKE :dependencia OR p.editado_dependencia_id LIKE :dependencia)";
-    $params[':dependencia'] = '%' . $filtro_dependencia . '%';
+    // Filtra por dependencia_id (considerar tanto original quanto editado) - igualdade (IDs são inteiros)
+    $sql_base .= " AND (p.dependencia_id = :dependencia OR p.editado_dependencia_id = :dependencia)";
+    $params[':dependencia'] = $filtro_dependencia;
 }
 
 if ($filtro_codigo !== '') {
@@ -128,7 +129,7 @@ if ($filtro_nome !== '') {
     $sql_count .= " AND (p.descricao_completa LIKE :nome OR p.editado_descricao_completa LIKE :nome)";
 }
 if ($filtro_dependencia !== '') {
-    $sql_count .= " AND (p.dependencia_id LIKE :dependencia OR p.editado_dependencia_id LIKE :dependencia)";
+    $sql_count .= " AND (p.dependencia_id = :dependencia OR p.editado_dependencia_id = :dependencia)";
 }
 if ($filtro_codigo !== '') {
     $sql_count .= " AND REPLACE(REPLACE(REPLACE(p.codigo, ' ', ''), '-', ''), '/', '') LIKE :codigo";
@@ -156,29 +157,38 @@ if ($filtro_status !== '') {
     }
 }
 
-$stmt_count = $conexao->prepare($sql_count);
-foreach ($params as $key => $value) {
-    $stmt_count->bindValue($key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
-}
-$stmt_count->execute();
-$total_registros = (int)$stmt_count->fetchColumn();
-$total_paginas = (int)ceil($total_registros / $limite);
+$erro_produtos = '';
 
-if ($total_paginas > 0 && $pagina > $total_paginas) {
-    $pagina = $total_paginas;
-    $offset = ($pagina - 1) * $limite;
-}
+try {
+    $stmt_count = $conexao->prepare($sql_count);
+    foreach ($params as $key => $value) {
+        $stmt_count->bindValue($key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+    }
+    $stmt_count->execute();
+    $total_registros = (int)$stmt_count->fetchColumn();
+    $total_paginas = (int)ceil($total_registros / $limite);
 
-// Busca efetiva dos produtos com ordenação e limites
-$sql_dados = $sql_base . " ORDER BY p.id_produto DESC LIMIT :limite OFFSET :offset";
-$stmt = $conexao->prepare($sql_dados);
-foreach ($params as $key => $value) {
-    $stmt->bindValue($key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+    if ($total_paginas > 0 && $pagina > $total_paginas) {
+        $pagina = $total_paginas;
+        $offset = ($pagina - 1) * $limite;
+    }
+
+    // Busca efetiva dos produtos com ordenação e limites
+    $sql_dados = $sql_base . " ORDER BY p.id_produto DESC LIMIT :limite OFFSET :offset";
+    $stmt = $conexao->prepare($sql_dados);
+    foreach ($params as $key => $value) {
+        $stmt->bindValue($key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+    }
+    $stmt->bindValue(':limite', $limite, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+    $stmt->execute();
+    $produtos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (Exception $e) {
+    $erro_produtos = $e->getMessage();
+    $produtos = [];
+    $total_registros = 0;
+    $total_paginas = 0;
 }
-$stmt->bindValue(':limite', $limite, PDO::PARAM_INT);
-$stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-$stmt->execute();
-$produtos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Dependências únicas para preencher o select de filtros
 try {
