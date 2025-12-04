@@ -216,6 +216,12 @@ ob_start();
     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 <?php endif; ?>
+<?php if (!empty($erro_produtos)): ?>
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    Erro ao carregar produtos: <?php echo htmlspecialchars($erro_produtos); ?>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+<?php endif; ?>
 
 <!-- Filtros -->
 <div class="card mb-3">
@@ -267,9 +273,13 @@ ob_start();
                                 <select class="form-select" id="dependencia" name="dependencia">
                                     <option value="">Todas</option>
                                     <?php foreach ($dependencia_options as $dep): ?>
-                                    <option value="<?php echo htmlspecialchars($dep); ?>" 
-                                        <?php echo ($filtro_dependencia ?? '') === $dep ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($dep); ?>
+                                    <?php 
+                                        $depId = $dep['id'] ?? '';
+                                        $depDesc = $dep['descricao'] ?? $depId;
+                                    ?>
+                                    <option value="<?php echo htmlspecialchars($depId); ?>" 
+                                        <?php echo ($filtro_dependencia ?? '') == $depId ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($depDesc); ?>
                                     </option>
                                     <?php endforeach; ?>
                                 </select>

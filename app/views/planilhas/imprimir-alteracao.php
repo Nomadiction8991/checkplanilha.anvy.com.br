@@ -24,7 +24,7 @@ $mostrar_dr = isset($_GET['mostrar_dr']);
 $mostrar_etiqueta = isset($_GET['mostrar_etiqueta']);
 $mostrar_alteracoes = isset($_GET['mostrar_alteracoes']);
 $mostrar_novos = isset($_GET['mostrar_novos']);
-$filtro_dependencia = $_GET['dependencia'] ?? '';
+$filtro_dependencia = isset($_GET['dependencia']) && $_GET['dependencia'] !== '' ? (int)$_GET['dependencia'] : '';
 
 try {
     // Buscar produtos da planilha importada (tabela produtos)
@@ -42,10 +42,10 @@ try {
     $params = [':id_planilha' => $id_planilha];
     if (!empty($filtro_dependencia)) { 
         $sql_produtos .= " AND (
-            (CAST(p.editado AS SIGNED) = 1 AND p.editado_dependencia_id LIKE :dependencia) OR
-            (CAST(p.editado AS SIGNED) IS NULL OR CAST(p.editado AS SIGNED) = 0) AND p.dependencia_id LIKE :dependencia
+            (CAST(p.editado AS SIGNED) = 1 AND p.editado_dependencia_id = :dependencia) OR
+            (CAST(p.editado AS SIGNED) IS NULL OR CAST(p.editado AS SIGNED) = 0) AND p.dependencia_id = :dependencia
         )"; 
-        $params[':dependencia'] = '%' . $filtro_dependencia . '%'; 
+        $params[':dependencia'] = $filtro_dependencia; 
     }
     $sql_produtos .= " ORDER BY p.codigo";
     $stmt_produtos = $conexao->prepare($sql_produtos);
@@ -86,6 +86,24 @@ try {
     $stmt_dependencias->execute();
     $dependencia_options = $stmt_dependencias->fetchAll(PDO::FETCH_COLUMN);
 } catch (Exception $e) { $dependencia_options = []; }
+
+// Mapear ID -> descrição/código para exibir label amigável no filtro
+$dependencias_map = [];
+if (!empty($dependencia_options)) {
+    $placeholders = implode(',', array_fill(0, count($dependencia_options), '?'));
+    $stmtDepMap = $conexao->prepare("SELECT id, codigo, descricao FROM dependencias WHERE id IN ($placeholders)");
+    foreach ($dependencia_options as $idx => $depId) {
+        $stmtDepMap->bindValue($idx + 1, (int)$depId, PDO::PARAM_INT);
+    }
+    if ($stmtDepMap->execute()) {
+        foreach ($stmtDepMap->fetchAll(PDO::FETCH_ASSOC) as $d) {
+            $dependencias_map[(int)$d['id']] = [
+                'codigo' => $d['codigo'],
+                'descricao' => $d['descricao']
+            ];
+        }
+    }
+}
 
 $produtos_pendentes = $produtos_checados = $produtos_observacao = $produtos_checados_observacao = $produtos_dr = $produtos_etiqueta = $produtos_alteracoes = $produtos_novos = [];
 foreach ($todos_produtos as $produto) {
@@ -261,7 +279,16 @@ ob_start();
         <select class="form-select" id="dependencia" name="dependencia">
           <option value="">Todas as dependências</option>
           <?php foreach ($dependencia_options as $dep): ?>
-            <option value="<?php echo htmlspecialchars($dep); ?>" <?php echo $filtro_dependencia === $dep ? 'selected' : ''; ?>><?php echo htmlspecialchars($dep); ?></option>
+            <?php 
+                $depId = (int)$dep;
+                $label = $dependencias_map[$depId]['descricao'] ?? $depId;
+                if (isset($dependencias_map[$depId]['codigo'])) {
+                    $label = $dependencias_map[$depId]['codigo'] . ' - ' . $label;
+                }
+            ?>
+            <option value="<?php echo $depId; ?>" <?php echo ($filtro_dependencia === $depId) ? 'selected' : ''; ?>>
+                <?php echo htmlspecialchars($label); ?>
+            </option>
           <?php endforeach; ?>
         </select>
       </div>

@@ -16,7 +16,11 @@ require_once __DIR__ . '/../../bootstrap.php';
 function extrair_codigo_comum($comum_text) {
     $comum_text = trim($comum_text);
     
-    if (preg_match('/BR\s+(\d{2})-(\d{4})/', $comum_text, $matches)) {
+    // Aceita variações como "BR 09-0040", "BR09 0040", "09-0040"
+    if (preg_match('/BR\s*(\d{2})\D?(\d{4})/i', $comum_text, $matches)) {
+        return (int)($matches[1] . $matches[2]);
+    }
+    if (preg_match('/(\d{2})\D?(\d{4})/', $comum_text, $matches)) {
         return (int)($matches[1] . $matches[2]);
     }
     
@@ -34,7 +38,9 @@ function extrair_codigo_comum($comum_text) {
 function extrair_descricao_comum($comum_text) {
     $comum_text = trim($comum_text);
     
-    if (preg_match('/BR\s+\d{2}-\d{4}\s*-\s*(.+)$/', $comum_text, $matches)) {
+    // Aceita variações de separador (hífen, barra ou espaço)
+    if (preg_match('/BR\s*\d{2}\D?\d{4}\s*[-\/]?\s*(.+)$/i', $comum_text, $matches) ||
+        preg_match('/\d{2}\D?\d{4}\s*[-\/]?\s*(.+)$/', $comum_text, $matches)) {
         $descricao = trim($matches[1]);
         
         if (strpos($descricao, '-') !== false) {
@@ -58,14 +64,14 @@ function extrair_descricao_comum($comum_text) {
  */
 function processar_comum($conexao, $comum_text, $dados = []) {
     if (empty($comum_text)) {
-        return null;
+        throw new Exception('Comum vazio ou não informado.');
     }
     
     $codigo = extrair_codigo_comum($comum_text);
     $descricao = extrair_descricao_comum($comum_text);
     
     if (empty($codigo) || empty($descricao)) {
-        return null;
+        throw new Exception("Formato de comum inválido: '{$comum_text}'.");
     }
     
     try {
@@ -116,7 +122,30 @@ function processar_comum($conexao, $comum_text, $dados = []) {
         }
         
         // Se não existe, inserir
-        $cnpj = $dados['cnpj'] ?? '';
+        $cnpj_original = $dados['cnpj'] ?? '';
+        // CNPJ final precisa ser único por conta do índice UNIQUE.
+        // Se vier vazio, criamos um placeholder para não colidir com outros vazios.
+        $cnpj_final = trim($cnpj_original);
+        $cnpj_final = preg_replace('/\s+/', '', $cnpj_final);
+        if ($cnpj_final === '') {
+            $cnpj_final = 'SEM-CNPJ-' . $codigo;
+        }
+        // Se já existir outro registro com o mesmo CNPJ mas outro código,
+        // criamos um sufixo para manter unicidade sem reaproveitar o ID.
+        $cnpj_existente = null;
+        $sql_cnpj = "SELECT id, codigo FROM comums WHERE cnpj = :cnpj";
+        $stmt_cnpj = $conexao->prepare($sql_cnpj);
+        $stmt_cnpj->bindValue(':cnpj', $cnpj_final);
+        $stmt_cnpj->execute();
+        $cnpj_existente = $stmt_cnpj->fetch();
+        if ($cnpj_existente) {
+            if ((int)$cnpj_existente['codigo'] === (int)$codigo) {
+                return (int)$cnpj_existente['id'];
+            }
+            // Ajusta para um valor único, preservando a origem.
+            $cnpj_final .= '-COD-' . $codigo;
+        }
+
         $administracao = $dados['administracao'] ?? '';
         $cidade = $dados['cidade'] ?? '';
         $setor = $dados['setor'] ?? 0;
@@ -125,7 +154,7 @@ function processar_comum($conexao, $comum_text, $dados = []) {
                        VALUES (:codigo, :cnpj, :descricao, :administracao, :cidade, :setor)";
         $stmt_insert = $conexao->prepare($sql_insert);
         $stmt_insert->bindValue(':codigo', $codigo);
-        $stmt_insert->bindValue(':cnpj', $cnpj);
+        $stmt_insert->bindValue(':cnpj', $cnpj_final);
         $stmt_insert->bindValue(':descricao', $descricao);
         $stmt_insert->bindValue(':administracao', $administracao);
         $stmt_insert->bindValue(':cidade', $cidade);
@@ -135,8 +164,19 @@ function processar_comum($conexao, $comum_text, $dados = []) {
         return $conexao->lastInsertId();
         
     } catch (Exception $e) {
-        error_log("Erro ao processar comum: " . $e->getMessage());
-        return null;
+        // Tentar capturar duplicidade de CNPJ ou outros detalhes
+        $msg = $e->getMessage();
+        if (stripos($msg, 'Duplicate') !== false && !empty($cnpj_final ?? '')) {
+            $stmt_dup = $conexao->prepare("SELECT id FROM comums WHERE cnpj = :cnpj");
+            $stmt_dup->bindValue(':cnpj', $cnpj_final);
+            $stmt_dup->execute();
+            $dup = $stmt_dup->fetch();
+            if ($dup) {
+                return (int)$dup['id'];
+            }
+        }
+        error_log("Erro ao processar comum: " . $msg);
+        throw new Exception("Erro ao processar comum: " . $msg);
     }
 }
 
