@@ -80,8 +80,10 @@ $sql_base = "SELECT
 $params = [':id_planilha' => $id_planilha];
 
 if ($filtro_nome !== '') {
-    $sql_base .= " AND (p.descricao_completa LIKE :nome OR p.editado_descricao_completa LIKE :nome)";
-    $params[':nome'] = '%' . $filtro_nome . '%';
+    // Usar placeholders distintos: PDO nÇœo aceita o mesmo nome repetido com ATTR_EMULATE_PREPARES desativado
+    $sql_base .= " AND (p.descricao_completa LIKE :nome1 OR p.editado_descricao_completa LIKE :nome2)";
+    $params[':nome1'] = '%' . $filtro_nome . '%';
+    $params[':nome2'] = '%' . $filtro_nome . '%';
 }
 
 if ($filtro_dependencia !== '') {
@@ -127,7 +129,7 @@ $sql_count = "SELECT COUNT(*) AS total
 
 // Aplicar os mesmos filtros do $sql_base na query de contagem
 if ($filtro_nome !== '') {
-    $sql_count .= " AND (p.descricao_completa LIKE :nome OR p.editado_descricao_completa LIKE :nome)";
+    $sql_count .= " AND (p.descricao_completa LIKE :nome1 OR p.editado_descricao_completa LIKE :nome2)";
 }
 if ($filtro_dependencia !== '') {
     $sql_count .= " AND (p.dependencia_id = :dependencia1 OR p.editado_dependencia_id = :dependencia2)";
