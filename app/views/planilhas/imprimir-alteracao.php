@@ -293,24 +293,6 @@ ob_start();
           </div>
         </div>
       </div>
-      <div class="col-12">
-        <label for="dependencia" class="form-label">Filtrar por depend├¬ncia</label>
-        <select class="form-select" id="dependencia" name="dependencia">
-          <option value="">Todas as depend├¬ncias</option>
-          <?php foreach ($dependencia_options as $dep): ?>
-            <?php 
-                $depId = (int)$dep;
-                $label = $dependencias_map[$depId]['descricao'] ?? $depId;
-                if (isset($dependencias_map[$depId]['codigo'])) {
-                    $label = $dependencias_map[$depId]['codigo'] . ' - ' . $label;
-                }
-            ?>
-            <option value="<?php echo $depId; ?>" <?php echo ($filtro_dependencia === $depId) ? 'selected' : ''; ?>>
-                <?php echo htmlspecialchars($label); ?>
-            </option>
-          <?php endforeach; ?>
-        </select>
-      </div>
       <div class="col-12 d-grid">
         <button type="submit" class="btn btn-success"><i class="bi bi-funnel me-2"></i>Aplicar filtros</button>
       </div>
@@ -556,6 +538,7 @@ include __DIR__ . '/../layouts/app-wrapper.php';
 
 unlink($tempFile);
 ?>
+
 
 
 
