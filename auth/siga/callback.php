@@ -25,9 +25,34 @@ $_SESSION['usuario_tipo'] = $_SESSION['usuario_tipo'] ?? 'SIGA';
 // Limpa state para nao ser reutilizado
 unset($_SESSION['siga_state']);
 
-// Redireciona para dashboard ou rota solicitada anteriormente
 $destino = $_SESSION['redirect_after_login'] ?? base_url('index.php');
 unset($_SESSION['redirect_after_login']);
 
+// Se veio de popup, fecha janela e avisa opener
+if (isset($_GET['popup']) && $_GET['popup'] === '1') {
+    ?>
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <title>SIGA autenticado</title>
+    </head>
+    <body>
+        <script>
+            try {
+                if (window.opener) {
+                    window.opener.postMessage({ sigaAuth: true, ok: true }, '*');
+                }
+            } catch (e) {}
+            window.close();
+        </script>
+        <p>Login concluido. Esta janela pode ser fechada.</p>
+    </body>
+    </html>
+    <?php
+    exit;
+}
+
+// Redireciona no fluxo normal
 header('Location: ' . $destino);
 exit;

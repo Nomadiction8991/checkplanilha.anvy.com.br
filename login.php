@@ -153,10 +153,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="text-center mb-2 text-muted small">
                         Ou acesse usando sua conta SIGA (login externo)
                     </div>
-                    <a href="<?php echo htmlspecialchars($sigaLoginRedirect); ?>" class="btn btn-outline-primary w-100">
+                    <button type="button" id="btnSigaLogin" class="btn btn-outline-primary w-100">
                         <i class="bi bi-box-arrow-up-right me-2"></i>
                         Entrar pelo SIGA
-                    </a>
+                    </button>
                     <div class="form-text text-center mt-2">
                         O login é feito diretamente no SIGA. Nenhuma senha é armazenada aqui.
                     </div>
@@ -177,5 +177,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Abre login SIGA em popup para facilitar o retorno
+        (function() {
+            var btn = document.getElementById('btnSigaLogin');
+            if (!btn) return;
+            btn.addEventListener('click', function() {
+                var w = 520, h = 720;
+                var left = (window.screen.width / 2) - (w / 2);
+                var top = (window.screen.height / 2) - (h / 2);
+                var popupUrl = <?php echo json_encode(base_url('auth/siga/redirect.php?popup=1')); ?>;
+                var win = window.open(popupUrl, 'sigaLogin', 'width=' + w + ',height=' + h + ',left=' + left + ',top=' + top);
+                if (!win) {
+                    window.location.href = popupUrl; // fallback se popup bloqueado
+                    return;
+                }
+                var handler = function(event) {
+                    if (event && event.data && event.data.sigaAuth) {
+                        window.removeEventListener('message', handler);
+                        win.close();
+                        window.location.href = <?php echo json_encode(base_url('index.php')); ?>;
+                    }
+                };
+                window.addEventListener('message', handler, false);
+            });
+        })();
+    </script>
 </body>
 </html>
