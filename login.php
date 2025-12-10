@@ -1,13 +1,14 @@
 <?php
+require_once __DIR__ . '/bootstrap.php';
 session_start();
 
-// Se já está logado, redireciona para o index
+// Se já estiver logado, manda para o dashboard
 if (isset($_SESSION['usuario_id'])) {
     header('Location: index.php');
     exit;
 }
 
-require_once __DIR__ . '/CRUD/conexao.php';
+require_once PROJECT_ROOT . '/CRUD/conexao.php';
 
 $erro = '';
 $sucesso = '';
@@ -23,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $senha = trim($_POST['senha'] ?? '');
 
     try {
-        if (empty($email) || empty($senha)) {
+        if ($email === '' || $senha === '') {
             throw new Exception('Email e senha são obrigatórios.');
         }
 
@@ -50,7 +51,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         header('Location: index.php');
         exit;
-
     } catch (Exception $e) {
         $erro = $e->getMessage();
     }
@@ -82,16 +82,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-radius: 15px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.2);
             overflow: hidden;
-        }
-        .login-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 2rem;
-            text-align: center;
-        }
-        .login-header i {
-            font-size: 3rem;
-            margin-bottom: 1rem;
         }
         .login-body {
             padding: 2rem;
@@ -171,7 +161,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         O login é feito diretamente no SIGA. Nenhuma senha é armazenada aqui.
                     </div>
                 </div>
-                                    <!-- Botão/modal de instalação removido conforme solicitado -->
             </div>
         </div>
         
