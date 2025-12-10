@@ -188,6 +188,26 @@ document.querySelectorAll("[data-href]").forEach(function(row) {
 });
 ';
 
+// Se veio do SIGA, iniciar coleta de preferências automaticamente
+if (!empty($_SESSION['siga_sync_pending'])) {
+    $customJs .= '
+(function(){
+    fetch("/api/siga/get-preferencias.php", { credentials: "include" })
+        .then(function(r){ return r.json(); })
+        .then(function(resp){
+            if (!resp || !resp.ok) {
+                console.warn("Falha ao sincronizar preferências do SIGA", resp);
+                return;
+            }
+            console.log("Preferências SIGA sincronizadas", resp.dados);
+        })
+        .catch(function(err){
+            console.warn("Erro ao coletar preferências do SIGA", err);
+        });
+})();
+';
+}
+
 require_once __DIR__ . '/app/views/layouts/app-wrapper.php';
 
 @unlink($contentFile);

@@ -11,6 +11,7 @@ require_once __DIR__ . '/CRUD/conexao.php';
 
 $erro = '';
 $sucesso = '';
+$sigaLoginRedirect = base_url('auth/siga/redirect.php');
 
 // Mensagem de sucesso ao registrar
 if (isset($_GET['registered'])) {
@@ -157,6 +158,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </button>
                     </div>
                 </form>
+                
+                <div class="mt-4">
+                    <div class="text-center mb-2 text-muted small">
+                        Ou acesse usando sua conta SIGA (login externo)
+                    </div>
+                    <a href="<?php echo htmlspecialchars($sigaLoginRedirect); ?>" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-box-arrow-up-right me-2"></i>
+                        Entrar pelo SIGA
+                    </a>
+                    <div class="form-text text-center mt-2">
+                        O login é feito diretamente no SIGA. Nenhuma senha é armazenada aqui.
+                    </div>
+                </div>
+                                    <!-- Botão/modal de instalação removido conforme solicitado -->
             </div>
         </div>
         

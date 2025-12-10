@@ -7,6 +7,9 @@ error_reporting(0);
 
 session_start();
 
+// Login via SIGA (callback) deve ser aceito mesmo sem usuario_id inicial
+$isSigaSession = !empty($_SESSION['siga_authenticated']);
+
 // Função para obter URL do login baseado na profundidade do diretório
 function getLoginUrl() {
     $script = $_SERVER['SCRIPT_NAME'];
@@ -17,7 +20,7 @@ function getLoginUrl() {
 
 // Modo público: permitir acesso restrito a algumas páginas com base em sessão pública
 $isPublic = !empty($_SESSION['public_acesso']) && !empty($_SESSION['public_planilha_id']);
-if (!isset($_SESSION['usuario_id'])) {
+if (!isset($_SESSION['usuario_id']) && !$isSigaSession) {
     if ($isPublic) {
         // Lista de páginas públicas permitidas (entrada do script)
         $allowed = [
@@ -62,6 +65,11 @@ if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > 
     session_destroy();
     header('Location: ' . getLoginUrl() . '?timeout=1');
     exit;
+}
+
+// Preenche tipo padrão para sessões SIGA
+if ($isSigaSession && empty($_SESSION['usuario_tipo'])) {
+    $_SESSION['usuario_tipo'] = 'SIGA';
 }
 
 // Função para verificar se o usuário é Administrador/Acessor
