@@ -102,25 +102,13 @@ function siga_detect_redirect_param(string $loginPath): string
  */
 function siga_build_login_url(string $callbackUrl): string
 {
-    $loginPath = siga_detect_login_endpoint();
-    $param = siga_detect_redirect_param($loginPath);
-
-    // Garante separador correto
-    $separator = (strpos($loginPath, '?') === false) ? '?' : '&';
-    $baseLogin = rtrim(SIGA_BASE_URL, '/') . $loginPath;
-
-    // Envia múltiplos parâmetros comuns para maximizar compatibilidade de callback
+    // Alguns ambientes do SIGA ignoram parâmetros na rota /login.
+    // Usamos a raiz com ReturnUrl explícito (mais aceito em apps ASP.NET)
+    $baseLogin = rtrim(SIGA_BASE_URL, '/') . '/';
     $params = [
-        $param => $callbackUrl,
         'ReturnUrl' => $callbackUrl,
-        'returnUrl' => $callbackUrl,
-        'redirect' => $callbackUrl,
-        'redirectUrl' => $callbackUrl,
-        'continue' => $callbackUrl,
-        'next' => $callbackUrl,
     ];
-
-    return $baseLogin . $separator . http_build_query($params);
+    return $baseLogin . '?' . http_build_query($params);
 }
 
 /**
