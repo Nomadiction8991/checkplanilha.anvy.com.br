@@ -109,7 +109,18 @@ function siga_build_login_url(string $callbackUrl): string
     $separator = (strpos($loginPath, '?') === false) ? '?' : '&';
     $baseLogin = rtrim(SIGA_BASE_URL, '/') . $loginPath;
 
-    return $baseLogin . $separator . rawurlencode($param) . '=' . rawurlencode($callbackUrl);
+    // Envia múltiplos parâmetros comuns para maximizar compatibilidade de callback
+    $params = [
+        $param => $callbackUrl,
+        'ReturnUrl' => $callbackUrl,
+        'returnUrl' => $callbackUrl,
+        'redirect' => $callbackUrl,
+        'redirectUrl' => $callbackUrl,
+        'continue' => $callbackUrl,
+        'next' => $callbackUrl,
+    ];
+
+    return $baseLogin . $separator . http_build_query($params);
 }
 
 /**
