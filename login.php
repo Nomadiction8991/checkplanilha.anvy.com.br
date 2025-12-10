@@ -160,6 +160,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="form-text text-center mt-2">
                         O login é feito diretamente no SIGA. Nenhuma senha é armazenada aqui.
                     </div>
+                    <div class="d-grid mt-3">
+                        <button type="button" id="btnSigaCheck" class="btn btn-success">
+                            <i class="bi bi-check-circle me-2"></i>
+                            Já estou logado no SIGA (continuar)
+                        </button>
+                    </div>
+                    <div id="sigaCheckMsg" class="form-text text-center mt-2 text-muted"></div>
                 </div>
             </div>
         </div>
@@ -178,6 +185,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Tenta automaticamente detectar se o usuário já tem cookies do SIGA ativos
+        (function autoCheckSiga(){
+            var msg = document.getElementById('sigaCheckMsg');
+            if (!msg) return;
+            fetch('/api/siga/get-preferencias.php', { credentials: 'include' })
+                .then(function(r){ return r.json(); })
+                .then(function(resp){
+                    if (resp && resp.ok) {
+                        msg.textContent = 'Sessão SIGA detectada, redirecionando...';
+                        window.location.href = <?php echo json_encode(base_url('index.php')); ?>;
+                    } else {
+                        msg.textContent = '';
+                    }
+                })
+                .catch(function(){ msg.textContent = ''; });
+        })();
+
         // Abre login SIGA em popup para facilitar o retorno
         (function() {
             var btn = document.getElementById('btnSigaLogin');
@@ -200,6 +224,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 };
                 window.addEventListener('message', handler, false);
+            });
+        })();
+
+        // Botão manual "já estou logado" força coleta via cookies
+        (function(){
+            var btn = document.getElementById('btnSigaCheck');
+            var msg = document.getElementById('sigaCheckMsg');
+            if (!btn) return;
+            btn.addEventListener('click', function(){
+                msg.textContent = 'Validando sessão SIGA...';
+                fetch('/api/siga/get-preferencias.php', { credentials: 'include' })
+                    .then(function(r){ return r.json(); })
+                    .then(function(resp){
+                        if (resp && resp.ok) {
+                            msg.textContent = 'Sessão SIGA detectada, redirecionando...';
+                            window.location.href = <?php echo json_encode(base_url('index.php')); ?>;
+                        } else if (resp && resp.error) {
+                            msg.textContent = 'Não foi possível validar SIGA: ' + resp.error;
+                        } else {
+                            msg.textContent = 'Não foi possível validar SIGA.';
+                        }
+                    })
+                    .catch(function(err){
+                        msg.textContent = 'Erro ao validar SIGA.';
+                        console.warn(err);
+                    });
             });
         })();
     </script>

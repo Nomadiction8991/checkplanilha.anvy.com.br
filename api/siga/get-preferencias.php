@@ -6,12 +6,6 @@ session_start();
 
 header('Content-Type: application/json; charset=utf-8');
 
-if (empty($_SESSION['siga_authenticated'])) {
-    http_response_code(401);
-    echo json_encode(['error' => 'Sessão SIGA não encontrada. Faça login pelo SIGA.']);
-    exit;
-}
-
 $cookieHeader = $_SERVER['HTTP_COOKIE'] ?? '';
 if (trim($cookieHeader) === '') {
     http_response_code(400);
@@ -60,6 +54,10 @@ if (empty($data['siga_login'])) {
 }
 
 try {
+    // Se chegou aqui com cookies válidos, considere autenticado via SIGA
+    $_SESSION['siga_authenticated'] = true;
+    $_SESSION['siga_sync_pending'] = false;
+
     siga_ensure_table($conexao);
     $sigaId = siga_upsert_usuario($conexao, $data);
     $localUserId = siga_sync_local_usuario($conexao, $data);
