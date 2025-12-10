@@ -7,13 +7,65 @@ if (!defined('SIGA_BASE_URL')) {
 }
 
 /**
+ * Tenta descobrir o endpoint de login válido do SIGA.
+ */
+function siga_detect_login_endpoint(): string
+{
+    if (!function_exists('curl_init')) {
+        return '/login';
+    }
+
+    $candidates = [
+        '/login',
+        '/Login',
+        '/account/login',
+        '/Account/Login',
+        '/usuario/login',
+        '/Usuario/Login',
+        '/',
+    ];
+
+    foreach ($candidates as $path) {
+        $url = rtrim(SIGA_BASE_URL, '/') . $path;
+        try {
+            $ch = curl_init($url);
+            curl_setopt_array($ch, [
+                CURLOPT_NOBODY => false,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_TIMEOUT => 6,
+                CURLOPT_SSL_VERIFYPEER => true,
+                CURLOPT_SSL_VERIFYHOST => 2,
+                CURLOPT_USERAGENT => 'checkplanilha-siga-endpoint/1.0',
+            ]);
+            $body = curl_exec($ch);
+            $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($status >= 200 && $status < 400 && is_string($body) && trim($body) !== '') {
+                return $path;
+            }
+        } catch (Throwable $e) {
+            // tenta o próximo
+        }
+    }
+
+    // fallback conservador
+    return '/login';
+}
+
+/**
  * Detecta automaticamente qual parâmetro de retorno o SIGA usa no login.
  * Procura por nomes comuns no HTML (returnUrl, redirect, continue, next).
  */
-function siga_detect_redirect_param(): string
+function siga_detect_redirect_param(string $loginPath): string
 {
-    $candidates = ['returnUrl', 'redirect', 'redirectUrl', 'continue', 'next'];
-    $loginUrl = SIGA_BASE_URL . '/login';
+    if (!function_exists('curl_init')) {
+        return 'returnUrl';
+    }
+
+    $candidates = ['returnUrl', 'ReturnUrl', 'redirect', 'redirectUrl', 'Redirect', 'continue', 'next'];
+    $loginUrl = rtrim(SIGA_BASE_URL, '/') . $loginPath;
 
     try {
         $ch = curl_init($loginUrl);
@@ -50,9 +102,14 @@ function siga_detect_redirect_param(): string
  */
 function siga_build_login_url(string $callbackUrl): string
 {
-    $param = siga_detect_redirect_param();
-    $separator = (strpos(SIGA_BASE_URL, '?') === false) ? '?' : '&';
-    return SIGA_BASE_URL . '/login' . $separator . rawurlencode($param) . '=' . rawurlencode($callbackUrl);
+    $loginPath = siga_detect_login_endpoint();
+    $param = siga_detect_redirect_param($loginPath);
+
+    // Garante separador correto
+    $separator = (strpos($loginPath, '?') === false) ? '?' : '&';
+    $baseLogin = rtrim(SIGA_BASE_URL, '/') . $loginPath;
+
+    return $baseLogin . $separator . rawurlencode($param) . '=' . rawurlencode($callbackUrl);
 }
 
 /**
@@ -61,6 +118,10 @@ function siga_build_login_url(string $callbackUrl): string
  */
 function siga_proxy_request(string $targetUrl, string $method = 'GET', ?string $payload = null, array $headers = [], ?string $cookieHeader = null): array
 {
+    if (!function_exists('curl_init')) {
+        throw new RuntimeException('Extensao cURL nao disponivel no servidor.');
+    }
+
     $ch = curl_init($targetUrl);
 
     $defaultHeaders = [

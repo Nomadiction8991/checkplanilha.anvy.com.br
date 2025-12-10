@@ -6,8 +6,15 @@ session_start();
 // Gera token de estado para validar retorno
 $_SESSION['siga_state'] = bin2hex(random_bytes(16));
 
+// Monta callback preservando prefixo atual (dev/prod)
 $callbackUrl = base_url('auth/siga/callback.php?state=' . urlencode($_SESSION['siga_state']));
-$loginUrl = siga_build_login_url($callbackUrl);
+
+try {
+    $loginUrl = siga_build_login_url($callbackUrl);
+} catch (Throwable $e) {
+    // Fallback seguro: leva ao host base do SIGA (usuário completa manualmente)
+    $loginUrl = rtrim(SIGA_BASE_URL, '/');
+}
 
 // Permite propagar rota de retorno interna (dashboard)
 if (!empty($_GET['redirect_to'])) {
