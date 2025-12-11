@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/../../../auth.php'; // Autenticação
-require_once __DIR__ . '/../../../CRUD/conexao.php';
+require_once dirname(__DIR__, 2) . '/bootstrap.php';
+ // AutenticaÃ§Ã£o
 
 $id_planilha = $_GET['id'] ?? null;
 
@@ -47,7 +47,7 @@ $headerActions = '
     </div>
 ';
 
-// Gerar URL de compartilhamento desta página (inclui parâmetros atuais)
+// Gerar URL de compartilhamento desta pÃ¡gina (inclui parÃ¢metros atuais)
 $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
 $host = $_SERVER['HTTP_HOST'] ?? '';
 $uri  = $_SERVER['REQUEST_URI'] ?? ('/app/views/planilhas/assinatura-14-1.php?id=' . urlencode($id_planilha));
@@ -133,11 +133,11 @@ ob_start();
  }
 </style>
 
-<!-- Card com Link de Compartilhamento da Página -->
+<!-- Card com Link de Compartilhamento da PÃ¡gina -->
 <div class="card mb-3">
     <div class="card-header bg-primary text-white">
         <i class="bi bi-share me-2"></i>
-        Link para Compartilhamento desta Página
+        Link para Compartilhamento desta PÃ¡gina
     </div>
     <div class="card-body">
         <p class="mb-3">
@@ -153,7 +153,7 @@ ob_start();
         </div>
         <small class="text-muted d-block mt-2">
             <i class="bi bi-shield-check me-1"></i>
-            O link abre esta página para seleção e assinatura.
+            O link abre esta pÃ¡gina para seleÃ§Ã£o e assinatura.
         </small>
     </div>
     
@@ -167,7 +167,7 @@ ob_start();
     <div class="card-body">
         <p class="mb-3">
             <i class="bi bi-info-circle me-1"></i>
-            Clique no produto para selecioná-lo. Você pode selecionar vários produtos para assinar todos de uma vez.
+            Clique no produto para selecionÃ¡-lo. VocÃª pode selecionar vÃ¡rios produtos para assinar todos de uma vez.
         </p>
         <!-- Legenda de Status -->
         <div class="legenda-status">
@@ -235,7 +235,7 @@ ob_start();
                                 </div>
                             </div>
                             <div class="ms-3">
-                                <!-- Espaço reservado para conteúdo adicional se necessário -->
+                                <!-- EspaÃ§o reservado para conteÃºdo adicional se necessÃ¡rio -->
                             </div>
                         </div>
                     </div>
@@ -316,7 +316,7 @@ function assinarSelecionados() {
     window.location.href = './assinatura-14-1-form.php?ids=' + ids + '&id_planilha=<?php echo $id_planilha; ?>';
 }
 
-// Listener nos checkboxes para sincronizar com a seleção
+// Listener nos checkboxes para sincronizar com a seleÃ§Ã£o
 document.addEventListener('DOMContentLoaded', function() {
     const checkboxes = document.querySelectorAll('.checkbox-produto');
     checkboxes.forEach(cb => {
@@ -363,3 +363,4 @@ $contentFile = $tempFile;
 include __DIR__ . '/../layouts/app-wrapper.php';
 unlink($tempFile);
 ?>
+

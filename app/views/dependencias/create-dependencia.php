@@ -1,13 +1,14 @@
 <?php
 declare(strict_types=1);
-require_once __DIR__ . '/../../../auth.php';
+require_once dirname(__DIR__, 2) . '/bootstrap.php';
+
 
 if (!isAdmin()) {
     header('Location: ../../../index.php');
     exit;
 }
 
-include __DIR__ . '/../../../CRUD/CREATE/dependencia.php';
+include __DIR__ . '/../../../app/controllers/create/dependencia.php';
 
 $pageTitle = 'Nova Dependência';
 $backUrl = './read-dependencia.php';
@@ -57,3 +58,4 @@ include __DIR__ . '/../layouts/app-wrapper.php';
 unlink($tempFile);
 ?>
 <parameter name="filePath">/home/weverton/Documentos/Github-Gitlab/GitHub/checkplanilha.anvy.com.br/app/views/dependencias/create-dependencia.php
+

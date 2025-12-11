@@ -1,6 +1,7 @@
 <?php
-require_once __DIR__ . '/../../../auth.php'; // Autenticação
-require_once __DIR__ . '/../../../CRUD/READ/relatorio-14-1.php';
+require_once dirname(__DIR__, 2) . '/bootstrap.php';
+ // Autenticação
+require_once __DIR__ . '/../../../app/controllers/read/relatorio-14-1.php';
 
 $pageTitle = 'Relatório 14.1';
 $backUrl = '../shared/menu.php?id=' . urlencode($id_planilha);
@@ -390,3 +391,4 @@ $contentFile = $tempFile;
 include __DIR__ . '/../layouts/app-wrapper.php';
 unlink($tempFile);
 ?>
+

@@ -1,4 +1,5 @@
 <?php
+require_once dirname(__DIR__, 2) . '/bootstrap.php';
 // Detectar se é registro público via parâmetro GET
 if (isset($_GET['public']) && $_GET['public'] == '1') {
     define('PUBLIC_REGISTER', true);
@@ -6,7 +7,7 @@ if (isset($_GET['public']) && $_GET['public'] == '1') {
 
 // Apenas incluir autenticação se NÃO for registro público
 if (!defined('PUBLIC_REGISTER')) {
-    require_once __DIR__ . '/../../../auth.php'; // Autenticação
+     // Autenticação
     
     // Apenas admins podem criar usuários via sistema interno
     if (!isAdmin()) {
@@ -32,7 +33,7 @@ if (!defined('PUBLIC_REGISTER')) {
     }
 }
 
-include __DIR__ . '/../../../CRUD/CREATE/usuario.php';
+include __DIR__ . '/../../../app/controllers/create/usuario.php';
 
 $pageTitle = defined('PUBLIC_REGISTER') ? 'Cadastro' : 'Novo Usuário';
 $backUrl = defined('PUBLIC_REGISTER') ? '../../../login.php' : './read-usuario.php';
@@ -769,3 +770,4 @@ $contentFile = $tempFile;
 include __DIR__ . '/../layouts/app-wrapper.php';
 unlink($tempFile);
 ?>
+

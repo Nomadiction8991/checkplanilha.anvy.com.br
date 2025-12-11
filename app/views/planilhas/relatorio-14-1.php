@@ -1,6 +1,7 @@
 <?php
-require_once __DIR__ . '/../../../auth.php'; // Autenticação
-require_once __DIR__ . '/../../../CRUD/READ/relatorio-14-1.php';
+require_once dirname(__DIR__, 2) . '/bootstrap.php';
+ // Autenticação
+require_once __DIR__ . '/../../../app/controllers/read/relatorio-14-1.php';
 
 // Carregar template completo com CSS inline
 $templatePath = __DIR__ . '/../../../relatorios/14-1.html';
@@ -534,3 +535,4 @@ $contentFile = $tempFile;
 include __DIR__ . '/../layouts/app-wrapper.php';
 unlink($tempFile);
 ?>
+

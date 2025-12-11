@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+require_once dirname(__DIR__, 2) . '/bootstrap.php';
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -24,7 +25,7 @@
 -->
 
 <?php
-require_once __DIR__ . '/../../../auth.php'; // Autenticação
+ // Autenticação
 // Se $produtos não foi definido, usar array vazio
 $produtos = $produtos ?? [];
 $cnpj = $cnpj ?? '{{CNPJ}}';
@@ -384,3 +385,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
 </body>
 </html>
+

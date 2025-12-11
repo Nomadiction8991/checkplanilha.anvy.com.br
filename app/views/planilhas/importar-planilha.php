@@ -1,7 +1,8 @@
 <?php
-require_once __DIR__ . '/../../../auth.php'; // Autenticação
+require_once dirname(__DIR__, 2) . '/bootstrap.php';
+ // AutenticaÃ§Ã£o
 
-// Configurações da página
+// ConfiguraÃ§Ãµes da pÃ¡gina
 $pageTitle = 'Importar Planilha';
 $backUrl = '../../../index.php';
 
@@ -9,7 +10,7 @@ $backUrl = '../../../index.php';
 ob_start();
 ?>
 
-<form action="../../../CRUD/CREATE/importar-planilha.php" method="POST" enctype="multipart/form-data">
+<form action="../../../app/controllers/create/importar-planilha.php" method="POST" enctype="multipart/form-data">
     <!-- Arquivo CSV -->
     <div class="card mb-3">
         <div class="card-header">
@@ -22,11 +23,11 @@ ob_start();
         </div>
     </div>
 
-    <!-- Configurações Básicas -->
+    <!-- ConfiguraÃ§Ãµes BÃ¡sicas -->
     <div class="card mb-3">
         <div class="card-header">
             <i class="bi bi-gear me-2"></i>
-            Configurações Básicas
+            ConfiguraÃ§Ãµes BÃ¡sicas
         </div>
         <div class="card-body">
             <div class="mb-3">
@@ -51,7 +52,7 @@ ob_start();
         <div class="card-body">
             <div class="row g-3">
                 <div class="col-md-4">
-                    <label for="mapeamento_codigo" class="form-label">Código <span class="text-danger">*</span></label>
+                    <label for="mapeamento_codigo" class="form-label">CÃ³digo <span class="text-danger">*</span></label>
                     <input type="text" class="form-control text-center fw-bold" id="mapeamento_codigo" name="mapeamento_codigo" value="A" maxlength="2" required>
                 </div>
                 <div class="col-md-4">
@@ -59,7 +60,7 @@ ob_start();
                     <input type="text" class="form-control text-center fw-bold" id="mapeamento_complemento" name="mapeamento_complemento" value="D" maxlength="2" required>
                 </div>
                 <div class="col-md-4">
-                    <label for="mapeamento_dependencia" class="form-label">Dependência <span class="text-danger">*</span></label>
+                    <label for="mapeamento_dependencia" class="form-label">DependÃªncia <span class="text-danger">*</span></label>
                     <input type="text" class="form-control text-center fw-bold" id="mapeamento_dependencia" name="mapeamento_dependencia" value="P" maxlength="2" required>
                 <div class="col-md-4">
                     <label for="coluna_localidade" class="form-label">Localidade <span class="text-danger">*</span></label>
@@ -82,3 +83,4 @@ file_put_contents($contentFile, $contentHtml);
 include __DIR__ . '/../layouts/app-wrapper.php';
 @unlink($contentFile);
 ?>
+

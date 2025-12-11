@@ -1,7 +1,5 @@
 <?php
-require_once __DIR__ . '/auth.php';
-require_once __DIR__ . '/CRUD/conexao.php';
-require_once __DIR__ . '/app/functions/comum_functions.php';
+require_once __DIR__ . '/app/bootstrap.php';
 
 $pageTitle = 'Comuns';
 $backUrl = null;
@@ -196,3 +194,4 @@ require_once __DIR__ . '/app/views/layouts/app-wrapper.php';
 
 @unlink($contentFile);
 ?>
+

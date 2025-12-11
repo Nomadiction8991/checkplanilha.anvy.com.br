@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/../../../auth.php';
-require_once __DIR__ . '/../../../CRUD/conexao.php';
+require_once dirname(__DIR__, 2) . '/bootstrap.php';
+
 
 $id_planilha = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if (!$id_planilha) {
@@ -11,11 +11,11 @@ if (!$id_planilha) {
 $usuario_id = isset($_SESSION['usuario_id']) ? (int)$_SESSION['usuario_id'] : 0;
 $usuario_tipo = isset($_SESSION['usuario_tipo']) ? $_SESSION['usuario_tipo'] : '';
 
-// Determinar coluna de assinatura baseado no tipo de usuário
+// Determinar coluna de assinatura baseado no tipo de usuÃ¡rio
 $coluna_assinatura = '';
 if ($usuario_tipo === 'Administrador/Acessor') {
     $coluna_assinatura = 'administrador_acessor_id';
-} elseif ($usuario_tipo === 'Doador/Cônjuge') {
+} elseif ($usuario_tipo === 'Doador/CÃ´njuge') {
     $coluna_assinatura = 'doador_conjugue_id';
 }
 
@@ -65,11 +65,11 @@ ob_start();
 
 <div class="alert alert-info">
     <i class="bi bi-info-circle me-2"></i>
-    <strong>Instruções:</strong> Selecione os produtos que deseja assinar. 
+    <strong>InstruÃ§Ãµes:</strong> Selecione os produtos que deseja assinar. 
     <?php if ($usuario_tipo === 'Administrador/Acessor'): ?>
-        Você está assinando como <strong>Administrador/Acessor</strong>.
+        VocÃª estÃ¡ assinando como <strong>Administrador/Acessor</strong>.
     <?php else: ?>
-        Você está assinando como <strong>Doador/Cônjuge</strong>.
+        VocÃª estÃ¡ assinando como <strong>Doador/CÃ´njuge</strong>.
     <?php endif; ?>
 </div>
 
@@ -77,7 +77,7 @@ ob_start();
     <div class="card-header d-flex justify-content-between align-items-center">
         <span>
             <i class="bi bi-boxes me-2"></i>
-            Produtos Disponíveis
+            Produtos DisponÃ­veis
         </span>
         <div>
             <button type="button" class="btn btn-sm btn-outline-primary" onclick="selecionarTodos()">
@@ -90,7 +90,7 @@ ob_start();
     </div>
     <div class="card-body">
         <?php if (empty($produtos)): ?>
-            <p class="text-muted text-center mb-0">Nenhum produto disponível nesta planilha.</p>
+            <p class="text-muted text-center mb-0">Nenhum produto disponÃ­vel nesta planilha.</p>
         <?php else: ?>
             <div id="produtosContainer">
                 <?php foreach ($produtos as $produto): ?>
@@ -112,12 +112,12 @@ ob_start();
                                         <?php echo htmlspecialchars($produto['codigo'] ?? 'S/N'); ?>
                                         <?php if ($assinado_por_mim): ?>
                                             <span class="badge bg-success ms-2">
-                                                <i class="bi bi-check-circle"></i> Assinado por você
+                                                <i class="bi bi-check-circle"></i> Assinado por vocÃª
                                             </span>
                                         <?php endif; ?>
                                         <?php if ($produto['imprimir_14_1']): ?>
                                             <span class="badge bg-info ms-2">
-                                                <i class="bi bi-file-earmark-pdf"></i> No relatório 14.1
+                                                <i class="bi bi-file-earmark-pdf"></i> No relatÃ³rio 14.1
                                             </span>
                                         <?php endif; ?>
                                     </div>
@@ -227,7 +227,7 @@ function executarAcao(acao, produtos) {
     formData.append('acao', acao);
     produtos.forEach(id => formData.append('produtos[]', id));
     
-    fetch('../../../CRUD/UPDATE/assinar-produtos.php', {
+    fetch('../../../app/controllers/update/assinar-produtos.php', {
         method: 'POST',
         body: formData
     })
@@ -241,7 +241,7 @@ function executarAcao(acao, produtos) {
         }
     })
     .catch(error => {
-        alert('Erro ao processar solicitação');
+        alert('Erro ao processar solicitaÃ§Ã£o');
         console.error(error);
     });
 }
@@ -255,3 +255,4 @@ $contentFile = $tempFile;
 include __DIR__ . '/../layouts/app-wrapper.php';
 unlink($tempFile);
 ?>
+

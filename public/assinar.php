@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once __DIR__ . '/../CRUD/conexao.php';
+require_once __DIR__ . '/../app/bootstrap.php';
 
 // Reset de sessão pública ao entrar nesta página
 unset($_SESSION['public_acesso'], $_SESSION['public_planilha_id'], $_SESSION['public_comum']);

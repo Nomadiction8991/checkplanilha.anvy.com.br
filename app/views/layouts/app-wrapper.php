@@ -1,4 +1,5 @@
 <?php
+require_once dirname(__DIR__, 2) . '/bootstrap.php';
 // Detectar ambiente (produção ou desenvolvimento)
 $ambiente_manifest = 'prod'; // padrão produção
 if (strpos($_SERVER['REQUEST_URI'], '/dev/') !== false) {
@@ -490,3 +491,4 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
     <?php endif; ?>
 </body>
 </html>
+

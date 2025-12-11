@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
-require_once __DIR__ . '/../../../auth.php';
+require_once dirname(__DIR__, 2) . '/bootstrap.php';
+
 
 if (!isAdmin()) {
     header('Location: ../../../index.php');
@@ -9,7 +10,7 @@ if (!isAdmin()) {
 
 // Incluir lógica de leitura (preparada em CRUD)
 try {
-    include __DIR__ . '/../../../CRUD/READ/dependencia.php';
+    include __DIR__ . '/../../../app/controllers/read/dependencia.php';
 } catch (Throwable $e) {
     $dependencias = [];
     $total_registros = 0;
@@ -135,7 +136,7 @@ ob_start();
 <script>
 function deletarDependencia(id) {
     if (confirm('Tem certeza que deseja excluir esta dependencia?')) {
-        fetch('../../../CRUD/DELETE/dependencia.php', {
+        fetch('../../../app/controllers/delete/dependencia.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -166,3 +167,4 @@ $contentFile = $tempFile;
 include __DIR__ . '/../layouts/app-wrapper.php';
 unlink($tempFile);
 ?>
+

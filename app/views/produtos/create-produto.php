@@ -1,6 +1,7 @@
 <?php
-require_once __DIR__ . '/../../../auth.php'; // Autenticação
-include __DIR__ . '/../../../CRUD/CREATE/produto.php';
+require_once dirname(__DIR__, 2) . '/bootstrap.php';
+ // Autenticação
+include __DIR__ . '/../../../app/controllers/create/produto.php';
 
 $pageTitle = 'Cadastrar Produto';
 $backUrl = './read-produto.php?comum_id=' . urlencode($comum_id) . '&' . gerarParametrosFiltro();
@@ -161,3 +162,4 @@ $contentFile = $tempFile;
 include __DIR__ . '/../layouts/app-wrapper.php';
 unlink($tempFile);
 ?>
+

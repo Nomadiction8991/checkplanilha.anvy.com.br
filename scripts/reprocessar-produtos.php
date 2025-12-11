@@ -17,8 +17,8 @@
  *   --verbose          Mostra detalhes de cada produto processado
  */
 
-require_once __DIR__ . '/../CRUD/conexao.php';
-require_once __DIR__ . '/../app/functions/produto_parser.php';
+require_once __DIR__ . '/../app/bootstrap.php';
+require_once __DIR__ . '/../app/services/produto_parser.php';
 
 // Verificar se conexão está disponível
 if (!$conexao) {
@@ -53,7 +53,7 @@ if ($options['planilha_id']) echo "Planilha ID: {$options['planilha_id']}\n";
 echo "\n";
 
 // Carregar configuração do parser
-$pp_config = require __DIR__ . '/../app/config/produto_parser_config.php';
+$pp_config = require __DIR__ . '/../config/parser/produto_parser_config.php';
 
 // Carregar todos os tipos de bens
 $sql_tipos = "SELECT id, codigo, descricao FROM tipos_bens ORDER BY codigo";
@@ -302,3 +302,4 @@ if ($options['dry_run']) {
 }
 
 // Fechar conexão não é necessário com PDO (fecha automaticamente)
+

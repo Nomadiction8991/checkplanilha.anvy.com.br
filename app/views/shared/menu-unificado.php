@@ -1,5 +1,6 @@
 <?php
-require_once __DIR__ . '/../../../auth.php';
+require_once dirname(__DIR__, 2) . '/bootstrap.php';
+
 
 $id_planilha = $_GET['id'] ?? null;
 $contexto = $_GET['contexto'] ?? 'auto';
@@ -156,3 +157,4 @@ $contentFile = $tempFile;
 include __DIR__ . '/../layouts/app-wrapper.php';
 unlink($tempFile);
 ?>
+

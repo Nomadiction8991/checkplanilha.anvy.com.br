@@ -1,5 +1,6 @@
 <?php
-require_once __DIR__ . '/../../../auth.php'; // Autenticação
+require_once dirname(__DIR__, 2) . '/bootstrap.php';
+ // Autenticação
 // Menu principal (sem necessidade de ID de planilha)
 
 // Configurações da página
@@ -76,3 +77,4 @@ include __DIR__ . '/../layouts/app-wrapper.php';
 // Limpar arquivo temporário
 unlink($tempFile);
 ?>
+

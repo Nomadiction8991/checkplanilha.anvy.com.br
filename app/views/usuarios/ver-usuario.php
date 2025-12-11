@@ -1,7 +1,8 @@
 <?php
-require_once __DIR__ . '/../../../auth.php'; // Autenticação
+require_once dirname(__DIR__, 2) . '/bootstrap.php';
+ // AutenticaÃ§Ã£o
 
-// Apenas admins podem acessar visualização de usuários
+// Apenas admins podem acessar visualizaÃ§Ã£o de usuÃ¡rios
 if (!isAdmin()) {
     header('Location: ../../../index.php');
     exit;
@@ -13,9 +14,8 @@ if (!$idParam) {
     exit;
 }
 
-require_once __DIR__ . '/../../../CRUD/conexao.php';
 
-// Buscar usuário
+// Buscar usuÃ¡rio
 $stmt = $conexao->prepare('SELECT * FROM usuarios WHERE id = :id');
 $stmt->bindValue(':id', $idParam, PDO::PARAM_INT);
 $stmt->execute();
@@ -29,7 +29,7 @@ if (!$usuario) {
 $loggedId = isset($_SESSION['usuario_id']) ? (int)$_SESSION['usuario_id'] : 0;
 $isSelf = ($loggedId === $idParam);
 
-$pageTitle = 'Visualizar Usuário';
+$pageTitle = 'Visualizar UsuÃ¡rio';
 $backUrl = './read-usuario.php';
 
 ob_start();
@@ -57,11 +57,11 @@ ob_start();
 
 <?php if (isset($usuario)): ?>
 
-<!-- Card 1: Dados Básicos -->
+<!-- Card 1: Dados BÃ¡sicos -->
 <div class="card mb-3">
     <div class="card-header">
         <i class="bi bi-person-plus me-2"></i>
-        Dados Básicos
+        Dados BÃ¡sicos
     </div>
     <div class="card-body">
         <div class="info-label">Nome Completo</div>
@@ -92,7 +92,7 @@ ob_start();
         <div class="info-label">Email</div>
         <div class="info-value"><?php echo htmlspecialchars($usuario['email']); ?></div>
 
-        <div class="info-label">Tipo de Usuário</div>
+        <div class="info-label">Tipo de UsuÃ¡rio</div>
         <div class="info-value">
             <span class="badge bg-<?php echo ($usuario['tipo'] ?? 'Administrador/Acessor') === 'Administrador/Acessor' ? 'primary' : 'success'; ?>">
                 <?php echo htmlspecialchars($usuario['tipo'] ?? 'Administrador/Acessor'); ?>
@@ -142,30 +142,30 @@ ob_start();
             <?php if (!empty($usuario['casado'])): ?>
                 <span class="badge bg-success">Casado(a)</span>
             <?php else: ?>
-                <span class="badge bg-secondary">Não informado / Solteiro(a)</span>
+                <span class="badge bg-secondary">NÃ£o informado / Solteiro(a)</span>
             <?php endif; ?>
         </div>
     </div>
 </div>
 
-<!-- Card 4: Dados do Cônjuge (condicional) -->
+<!-- Card 4: Dados do CÃ´njuge (condicional) -->
 <?php if (!empty($usuario['casado'])): ?>
 <div class="card mb-3">
     <div class="card-header">
         <i class="bi bi-people-fill me-2"></i>
-        Dados do Cônjuge
+        Dados do CÃ´njuge
     </div>
     <div class="card-body">
-        <div class="info-label">Nome Completo do Cônjuge</div>
+        <div class="info-label">Nome Completo do CÃ´njuge</div>
         <div class="info-value"><?php echo htmlspecialchars($usuario['nome_conjuge'] ?? '-'); ?></div>
 
         <div class="row">
             <div class="col-md-6">
-                <div class="info-label">CPF do Cônjuge</div>
+                <div class="info-label">CPF do CÃ´njuge</div>
                 <div class="info-value"><?php echo htmlspecialchars($usuario['cpf_conjuge'] ?? '-'); ?></div>
             </div>
             <div class="col-md-6">
-                <div class="info-label">RG do Cônjuge</div>
+                <div class="info-label">RG do CÃ´njuge</div>
                 <div class="info-value">
                     <?php 
                     if (!empty($usuario['rg_conjuge_igual_cpf'])) {
@@ -178,15 +178,15 @@ ob_start();
             </div>
         </div>
 
-        <div class="info-label">Telefone do Cônjuge</div>
+        <div class="info-label">Telefone do CÃ´njuge</div>
         <div class="info-value"><?php echo htmlspecialchars($usuario['telefone_conjuge'] ?? '-'); ?></div>
 
         <hr>
-        <div class="info-label">Assinatura Digital do Cônjuge</div>
+        <div class="info-label">Assinatura Digital do CÃ´njuge</div>
         <?php if (!empty($usuario['assinatura_conjuge'])): ?>
             <div class="signature-preview-container">
                 <img src="<?php echo htmlspecialchars($usuario['assinatura_conjuge']); ?>" 
-                     alt="Assinatura do Cônjuge" 
+                     alt="Assinatura do CÃ´njuge" 
                      class="img-fluid" 
                      style="border:1px solid #dee2e6; border-radius:0.375rem; max-width:100%; height:auto; background:#f8f9fa;">
             </div>
@@ -200,11 +200,11 @@ ob_start();
 </div>
 <?php endif; ?>
 
-<!-- Card 5: Endereço -->
+<!-- Card 5: EndereÃ§o -->
 <div class="card mb-3">
     <div class="card-header">
         <i class="bi bi-geo-alt me-2"></i>
-        Endereço
+        EndereÃ§o
     </div>
     <div class="card-body">
         <div class="row">
@@ -220,7 +220,7 @@ ob_start();
 
         <div class="row">
             <div class="col-md-3">
-                <div class="info-label">Número</div>
+                <div class="info-label">NÃºmero</div>
                 <div class="info-value"><?php echo htmlspecialchars($usuario['endereco_numero'] ?? '-'); ?></div>
             </div>
             <div class="col-md-9">
@@ -255,3 +255,4 @@ $contentFile = $tempFile;
 include __DIR__ . '/../layouts/app-wrapper.php';
 unlink($tempFile);
 ?>
+

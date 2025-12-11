@@ -1,8 +1,6 @@
 <?php
-require_once __DIR__ . '/../../../auth.php'; // Autenticação
-require_once __DIR__ . '/../../../CRUD/conexao.php';
-// Config central de URL base
-require_once __DIR__ . '/../../../config.php';
+require_once dirname(__DIR__, 2) . '/bootstrap.php';
+ // AutenticaÃ§Ã£o
 
 $id_planilha = $_GET['id'] ?? null;
 
@@ -32,13 +30,13 @@ $stmt->bindValue(':id_planilha', $id_planilha);
 $stmt->execute();
 $produtos = $stmt->fetchAll();
 
-// Calcular estatísticas
+// Calcular estatÃ­sticas
 $total_produtos = count($produtos);
 $produtos_assinados = 0;
 $doacoes_por_pessoa = [];
 
 foreach ($produtos as $produto) {
-    // Verificar se está assinado: doador_conjugue_id diferente de NULL e diferente de 0
+    // Verificar se estÃ¡ assinado: doador_conjugue_id diferente de NULL e diferente de 0
     if (!is_null($produto['doador_conjugue_id']) && $produto['doador_conjugue_id'] > 0) {
         $produtos_assinados++;
         $nome_doador = $produto['doador_nome'] ?? 'Sem nome';
@@ -49,7 +47,7 @@ foreach ($produtos as $produto) {
     }
 }
 
-// Ordenar por quantidade de doações
+// Ordenar por quantidade de doaÃ§Ãµes
 arsort($doacoes_por_pessoa);
 
 $pageTitle = 'Assinar Documentos 14.1';
@@ -148,7 +146,7 @@ ob_start();
 <div class="alert alert-info mb-4">
     <h5 class="alert-heading mb-3">
         <i class="bi bi-info-circle-fill me-2"></i>
-        Informações sobre as Assinaturas
+        InformaÃ§Ãµes sobre as Assinaturas
     </h5>
     
     <div class="mb-3">
@@ -158,7 +156,7 @@ ob_start();
     
     <?php if (!empty($doacoes_por_pessoa)): ?>
     <div class="mb-2">
-        <strong>Produtos já assinados por:</strong>
+        <strong>Produtos jÃ¡ assinados por:</strong>
     </div>
     <ul class="mb-0">
         <?php foreach ($doacoes_por_pessoa as $nome => $quantidade): ?>
@@ -186,12 +184,12 @@ ob_start();
             <strong>Selecione</strong> um ou mais produtos e clique em "Assinar Selecionados" para assinar todos de uma vez.
         </p>
         <p class="mb-0 text-muted small">
-            Ou clique diretamente em um produto individual para assiná-lo separadamente.
+            Ou clique diretamente em um produto individual para assinÃ¡-lo separadamente.
         </p>
     </div>
 </div>
 
-<!-- Barra de ações para produtos selecionados -->
+<!-- Barra de aÃ§Ãµes para produtos selecionados -->
 <div class="alert alert-success mb-3" id="toolbarSelecao" style="display: none;">
     <div class="d-flex justify-content-between align-items-center">
         <div>
@@ -208,7 +206,7 @@ ob_start();
             </button>
             <button type="button" class="btn btn-outline-secondary btn-sm" onclick="limparSelecao()">
                 <i class="bi bi-x-lg me-1"></i>
-                Limpar Seleção
+                Limpar SeleÃ§Ã£o
             </button>
         </div>
     </div>
@@ -217,7 +215,7 @@ ob_start();
 <?php if (count($produtos) > 0): ?>
     <div class="row g-3">
         <?php foreach ($produtos as $produto): 
-            // Verificar se está assinado: doador_conjugue_id diferente de NULL e diferente de 0
+            // Verificar se estÃ¡ assinado: doador_conjugue_id diferente de NULL e diferente de 0
             $assinado = (!is_null($produto['doador_conjugue_id']) && $produto['doador_conjugue_id'] > 0);
             $status_class = $assinado ? 'assinado' : 'pendente';
         ?>
@@ -226,7 +224,7 @@ ob_start();
                      data-produto-id="<?php echo $produto['id_produto']; ?>">
                     <div class="card-body">
                         <div class="d-flex gap-3">
-                            <!-- Checkbox de seleção -->
+                            <!-- Checkbox de seleÃ§Ã£o -->
                             <div class="form-check">
                                 <input class="form-check-input" 
                                        type="checkbox" 
@@ -237,7 +235,7 @@ ob_start();
                                        style="width: 1.25rem; height: 1.25rem; cursor: pointer;">
                             </div>
                             
-                            <!-- Conteúdo do produto -->
+                            <!-- ConteÃºdo do produto -->
                             <div class="flex-grow-1" onclick="abrirAssinatura(<?php echo $produto['id_produto']; ?>)" style="cursor: pointer;">
                                 <?php if ($assinado): ?>
                                 <div class="doador-tag">
@@ -267,7 +265,7 @@ ob_start();
             <i class="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
             <h5 class="text-muted">Nenhum produto para assinar</h5>
             <p class="text-muted small mb-0">
-                Certifique-se de que existem produtos marcados para impressão no relatório 14.1
+                Certifique-se de que existem produtos marcados para impressÃ£o no relatÃ³rio 14.1
             </p>
         </div>
     </div>
@@ -291,7 +289,7 @@ function atualizarSelecao() {
     
     if (produtosSelecionados.size > 0) {
         toolbar.style.display = 'block';
-        // Se todos selecionados estão assinados, mostra apenas Desfazer; caso contrário, mostra Assinar
+        // Se todos selecionados estÃ£o assinados, mostra apenas Desfazer; caso contrÃ¡rio, mostra Assinar
         const todosAssinados = Array.from(document.querySelectorAll('.form-check-input:checked'))
             .every(cb => cb.getAttribute('data-assinado') === '1');
         if (todosAssinados) {
@@ -334,7 +332,7 @@ function desfazerSelecionados(){
     if (!confirm('Deseja desfazer a assinatura dos itens selecionados e limpar os dados de nota?')) return;
     const form = document.createElement('form');
     form.method = 'POST';
-    form.action = '../../../CRUD/UPDATE/desassinar-produto-14-1.php';
+    form.action = '../../../app/controllers/update/desassinar-produto-14-1.php';
     produtosSelecionados.forEach(id=>{
         const inp = document.createElement('input'); inp.type='hidden'; inp.name='ids_produtos[]'; inp.value=id; form.appendChild(inp);
     });
@@ -352,3 +350,4 @@ $contentFile = $tempFile;
 include __DIR__ . '/../layouts/app-wrapper.php';
 unlink($tempFile);
 ?>
+

@@ -1,8 +1,8 @@
 <?php
-require_once __DIR__ . '/../../../auth.php'; // Autenticação
-require_once __DIR__ . '/../../../CRUD/conexao.php';
+require_once dirname(__DIR__, 2) . '/bootstrap.php';
+ // AutenticaÃ§Ã£o
 
-// Parâmetros
+// ParÃ¢metros
 $id_produto = $_GET['id_produto'] ?? null;
 $id_planilha = $_GET['id'] ?? null;
 
@@ -27,13 +27,13 @@ if (!$id_produto || !$id_planilha) {
         'dependencia' => $filtro_dependencia,
         'codigo' => $filtro_codigo,
         'status' => $filtro_status,
-        'erro' => 'Parâmetros inválidos'
+        'erro' => 'ParÃ¢metros invÃ¡lidos'
     ]);
 }
 
 try {
-    // Limpar campos de edição na tabela produtos - USANDO id_produto
-    // Importante: usar valores padrão válidos ('' ou 0) pois colunas são NOT NULL em alguns bancos
+    // Limpar campos de ediÃ§Ã£o na tabela produtos - USANDO id_produto
+    // Importante: usar valores padrÃ£o vÃ¡lidos ('' ou 0) pois colunas sÃ£o NOT NULL em alguns bancos
     $sql_update = "UPDATE produtos 
                    SET editado_tipo_bem_id = 0,
                        editado_bem = '',
@@ -50,7 +50,7 @@ try {
     $stmt_update->bindValue(':planilha_id', $id_planilha);
     $stmt_update->execute();
     
-    $msg = 'Edições limpas com sucesso!';
+    $msg = 'EdiÃ§Ãµes limpas com sucesso!';
 
     redirectBack([
         'id' => $id_planilha,
@@ -70,7 +70,8 @@ try {
         'dependencia' => $filtro_dependencia,
         'codigo' => $filtro_codigo,
         'status' => $filtro_status,
-        'erro' => 'Erro ao limpar edições: ' . $e->getMessage()
+        'erro' => 'Erro ao limpar ediÃ§Ãµes: ' . $e->getMessage()
     ]);
 }
 ?>
+

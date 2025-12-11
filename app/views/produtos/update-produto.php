@@ -1,6 +1,7 @@
 <?php
-require_once __DIR__ . '/../../../auth.php'; // Autenticação
-include __DIR__ . '/../../../CRUD/UPDATE/produto.php';
+require_once dirname(__DIR__, 2) . '/bootstrap.php';
+ // Autenticação
+include __DIR__ . '/../../../app/controllers/update/produto.php';
 
 $pageTitle = 'Editar Produto';
 $backUrl = './read-produto.php?id=' . urlencode($id_planilha) . '&' . gerarParametrosFiltro();
@@ -148,3 +149,4 @@ $contentFile = $tempFile;
 include __DIR__ . '/../layouts/app-wrapper.php';
 unlink($tempFile);
 ?>
+

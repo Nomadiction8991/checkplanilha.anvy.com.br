@@ -1,9 +1,9 @@
 <?php
-require_once __DIR__ . '/../../../auth.php'; // Autenticação
-require_once __DIR__ . '/../../../CRUD/conexao.php';
-require_once __DIR__ . '/../../../app/functions/comum_functions.php';
+require_once dirname(__DIR__, 2) . '/bootstrap.php';
+ // AutenticaÃ§Ã£o
 
-// Configurações da página
+
+// ConfiguraÃ§Ãµes da pÃ¡gina
 $pageTitle = 'Gerenciar Comuns';
 $backUrl = '../shared/menu.php';
 $headerActions = '
@@ -12,7 +12,7 @@ $headerActions = '
     </a>
 ';
 
-// Paginação de comuns
+// PaginaÃ§Ã£o de comuns
 $pagina = isset($_GET['pagina']) ? max(1,(int)$_GET['pagina']) : 1;
 $limite = 20;
 $offset = ($pagina - 1) * $limite;
@@ -27,7 +27,7 @@ try {
     $erro = "Erro ao contar comuns: " . $e->getMessage();
 }
 
-// Obter página atual
+// Obter pÃ¡gina atual
 try {
     $stmt_comuns = $conexao->prepare("SELECT id, codigo, cnpj, descricao, administracao, cidade, setor FROM comums ORDER BY codigo ASC LIMIT :limite OFFSET :offset");
     $stmt_comuns->bindValue(':limite',$limite,PDO::PARAM_INT);
@@ -39,7 +39,7 @@ try {
     $erro = "Erro ao carregar comuns: " . $e->getMessage();
 }
 
-// Iniciar buffer para capturar o conteúdo
+// Iniciar buffer para capturar o conteÃºdo
 ob_start();
 ?>
 
@@ -50,7 +50,7 @@ ob_start();
             <i class="bi bi-building me-2"></i>
             Lista de Comuns
             </span>
-            <span class="badge bg-white text-dark"><?php echo $total_registros; ?> itens (pág. <?php echo $pagina; ?>/<?php echo $total_paginas ?: 1; ?>)</span>
+            <span class="badge bg-white text-dark"><?php echo $total_registros; ?> itens (pÃ¡g. <?php echo $pagina; ?>/<?php echo $total_paginas ?: 1; ?>)</span>
         </div>
         <div class="card-body">
             <?php if (!empty($_SESSION['mensagem'])): ?>
@@ -78,10 +78,10 @@ ob_start();
                     <table class="table table-hover">
                         <thead class="table-light">
                             <tr>
-                                <th width="15%">Código</th>
-                                <th width="60%">Descrição</th>
+                                <th width="15%">CÃ³digo</th>
+                                <th width="60%">DescriÃ§Ã£o</th>
                                 <th width="15%" class="text-center">Produtos</th>
-                                <th width="10%" class="text-center">Ações</th>
+                                <th width="10%" class="text-center">AÃ§Ãµes</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -125,12 +125,12 @@ ob_start();
                 <div class="mt-3 text-muted small d-flex justify-content-between align-items-center">
                     <span>
                         <i class="bi bi-info-circle me-1"></i>
-                        Página <?php echo $pagina; ?> de <?php echo $total_paginas; ?> | Exibindo <strong><?php echo count($comuns); ?></strong> de <strong><?php echo $total_registros; ?></strong>
+                        PÃ¡gina <?php echo $pagina; ?> de <?php echo $total_paginas; ?> | Exibindo <strong><?php echo count($comuns); ?></strong> de <strong><?php echo $total_registros; ?></strong>
                     </span>
                 </div>
 
                 <?php if($total_paginas > 1): ?>
-                <nav class="mt-2" aria-label="Paginação comuns">
+                <nav class="mt-2" aria-label="PaginaÃ§Ã£o comuns">
                   <ul class="pagination pagination-sm justify-content-center mb-0">
                     <?php if($pagina > 1): ?>
                     <li class="page-item"><a class="page-link" href="?<?php echo http_build_query(array_merge($_GET,['pagina'=>$pagina-1])); ?>">&laquo;</a></li>
@@ -158,3 +158,4 @@ $conteudo = ob_get_clean();
 // Incluir layout
 require_once __DIR__ . '/../shared/layout.php';
 ?>
+
