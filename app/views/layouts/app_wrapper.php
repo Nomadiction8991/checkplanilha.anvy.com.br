@@ -202,18 +202,24 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
         .mobile-wrapper .modal-backdrop {
             position: absolute !important;
             inset: 0 !important;
+            z-index: 1055;
         }
         .mobile-wrapper .modal {
-            display: flex !important;
+            display: none;
             align-items: center;
             justify-content: center;
             overflow: hidden;
             background: rgba(0,0,0,0.35);
         }
+        .mobile-wrapper .modal.show {
+            display: flex !important;
+            opacity: 1;
+        }
         .mobile-wrapper .modal-dialog {
             margin: 1rem;
             width: auto;
             max-width: 360px;
+            transform: none !important;
         }
         
         .card-header {
