@@ -160,15 +160,13 @@ ob_start();
                                         <a class="btn btn-outline-primary" href="app/views/comuns/comum_editar.php?id=<?php echo (int) $comum['id']; ?>" title="Editar">
                                             <i class="bi bi-pencil"></i>
                                         </a>
-                                        <?php if ($cadastro_ok): ?>
-                                            <a class="btn btn-outline-secondary" href="app/views/planilhas/planilha_visualizar.php?comum_id=<?php echo (int) $comum['id']; ?>" title="Visualizar">
-                                                <i class="bi bi-eye"></i>
-                                            </a>
-                                        <?php else: ?>
-                                            <button class="btn btn-outline-secondary" type="button" title="Complete o cadastro para visualizar" disabled>
-                                                <i class="bi bi-eye-slash"></i>
-                                            </button>
-                                        <?php endif; ?>
+                                        <a class="btn btn-outline-secondary btn-view-planilha"
+                                           href="app/views/planilhas/planilha_visualizar.php?comum_id=<?php echo (int) $comum['id']; ?>"
+                                           data-cadastro-ok="<?php echo $cadastro_ok ? '1' : '0'; ?>"
+                                           data-edit-url="app/views/comuns/comum_editar.php?id=<?php echo (int) $comum['id']; ?>"
+                                           title="Visualizar planilha">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
                                     </div>
                                 </td>
                             </tr>
@@ -189,3 +187,47 @@ require_once __DIR__ . '/app/views/layouts/app_wrapper.php';
 
 @unlink($contentFile);
 ?>
+
+<!-- Modal cadastro incompleto -->
+<div class="modal fade" id="cadastroIncompletoModal" tabindex="-1" aria-labelledby="cadastroIncompletoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cadastroIncompletoLabel">Cadastro incompleto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <p>Complete os dados da comum (descrição, CNPJ, administração e cidade) para visualizar a planilha.</p>
+            </div>
+            <div class="modal-footer">
+                <a href="#" class="btn btn-primary btn-edit-agora">
+                    <i class="bi bi-pencil-square me-1"></i>Editar agora
+                </a>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Deixar para depois</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var modalEl = document.getElementById('cadastroIncompletoModal');
+    var modalInstance = modalEl ? new bootstrap.Modal(modalEl) : null;
+
+    document.querySelectorAll('.btn-view-planilha').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            var ok = this.getAttribute('data-cadastro-ok') === '1';
+            if (!ok) {
+                e.preventDefault();
+                if (modalInstance && modalEl) {
+                    var editBtn = modalEl.querySelector('.btn-edit-agora');
+                    if (editBtn) {
+                        editBtn.setAttribute('href', this.getAttribute('data-edit-url'));
+                    }
+                    modalInstance.show();
+                }
+            }
+        });
+    });
+});
+</script>
