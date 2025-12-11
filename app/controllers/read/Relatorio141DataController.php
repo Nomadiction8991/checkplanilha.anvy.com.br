@@ -1,6 +1,6 @@
-<?php
- // Autenticação
-// Incluir arquivo de conexão
+﻿<?php
+ // AutenticaÃ§Ã£o
+// Incluir arquivo de conexÃ£o
 require_once dirname(__DIR__, 2) . '/bootstrap.php';
 
 // Pegar o ID da planilha via GET
@@ -23,36 +23,36 @@ $cidade_planilha = $planilha ? ($planilha['cidade'] ?? '') : '';
 $comum_codigo = $planilha ? ($planilha['comum_codigo'] ?? '') : '';
 $comum_descricao = $planilha ? ($planilha['comum_descricao'] ?? '') : '';
 
-// Derivar número do relatório e casa de oração a partir de "comum"
-// Regra: número do relatório = apenas dígitos antes do segundo '-' ; casa de oração = texto após o segundo '-'
+// Derivar nÃºmero do relatÃ³rio e casa de oraÃ§Ã£o a partir de "comum"
+// Regra: nÃºmero do relatÃ³rio = apenas dÃ­gitos antes do segundo '-' ; casa de oraÃ§Ã£o = texto apÃ³s o segundo '-'
 $numero_relatorio_auto = '';
 $casa_oracao_auto = '';
 if (!empty($comum_planilha)) {
     // Quebrar em partes por '-'
     $partes = array_map('trim', explode('-', $comum_planilha));
-    // Número do relatório: capturar somente dígitos da parte antes do segundo '-'
-    // Se houver pelo menos 2 partes, usamos a parte 1 (índice 1) ou a concat das duas primeiras? Pedido diz: "só os números antes do segundo '-'"
-    // Isso corresponde ao conteúdo acumulado das partes antes do segundo '-', porém comumente a parte imediatamente anterior ao segundo '-' já contém o número.
-    // Implementação robusta: juntar tudo até o índice 1 e extrair dígitos
+    // NÃºmero do relatÃ³rio: capturar somente dÃ­gitos da parte antes do segundo '-'
+    // Se houver pelo menos 2 partes, usamos a parte 1 (Ã­ndice 1) ou a concat das duas primeiras? Pedido diz: "sÃ³ os nÃºmeros antes do segundo '-'"
+    // Isso corresponde ao conteÃºdo acumulado das partes antes do segundo '-', porÃ©m comumente a parte imediatamente anterior ao segundo '-' jÃ¡ contÃ©m o nÃºmero.
+    // ImplementaÃ§Ã£o robusta: juntar tudo atÃ© o Ã­ndice 1 e extrair dÃ­gitos
     if (count($partes) >= 2) {
         $antesSegundoHifen = trim($partes[0] . ' ' . $partes[1]);
         if (preg_match_all('/\d+/', $antesSegundoHifen, $m)) {
             $numero_relatorio_auto = implode('', $m[0]);
         }
     } else {
-        // fallback: extrair dígitos de toda a string
+        // fallback: extrair dÃ­gitos de toda a string
         if (preg_match_all('/\d+/', $comum_planilha, $m)) {
             $numero_relatorio_auto = implode('', $m[0]);
         }
     }
-    // Casa de oração: conteúdo após o segundo '-'
+    // Casa de oraÃ§Ã£o: conteÃºdo apÃ³s o segundo '-'
     if (count($partes) >= 3) {
-        // Rejuntar tudo a partir da terceira parte para manter possíveis '-' internos após o segundo
+        // Rejuntar tudo a partir da terceira parte para manter possÃ­veis '-' internos apÃ³s o segundo
         $casa_oracao_auto = trim(implode(' - ', array_slice($partes, 2)));
     }
 }
 
-// Regra solicitada: número do relatório = código da comum; casa de oração = descrição da comum
+// Regra solicitada: nÃºmero do relatÃ³rio = cÃ³digo da comum; casa de oraÃ§Ã£o = descriÃ§Ã£o da comum
 if (!empty($comum_codigo)) {
     $numero_relatorio_auto = (string)$comum_codigo;
 }
@@ -60,7 +60,7 @@ if (!empty($comum_descricao)) {
     $casa_oracao_auto = (string)$comum_descricao;
 }
 
-// Consultar produtos que devem imprimir o relatório 14.1
+// Consultar produtos que devem imprimir o relatÃ³rio 14.1
 $sql = "SELECT 
             p.id_produto,
             p.tipo_bem_id,
@@ -109,8 +109,8 @@ $stmt->bindValue(':id_planilha', $id_planilha);
 $stmt->execute();
 $produtos = $stmt->fetchAll();
 
-// Se o usuário marcou que o RG é igual ao CPF e o campo RG estiver vazio,
-// reaproveitamos o CPF para garantir que o relatório saia preenchido.
+// Se o usuÃ¡rio marcou que o RG Ã© igual ao CPF e o campo RG estiver vazio,
+// reaproveitamos o CPF para garantir que o relatÃ³rio saia preenchido.
 if (!empty($produtos)) {
     foreach ($produtos as &$produto) {
         $rgDoadorVazio = !isset($produto['doador_rg']) || trim((string)$produto['doador_rg']) === '';
@@ -126,7 +126,8 @@ if (!empty($produtos)) {
     unset($produto);
 }
 
-// As variáveis $produtos e $comum_planilha estarão disponíveis para o HTML
-// Expor variáveis adicionais: $cnpj_planilha, $numero_relatorio_auto, $casa_oracao_auto
+// As variÃ¡veis $produtos e $comum_planilha estarÃ£o disponÃ­veis para o HTML
+// Expor variÃ¡veis adicionais: $cnpj_planilha, $numero_relatorio_auto, $casa_oracao_auto
 ?>
+
 

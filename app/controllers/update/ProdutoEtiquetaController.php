@@ -19,7 +19,7 @@ $filtros = [
     'status' => $_POST['status'] ?? ''
 ];
 
-$redirectBase = '../../app/views/planilhas/planilha_visualizar.php';
+$redirectBase = '../../views/planilhas/planilha_visualizar.php';
 $buildRedirect = function (string $erro = '') use ($redirectBase, $comum_id, $filtros): string {
     $params = array_merge(['id' => $comum_id, 'comum_id' => $comum_id], $filtros);
     if ($erro !== '') {
@@ -83,5 +83,6 @@ try {
     header('Location: ' . $buildRedirect($msg));
     exit;
 }
+
 
 

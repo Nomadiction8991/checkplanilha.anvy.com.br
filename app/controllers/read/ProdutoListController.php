@@ -1,5 +1,5 @@
-<?php
- // Autenticação
+﻿<?php
+ // AutenticaÃ§Ã£o
 require_once dirname(__DIR__, 2) . '/bootstrap.php';
 
 $comum_id = isset($_GET['comum_id']) ? (int)$_GET['comum_id'] : (isset($_GET['id']) ? (int)$_GET['id'] : 0);
@@ -8,7 +8,7 @@ if ($comum_id <= 0) {
     exit;
 }
 
-// Parâmetros de pesquisa
+// ParÃ¢metros de pesquisa
 $pesquisa_id = $_GET['pesquisa_id'] ?? '';
 $filtro_tipo_ben = $_GET['filtro_tipo_ben'] ?? '';
 $filtro_bem = $_GET['filtro_bem'] ?? ''; // NOME ALTERADO
@@ -16,7 +16,7 @@ $filtro_complemento = $_GET['filtro_complemento'] ?? '';
 $filtro_dependencia = $_GET['filtro_dependencia'] ?? '';
 $filtro_status = $_GET['filtro_status'] ?? '';
 
-// Paginação
+// PaginaÃ§Ã£o
 $pagina = $_GET['pagina'] ?? 1;
 $produtos_por_pagina = 20;
 $offset = ($pagina - 1) * $produtos_por_pagina;
@@ -41,14 +41,14 @@ $sql_count = "SELECT COUNT(*) as total
               LEFT JOIN dependencias d ON p.dependencia_id = d.id
               WHERE p.comum_id = :comum_id";
 
-// Buscar tipos de bens disponíveis para o select (SEM REPETIÇÕES)
+// Buscar tipos de bens disponÃ­veis para o select (SEM REPETIÃ‡Ã•ES)
 $sql_tipos_bens = "SELECT DISTINCT tb.id, tb.codigo, tb.descricao 
                    FROM produtos p
                    JOIN tipos_bens tb ON p.tipo_bem_id = tb.id
                    WHERE p.comum_id = :comum_id
                    ORDER BY tb.codigo";
 
-// Buscar códigos bem disponíveis para o select (SEM REPETIÇÕES)
+// Buscar cÃ³digos bem disponÃ­veis para o select (SEM REPETIÃ‡Ã•ES)
 $sql_bem_codigos = "SELECT DISTINCT p.bem AS tipo_ben
                     FROM produtos p
                     WHERE p.comum_id = :comum_id 
@@ -56,7 +56,7 @@ $sql_bem_codigos = "SELECT DISTINCT p.bem AS tipo_ben
                     AND p.bem != ''
                     ORDER BY p.bem";
 
-// Dependências distintas (por ID)
+// DependÃªncias distintas (por ID)
 $sql_dependencias = "SELECT DISTINCT d.id, d.descricao 
                     FROM produtos p
                     LEFT JOIN dependencias d ON p.dependencia_id = d.id
@@ -64,19 +64,19 @@ $sql_dependencias = "SELECT DISTINCT d.id, d.descricao
                     ORDER BY d.descricao";
 
 try {
-    // Buscar tipos de bens (SEM REPETIÇÕES)
+    // Buscar tipos de bens (SEM REPETIÃ‡Ã•ES)
     $stmt_tipos = $conexao->prepare($sql_tipos_bens);
     $stmt_tipos->bindValue(':comum_id', $comum_id);
     $stmt_tipos->execute();
     $tipos_bens = $stmt_tipos->fetchAll();
 
-    // Buscar códigos bem (SEM REPETIÇÕES)
+    // Buscar cÃ³digos bem (SEM REPETIÃ‡Ã•ES)
     $stmt_bem = $conexao->prepare($sql_bem_codigos);
     $stmt_bem->bindValue(':comum_id', $comum_id);
     $stmt_bem->execute();
     $bem_codigos = $stmt_bem->fetchAll();
 
-    // Buscar dependências (SEM REPETIÇÕES)
+    // Buscar dependÃªncias (SEM REPETIÃ‡Ã•ES)
     $stmt_deps = $conexao->prepare($sql_dependencias);
     $stmt_deps->bindValue(':comum_id', $comum_id);
     $stmt_deps->execute();
@@ -87,7 +87,7 @@ try {
     $dependencias = [];
 }
 
-// Adicionar condições de pesquisa
+// Adicionar condiÃ§Ãµes de pesquisa
 $condicoes = [];
 $params = [':comum_id' => $comum_id];
 
@@ -127,13 +127,13 @@ if (!empty($filtro_status)) {
     }
 }
 
-// Adicionar condições à query
+// Adicionar condiÃ§Ãµes Ã  query
 if (!empty($condicoes)) {
     $sql .= " AND " . implode(" AND ", $condicoes);
     $sql_count .= " AND " . implode(" AND ", $condicoes);
 }
 
-// Ordenação por ID do menor para o maior
+// OrdenaÃ§Ã£o por ID do menor para o maior
 $sql .= " ORDER BY p.id_produto ASC LIMIT :limit OFFSET :offset";
 
 try {
@@ -148,7 +148,7 @@ try {
     // Buscar produtos
     $stmt = $conexao->prepare($sql);
     
-    // Bind dos parâmetros
+    // Bind dos parÃ¢metros
     foreach ($params as $key => $value) {
         $stmt->bindValue($key, $value);
     }
@@ -158,7 +158,7 @@ try {
     $stmt->execute();
     $produtos = $stmt->fetchAll();
     
-    // Calcular total de páginas
+    // Calcular total de pÃ¡ginas
     $total_paginas = ceil($total_registros / $produtos_por_pagina);
     
 } catch (Exception $e) {
@@ -195,6 +195,7 @@ function gerarParametrosFiltro($incluirPagina = false) {
     
     return http_build_query($params);
 }
-// As variáveis estarão disponíveis para o HTML
+// As variÃ¡veis estarÃ£o disponÃ­veis para o HTML
 ?>
+
 

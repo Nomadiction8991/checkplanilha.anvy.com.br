@@ -1,5 +1,5 @@
-<?php
- // Autenticação
+﻿<?php
+ // AutenticaÃ§Ã£o
 require_once dirname(__DIR__, 2) . '/bootstrap.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
 
@@ -24,7 +24,7 @@ try {
     $planilha = $stmt_planilha->fetch();
     
     if (!$planilha) {
-        throw new Exception('Planilha não encontrada.');
+        throw new Exception('Planilha nÃ£o encontrada.');
     }
     
     $sql_config = "SELECT * FROM config_planilha WHERE id_planilha = :id_planilha";
@@ -34,7 +34,7 @@ try {
     $config = $stmt_config->fetch();
     
     if (!$config) {
-        throw new Exception('Configurações da planilha não encontradas.');
+        throw new Exception('ConfiguraÃ§Ãµes da planilha nÃ£o encontradas.');
     }
     
     // Converter mapeamento de string para array
@@ -50,7 +50,7 @@ try {
     $tipo_mensagem = 'error';
 }
 
-// Processar o formulário quando enviado
+// Processar o formulÃ¡rio quando enviado
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $ativo = isset($_POST['ativo']) ? 1 : 0;
     $linhas_pular = (int)($_POST['linhas_pular'] ?? 25);
@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // administracao (estado) e cidade
     $administracao = trim($_POST['administracao'] ?? null);
     $cidade = trim($_POST['cidade'] ?? null);
-    // Setor (opcional, numérico)
+    // Setor (opcional, numÃ©rico)
     $setor = !empty($_POST['setor']) ? (int)$_POST['setor'] : null;
     
     // Mapeamento simplificado
@@ -74,21 +74,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         if (empty($localizacao_comum)) {
-            throw new Exception('A localização da célula comum é obrigatória.');
+            throw new Exception('A localizaÃ§Ã£o da cÃ©lula comum Ã© obrigatÃ³ria.');
         }
 
         if (empty($localizacao_cnpj)) {
-            throw new Exception('A localização da célula CNPJ é obrigatória.');
+            throw new Exception('A localizaÃ§Ã£o da cÃ©lula CNPJ Ã© obrigatÃ³ria.');
         }
 
-        // Iniciar transação
+        // Iniciar transaÃ§Ã£o
         $conexao->beginTransaction();
 
     // Se um novo arquivo foi enviado, processar para obter os novos valores
-    $novo_valor_comum = $planilha['comum']; // Manter o valor atual por padrão
-    $novo_valor_data_posicao = $planilha['data_posicao']; // Manter o valor atual por padrão
-    $novo_valor_endereco = $planilha['endereco']; // Manter o valor atual por padrão
-    $novo_valor_cnpj = $planilha['cnpj']; // Manter o valor atual por padrão
+    $novo_valor_comum = $planilha['comum']; // Manter o valor atual por padrÃ£o
+    $novo_valor_data_posicao = $planilha['data_posicao']; // Manter o valor atual por padrÃ£o
+    $novo_valor_endereco = $planilha['endereco']; // Manter o valor atual por padrÃ£o
+    $novo_valor_cnpj = $planilha['cnpj']; // Manter o valor atual por padrÃ£o
     $novo_administracao = $planilha['administracao'] ?? null;
     $novo_cidade = $planilha['cidade'] ?? null;
         
@@ -97,18 +97,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $extensao = strtolower(pathinfo($_FILES['arquivo']['name'], PATHINFO_EXTENSION));
 
             if ($extensao !== 'csv') {
-                throw new Exception('Apenas arquivos CSV são permitidos.');
+                throw new Exception('Apenas arquivos CSV sÃ£o permitidos.');
             }
 
-            // Processar o arquivo CSV para obter os valores das células
+            // Processar o arquivo CSV para obter os valores das cÃ©lulas
             $planilha_obj = IOFactory::load($arquivo_tmp);
             $aba_ativa = $planilha_obj->getActiveSheet();
             
-            // Obter o valor da célula comum
+            // Obter o valor da cÃ©lula comum
             $novo_valor_comum = $aba_ativa->getCell($localizacao_comum)->getCalculatedValue();
             
             if (empty($novo_valor_comum)) {
-                throw new Exception('A célula ' . $localizacao_comum . ' está vazia no arquivo CSV.');
+                throw new Exception('A cÃ©lula ' . $localizacao_comum . ' estÃ¡ vazia no arquivo CSV.');
             }
 
             // Processar e obter ID do comum
@@ -117,21 +117,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception('Erro ao processar comum: ' . $novo_valor_comum);
             }
 
-            // Obter o valor da célula data_posicao
+            // Obter o valor da cÃ©lula data_posicao
             $valor_data_posicao = $aba_ativa->getCell($localizacao_data_posicao)->getCalculatedValue();
             
             if (empty($valor_data_posicao)) {
-                throw new Exception('A célula ' . $localizacao_data_posicao . ' está vazia no arquivo CSV.');
+                throw new Exception('A cÃ©lula ' . $localizacao_data_posicao . ' estÃ¡ vazia no arquivo CSV.');
             }
 
-            // Obter o valor da célula endereco
+            // Obter o valor da cÃ©lula endereco
             $novo_valor_endereco = $aba_ativa->getCell($localizacao_endereco)->getCalculatedValue();
             
             if (empty($novo_valor_endereco)) {
-                throw new Exception('A célula ' . $localizacao_endereco . ' está vazia no arquivo CSV.');
+                throw new Exception('A cÃ©lula ' . $localizacao_endereco . ' estÃ¡ vazia no arquivo CSV.');
             }
 
-            // Obter o valor da célula CNPJ e extrair apenas números
+            // Obter o valor da cÃ©lula CNPJ e extrair apenas nÃºmeros
             $valor_cnpj = $aba_ativa->getCell($localizacao_cnpj)->getCalculatedValue();
             $cnpj_somente_numeros = preg_replace('/[^0-9]/', '', $valor_cnpj);
             $novo_valor_cnpj = $cnpj_somente_numeros;
@@ -140,7 +140,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data_mysql = null;
             if (!empty($valor_data_posicao)) {
                 if (is_numeric($valor_data_posicao)) {
-                    // Se for um número serial do Excel, converter para data
+                    // Se for um nÃºmero serial do Excel, converter para data
                     $data_mysql = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($valor_data_posicao)->format('Y-m-d');
                 } else {
                     // Tentar converter string para data
@@ -148,13 +148,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if ($timestamp !== false) {
                         $data_mysql = date('Y-m-d', $timestamp);
                     } else {
-                        throw new Exception('Formato de data inválido na célula ' . $localizacao_data_posicao . ': ' . $valor_data_posicao);
+                        throw new Exception('Formato de data invÃ¡lido na cÃ©lula ' . $localizacao_data_posicao . ': ' . $valor_data_posicao);
                     }
                 }
             }
             $novo_valor_data_posicao = $data_mysql;
 
-            // Iniciar transação
+            // Iniciar transaÃ§Ã£o
             $conexao->beginTransaction();
 
             // Apagar todos os produtos existentes desta planilha
@@ -171,7 +171,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $linha_atual = 0;
             $erro_detalhado = '';
 
-            // Função para converter letra da coluna para índice numérico
+            // FunÃ§Ã£o para converter letra da coluna para Ã­ndice numÃ©rico
             function colunaParaIndice($coluna) {
                 $coluna = strtoupper($coluna);
                 $indice = 0;
@@ -184,7 +184,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 return $indice - 1;
             }
 
-            // Função para corrigir encoding dos textos
+            // FunÃ§Ã£o para corrigir encoding dos textos
             function corrigirEncoding($texto) {
                 if (empty($texto)) return $texto;
                 
@@ -205,7 +205,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     continue;
                 }
 
-                // Verificar se a linha está vazia
+                // Verificar se a linha estÃ¡ vazia
                 if (empty(array_filter($linha, function($v) { return $v !== null && $v !== ''; }))) {
                     continue;
                 }
@@ -215,12 +215,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $indice_codigo = colunaParaIndice($mapeamento['codigo']);
                     $codigo = isset($linha[$indice_codigo]) ? trim($linha[$indice_codigo]) : '';
                     
-                    // Pular linha se não tiver código
+                    // Pular linha se nÃ£o tiver cÃ³digo
                     if (empty($codigo)) {
                         continue;
                     }
 
-                    // Obter outros valores com correção de encoding
+                    // Obter outros valores com correÃ§Ã£o de encoding
                     $nome = isset($linha[colunaParaIndice($mapeamento['nome'])]) ? corrigirEncoding(trim($linha[colunaParaIndice($mapeamento['nome'])])) : '';
                     $dependencia = isset($linha[colunaParaIndice($mapeamento['dependencia'])]) ? corrigirEncoding(trim($linha[colunaParaIndice($mapeamento['dependencia'])])) : '';
 
@@ -258,15 +258,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        // Validações de campos obrigatórios enviados pelo form
+        // ValidaÃ§Ãµes de campos obrigatÃ³rios enviados pelo form
         if (isset($_POST['administracao']) && trim($_POST['administracao']) === '') {
-            throw new Exception('O campo Administração é obrigatório.');
+            throw new Exception('O campo AdministraÃ§Ã£o Ã© obrigatÃ³rio.');
         }
         if (isset($_POST['cidade']) && trim($_POST['cidade']) === '') {
-            throw new Exception('O campo Cidade é obrigatório.');
+            throw new Exception('O campo Cidade Ã© obrigatÃ³rio.');
         }
 
-        // Se o usuário submeteu administracao/cidade via POST, sobrescrever as variáveis de update
+        // Se o usuÃ¡rio submeteu administracao/cidade via POST, sobrescrever as variÃ¡veis de update
         if (!empty($administracao) || $administracao === "") {
             $novo_administracao = $administracao;
         }
@@ -280,12 +280,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $novo_setor = $setor;
         }
 
-        // Priorizar valor informado manualmente para Endereço
+        // Priorizar valor informado manualmente para EndereÃ§o
         if ($endereco_post !== null && $endereco_post !== '') {
             $novo_valor_endereco = $endereco_post;
         }
 
-        // Atualizar dados da planilha com os novos valores (se aplicável)
+        // Atualizar dados da planilha com os novos valores (se aplicÃ¡vel)
     $sql_update_planilha = "UPDATE planilhas SET ativo = :ativo, comum = :comum, data_posicao = :data_posicao, endereco = :endereco, cnpj = :cnpj, administracao = :administracao, cidade = :cidade, setor = :setor WHERE id = :id";
         $stmt_update_planilha = $conexao->prepare($sql_update_planilha);
         $stmt_update_planilha->bindValue(':ativo', $ativo);
@@ -299,7 +299,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt_update_planilha->bindValue(':id', $id_planilha);
         $stmt_update_planilha->execute();
 
-        // Atualizar configurações de mapeamento
+        // Atualizar configuraÃ§Ãµes de mapeamento
         $mapeamento_string = '';
         foreach ($mapeamento as $coluna_banco => $letra_planilha) {
             $mapeamento_string .= "{$coluna_banco}={$letra_planilha};";
@@ -317,16 +317,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt_update_config->bindValue(':id_planilha', $id_planilha);
         $stmt_update_config->execute();
 
-        // Confirmar transação
+        // Confirmar transaÃ§Ã£o
         $conexao->commit();
 
         $mensagem = "Planilha atualizada com sucesso!";
         
         if (isset($registros_importados)) {
-            $mensagem .= "<br>Valor obtido da célula " . htmlspecialchars($localizacao_comum) . ": " . htmlspecialchars($novo_valor_comum);
-            $mensagem .= "<br>Valor obtido da célula " . htmlspecialchars($localizacao_data_posicao) . ": " . htmlspecialchars($novo_valor_data_posicao);
-            $mensagem .= "<br>Valor obtido da célula " . htmlspecialchars($localizacao_endereco) . ": " . htmlspecialchars($novo_valor_endereco);
-            $mensagem .= "<br>Valor obtido da célula " . htmlspecialchars($localizacao_cnpj) . ": " . htmlspecialchars($novo_valor_cnpj);
+            $mensagem .= "<br>Valor obtido da cÃ©lula " . htmlspecialchars($localizacao_comum) . ": " . htmlspecialchars($novo_valor_comum);
+            $mensagem .= "<br>Valor obtido da cÃ©lula " . htmlspecialchars($localizacao_data_posicao) . ": " . htmlspecialchars($novo_valor_data_posicao);
+            $mensagem .= "<br>Valor obtido da cÃ©lula " . htmlspecialchars($localizacao_endereco) . ": " . htmlspecialchars($novo_valor_endereco);
+            $mensagem .= "<br>Valor obtido da cÃ©lula " . htmlspecialchars($localizacao_cnpj) . ": " . htmlspecialchars($novo_valor_cnpj);
             $mensagem .= "<br>Registros importados: {$registros_importados}<br>Erros: {$registros_erros}";
         }
         
@@ -350,7 +350,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($conexao->inTransaction()) {
             $conexao->rollBack();
         }
-        $mensagem = "Erro na atualização: " . $e->getMessage();
+        $mensagem = "Erro na atualizaÃ§Ã£o: " . $e->getMessage();
         $tipo_mensagem = 'error';
         
         error_log("ERRO ATUALIZACAO: " . $e->getMessage());
@@ -358,4 +358,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
+
 

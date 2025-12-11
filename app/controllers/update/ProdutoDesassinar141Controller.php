@@ -12,7 +12,7 @@ $id_planilha = $_POST['id_planilha'] ?? null;
 
 if (empty($ids_produtos) || !$id_planilha) {
     $_SESSION['erro'] = 'Dados incompletos para desfazer assinatura.';
-    header('Location: ../../app/views/planilhas/relatorio141_assinatura.php?id=' . urlencode($id_planilha));
+    header('Location: ../../views/planilhas/relatorio141_assinatura.php?id=' . urlencode($id_planilha));
     exit;
 }
 
@@ -53,15 +53,16 @@ try {
 
     $conexao->commit();
     $_SESSION['sucesso'] = $produtos_atualizados == 1 ? 'Assinatura desfeita com sucesso.' : "$produtos_atualizados assinaturas desfeitas com sucesso.";
-    header('Location: ../../app/views/planilhas/relatorio141_assinatura.php?id=' . urlencode($id_planilha));
+    header('Location: ../../views/planilhas/relatorio141_assinatura.php?id=' . urlencode($id_planilha));
     exit;
 } catch (Exception $e) {
     $conexao->rollBack();
     $_SESSION['erro'] = 'Erro ao desfazer assinatura(s): ' . $e->getMessage();
     $redirect_ids = implode(',', $ids_produtos);
-    header('Location: ../../app/views/planilhas/relatorio141_assinatura_form.php?ids=' . urlencode($redirect_ids) . '&id_planilha=' . urlencode($id_planilha));
+    header('Location: ../../views/planilhas/relatorio141_assinatura_form.php?ids=' . urlencode($redirect_ids) . '&id_planilha=' . urlencode($id_planilha));
     exit;
 }
 ?>
+
 
 

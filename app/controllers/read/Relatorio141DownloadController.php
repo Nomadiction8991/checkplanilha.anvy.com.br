@@ -35,7 +35,7 @@ try {
         $dados = $gerador->gerarEmBranco($num);
         extract($dados);
         ob_start();
-        include __DIR__ . '/../../app/views/planilhas/relatorio141_template.php';
+        include __DIR__ . '/../../views/planilhas/relatorio141_template.php';
         $html = ob_get_clean();
     }
 
@@ -81,4 +81,5 @@ try {
     http_response_code(500);
     echo 'Erro ao gerar PDF: ' . htmlspecialchars($e->getMessage());
 }
+
 

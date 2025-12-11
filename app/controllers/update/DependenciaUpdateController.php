@@ -17,7 +17,7 @@ if ($id <= 0) {
     exit;
 }
 
-// Buscar dependÃªncia
+// Buscar dependÃƒÂªncia
 try {
     $stmt = $conexao->prepare('SELECT * FROM dependencias WHERE id = :id');
     $stmt->bindValue(':id', $id, PDO::PARAM_INT);
@@ -25,31 +25,31 @@ try {
     $dependencia = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$dependencia) {
-        throw new Exception('DependÃªncia nÃ£o encontrada.');
+        throw new Exception('DependÃƒÂªncia nÃƒÂ£o encontrada.');
     }
 } catch (Throwable $e) {
     $mensagem = 'Erro: ' . $e->getMessage();
     $tipo_mensagem = 'danger';
 }
 
-// Processar formulÃ¡rio
+// Processar formulÃƒÂ¡rio
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $codigo = isset($_POST['codigo']) ? trim((string)$_POST['codigo']) : '';
     $descricao = isset($_POST['descricao']) ? trim((string)$_POST['descricao']) : '';
 
     try {
         if ($descricao === '') {
-            throw new Exception('A descriÃ§Ã£o Ã© obrigatÃ³ria.');
+            throw new Exception('A descriÃƒÂ§ÃƒÂ£o ÃƒÂ© obrigatÃƒÂ³ria.');
         }
 
-        // Validar unicidade se cÃ³digo informado
+        // Validar unicidade se cÃƒÂ³digo informado
         if ($codigo !== '') {
             $chk = $conexao->prepare('SELECT id FROM dependencias WHERE codigo = :codigo AND id != :id');
             $chk->bindValue(':codigo', $codigo);
             $chk->bindValue(':id', $id, PDO::PARAM_INT);
             $chk->execute();
             if ($chk->fetch()) {
-                throw new Exception('Este cÃ³digo jÃ¡ estÃ¡ cadastrado.');
+                throw new Exception('Este cÃƒÂ³digo jÃƒÂ¡ estÃƒÂ¡ cadastrado.');
             }
         }
 
@@ -68,9 +68,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $stmt->execute();
 
-        $mensagem = 'DependÃªncia atualizada com sucesso!';
+        $mensagem = 'DependÃƒÂªncia atualizada com sucesso!';
         $tipo_mensagem = 'success';
-        header('Location: ../../app/views/dependencias/dependencias_listar.php?success=1');
+        header('Location: ../../views/dependencias/dependencias_listar.php?success=1');
         exit;
     } catch (Throwable $e) {
         $mensagem = 'Erro: ' . $e->getMessage();
@@ -79,4 +79,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?></content>
 <parameter name="filePath">/home/weverton/Documentos/Github-Gitlab/GitHub/checkplanilha.anvy.com.br/app/controllers/update/DependenciaUpdateController.php
+
 

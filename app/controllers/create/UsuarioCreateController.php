@@ -217,7 +217,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header('Location: ../../../login.php?registered=1');
         } else {
             // Admin cadastrando usuÃ¡rio: redireciona para listagem, independente do tipo
-            header('Location: ../../app/views/usuarios/usuarios_listar.php?success=1');
+            header('Location: ../../views/usuarios/usuarios_listar.php?success=1');
         }
         exit;
 
@@ -227,5 +227,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
+
 
 

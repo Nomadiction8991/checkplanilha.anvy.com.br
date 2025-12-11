@@ -36,10 +36,11 @@ try {
     extract($dados);
     
     // Incluir o template
-    include __DIR__ . '/../../app/views/planilhas/relatorio141_template.php';
+    include __DIR__ . '/../../views/planilhas/relatorio141_template.php';
     
 } catch (Exception $e) {
     http_response_code(500);
     echo "Erro ao gerar relatÃ³rio: " . htmlspecialchars($e->getMessage());
 }
+
 

@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-// CRUD/READ/dependencia.php - implementação limpa
+// CRUD/READ/dependencia.php - implementaÃ§Ã£o limpa
 
 require_once dirname(__DIR__, 2) . '/bootstrap.php';
 
@@ -15,7 +15,7 @@ $offset = ($pagina - 1) * $limite;
 
 try {
     if (!$conexao) {
-        throw new Exception('Sem conexão com o banco de dados');
+        throw new Exception('Sem conexÃ£o com o banco de dados');
     }
 
     $sql_count = 'SELECT COUNT(*) FROM dependencias';
@@ -33,8 +33,9 @@ try {
     $total_registros = 0;
     $total_paginas = 0;
     $pagina = 1;
-    error_log('Erro ao carregar dependências: ' . $e->getMessage());
+    error_log('Erro ao carregar dependÃªncias: ' . $e->getMessage());
 }
 
 ?>
+
 

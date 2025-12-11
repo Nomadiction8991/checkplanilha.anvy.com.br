@@ -1,5 +1,5 @@
-<?php
- // Autenticação
+﻿<?php
+ // AutenticaÃ§Ã£o
 require_once dirname(__DIR__, 2) . '/bootstrap.php';
 
 $pagina = isset($_GET['pagina']) ? max(1,(int)$_GET['pagina']) : 1;
@@ -11,7 +11,7 @@ $sql_count = "SELECT COUNT(*) FROM usuarios";
 $total_registros = (int)$conexao->query($sql_count)->fetchColumn();
 $total_paginas = (int)ceil($total_registros / $limite);
 
-// Buscar página de usuários
+// Buscar pÃ¡gina de usuÃ¡rios
 $sql = "SELECT * FROM usuarios ORDER BY nome ASC LIMIT :limite OFFSET :offset";
 $stmt = $conexao->prepare($sql);
 $stmt->bindValue(':limite',$limite,PDO::PARAM_INT);
@@ -19,4 +19,5 @@ $stmt->bindValue(':offset',$offset,PDO::PARAM_INT);
 $stmt->execute();
 $usuarios = $stmt->fetchAll();
 ?>
+
 

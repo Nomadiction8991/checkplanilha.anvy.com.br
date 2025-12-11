@@ -22,19 +22,19 @@ $setor = trim((string)($_POST['setor'] ?? ''));
 
 try {
     if ($id <= 0) {
-        throw new Exception('ID invÃ¡lido.');
+        throw new Exception('ID invÃƒÂ¡lido.');
     }
     if ($descricao === '') {
-        throw new Exception('DescriÃ§Ã£o Ã© obrigatÃ³ria.');
+        throw new Exception('DescriÃƒÂ§ÃƒÂ£o ÃƒÂ© obrigatÃƒÂ³ria.');
     }
     if ($cnpj === '' || strlen($cnpj) !== 14) {
-        throw new Exception('CNPJ Ã© obrigatÃ³rio e deve ter 14 dÃ­gitos.');
+        throw new Exception('CNPJ ÃƒÂ© obrigatÃƒÂ³rio e deve ter 14 dÃƒÂ­gitos.');
     }
     if ($administracao === '') {
-        throw new Exception('AdministraÃ§Ã£o Ã© obrigatÃ³ria.');
+        throw new Exception('AdministraÃƒÂ§ÃƒÂ£o ÃƒÂ© obrigatÃƒÂ³ria.');
     }
     if ($cidade === '') {
-        throw new Exception('Cidade Ã© obrigatÃ³ria.');
+        throw new Exception('Cidade ÃƒÂ© obrigatÃƒÂ³ria.');
     }
 
     // Garantir unicidade do CNPJ
@@ -43,7 +43,7 @@ try {
     $stmtCheck->bindValue(':id', $id, PDO::PARAM_INT);
     $stmtCheck->execute();
     if ($stmtCheck->fetch()) {
-        throw new Exception('JÃ¡ existe um comum com este CNPJ.');
+        throw new Exception('JÃƒÂ¡ existe um comum com este CNPJ.');
     }
 
     $stmt = $conexao->prepare('UPDATE comums 
@@ -63,14 +63,15 @@ try {
 
     $_SESSION['mensagem'] = 'Comum atualizada com sucesso!';
     $_SESSION['tipo_mensagem'] = 'success';
-    header('Location: ../../app/views/comuns/comum_editar.php?id=' . urlencode((string)$id));
+    header('Location: ../../views/comuns/comum_editar.php?id=' . urlencode((string)$id));
     exit;
 } catch (Throwable $e) {
     $_SESSION['mensagem'] = 'Erro ao salvar: ' . $e->getMessage();
     $_SESSION['tipo_mensagem'] = 'danger';
-    header('Location: ../../app/views/comuns/comum_editar.php?id=' . urlencode((string)$id));
+    header('Location: ../../views/comuns/comum_editar.php?id=' . urlencode((string)$id));
     exit;
 }
+
 
 
 

@@ -12,7 +12,7 @@ if (!isAdmin()) {
 
 $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
 if ($id <= 0) {
-    echo json_encode(['success' => false, 'message' => 'ID não informado']);
+    echo json_encode(['success' => false, 'message' => 'ID nÃ£o informado']);
     exit;
 }
 
@@ -20,9 +20,10 @@ try {
     $stmt = $conexao->prepare('DELETE FROM dependencias WHERE id = :id');
     $stmt->bindValue(':id', $id, PDO::PARAM_INT);
     $stmt->execute();
-    echo json_encode(['success' => true, 'message' => 'Dependência excluída com sucesso']);
+    echo json_encode(['success' => true, 'message' => 'DependÃªncia excluÃ­da com sucesso']);
 } catch (Throwable $e) {
-    error_log('Erro ao excluir dependência: ' . $e->getMessage());
-    echo json_encode(['success' => false, 'message' => 'Erro ao excluir dependência']);
+    error_log('Erro ao excluir dependÃªncia: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'Erro ao excluir dependÃªncia']);
 }
+
 

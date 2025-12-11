@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once dirname(__DIR__, 2) . '/bootstrap.php';
 
 $comum_id = isset($_GET['comum_id']) ? (int)$_GET['comum_id'] : (isset($_GET['id']) ? (int)$_GET['id'] : 0);
@@ -8,7 +8,7 @@ if ($comum_id <= 0) {
     exit;
 }
 
-// Verificar se há mensagem de erro recebida pela URL
+// Verificar se hÃ¡ mensagem de erro recebida pela URL
 $erro = $_GET['erro'] ?? '';
 if ($erro !== '') {
     echo "<script>alert('" . addslashes($erro) . "');</script>";
@@ -16,15 +16,15 @@ if ($erro !== '') {
 
 $comum = obter_comum_por_id($conexao, $comum_id);
 if (!$comum) {
-    die('Comum não encontrado.');
+    die('Comum nÃ£o encontrado.');
 }
 $planilha = [
     'comum_id' => $comum_id,
     'comum_descricao' => $comum['descricao'] ?? ''
 ];
-$id_planilha = $comum_id; // compatibilidade com códigos legados que ainda usam id_planilha
+$id_planilha = $comum_id; // compatibilidade com cÃ³digos legados que ainda usam id_planilha
 
-// Configuração global de importação
+// ConfiguraÃ§Ã£o global de importaÃ§Ã£o
 $stmtCfg = $conexao->prepare("SELECT * FROM configuracoes LIMIT 1");
 $stmtCfg->execute();
 $configImport = $stmtCfg->fetch(PDO::FETCH_ASSOC) ?: [];
@@ -35,7 +35,7 @@ $mensagem_bloqueio = '';
 $hoje_cuiaba = (new DateTime('now', new DateTimeZone('America/Cuiaba')))->format('Y-m-d');
 if ($data_importacao !== $hoje_cuiaba) {
     $acesso_bloqueado = true;
-    $mensagem_bloqueio = 'A planilha não está atualizada para o dia de hoje. Importe um arquivo atualizado para continuar.';
+    $mensagem_bloqueio = 'A planilha nÃ£o estÃ¡ atualizada para o dia de hoje. Importe um arquivo atualizado para continuar.';
 }
 
 if ($acesso_bloqueado) {
@@ -45,7 +45,7 @@ if ($acesso_bloqueado) {
     $dependencia_options = [];
     return;
 }
-// Parâmetros de paginação
+// ParÃ¢metros de paginaÃ§Ã£o
 $pagina = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
 $pagina = $pagina > 0 ? $pagina : 1;
 $limite = 20;
@@ -78,7 +78,7 @@ $sql_base = "SELECT
                      COALESCE(p.imprimir_14_1, 0) AS imprimir_141,
                      COALESCE(p.novo, 0) AS novo,
                      COALESCE(p.ativo, 1) AS ativo,
-                     -- Infos extras para montar descrição editada on-the-fly
+                     -- Infos extras para montar descriÃ§Ã£o editada on-the-fly
                     t1.codigo AS tipo_codigo,
                     t1.descricao AS tipo_desc,
                      d1.descricao AS dependencia_desc,
@@ -92,14 +92,14 @@ $sql_base = "SELECT
 $params = [':comum_id' => $comum_id];
 
 if ($filtro_nome !== '') {
-    // Usar placeholders distintos: PDO nÇœo aceita o mesmo nome repetido com ATTR_EMULATE_PREPARES desativado
+    // Usar placeholders distintos: PDO nÃ‡Å“o aceita o mesmo nome repetido com ATTR_EMULATE_PREPARES desativado
     $sql_base .= " AND (p.descricao_completa LIKE :nome1 OR p.editado_descricao_completa LIKE :nome2)";
     $params[':nome1'] = '%' . $filtro_nome . '%';
     $params[':nome2'] = '%' . $filtro_nome . '%';
 }
 
 if ($filtro_dependencia !== '') {
-    // Filtra por dependencia_id (considerar tanto original quanto editado) - placeholders distintos (PDO nativo não aceita nome repetido)
+    // Filtra por dependencia_id (considerar tanto original quanto editado) - placeholders distintos (PDO nativo nÃ£o aceita nome repetido)
     $sql_base .= " AND (p.dependencia_id = :dependencia1 OR p.editado_dependencia_id = :dependencia2)";
     $params[':dependencia1'] = $filtro_dependencia;
     $params[':dependencia2'] = $filtro_dependencia;
@@ -134,7 +134,7 @@ if ($filtro_status !== '') {
     }
 }
 
-// Total de registros para paginação - query COUNT simplificada
+// Total de registros para paginaÃ§Ã£o - query COUNT simplificada
 $sql_count = "SELECT COUNT(*) AS total 
               FROM produtos p 
               WHERE p.comum_id = :comum_id AND COALESCE(p.novo,0) = 0";
@@ -188,7 +188,7 @@ try {
         $offset = ($pagina - 1) * $limite;
     }
 
-    // Busca efetiva dos produtos com ordenação e limites
+    // Busca efetiva dos produtos com ordenaÃ§Ã£o e limites
     $sql_dados = $sql_base . " ORDER BY p.id_produto DESC LIMIT :limite OFFSET :offset";
     $stmt = $conexao->prepare($sql_dados);
     foreach ($params as $key => $value) {
@@ -205,9 +205,9 @@ try {
     $total_paginas = 0;
 }
 
-// Dependências únicas para preencher o select de filtros
+// DependÃªncias Ãºnicas para preencher o select de filtros
 try {
-    // Trazer ID e descrição da dependência (mostra descrição no select da view)
+    // Trazer ID e descriÃ§Ã£o da dependÃªncia (mostra descriÃ§Ã£o no select da view)
     $sql_filtros = "SELECT DISTINCT d.id, d.descricao
                     FROM (
                         SELECT p.dependencia_id AS dep
@@ -233,4 +233,5 @@ try {
     $dependencia_options = [];
 }
 ?>
+
 

@@ -1,9 +1,9 @@
-<?php
+﻿<?php
 // Script de debug para verificar o salvamento das assinaturas
 
 require_once dirname(__DIR__, 2) . '/bootstrap.php';
 
-echo "<h2>Debug - Verificação de Assinaturas</h2>";
+echo "<h2>Debug - VerificaÃ§Ã£o de Assinaturas</h2>";
 
 // Verificar estrutura da tabela produtos
 echo "<h3>Estrutura da tabela 'produtos':</h3>";
@@ -33,7 +33,7 @@ try {
     
     if (count($produtos) > 0) {
         echo "<table border='1' cellpadding='5'>";
-        echo "<tr><th>ID Produto</th><th>Descrição</th><th>Doador ID</th><th>Condição</th></tr>";
+        echo "<tr><th>ID Produto</th><th>DescriÃ§Ã£o</th><th>Doador ID</th><th>CondiÃ§Ã£o</th></tr>";
         foreach ($produtos as $p) {
             echo "<tr>";
             echo "<td>" . $p['id_produto'] . "</td>";
@@ -50,12 +50,13 @@ try {
     echo "Erro: " . $e->getMessage();
 }
 
-// Verificar dados da sessão
-echo "<h3>Dados da Sessão:</h3>";
+// Verificar dados da sessÃ£o
+echo "<h3>Dados da SessÃ£o:</h3>";
 echo "<pre>";
-echo "ID Usuário: " . ($_SESSION['usuario_id'] ?? 'NÃO DEFINIDO') . "\n";
-echo "Tipo Usuário: " . ($_SESSION['usuario_tipo'] ?? 'NÃO DEFINIDO') . "\n";
-echo "Nome Usuário: " . ($_SESSION['usuario_nome'] ?? 'NÃO DEFINIDO') . "\n";
+echo "ID UsuÃ¡rio: " . ($_SESSION['usuario_id'] ?? 'NÃƒO DEFINIDO') . "\n";
+echo "Tipo UsuÃ¡rio: " . ($_SESSION['usuario_tipo'] ?? 'NÃƒO DEFINIDO') . "\n";
+echo "Nome UsuÃ¡rio: " . ($_SESSION['usuario_nome'] ?? 'NÃƒO DEFINIDO') . "\n";
 echo "</pre>";
 ?>
+
 

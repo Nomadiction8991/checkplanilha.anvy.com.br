@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 require_once dirname(__DIR__, 2) . '/bootstrap.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
@@ -34,7 +34,7 @@ function ip_fix_mojibake($texto) {
     if ($texto === null) return '';
     $texto = (string)$texto;
     if ($texto === '') return '';
-    if (preg_match('/Ã|Â|\xEF\xBF\xBD/', $texto)) {
+    if (preg_match('/Ãƒ|Ã‚|\xEF\xBF\xBD/', $texto)) {
         $t1 = @utf8_decode($texto);
         if ($t1 !== false && mb_detect_encoding($t1, 'UTF-8', true)) {
             return $t1;
@@ -50,7 +50,7 @@ function ip_fix_mojibake($texto) {
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Symfony\Component\String\UnicodeString;
 
-// Redirecionamento após sucesso
+// Redirecionamento apÃ³s sucesso
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $arquivo_csv = $_FILES['arquivo_csv'] ?? null;
     $posicao_data = trim($_POST['posicao_data'] ?? 'D13');
@@ -70,13 +70,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $sucesso = false;
 
     try {
-        // Validações
+        // ValidaÃ§Ãµes
         if (!$arquivo_csv || $arquivo_csv['error'] !== UPLOAD_ERR_OK) {
-            throw new Exception('Selecione um arquivo CSV válido.');
+            throw new Exception('Selecione um arquivo CSV vÃ¡lido.');
         }
         $extensao = strtolower(pathinfo($arquivo_csv['name'], PATHINFO_EXTENSION));
         if ($extensao !== 'csv') {
-            throw new Exception('Apenas arquivos CSV são permitidos.');
+            throw new Exception('Apenas arquivos CSV sÃ£o permitidos.');
         }
 
         // Carregar arquivo
@@ -99,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        // Carregar todas as linhas e contar candidatas (linhas de produto com código preenchido)
+        // Carregar todas as linhas e contar candidatas (linhas de produto com cÃ³digo preenchido)
         $linhas = $aba->toArray();
         $linha_atual = 0;
         $registros_candidatos = 0;
@@ -215,7 +215,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Iniciar transacao para atualizar produtos do comum
         $conexao->beginTransaction();
 
-        // Pré-carregar tipos de bens e dependências para matching
+        // PrÃ©-carregar tipos de bens e dependÃªncias para matching
         $tipos_bens = [];
         $stmtTipos = $conexao->prepare("SELECT id, codigo, descricao FROM tipos_bens ORDER BY LENGTH(descricao) DESC");
         if ($stmtTipos->execute()) {
@@ -238,10 +238,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $atualizados = 0;
         $excluidos = 0;
         $linha_atual = 0;
-        // Sequencial global para respeitar a PK (id_produto é único na tabela)
+        // Sequencial global para respeitar a PK (id_produto Ã© Ãºnico na tabela)
         $stmtMaxId = $conexao->query("SELECT COALESCE(MAX(id_produto), 0) AS max_id FROM produtos");
         $id_produto_sequencial = (int)($stmtMaxId->fetchColumn() ?? 0) + 1;
-        $erros_produtos = []; // Para coletar erros específicos
+        $erros_produtos = []; // Para coletar erros especÃ­ficos
         $codigos_processados = [];
 
         foreach ($linhas as $linha) {
@@ -265,18 +265,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $complemento_original = isset($linha[$idx_complemento]) ? trim((string)$linha[$idx_complemento]) : '';
                 $dependencia_original = isset($linha[$idx_dependencia]) ? ip_fix_mojibake(ip_corrige_encoding($linha[$idx_dependencia])) : '';
 
-                // Parsing avançado: detectar código, tipo de bem (por código ou nome), remover prefixos e extrair BEN e COMPLEMENTO
+                // Parsing avanÃ§ado: detectar cÃ³digo, tipo de bem (por cÃ³digo ou nome), remover prefixos e extrair BEN e COMPLEMENTO
                 // Texto base para parsing: extrair BEN do complemento
                 $texto_base = $complemento_original;
-                // 1) Remover prefixo de código (ex: "68 - ")
+                // 1) Remover prefixo de cÃ³digo (ex: "68 - ")
                 [$codigo_detectado, $texto_sem_prefixo] = pp_extrair_codigo_prefixo($texto_base);
-                // 2) Detectar tipo (por código ou alias) mantendo texto original intacto
+                // 2) Detectar tipo (por cÃ³digo ou alias) mantendo texto original intacto
                 [$tipo_detectado, $texto_pos_tipo] = pp_detectar_tipo($texto_sem_prefixo, $codigo_detectado, $tipos_aliases);
                 $tipo_bem_id = (int)$tipo_detectado['id'];
                 $tipo_bem_codigo = $tipo_detectado['codigo'];
                 $tipo_bem_desc = $tipo_detectado['descricao'];
                 
-                // 3) Extrair BEM e COMPLEMENTO usando aliases do tipo (se disponível)
+                // 3) Extrair BEM e COMPLEMENTO usando aliases do tipo (se disponÃ­vel)
                 $aliases_tipo_atual = null;
                 $aliases_originais = null;
                 if ($tipo_bem_id) {
@@ -293,7 +293,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $ben = strtoupper(preg_replace('/\s+/', ' ', trim(ip_fix_mojibake(ip_corrige_encoding($ben_raw)))));
                 $complemento_limpo = strtoupper(preg_replace('/\s+/', ' ', trim(ip_fix_mojibake(ip_corrige_encoding($comp_raw)))));
                 
-                // Validação: BEM deve ser um dos aliases do tipo (com fuzzy match)
+                // ValidaÃ§Ã£o: BEM deve ser um dos aliases do tipo (com fuzzy match)
                 $ben_valido = false;
                 if ($ben !== '' && $tipo_bem_id > 0 && $aliases_tipo_atual) {
                     $ben_norm = pp_normaliza($ben);
@@ -305,12 +305,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
                 
-                // Se BEM inválido ou vazio, tentar forçar para primeiro alias do tipo
+                // Se BEM invÃ¡lido ou vazio, tentar forÃ§ar para primeiro alias do tipo
                 if (!$ben_valido && $tipo_bem_id > 0 && !empty($aliases_tipo_atual)) {
-                    // Pegar primeiro alias válido do tipo
+                    // Pegar primeiro alias vÃ¡lido do tipo
                     foreach ($aliases_tipo_atual as $alias_norm) {
                         if ($alias_norm !== '') {
-                            // Encontrar correspondente em maiúscula da descrição do tipo
+                            // Encontrar correspondente em maiÃºscula da descriÃ§Ã£o do tipo
                             $tokens = array_map('trim', preg_split('/\s*\/\s*/', $tipo_bem_desc));
                             foreach ($tokens as $tok) {
                                 if (pp_normaliza($tok) === $alias_norm) {
@@ -331,11 +331,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
                 
-                // Remover redundâncias do BEN no início do complemento
+                // Remover redundÃ¢ncias do BEN no inÃ­cio do complemento
                 if ($ben !== '' && $complemento_limpo !== '') {
                     $complemento_limpo = pp_remover_ben_do_complemento($ben, $complemento_limpo);
                 }
-                // 4) Dependência: obter ID por descrição
+                // 4) DependÃªncia: obter ID por descriÃ§Ã£o
                 $dependencia_rotulo = ip_fix_mojibake(ip_corrige_encoding($dependencia_original));
                 $dependencia_id = 0;
                 $dep_key = pp_normaliza($dependencia_rotulo);
@@ -351,10 +351,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         }
                     }
                 }
-                // 5) Montar descrição completa via parser (BEM pode estar vazio ou preenchido)
+                // 5) Montar descriÃ§Ã£o completa via parser (BEM pode estar vazio ou preenchido)
                 $descricao_completa_calc = pp_montar_descricao(1, $tipo_bem_codigo, $tipo_bem_desc, $ben, $complemento_limpo, $dependencia_rotulo, $pp_config);
 
-                // Marcar se houve problema na extração (tipo inválido OU BEM não validado quando tipo existe)
+                // Marcar se houve problema na extraÃ§Ã£o (tipo invÃ¡lido OU BEM nÃ£o validado quando tipo existe)
                 $tem_erro_parsing = ($tipo_bem_id === 0 && $codigo_detectado !== null) || ($tipo_bem_id > 0 && $ben !== '' && !$ben_valido);
                 
                 if ($debug_import) {
@@ -447,7 +447,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        // Excluir produtos que não vieram na planilha
+        // Excluir produtos que nÃ£o vieram na planilha
         foreach ($produtos_existentes as $key => $prod) {
             if (!isset($codigos_processados[$key])) {
                 $stmtDel = $conexao->prepare("DELETE FROM produtos WHERE id_produto = :id_produto");
@@ -486,7 +486,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['mensagem'] = $mensagem;
         $_SESSION['tipo_mensagem'] = 'success';
     } else {
-        $_SESSION['mensagem'] = $mensagem ?: 'Não foi possível concluir a importação.';
+        $_SESSION['mensagem'] = $mensagem ?: 'NÃ£o foi possÃ­vel concluir a importaÃ§Ã£o.';
         $_SESSION['tipo_mensagem'] = 'danger';
     }
     header('Location: ../../index.php');
@@ -499,3 +499,4 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 ?>
+

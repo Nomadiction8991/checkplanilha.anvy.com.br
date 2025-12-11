@@ -13,7 +13,7 @@ $condicao_14_1 = $_POST['condicao_14_1'] ?? null;
 
 if (empty($ids_produtos) || !$id_planilha || !$condicao_14_1) {
     $_SESSION['erro'] = 'Dados incompletos para assinatura.';
-    header('Location: ../../app/views/planilhas/relatorio141_assinatura.php?id=' . urlencode($id_planilha));
+    header('Location: ../../views/planilhas/relatorio141_assinatura.php?id=' . urlencode($id_planilha));
     exit;
 }
 
@@ -102,7 +102,7 @@ try {
         : "{$produtos_assinados} produtos assinados com sucesso!";
     
     $_SESSION['sucesso'] = $mensagem;
-    header('Location: ../../app/views/planilhas/relatorio141_assinatura.php?id=' . urlencode($id_planilha));
+    header('Location: ../../views/planilhas/relatorio141_assinatura.php?id=' . urlencode($id_planilha));
     exit;
     
 } catch (Exception $e) {
@@ -110,9 +110,10 @@ try {
     $_SESSION['erro'] = 'Erro ao assinar produto(s): ' . $e->getMessage();
     
     $redirect_ids = implode(',', $ids_produtos);
-    header('Location: ../../app/views/planilhas/relatorio141_assinatura_form.php?ids=' . urlencode($redirect_ids) . '&id_planilha=' . urlencode($id_planilha));
+    header('Location: ../../views/planilhas/relatorio141_assinatura_form.php?ids=' . urlencode($redirect_ids) . '&id_planilha=' . urlencode($id_planilha));
     exit;
 }
 ?>
+
 
 
