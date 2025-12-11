@@ -103,7 +103,6 @@ ob_start();
                     </tbody>
                 </table>
             </div>
-</div>
         <?php endif; ?>
     </div>
 </div>

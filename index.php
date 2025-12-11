@@ -136,7 +136,7 @@ ob_start();
                     <tr>
                         <th style="width: 40%">Código</th>
                         <th>Descrição</th>
-                        <th style="width: 110px">Ação</th>
+                        <th style="width: 140px">Ação</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -149,7 +149,13 @@ ob_start();
                         </tr>
                     <?php else: ?>
                         <?php foreach ($comums as $comum): ?>
-                            <tr data-href="app/views/comuns/listar-planilhas.php?comum_id=<?php echo (int) $comum['id']; ?>">
+                            <?php
+                                $cadastro_ok = trim((string)$comum['descricao']) !== ''
+                                               && trim((string)$comum['cnpj']) !== ''
+                                               && trim((string)$comum['administracao']) !== ''
+                                               && trim((string)$comum['cidade']) !== '';
+                            ?>
+                            <tr>
                                 <td class="fw-semibold text-uppercase">
                                     <?php echo htmlspecialchars($comum['codigo']); ?>
                                 </td>
@@ -157,9 +163,20 @@ ob_start();
                                     <?php echo htmlspecialchars($comum['descricao']); ?>
                                 </td>
                                 <td>
-                                    <a class="btn btn-sm btn-primary" href="app/views/comuns/listar-planilhas.php?comum_id=<?php echo (int) $comum['id']; ?>" title="Abrir">
-                                        <i class="bi bi-arrow-right"></i>
-                                    </a>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a class="btn btn-outline-primary" href="app/views/comuns/editar-comum.php?id=<?php echo (int) $comum['id']; ?>" title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <?php if ($cadastro_ok): ?>
+                                            <a class="btn btn-outline-secondary" href="app/views/comuns/listar-planilhas.php?comum_id=<?php echo (int) $comum['id']; ?>" title="Visualizar">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        <?php else: ?>
+                                            <button class="btn btn-outline-secondary" type="button" title="Complete o cadastro para visualizar" disabled>
+                                                <i class="bi bi-eye-slash"></i>
+                                            </button>
+                                        <?php endif; ?>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -174,17 +191,6 @@ ob_start();
 $contentHtml = ob_get_clean();
 $contentFile = __DIR__ . '/temp_index_content.php';
 file_put_contents($contentFile, $contentHtml);
-
-$customJs = '
-document.querySelectorAll("[data-href]").forEach(function(row) {
-    row.addEventListener("click", function() {
-        var destino = row.getAttribute("data-href");
-        if (destino) {
-            window.location.href = destino;
-        }
-    });
-});
-';
 
 require_once __DIR__ . '/app/views/layouts/app-wrapper.php';
 
