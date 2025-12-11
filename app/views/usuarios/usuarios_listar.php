@@ -1,8 +1,8 @@
-﻿<?php
+<?php
 require_once dirname(__DIR__, 2) . '/bootstrap.php';
- // AutenticaÃ§Ã£o
+ // Autenticação
 
-// Apenas admins podem acessar gestÃ£o de usuÃ¡rios
+// Apenas admins podem acessar gestão de usuários
 if (!isAdmin()) {
     header('Location: ../../../index.php');
     exit;
@@ -10,10 +10,10 @@ if (!isAdmin()) {
 
 include __DIR__ . '/../../../app/controllers/read/UsuarioListController.php';
 
-$pageTitle = 'UsuÃ¡rios';
+$pageTitle = 'Usuários';
 $backUrl = '../../../index.php';
 $headerActions = '
-    <a href="./usuario_criar.php" class="btn-header-action" title="Novo UsuÃ¡rio"><i class="bi bi-plus-lg"></i></a>
+    <a href="./usuario_criar.php" class="btn-header-action" title="Novo Usuário"><i class="bi bi-plus-lg"></i></a>
 ';
 
 ob_start();
@@ -21,14 +21,14 @@ ob_start();
 
 <?php if (isset($_GET['success'])): ?>
     <div class="alert alert-success alert-dismissible fade show">
-        UsuÃ¡rio cadastrado com sucesso!
+        Usuário cadastrado com sucesso!
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 <?php endif; ?>
 
 <?php if (isset($_GET['updated'])): ?>
     <div class="alert alert-success alert-dismissible fade show">
-        UsuÃ¡rio atualizado com sucesso!
+        Usuário atualizado com sucesso!
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 <?php endif; ?>
@@ -42,7 +42,7 @@ ob_start();
                     <i class="bi bi-search me-1"></i>
                     Buscar por nome
                 </label>
-                <input type="text" class="form-control" id="filtroNome" placeholder="Digite o nome do usuÃ¡rio...">
+                <input type="text" class="form-control" id="filtroNome" placeholder="Digite o nome do usuário...">
             </div>
             <div class="col-md-4">
                 <label for="filtroStatus" class="form-label">
@@ -63,22 +63,22 @@ ob_start();
     <div class="card-header d-flex justify-content-between align-items-center">
         <span>
             <i class="bi bi-people me-2"></i>
-            Lista de UsuÃ¡rios
+            Lista de Usuários
         </span>
-        <span class="badge bg-white text-dark"><?php echo $total_registros; ?> itens (pÃ¡g. <?php echo $pagina; ?>/<?php echo $total_paginas ?: 1; ?>)</span>
+        <span class="badge bg-white text-dark"><?php echo $total_registros; ?> itens (pág. <?php echo $pagina; ?>/<?php echo $total_paginas ?: 1; ?>)</span>
     </div>
     <div class="card-body p-0">
         <?php if (empty($usuarios)): ?>
             <div class="p-4 text-center text-muted">
                 <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-                Nenhum usuÃ¡rio cadastrado
+                Nenhum usuário cadastrado
             </div>
         <?php else: ?>
             <div class="table-responsive">
                 <table class="table table-hover mb-0" id="tabelaUsuarios">
                     <thead>
                         <tr>
-                            <th>UsuÃ¡rio</th>
+                            <th>Usuário</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -97,7 +97,7 @@ ob_start();
                                     <div class="d-flex flex-column">
                                         <div class="fw-semibold text-wrap"><?php echo htmlspecialchars($usuario['nome']); ?></div>
                                         <div class="small text-muted text-wrap"><?php echo htmlspecialchars($usuario['email']); ?></div>
-                                        <div class="mt-2 d-flex gap-1 flex-wrap">
+                                        <div class="mt-2 d-flex gap-1 flex-wrap justify-content-end">
                                             <a href="./usuario_ver.php?id=<?php echo $usuario['id']; ?>"
                                                class="btn btn-sm btn-outline-secondary" title="Visualizar">
                                                 <i class="bi bi-eye"></i>
@@ -127,7 +127,7 @@ ob_start();
 </div>
 
 <?php if($total_paginas > 1): ?>
-<nav class="mt-3" aria-label="PaginaÃ§Ã£o usuÃ¡rios">
+<nav class="mt-3" aria-label="Paginação usuários">
   <ul class="pagination pagination-sm justify-content-center mb-0">
     <?php if($pagina > 1): ?>
     <li class="page-item"><a class="page-link" href="?<?php echo http_build_query(array_merge($_GET,['pagina'=>$pagina-1])); ?>">&laquo;</a></li>
@@ -187,7 +187,7 @@ function aplicarFiltros() {
 }
 
 function excluirUsuario(id, nome) {
-    if (!confirm('Tem certeza que deseja excluir o usuÃ¡rio "' + nome + '"?')) {
+    if (!confirm('Tem certeza que deseja excluir o usuário "' + nome + '"?')) {
         return;
     }
 
@@ -208,7 +208,7 @@ function excluirUsuario(id, nome) {
         }
     })
     .catch(error => {
-        alert('Erro ao excluir usuÃ¡rio');
+        alert('Erro ao excluir usuário');
         console.error(error);
     });
 }
