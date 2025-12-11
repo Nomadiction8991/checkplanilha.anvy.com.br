@@ -103,6 +103,6 @@ document.addEventListener('DOMContentLoaded', function() {
 $contentHtml = ob_get_clean();
 $contentFile = __DIR__ . '/../../../temp_editar_comum_' . uniqid() . '.php';
 file_put_contents($contentFile, $contentHtml);
-include __DIR__ . '/../shared/app-wrapper.php';
+include __DIR__ . '/../layouts/app-wrapper.php';
 @unlink($contentFile);
 ?>
