@@ -168,7 +168,7 @@ ob_start();
             
             <div class="a4-viewport">
                 <div class="a4-scaled">
-                    <link rel="stylesheet" href="/dev/public/assets/css/relatorio-14-1.css">
+                    <link rel="stylesheet" href="/public/assets/css/relatorio-14-1.css">
                     <div class="a4">
                         <section class="cabecalho">
                             <table>
@@ -494,6 +494,5 @@ $contentFile = $tempFile;
 include __DIR__ . '/../layouts/app_wrapper.php';
 unlink($tempFile);
 ?>
-
 
 

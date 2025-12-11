@@ -87,7 +87,7 @@ ob_start();
             <div class="carousel-page">
                 <div class="a4-wrapper">
                     <div class="a4-content">
-                        <link rel="stylesheet" href="/dev/public/assets/css/relatorio-14-1.css">
+                        <link rel="stylesheet" href="/public/assets/css/relatorio-14-1.css">
                         <div class="a4">
                             <section class="cabecalho">
                                 <table>
@@ -391,6 +391,5 @@ $contentFile = $tempFile;
 include __DIR__ . '/../layouts/app_wrapper.php';
 unlink($tempFile);
 ?>
-
 
 
