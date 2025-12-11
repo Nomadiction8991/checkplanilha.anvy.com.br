@@ -168,7 +168,7 @@ ob_start();
                                             <i class="bi bi-pencil"></i>
                                         </a>
                                         <?php if ($cadastro_ok): ?>
-                                            <a class="btn btn-outline-secondary" href="app/views/produtos/read-produto.php?comum_id=<?php echo (int) $comum['id']; ?>" title="Visualizar">
+                                            <a class="btn btn-outline-secondary" href="app/views/planilhas/view-planilha.php?comum_id=<?php echo (int) $comum['id']; ?>" title="Visualizar">
                                                 <i class="bi bi-eye"></i>
                                             </a>
                                         <?php else: ?>
