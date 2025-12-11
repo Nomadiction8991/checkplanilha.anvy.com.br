@@ -10,32 +10,9 @@ if (!$comum_id) {
     exit;
 }
 
-$comum = obter_comum_por_id($conexao, $comum_id);
-if (!$comum) {
-    header('Location: ../../../index.php');
-    exit;
-}
-
-// Bloquear acesso se cadastro incompleto
-$campos_obrigatorios = [
-    'descricao' => 'descrição',
-    'cnpj' => 'CNPJ',
-    'administracao' => 'administração',
-    'cidade' => 'cidade'
-];
-$faltando = [];
-foreach ($campos_obrigatorios as $campo => $rotulo) {
-    $valor = trim((string)($comum[$campo] ?? ''));
-    if ($valor === '') {
-        $faltando[] = $rotulo;
-    }
-}
-if (!empty($faltando)) {
-    $_SESSION['mensagem'] = 'Cadastro do comum incompleto: preencha ' . implode(', ', $faltando) . '.';
-    $_SESSION['tipo_mensagem'] = 'danger';
-    header('Location: ./listar-comuns.php');
-    exit;
-}
+// Esta view não é mais usada (planilhas removidas)
+header('Location: ./listar-comuns.php');
+exit;
 
 $pageTitle = $comum['descricao'];
 $backUrl = "../../../index.php";

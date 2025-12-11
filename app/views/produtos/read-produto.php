@@ -3,7 +3,7 @@ require_once __DIR__ . '/../../../auth.php'; // Autenticação
 include __DIR__ . '/../../../CRUD/READ/produto.php';
 
 $pageTitle = 'Visualizar Produtos';
-$backUrl = '../planilhas/view-planilha.php?id=' . urlencode($id_planilha);
+$backUrl = '../comuns/listar-comuns.php';
 $headerActions = '
     <div class="dropdown">
         <button class="btn-header-action" type="button" id="menuProdutos" data-bs-toggle="dropdown" aria-expanded="false">
@@ -11,7 +11,7 @@ $headerActions = '
         </button>
         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="menuProdutos">
             <li>
-                <a href="./create-produto.php?id=' . urlencode($id_planilha) . '&' . gerarParametrosFiltro(true) . '" class="dropdown-item">
+                <a href="./create-produto.php?comum_id=' . urlencode($comum_id) . '&' . gerarParametrosFiltro(true) . '" class="dropdown-item">
                     <i class="bi bi-plus-lg me-2"></i>Novo Produto
                 </a>
             </li>
@@ -41,9 +41,9 @@ ob_start();
     <i class="bi bi-funnel me-2"></i>
     Filtros
   </div>
-  <div class="card-body">
+    <div class="card-body">
     <form method="GET">
-      <input type="hidden" name="id" value="<?php echo htmlspecialchars($id_planilha); ?>">
+      <input type="hidden" name="comum_id" value="<?php echo htmlspecialchars($comum_id); ?>">
 
       <!-- Campo principal de busca por descrição -->
       <div class="mb-3">

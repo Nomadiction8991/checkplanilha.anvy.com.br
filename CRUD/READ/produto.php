@@ -2,9 +2,8 @@
 require_once __DIR__ . '/../../auth.php'; // Autenticação
 require_once __DIR__ . '/../conexao.php';
 
-$id_planilha = $_GET['id'] ?? null;
-
-if (!$id_planilha) {
+$comum_id = isset($_GET['comum_id']) ? (int)$_GET['comum_id'] : 0;
+if ($comum_id <= 0) {
     header('Location: ../index.php');
     exit;
 }
@@ -30,57 +29,53 @@ $sql = "SELECT
             1 AS quantidade,
             p.bem AS tipo_ben,
             p.complemento,
+            p.dependencia AS dependencia_descricao,
             COALESCE(p.condicao_14_1, 0) AS condicao_141,
-            COALESCE(p.imprimir_14_1, 0) AS imprimir_14_1,
-            d.descricao AS dependencia_descricao
+            COALESCE(p.imprimir_14_1, 0) AS imprimir_14_1
         FROM produtos p
-        LEFT JOIN dependencias d ON p.dependencia_id = d.id
-        WHERE p.planilha_id = :id_planilha AND COALESCE(p.novo,0) = 1";
+        WHERE p.comum_id = :comum_id";
 
 $sql_count = "SELECT COUNT(*) as total 
               FROM produtos p
-              LEFT JOIN dependencias d ON p.dependencia_id = d.id
-              WHERE p.planilha_id = :id_planilha AND COALESCE(p.novo,0) = 1";
+              WHERE p.comum_id = :comum_id";
 
 // Buscar tipos de bens disponíveis para o select (SEM REPETIÇÕES)
 $sql_tipos_bens = "SELECT DISTINCT tb.id, tb.codigo, tb.descricao 
                    FROM produtos p
                    JOIN tipos_bens tb ON p.tipo_bem_id = tb.id
-                   WHERE p.planilha_id = :id_planilha AND COALESCE(p.novo,0) = 1
+                   WHERE p.comum_id = :comum_id
                    ORDER BY tb.codigo";
 
 // Buscar códigos bem disponíveis para o select (SEM REPETIÇÕES)
 $sql_bem_codigos = "SELECT DISTINCT p.bem AS tipo_ben
                     FROM produtos p
-                    WHERE p.planilha_id = :id_planilha 
-                    AND COALESCE(p.novo,0) = 1
+                    WHERE p.comum_id = :comum_id 
                     AND p.bem IS NOT NULL 
                     AND p.bem != ''
                     ORDER BY p.bem";
 
-// Buscar dependências disponíveis para o select (SEM REPETIÇÕES)
-$sql_dependencias = "SELECT DISTINCT d.id, d.descricao 
+// Dependências texto distintas
+$sql_dependencias = "SELECT DISTINCT p.dependencia 
                     FROM produtos p
-                    LEFT JOIN dependencias d ON p.dependencia_id = d.id
-                    WHERE p.planilha_id = :id_planilha AND COALESCE(p.novo,0) = 1 AND d.id IS NOT NULL
-                    ORDER BY d.descricao";
+                    WHERE p.comum_id = :comum_id AND p.dependencia IS NOT NULL AND p.dependencia != ''
+                    ORDER BY p.dependencia";
 
 try {
     // Buscar tipos de bens (SEM REPETIÇÕES)
     $stmt_tipos = $conexao->prepare($sql_tipos_bens);
-    $stmt_tipos->bindValue(':id_planilha', $id_planilha);
+    $stmt_tipos->bindValue(':comum_id', $comum_id);
     $stmt_tipos->execute();
     $tipos_bens = $stmt_tipos->fetchAll();
 
     // Buscar códigos bem (SEM REPETIÇÕES)
     $stmt_bem = $conexao->prepare($sql_bem_codigos);
-    $stmt_bem->bindValue(':id_planilha', $id_planilha);
+    $stmt_bem->bindValue(':comum_id', $comum_id);
     $stmt_bem->execute();
     $bem_codigos = $stmt_bem->fetchAll();
 
     // Buscar dependências (SEM REPETIÇÕES)
     $stmt_deps = $conexao->prepare($sql_dependencias);
-    $stmt_deps->bindValue(':id_planilha', $id_planilha);
+    $stmt_deps->bindValue(':comum_id', $comum_id);
     $stmt_deps->execute();
     $dependencias = $stmt_deps->fetchAll();
 } catch (Exception $e) {
@@ -91,7 +86,7 @@ try {
 
 // Adicionar condições de pesquisa
 $condicoes = [];
-$params = [':id_planilha' => $id_planilha];
+$params = [':comum_id' => $comum_id];
 
 if (!empty($pesquisa_id)) {
     $condicoes[] = "p.id_produto = :pesquisa_id";
@@ -115,8 +110,8 @@ if (!empty($filtro_complemento)) {
 }
 
 if (!empty($filtro_dependencia)) {
-    $condicoes[] = "p.dependencia_id = :filtro_dependencia";
-    $params[':filtro_dependencia'] = $filtro_dependencia;
+    $condicoes[] = "p.dependencia LIKE :filtro_dependencia";
+    $params[':filtro_dependencia'] = "%$filtro_dependencia%";
 }
 
 if (!empty($filtro_status)) {
