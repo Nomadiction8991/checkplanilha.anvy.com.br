@@ -445,18 +445,21 @@ function buscar_comuns($conexao, $termo = '') {
     try {
         $sql = "SELECT id, codigo, cnpj, descricao, administracao, cidade, setor
                 FROM comums
-                WHERE (UPPER(CAST(codigo AS CHAR)) LIKE :busca
-                   OR UPPER(descricao) LIKE :busca
-                   OR UPPER(cnpj) LIKE :busca
-                   OR UPPER(administracao) LIKE :busca
-                   OR UPPER(cidade) LIKE :busca)";
+                WHERE (
+                    UPPER(descricao) LIKE :busca
+                    OR UPPER(administracao) LIKE :busca
+                    OR UPPER(cidade) LIKE :busca
+                    OR UPPER(cnpj) LIKE :busca
+                    OR UPPER(CAST(codigo AS CHAR)) LIKE :busca";
 
         if ($likeDigits !== null) {
-            $sql .= " OR (REPLACE(REPLACE(REPLACE(REPLACE(cnpj, '.', ''), '-', ''), '/', ''), ' ', '') LIKE :buscaDigits
-                        OR CAST(codigo AS CHAR) LIKE :buscaDigits)";
+            $sql .= " OR REPLACE(REPLACE(REPLACE(REPLACE(cnpj, '.', ''), '-', ''), '/', ''), ' ', '') LIKE :buscaDigits
+                     OR CAST(codigo AS CHAR) LIKE :buscaDigits";
         }
 
-        $sql .= " ORDER BY codigo ASC";
+        $sql .= "
+                )
+                ORDER BY codigo ASC";
 
         $stmt = $conexao->prepare($sql);
         $stmt->bindValue(':busca', $like);
