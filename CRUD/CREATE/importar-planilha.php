@@ -70,7 +70,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $idx_complemento = pp_colunaParaIndice($mapeamento_complemento);
         $idx_dependencia = pp_colunaParaIndice($mapeamento_dependencia);
         $idx_localidade = pp_colunaParaIndice($coluna_localidade);
+
         $codigo_localidade = null;
+        $localidades_unicas = [];
 
         foreach ($linhas as $linha) {
             $linha_atual++;
@@ -79,11 +81,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $codigo_tmp = isset($linha[$idx_codigo]) ? trim((string)$linha[$idx_codigo]) : '';
             if ($codigo_tmp !== '') { $registros_candidatos++; }
 
-            if ($codigo_localidade === null && isset($linha[$idx_localidade])) {
+            if (isset($linha[$idx_localidade])) {
                 $localidade_raw = (string)$linha[$idx_localidade];
                 $localidade_num = preg_replace('/\D+/', '', $localidade_raw);
                 if ($localidade_num !== '') {
                     $codigo_localidade = (int)$localidade_num;
+                    if (!in_array($codigo_localidade, $localidades_unicas, true)) {
+                        $localidades_unicas[] = $codigo_localidade;
+                    }
                 }
             }
         }
@@ -92,23 +97,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception('Nenhuma linha de produto encontrada apos o cabecalho. Verifique o mapeamento de colunas e o numero de linhas a pular.');
         }
 
-        if (empty($codigo_localidade)) {
+        if (empty($localidades_unicas)) {
             throw new Exception('Nenhum codigo de localidade encontrado na coluna ' . $coluna_localidade . '.');
         }
 
-        // Garante que o comum exista pelo codigo lido da coluna de localidade
-        // Verificar se ja existe o comum; se nao, criar
-        $stmtBuscaComum = $conexao->prepare("SELECT id FROM comums WHERE codigo = :codigo");
-        $stmtBuscaComum->bindValue(':codigo', $codigo_localidade, PDO::PARAM_INT);
-        $stmtBuscaComum->execute();
-        $comumEncontrado = $stmtBuscaComum->fetch(PDO::FETCH_ASSOC);
+        // Garantir cadastro/uso de todas as localidades encontradas
+        $comum_processado_id = null;
+        foreach ($localidades_unicas as $codLoc) {
+            try {
+                $stmtBuscaComum = $conexao->prepare("SELECT id FROM comums WHERE codigo = :codigo");
+                $stmtBuscaComum->bindValue(':codigo', $codLoc, PDO::PARAM_INT);
+                $stmtBuscaComum->execute();
+                $comumEncontrado = $stmtBuscaComum->fetch(PDO::FETCH_ASSOC);
 
-        if ($comumEncontrado) {
-            $comum_processado_id = (int)$comumEncontrado['id'];
-            $comuns_existentes++;
-        } else {
-            $comum_processado_id = garantir_comum_por_codigo($conexao, $codigo_localidade);
-            $comuns_cadastradas++;
+                if ($comumEncontrado) {
+                    if ($comum_processado_id === null) {
+                        $comum_processado_id = (int)$comumEncontrado['id'];
+                    }
+                    $comuns_existentes++;
+                } else {
+                    $novoId = garantir_comum_por_codigo($conexao, $codLoc);
+                    if ($comum_processado_id === null) {
+                        $comum_processado_id = (int)$novoId;
+                    }
+                    $comuns_cadastradas++;
+                }
+            } catch (Throwable $e) {
+                $comuns_falha[] = $codLoc;
+            }
+        }
+
+        if (empty($comum_processado_id)) {
+            throw new Exception('Nenhum comum valido encontrado ou criado a partir da coluna de localidade.');
         }
 
         // Iniciar transacao apenas para planilha+produtos; dados do Comum ja foram persistidos
