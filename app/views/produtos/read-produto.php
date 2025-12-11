@@ -3,7 +3,7 @@ require_once __DIR__ . '/../../../auth.php'; // Autenticação
 include __DIR__ . '/../../../CRUD/READ/produto.php';
 
 $pageTitle = 'Visualizar Produtos';
-$backUrl = '../comuns/listar-comuns.php';
+$backUrl = '../../index.php';
 $headerActions = '
     <div class="dropdown">
         <button class="btn-header-action" type="button" id="menuProdutos" data-bs-toggle="dropdown" aria-expanded="false">
