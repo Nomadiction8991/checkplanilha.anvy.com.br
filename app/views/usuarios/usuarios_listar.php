@@ -35,26 +35,27 @@ ob_start();
 
 <!-- Filtros de Pesquisa -->
 <div class="card mb-3">
+    <div class="card-header">
+        <i class="bi bi-search me-2"></i>Pesquisar
+    </div>
     <div class="card-body">
-        <div class="row g-3">
-            <div class="col-md-8">
-                <label for="filtroNome" class="form-label">
-                    <i class="bi bi-search me-1"></i>
-                    Buscar por nome
-                </label>
-                <input type="text" class="form-control" id="filtroNome" placeholder="Digite o nome do usuário...">
-            </div>
-            <div class="col-md-4">
-                <label for="filtroStatus" class="form-label">
-                    <i class="bi bi-funnel me-1"></i>
-                    Status
-                </label>
-                <select class="form-select" id="filtroStatus">
-                    <option value="">Todos</option>
-                    <option value="1">Ativos</option>
-                    <option value="0">Inativos</option>
-                </select>
-            </div>
+        <div class="mb-3">
+            <label for="filtroNome" class="form-label">
+                <i class="bi bi-person me-1"></i>
+                Buscar por nome ou e-mail
+            </label>
+            <input type="text" class="form-control" id="filtroNome">
+        </div>
+        <div class="mb-2">
+            <label for="filtroStatus" class="form-label">
+                <i class="bi bi-funnel me-1"></i>
+                Status
+            </label>
+            <select class="form-select" id="filtroStatus">
+                <option value="">Todos</option>
+                <option value="1">Ativos</option>
+                <option value="0">Inativos</option>
+            </select>
         </div>
     </div>
 </div>
@@ -92,6 +93,7 @@ ob_start();
                                 $is_self = $loggedId === (int)$usuario['id'];
                             ?>
                             <tr data-nome="<?php echo strtolower(htmlspecialchars($usuario['nome'])); ?>" 
+                                data-email="<?php echo strtolower(htmlspecialchars($usuario['email'])); ?>"
                                 data-status="<?php echo $usuario['ativo']; ?>">
                                 <td>
                                     <div class="d-flex flex-column">
@@ -157,13 +159,14 @@ function aplicarFiltros() {
 
     linhas.forEach(linha => {
         const nome = linha.getAttribute('data-nome');
+        const email = linha.getAttribute('data-email');
         const status = linha.getAttribute('data-status');
         
         let mostrarNome = true;
         let mostrarStatus = true;
 
         // Filtro por nome
-        if (filtroNome && !nome.includes(filtroNome)) {
+        if (filtroNome && !(nome.includes(filtroNome) || (email && email.includes(filtroNome)))) {
             mostrarNome = false;
         }
 
@@ -222,6 +225,4 @@ $contentFile = $tempFile;
 include __DIR__ . '/../layouts/app_wrapper.php';
 unlink($tempFile);
 ?>
-
-
 
