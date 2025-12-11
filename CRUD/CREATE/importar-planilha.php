@@ -97,7 +97,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Garante que o comum exista pelo codigo lido da coluna de localidade
-        $comum_processado_id = garantir_comum_por_codigo($conexao, $codigo_localidade);
+        // Verificar se ja existe o comum; se nao, criar
+        $stmtBuscaComum = $conexao->prepare("SELECT id FROM comums WHERE codigo = :codigo");
+        $stmtBuscaComum->bindValue(':codigo', $codigo_localidade, PDO::PARAM_INT);
+        $stmtBuscaComum->execute();
+        $comumEncontrado = $stmtBuscaComum->fetch(PDO::FETCH_ASSOC);
+
+        if ($comumEncontrado) {
+            $comum_processado_id = (int)$comumEncontrado['id'];
+            $comuns_existentes++;
+        } else {
+            $comum_processado_id = garantir_comum_por_codigo($conexao, $codigo_localidade);
+            $comuns_cadastradas++;
+        }
 
         // Iniciar transacao apenas para planilha+produtos; dados do Comum ja foram persistidos
         $conexao->beginTransaction();
