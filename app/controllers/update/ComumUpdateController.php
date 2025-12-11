@@ -13,29 +13,35 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
-$descricao = trim((string)($_POST['descricao'] ?? ''));
-$cnpj = preg_replace('/\D+/', '', (string)($_POST['cnpj'] ?? ''));
-$administracao = trim((string)($_POST['administracao'] ?? ''));
-$cidade = trim((string)($_POST['cidade'] ?? ''));
-$setor = trim((string)($_POST['setor'] ?? ''));
+$id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
+$descricao = trim((string) ($_POST['descricao'] ?? ''));
+$cnpj = preg_replace('/\D+/', '', (string) ($_POST['cnpj'] ?? ''));
+$administracao = trim((string) ($_POST['administracao'] ?? ''));
+$cidade = trim((string) ($_POST['cidade'] ?? ''));
+$setor = trim((string) ($_POST['setor'] ?? ''));
 
 try {
     if ($id <= 0) {
-        throw new Exception('ID invÃƒÂ¡lido.');
+        throw new Exception('ID inválido.');
     }
     if ($descricao === '') {
-        throw new Exception('DescriÃƒÂ§ÃƒÂ£o ÃƒÂ© obrigatÃƒÂ³ria.');
+        throw new Exception('Descrição é obrigatória.');
     }
     if ($cnpj === '' || strlen($cnpj) !== 14) {
-        throw new Exception('CNPJ ÃƒÂ© obrigatÃƒÂ³rio e deve ter 14 dÃƒÂ­gitos.');
+        throw new Exception('CNPJ é obrigatório e deve ter 14 dígitos.');
     }
     if ($administracao === '') {
-        throw new Exception('AdministraÃƒÂ§ÃƒÂ£o ÃƒÂ© obrigatÃƒÂ³ria.');
+        throw new Exception('Administração é obrigatória.');
     }
     if ($cidade === '') {
-        throw new Exception('Cidade ÃƒÂ© obrigatÃƒÂ³ria.');
+        throw new Exception('Cidade é obrigatória.');
     }
+
+    // Padronizar dados em maiúsculas antes de salvar
+    $descricao = mb_strtoupper($descricao, 'UTF-8');
+    $administracao = mb_strtoupper($administracao, 'UTF-8');
+    $cidade = mb_strtoupper($cidade, 'UTF-8');
+    $setor = $setor !== '' ? mb_strtoupper($setor, 'UTF-8') : '';
 
     // Garantir unicidade do CNPJ
     $stmtCheck = $conexao->prepare('SELECT id FROM comums WHERE cnpj = :cnpj AND id != :id');
@@ -43,7 +49,7 @@ try {
     $stmtCheck->bindValue(':id', $id, PDO::PARAM_INT);
     $stmtCheck->execute();
     if ($stmtCheck->fetch()) {
-        throw new Exception('JÃƒÂ¡ existe um comum com este CNPJ.');
+        throw new Exception('Já existe um comum com este CNPJ.');
     }
 
     $stmt = $conexao->prepare('UPDATE comums 
@@ -63,15 +69,11 @@ try {
 
     $_SESSION['mensagem'] = 'Comum atualizada com sucesso!';
     $_SESSION['tipo_mensagem'] = 'success';
-    header('Location: ../../views/comuns/comum_editar.php?id=' . urlencode((string)$id));
+    header('Location: ../../views/comuns/comum_editar.php?id=' . urlencode((string) $id));
     exit;
 } catch (Throwable $e) {
     $_SESSION['mensagem'] = 'Erro ao salvar: ' . $e->getMessage();
     $_SESSION['tipo_mensagem'] = 'danger';
-    header('Location: ../../views/comuns/comum_editar.php?id=' . urlencode((string)$id));
+    header('Location: ../../views/comuns/comum_editar.php?id=' . urlencode((string) $id));
     exit;
 }
-
-
-
-

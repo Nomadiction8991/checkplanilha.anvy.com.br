@@ -23,6 +23,11 @@ if (!$comum) {
 $pageTitle = 'Editar Comum';
 $backUrl = '../../../index.php';
 
+$comumDescricao = mb_strtoupper((string) ($comum['descricao'] ?? ''), 'UTF-8');
+$comumAdm = mb_strtoupper((string) ($comum['administracao'] ?? ''), 'UTF-8');
+$comumCidade = mb_strtoupper((string) ($comum['cidade'] ?? ''), 'UTF-8');
+$comumSetor = mb_strtoupper((string) ($comum['setor'] ?? ''), 'UTF-8');
+
 $mt_cidades = [
     "MT - Acorizal",
     "MT - Água Boa",
@@ -167,6 +172,11 @@ $mt_cidades = [
     "MT - Vila Rica"
 ];
 
+$mt_cidades = array_map(
+    fn($cidade) => mb_strtoupper($cidade, 'UTF-8'),
+    $mt_cidades
+);
+
 ob_start();
 ?>
 
@@ -189,18 +199,18 @@ ob_start();
 
                 <div class="mb-3">
                     <label class="form-label">Código</label>
-                    <input type="text" class="form-control" value="<?php echo htmlspecialchars($comum['codigo']); ?>" disabled>
+                    <input type="text" class="form-control text-uppercase" value="<?php echo htmlspecialchars($comum['codigo']); ?>" disabled>
                 </div>
 
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label for="descricao" class="form-label">Descrição <span class="text-danger">*</span></label>
-                        <input type="text" id="descricao" name="descricao" class="form-control" required
-                               value="<?php echo htmlspecialchars($comum['descricao']); ?>">
+                        <input type="text" id="descricao" name="descricao" class="form-control text-uppercase" required
+                               value="<?php echo htmlspecialchars($comumDescricao); ?>">
                     </div>
                     <div class="col-md-6">
                         <label for="cnpj" class="form-label">CNPJ <span class="text-danger">*</span></label>
-                        <input type="text" id="cnpj" name="cnpj" class="form-control" required
+                        <input type="text" id="cnpj" name="cnpj" class="form-control text-uppercase" required
                                value="<?php echo htmlspecialchars($comum['cnpj']); ?>" placeholder="00.000.000/0000-00">
                     </div>
                 </div>
@@ -208,10 +218,10 @@ ob_start();
                 <div class="row g-3 mt-1">
                     <div class="col-md-6">
                         <label for="administracao" class="form-label">Administração <span class="text-danger">*</span></label>
-                        <select id="administracao" name="administracao" class="form-select" required>
+                        <select id="administracao" name="administracao" class="form-select text-uppercase" required>
                             <option value="">Selecione</option>
                             <?php foreach ($mt_cidades as $op): ?>
-                                <option value="<?php echo htmlspecialchars($op); ?>" <?php echo ($comum['administracao'] ?? '') === $op ? 'selected' : ''; ?>>
+                                <option value="<?php echo htmlspecialchars($op); ?>" <?php echo $comumAdm === $op ? 'selected' : ''; ?>>
                                     <?php echo htmlspecialchars($op); ?>
                                 </option>
                             <?php endforeach; ?>
@@ -219,10 +229,10 @@ ob_start();
                     </div>
                     <div class="col-md-6">
                         <label for="cidade" class="form-label">Cidade <span class="text-danger">*</span></label>
-                        <select id="cidade" name="cidade" class="form-select" required>
+                        <select id="cidade" name="cidade" class="form-select text-uppercase" required>
                             <option value="">Selecione</option>
                             <?php foreach ($mt_cidades as $op): ?>
-                                <option value="<?php echo htmlspecialchars($op); ?>" <?php echo ($comum['cidade'] ?? '') === $op ? 'selected' : ''; ?>>
+                                <option value="<?php echo htmlspecialchars($op); ?>" <?php echo $comumCidade === $op ? 'selected' : ''; ?>>
                                     <?php echo htmlspecialchars($op); ?>
                                 </option>
                             <?php endforeach; ?>
@@ -233,8 +243,8 @@ ob_start();
                 <div class="row g-3 mt-1">
                     <div class="col-md-6">
                         <label for="setor" class="form-label">Setor (opcional)</label>
-                        <input type="text" id="setor" name="setor" class="form-control"
-                               value="<?php echo htmlspecialchars($comum['setor'] ?? ''); ?>">
+                        <input type="text" id="setor" name="setor" class="form-control text-uppercase"
+                               value="<?php echo htmlspecialchars($comumSetor); ?>">
                     </div>
                 </div>
 
