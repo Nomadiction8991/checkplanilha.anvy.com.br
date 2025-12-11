@@ -29,14 +29,16 @@ $sql = "SELECT
             1 AS quantidade,
             p.bem AS tipo_ben,
             p.complemento,
-            p.dependencia AS dependencia_descricao,
+            d.descricao AS dependencia_descricao,
             COALESCE(p.condicao_14_1, 0) AS condicao_141,
             COALESCE(p.imprimir_14_1, 0) AS imprimir_14_1
         FROM produtos p
+        LEFT JOIN dependencias d ON p.dependencia_id = d.id
         WHERE p.comum_id = :comum_id";
 
 $sql_count = "SELECT COUNT(*) as total 
               FROM produtos p
+              LEFT JOIN dependencias d ON p.dependencia_id = d.id
               WHERE p.comum_id = :comum_id";
 
 // Buscar tipos de bens disponíveis para o select (SEM REPETIÇÕES)
@@ -54,11 +56,12 @@ $sql_bem_codigos = "SELECT DISTINCT p.bem AS tipo_ben
                     AND p.bem != ''
                     ORDER BY p.bem";
 
-// Dependências texto distintas
-$sql_dependencias = "SELECT DISTINCT p.dependencia 
+// Dependências distintas (por ID)
+$sql_dependencias = "SELECT DISTINCT d.id, d.descricao 
                     FROM produtos p
-                    WHERE p.comum_id = :comum_id AND p.dependencia IS NOT NULL AND p.dependencia != ''
-                    ORDER BY p.dependencia";
+                    LEFT JOIN dependencias d ON p.dependencia_id = d.id
+                    WHERE p.comum_id = :comum_id AND d.id IS NOT NULL
+                    ORDER BY d.descricao";
 
 try {
     // Buscar tipos de bens (SEM REPETIÇÕES)
@@ -110,8 +113,8 @@ if (!empty($filtro_complemento)) {
 }
 
 if (!empty($filtro_dependencia)) {
-    $condicoes[] = "p.dependencia LIKE :filtro_dependencia";
-    $params[':filtro_dependencia'] = "%$filtro_dependencia%";
+    $condicoes[] = "p.dependencia_id = :filtro_dependencia";
+    $params[':filtro_dependencia'] = $filtro_dependencia;
 }
 
 if (!empty($filtro_status)) {

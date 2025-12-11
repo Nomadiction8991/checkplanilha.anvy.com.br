@@ -166,6 +166,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
+        // Mapa de dependencias existentes (descricao normalizada -> id)
+        $dep_map = [];
+        $stmtDepAll = $conexao->query("SELECT id, descricao FROM dependencias");
+        foreach ($stmtDepAll->fetchAll(PDO::FETCH_ASSOC) as $d) {
+            $dep_map[pp_normaliza($d['descricao'])] = (int)$d['id'];
+        }
+
         // Garantir cadastro/uso de todas as localidades encontradas
         $comum_processado_id = null;
         foreach ($localidades_unicas as $codLoc) {
@@ -328,8 +335,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($ben !== '' && $complemento_limpo !== '') {
                     $complemento_limpo = pp_remover_ben_do_complemento($ben, $complemento_limpo);
                 }
-                // 4) Dependência texto direto
+                // 4) Dependência: obter ID por descrição
                 $dependencia_rotulo = ip_fix_mojibake(ip_corrige_encoding($dependencia_original));
+                $dependencia_id = 0;
+                $dep_key = pp_normaliza($dependencia_rotulo);
+                if ($dep_key !== '') {
+                    if (isset($dep_map[$dep_key])) {
+                        $dependencia_id = $dep_map[$dep_key];
+                    } else {
+                        $stmtDepIns = $conexao->prepare("INSERT INTO dependencias (descricao) VALUES (:d)");
+                        $stmtDepIns->bindValue(':d', $dependencia_rotulo);
+                        if ($stmtDepIns->execute()) {
+                            $dependencia_id = (int)$conexao->lastInsertId();
+                            $dep_map[$dep_key] = $dependencia_id;
+                        }
+                    }
+                }
                 // 5) Montar descrição completa via parser (BEM pode estar vazio ou preenchido)
                 $descricao_completa_calc = pp_montar_descricao(1, $tipo_bem_codigo, $tipo_bem_desc, $ben, $complemento_limpo, $dependencia_rotulo, $pp_config);
 
@@ -361,7 +382,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                            descricao_completa = :descricao_completa,
                                            complemento = :complemento,
                                            bem = :bem,
-                                           dependencia = :dependencia,
+                                           dependencia_id = :dependencia_id,
+                                           editado_dependencia_id = 0,
                                            tipo_bem_id = :tipo_bem_id,
                                            comum_id = :comum_id
                                         WHERE id = :id";
@@ -369,7 +391,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmtUp->bindValue(':descricao_completa', $descricao_completa_calc);
                     $stmtUp->bindValue(':complemento', $complemento_limpo);
                     $stmtUp->bindValue(':bem', $ben);
-                    $stmtUp->bindValue(':dependencia', $dependencia_rotulo);
+                    $stmtUp->bindValue(':dependencia_id', $dependencia_id, PDO::PARAM_INT);
                     $stmtUp->bindValue(':tipo_bem_id', $tipo_bem_id, PDO::PARAM_INT);
                     $stmtUp->bindValue(':comum_id', $comum_processado_id, PDO::PARAM_INT);
                     $stmtUp->bindValue(':id', $prodExist['id'], PDO::PARAM_INT);
@@ -384,14 +406,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $sql_produto = "INSERT INTO produtos (
                                    comum_id, id_produto, codigo, descricao_completa, editado_descricao_completa,
                                    tipo_bem_id, editado_tipo_bem_id, bem, editado_bem,
-                                   complemento, editado_complemento, dependencia, editado_dependencia,
+                                   complemento, editado_complemento, dependencia_id, editado_dependencia_id,
                                    checado, editado, imprimir_etiqueta, imprimir_14_1,
                                    observacao, ativo, novo, condicao_14_1,
                                    administrador_acessor_id, doador_conjugue_id
                                    ) VALUES (
                                    :comum_id, :id_produto, :codigo, :descricao_completa, '',
                                    :tipo_bem_id, 0, :bem, '',
-                                   :complemento, '', :dependencia, '',
+                                   :complemento, '', :dependencia_id, 0,
                                    0, 0, 0, :imprimir_14_1,
                                    :observacao, 1, 0, :condicao_14_1,
                                    0, 0
@@ -404,7 +426,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt_prod->bindValue(':tipo_bem_id', $tipo_bem_id, PDO::PARAM_INT);
                     $stmt_prod->bindValue(':bem', $ben);
                     $stmt_prod->bindValue(':complemento', $complemento_limpo);
-                    $stmt_prod->bindValue(':dependencia', $dependencia_rotulo);
+                    $stmt_prod->bindValue(':dependencia_id', $dependencia_id, PDO::PARAM_INT);
                     $stmt_prod->bindValue(':imprimir_14_1', 0, PDO::PARAM_INT);
                     $stmt_prod->bindValue(':observacao', $obs_prefix);
                     $stmt_prod->bindValue(':condicao_14_1', '2');
@@ -437,41 +459,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $conexao->commit();
-        // Registrar dependencias unificadas e vincular IDs
-        $stmtDepDistinct = $conexao->prepare("SELECT DISTINCT dependencia FROM produtos WHERE comum_id = :comum_id AND dependencia IS NOT NULL AND dependencia <> ''");
-        $stmtDepDistinct->bindValue(':comum_id', $comum_processado_id, PDO::PARAM_INT);
-        $stmtDepDistinct->execute();
-        $dependencias_texto = $stmtDepDistinct->fetchAll(PDO::FETCH_COLUMN);
-
-        $mapDepId = [];
-        foreach ($dependencias_texto as $depTxt) {
-            $depTrim = trim($depTxt);
-            if ($depTrim === '') { continue; }
-            $stmtDepSel = $conexao->prepare("SELECT id FROM dependencias WHERE descricao = :d LIMIT 1");
-            $stmtDepSel->bindValue(':d', $depTrim);
-            $stmtDepSel->execute();
-            $depId = $stmtDepSel->fetchColumn();
-            if (!$depId) {
-                $stmtDepIns = $conexao->prepare("INSERT INTO dependencias (descricao) VALUES (:d)");
-                $stmtDepIns->bindValue(':d', $depTrim);
-                $stmtDepIns->execute();
-                $depId = $conexao->lastInsertId();
-            }
-            if ($depId) {
-                $mapDepId[$depTrim] = (int)$depId;
-            }
-        }
-
-        if (!empty($mapDepId)) {
-            $stmtUpdDepId = $conexao->prepare("UPDATE produtos SET dependencia_id = :dep_id WHERE comum_id = :comum_id AND dependencia = :dep_txt");
-            foreach ($mapDepId as $txt => $idDep) {
-                $stmtUpdDepId->bindValue(':dep_id', $idDep, PDO::PARAM_INT);
-                $stmtUpdDepId->bindValue(':comum_id', $comum_processado_id, PDO::PARAM_INT);
-                $stmtUpdDepId->bindValue(':dep_txt', $txt);
-                $stmtUpdDepId->execute();
-            }
-        }
-
         $mensagem = "Importacao concluida! Novos: {$novos}, Atualizados: {$atualizados}, Excluidos: {$excluidos}.";
         $tipo_mensagem = 'success';
         $sucesso = true;
