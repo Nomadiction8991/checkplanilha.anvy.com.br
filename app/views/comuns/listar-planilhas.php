@@ -16,6 +16,27 @@ if (!$comum) {
     exit;
 }
 
+// Bloquear acesso se cadastro incompleto
+$campos_obrigatorios = [
+    'descricao' => 'descrição',
+    'cnpj' => 'CNPJ',
+    'administracao' => 'administração',
+    'cidade' => 'cidade'
+];
+$faltando = [];
+foreach ($campos_obrigatorios as $campo => $rotulo) {
+    $valor = trim((string)($comum[$campo] ?? ''));
+    if ($valor === '') {
+        $faltando[] = $rotulo;
+    }
+}
+if (!empty($faltando)) {
+    $_SESSION['mensagem'] = 'Cadastro do comum incompleto: preencha ' . implode(', ', $faltando) . '.';
+    $_SESSION['tipo_mensagem'] = 'danger';
+    header('Location: ./listar-comuns.php');
+    exit;
+}
+
 $pageTitle = $comum['descricao'];
 $backUrl = "../../../index.php";
 $headerActions = '
@@ -280,4 +301,3 @@ require_once __DIR__ . '/../layouts/app-wrapper.php';
 // Limpar arquivo temporário
 @unlink($contentFile);
 ?>
-

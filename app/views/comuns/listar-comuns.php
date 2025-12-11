@@ -53,6 +53,13 @@ ob_start();
             <span class="badge bg-white text-dark"><?php echo $total_registros; ?> itens (pág. <?php echo $pagina; ?>/<?php echo $total_paginas ?: 1; ?>)</span>
         </div>
         <div class="card-body">
+            <?php if (!empty($_SESSION['mensagem'])): ?>
+                <div class="alert alert-<?php echo $_SESSION['tipo_mensagem'] ?? 'info'; ?> alert-dismissible fade show" role="alert">
+                    <?php echo htmlspecialchars($_SESSION['mensagem']); ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <?php unset($_SESSION['mensagem'], $_SESSION['tipo_mensagem']); ?>
+            <?php endif; ?>
             
             <?php if (!empty($erro)): ?>
                 <div class="alert alert-danger" role="alert">
@@ -96,11 +103,18 @@ ob_start();
                                         </span>
                                     </td>
                                     <td class="text-center">
-                                        <a href="?id=<?php echo $comum['id']; ?>" 
-                                           class="btn btn-sm btn-outline-primary" 
-                                           title="Ver detalhes">
-                                            <i class="bi bi-eye"></i>
-                                        </a>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="./editar-comum.php?id=<?php echo $comum['id']; ?>" 
+                                               class="btn btn-outline-primary" 
+                                               title="Editar">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a href="./listar-planilhas.php?comum_id=<?php echo $comum['id']; ?>" 
+                                               class="btn btn-outline-secondary" 
+                                               title="Visualizar">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
