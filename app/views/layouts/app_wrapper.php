@@ -200,20 +200,22 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
         /* Modais dentro do wrapper mobile */
         .mobile-wrapper .modal,
         .mobile-wrapper .modal-backdrop {
-            position: absolute !important;
-            inset: 0 !important;
+            position: fixed !important;
             z-index: 1055;
         }
         .mobile-wrapper .modal {
-            position: absolute !important;
-            top: 0; left: 0; right: 0; bottom: 0;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
             width: 100%;
-            height: 100%;
+            max-width: 400px;
+            height: 100vh;
             display: none !important;
             align-items: center;
             justify-content: center;
             overflow: hidden;
             background: rgba(0,0,0,0.45);
+            padding: 16px;
         }
         .mobile-wrapper .modal.show {
             display: flex !important;
@@ -226,8 +228,7 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
             transform: none !important;
         }
         .mobile-wrapper .modal-backdrop {
-            display: block !important;
-            background-color: rgba(0,0,0,0.45);
+            display: none !important;
         }
 
         /* Evitar salto do layout por padding quando modal abre */
