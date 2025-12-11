@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/app/bootstrap.php';
 
 $pageTitle = 'Comuns';
@@ -11,27 +11,27 @@ $headerActions = '
         </button>
         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="menuPrincipal">';
 
-// Mostrar "Listagem de UsuÃ¡rios" apenas para Administrador/Acessor
+// Mostrar "Listagem de Usuários" apenas para Administrador/Acessor
 if (isAdmin()) {
     $headerActions .= '
             <li>
                 <a class="dropdown-item" href="app/views/usuarios/usuarios_listar.php">
-                    <i class="bi bi-people me-2"></i>Listagem de UsuÃ¡rios
+                    <i class="bi bi-people me-2"></i>Listagem de Usuários
                 </a>
             </li>
             <li>
                 <a class="dropdown-item" href="app/views/dependencias/dependencias_listar.php">
-                    <i class="bi bi-diagram-3 me-2"></i>Listagem de DependÃªncias
+                    <i class="bi bi-diagram-3 me-2"></i>Listagem de Dependências
                 </a>
             </li>';
 }
 
-// Doador/CÃ´njuge: adicionar opÃ§Ã£o "Editar Meu UsuÃ¡rio"
+// Doador/Conjugue: adicionar opção "Editar Meu Usuário"
 if (isDoador() && isset($_SESSION['usuario_id'])) {
     $headerActions .= '
             <li>
                 <a class="dropdown-item" href="app/views/usuarios/usuario_editar.php?id=' . (int)$_SESSION['usuario_id'] . '">
-                    <i class="bi bi-pencil-square me-2"></i>Editar Meu UsuÃ¡rio
+                    <i class="bi bi-pencil-square me-2"></i>Editar Meu Usuário
                 </a>
             </li>';
 }
@@ -67,7 +67,7 @@ $busca = trim($_GET['busca'] ?? '');
 $comums = buscar_comuns($conexao, $busca);
 
 function formatar_codigo_comum($codigo) {
-    $codigo = preg_replace('/\D/', '', (string) $codigo);
+    $codigo = preg_replace("/\\D/", '', (string) $codigo);
     if ($codigo === '') {
         return 'BR --';
     }
@@ -96,11 +96,11 @@ ob_start();
     <div class="card-body">
         <form method="GET" class="row g-2 align-items-end">
             <div class="col-12">
-                <label for="busca" class="form-label">CÃ³digo ou descriÃ§Ã£o</label>
+                <label for="busca" class="form-label">Código ou descrição</label>
                 <div class="input-group">
                     <input type="text" name="busca" id="busca" class="form-control"
                            value="<?php echo htmlspecialchars($busca); ?>"
-                           placeholder="Pesquise pelo cÃ³digo ou nome da comum...">
+                           placeholder="Pesquise pelo código ou nome da comum...">
                     <?php if ($busca !== ''): ?>
                         <a href="index.php" class="btn btn-outline-secondary btn-clear" title="Limpar filtro">
                             <i class="bi bi-x-lg"></i>
@@ -132,9 +132,9 @@ ob_start();
             <table class="table table-hover table-striped table-center mb-0 align-middle">
                 <thead>
                     <tr>
-                        <th style="width: 40%">CÃ³digo</th>
-                        <th>DescriÃ§Ã£o</th>
-                        <th style="width: 140px">AÃ§Ã£o</th>
+                        <th style="width: 40%">Código</th>
+                        <th>Descrição</th>
+                        <th style="width: 140px">Ação</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -148,10 +148,10 @@ ob_start();
                     <?php else: ?>
                         <?php foreach ($comums as $comum): ?>
                             <?php
-                                $cadastro_ok = trim((string)$comum['descricao']) !== ''
-                                               && trim((string)$comum['cnpj']) !== ''
-                                               && trim((string)$comum['administracao']) !== ''
-                                               && trim((string)$comum['cidade']) !== '';
+                                $cadastro_ok = trim((string) $comum['descricao']) !== ''
+                                               && trim((string) $comum['cnpj']) !== ''
+                                               && trim((string) $comum['administracao']) !== ''
+                                               && trim((string) $comum['cidade']) !== '';
                             ?>
                             <tr>
                                 <td class="fw-semibold text-uppercase">
@@ -194,5 +194,3 @@ require_once __DIR__ . '/app/views/layouts/app_wrapper.php';
 
 @unlink($contentFile);
 ?>
-
-
