@@ -226,7 +226,14 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
             transform: none !important;
         }
         .mobile-wrapper .modal-backdrop {
-            display: none !important;
+            display: block !important;
+            background-color: rgba(0,0,0,0.45);
+        }
+
+        /* Evitar salto do layout por padding quando modal abre */
+        body.modal-open {
+            padding-right: 0 !important;
+            overflow: hidden;
         }
         
         .card-header {
