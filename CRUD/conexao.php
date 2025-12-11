@@ -1,36 +1,57 @@
 <?php
-ini_set('display_errors', 0);
-error_reporting(0);
+require_once __DIR__ . '/../bootstrap.php';
 
 class Database {
-    private $host = 'anvy.com.br';
-    private $db_name = 'anvycomb_checkplanilha';
-    private $username = 'anvycomb_checkplanilha';
-    private $password = 'uGyzaCndm7EDahptkBZd';
-    private $charset = 'utf8mb4';
-    
-    public $conexao;
+    private string $host;
+    private string $db_name;
+    private string $username;
+    private string $password;
+    private string $charset = 'utf8mb4';
 
-    public function getConnection() {
-        $this->conexao = null;
+    public ?PDO $conexao = null;
+
+    public function __construct()
+    {
+        $this->host = getenv('DB_HOST') ?: 'anvy.com.br';
+        $this->db_name = getenv('DB_NAME') ?: 'anvycomb_checkplanilha';
+        $this->username = getenv('DB_USER') ?: 'anvycomb_checkplanilha';
+        $this->password = getenv('DB_PASS') ?: 'uGyzaCndm7EDahptkBZd';
+    }
+
+    public function getConnection(): PDO
+    {
+        if ($this->conexao instanceof PDO) {
+            return $this->conexao;
+        }
 
         try {
-            $dsn = "mysql:host=" . $this->host . ";dbname=" . $this->db_name . ";charset=" . $this->charset;
-            $this->conexao = new PDO($dsn, $this->username, $this->password);
-            
-            // Configurar opções do PDO
-            $this->conexao->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            $this->conexao->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-            $this->conexao->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
-            
-        } catch(PDOException $exception) {
-            echo "Erro de conexão: " . $exception->getMessage();
+            $dsn = sprintf(
+                'mysql:host=%s;dbname=%s;charset=%s',
+                $this->host,
+                $this->db_name,
+                $this->charset
+            );
+
+            $options = [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_EMULATE_PREPARES => false,
+                PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES {$this->charset} COLLATE utf8mb4_unicode_ci",
+            ];
+
+            $this->conexao = new PDO($dsn, $this->username, $this->password, $options);
+        } catch (PDOException $exception) {
+            error_log('Erro de conexao: ' . $exception->getMessage());
+            if (is_ajax_request()) {
+                json_response(['success' => false, 'message' => 'Erro ao conectar ao banco de dados.'], 500);
+            }
+            exit('Erro ao conectar ao banco de dados.');
         }
 
         return $this->conexao;
     }
 }
-// Criar instância da conexão
+
+// Instancia compartilhada
 $database = new Database();
 $conexao = $database->getConnection();
-?>

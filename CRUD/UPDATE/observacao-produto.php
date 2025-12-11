@@ -3,8 +3,8 @@ require_once __DIR__ . '/../../auth.php'; // Autenticação
 require_once __DIR__ . '/../conexao.php';
 
 // Receber parâmetros via GET - AGORA USANDO ID
-$id_produto = $_GET['id_produto'] ?? null;
-$id_planilha = $_GET['id'] ?? null;
+$id_produto = isset($_GET['id_produto']) ? (int) $_GET['id_produto'] : null;
+$id_planilha = isset($_GET['planilha_id']) ? (int) $_GET['planilha_id'] : (isset($_GET['id']) ? (int) $_GET['id'] : null);
 
 // Receber filtros
 $pagina = $_GET['pagina'] ?? 1;

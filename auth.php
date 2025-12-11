@@ -1,25 +1,25 @@
 <?php
-ini_set('display_errors', 0);
-error_reporting(0);
+require_once __DIR__ . '/bootstrap.php';
 
-// auth.php - Middleware de autenticação
-// Incluir este arquivo no início de todas as páginas que precisam de autenticação
+// Logar mas nao exibir erros em producao
+error_reporting(E_ALL);
+ini_set('display_errors', '0');
 
-session_start();
+// Middleware de autenticacao
+// Incluir este arquivo no inicio de todas as paginas que precisam de autenticacao
 
-// Função para obter URL do login baseado na profundidade do diretório
-function getLoginUrl() {
-    $script = $_SERVER['SCRIPT_NAME'];
-    $depth = substr_count($script, '/') - 2; // Ajustar baseado na estrutura
-    
+// URL de login baseada na profundidade do diretorio
+function getLoginUrl(): string {
+    $script = $_SERVER['SCRIPT_NAME'] ?? '';
+    $depth = substr_count($script, '/') - 2;
     return str_repeat('../', max($depth, 0)) . 'login.php';
 }
 
-// Modo público: permitir acesso restrito a algumas páginas com base em sessão pública
+// Modo publico: permitir acesso restrito a algumas paginas com base em sessao publica
 $isPublic = !empty($_SESSION['public_acesso']) && !empty($_SESSION['public_planilha_id']);
 if (!isset($_SESSION['usuario_id'])) {
     if ($isPublic) {
-        // Lista de páginas públicas permitidas (entrada do script)
+        // Lista de paginas publicas permitidas (entrada do script)
         $allowed = [
             '/app/views/shared/menu-unificado.php',
             '/app/views/planilhas/relatorio-14-1.php',
@@ -33,30 +33,27 @@ if (!isset($_SESSION['usuario_id'])) {
         $ok = false;
         foreach ($allowed as $rel) {
             $full = realpath($root . $rel);
-            if ($full && $scriptFile === $full) { $ok = true; break; }
+            if ($full && $scriptFile === $full) {
+                $ok = true;
+                break;
+            }
         }
 
         if (!$ok) {
-            // Bloquear acesso fora das páginas permitidas
             header('Location: ' . getLoginUrl());
             exit;
         }
-        // Permitido em modo público
     } else {
-        // Fluxo normal: exigir login
-        $_SESSION['redirect_after_login'] = $_SERVER['REQUEST_URI'];
+        $_SESSION['redirect_after_login'] = $_SERVER['REQUEST_URI'] ?? '/';
         header('Location: ' . getLoginUrl());
         exit;
     }
 }
 
-// Função para obter URL do login baseado na profundidade do diretório
-// (função getLoginUrl movida acima)
-
-// Atualizar última atividade
+// Atualizar ultima atividade
 $_SESSION['last_activity'] = time();
 
-// Verificar timeout de sessão (30 minutos de inatividade)
+// Timeout de sessao (30 minutos de inatividade)
 if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > 1800)) {
     session_unset();
     session_destroy();
@@ -64,13 +61,13 @@ if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > 
     exit;
 }
 
-// Função para verificar se o usuário é Administrador/Acessor
-function isAdmin() {
-    $tipo = isset($_SESSION['usuario_tipo']) ? $_SESSION['usuario_tipo'] : '';
+// Verifica se o usuario e Administrador/Acessor
+function isAdmin(): bool {
+    $tipo = $_SESSION['usuario_tipo'] ?? '';
     return $tipo === 'Administrador/Acessor' || stripos($tipo, 'administrador') !== false;
 }
 
-// Função para verificar se o usuário é Doador/Cônjuge
-function isDoador() {
-    return isset($_SESSION['usuario_tipo']) && $_SESSION['usuario_tipo'] === 'Doador/Cônjuge';
+// Verifica se o usuario e Doador/Conjuge
+function isDoador(): bool {
+    return isset($_SESSION['usuario_tipo']) && $_SESSION['usuario_tipo'] === 'Doador/Conjuge';
 }

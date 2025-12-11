@@ -2,57 +2,72 @@
 require_once __DIR__ . '/../../auth.php'; // Autenticação
 require_once __DIR__ . '/../conexao.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $produto_id = $_POST['produto_id'] ?? null;
-    $id_planilha = $_POST['id_planilha'] ?? null;
-    $dr = $_POST['dr'] ?? 0;
-    
-    // Preservar filtros
-    $filtros = [
-        'pagina' => $_POST['pagina'] ?? 1,
-        'nome' => $_POST['nome'] ?? '',
-        'dependencia' => $_POST['dependencia'] ?? '',
-        'codigo' => $_POST['codigo'] ?? '',
-        'status' => $_POST['status'] ?? ''
-    ];
-    
-    if (!$produto_id || !$id_planilha) {
-        $query_string = http_build_query(array_merge(['id' => $id_planilha], $filtros));
-        header('Location: ../../app/views/planilhas/view-planilha.php?' . $query_string);
-        exit;
-    }
-    
-    try {
-        // Se estiver marcando DR (dr = 1), limpar observações, desmarcar imprimir,
-        // desmarcar checado e marcar ativo=0
-        if ($dr == 1) {
-            // Marcar DR: limpar observações (string vazia), desmarcar imprimir, desmarcar checado e marcar como inativo
-            $stmt = $conexao->prepare('UPDATE produtos SET ativo = 0, checado = 0, observacao = :obs, imprimir_etiqueta = 0 WHERE id_produto = :id');
-            $stmt->bindValue(':id', $produto_id, PDO::PARAM_INT);
-            $stmt->bindValue(':obs', '', PDO::PARAM_STR);
-            $stmt->execute();
-        } else {
-            // Desmarcar DR: marcar como ativo novamente
-            $stmt = $conexao->prepare('UPDATE produtos SET ativo = 1 WHERE id_produto = :id');
-            $stmt->bindValue(':id', $produto_id, PDO::PARAM_INT);
-            $stmt->execute();
-        }
-        
-        // Redirecionar de volta mantendo os filtros
-        $query_string = http_build_query(array_merge(['id' => $id_planilha], $filtros));
-        header('Location: ../../app/views/planilhas/view-planilha.php?' . $query_string);
-        exit;
-        
-    } catch (Exception $e) {
-        $query_string = http_build_query(array_merge(
-            ['id' => $id_planilha], 
-            $filtros,
-            ['erro' => 'Erro ao processar DR: ' . $e->getMessage()]
-        ));
-        header('Location: ../../app/views/planilhas/view-planilha.php?' . $query_string);
-        exit;
-    }
-} else {
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: ../index.php');
+    exit;
+}
+
+$produto_id = (int) ($_POST['produto_id'] ?? 0);
+$id_planilha = (int) ($_POST['id_planilha'] ?? 0);
+$dr = (int) ($_POST['dr'] ?? 0);
+
+$filtros = [
+    'pagina' => $_POST['pagina'] ?? 1,
+    'nome' => $_POST['nome'] ?? '',
+    'dependencia' => $_POST['dependencia'] ?? '',
+    'codigo' => $_POST['codigo'] ?? '',
+    'status' => $_POST['status'] ?? ''
+];
+
+$redirectBase = '../../app/views/planilhas/view-planilha.php';
+$buildRedirect = function (string $erro = '') use ($redirectBase, $id_planilha, $filtros): string {
+    $params = array_merge(['id' => $id_planilha], $filtros);
+    if ($erro !== '') {
+        $params['erro'] = $erro;
+    }
+    return $redirectBase . '?' . http_build_query($params);
+};
+
+if ($produto_id <= 0 || $id_planilha <= 0) {
+    $msg = 'Parâmetros inválidos para atualizar DR.';
+    if (is_ajax_request()) {
+        json_response(['success' => false, 'message' => $msg], 400);
+    }
+    header('Location: ' . $buildRedirect($msg));
+    exit;
+}
+
+try {
+    if ($dr === 1) {
+        // Marcar DR: limpar observações, desmarcar imprimir e checado, marcar como inativo
+        $stmt = $conexao->prepare('UPDATE produtos SET ativo = 0, checado = 0, observacao = :obs, imprimir_etiqueta = 0 WHERE id_produto = :id');
+        $stmt->bindValue(':id', $produto_id, PDO::PARAM_INT);
+        $stmt->bindValue(':obs', '', PDO::PARAM_STR);
+        $stmt->execute();
+    } else {
+        // Desmarcar DR: ativar novamente
+        $stmt = $conexao->prepare('UPDATE produtos SET ativo = 1 WHERE id_produto = :id');
+        $stmt->bindValue(':id', $produto_id, PDO::PARAM_INT);
+        $stmt->execute();
+    }
+    
+    if (is_ajax_request()) {
+        json_response([
+            'success' => true,
+            'produto_id' => $produto_id,
+            'dr' => $dr,
+            'message' => $dr ? 'Produto enviado para DR.' : 'Produto reativado.'
+        ]);
+    }
+
+    header('Location: ' . $buildRedirect());
+    exit;
+    
+} catch (Exception $e) {
+    $msg = 'Erro ao processar DR: ' . $e->getMessage();
+    if (is_ajax_request()) {
+        json_response(['success' => false, 'message' => $msg], 500);
+    }
+    header('Location: ' . $buildRedirect($msg));
     exit;
 }

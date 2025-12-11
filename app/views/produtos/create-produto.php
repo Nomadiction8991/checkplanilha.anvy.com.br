@@ -3,7 +3,7 @@ require_once __DIR__ . '/../../../auth.php'; // Autenticação
 include __DIR__ . '/../../../CRUD/CREATE/produto.php';
 
 $pageTitle = 'Cadastrar Produto';
-$backUrl = './read-produto.php?id=' . urlencode($id_planilha) . '&' . gerarParametrosFiltro();
+$backUrl = './read-produto.php?planilha_id=' . urlencode($id_planilha) . '&' . gerarParametrosFiltro();
 
 ob_start();
 ?>

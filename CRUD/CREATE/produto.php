@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../../auth.php'; // Autenticação
 require_once __DIR__ . '/../conexao.php';
 
-$id_planilha = $_GET['id'] ?? null;
+$id_planilha = isset($_GET['planilha_id']) ? (int) $_GET['planilha_id'] : (isset($_GET['id']) ? (int) $_GET['id'] : null);
 
 if (!$id_planilha) {
     header('Location: ../index.php');

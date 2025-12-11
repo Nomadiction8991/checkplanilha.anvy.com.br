@@ -7,13 +7,16 @@ if ($comum_id <= 0) {
     header('Location: ../../../index.php');
     exit;
 }
-$_GET['comum_id'] = $comum_id;
-$_GET['id'] = $comum_id;
 
 require_once __DIR__ . '/../../../CRUD/READ/view-planilha.php';
 
+// ID real da planilha vinculada ao comum
+$id_planilha = (int)($planilha['planilha_id'] ?? $id_planilha ?? $comum_id);
+$_GET['comum_id'] = $comum_id;
+$_GET['id'] = $id_planilha;
+$_GET['planilha_id'] = $id_planilha;
+
 // Configuracoes da pagina
-$id_planilha = $comum_id; // compatibilidade com codigo legado
 $pageTitle = htmlspecialchars($planilha['comum_descricao'] ?? 'Visualizar Planilha');
 $backUrl = '../../../index.php';
 
@@ -29,23 +32,23 @@ $headerActions = '
 if (isAdmin()) {
     $headerActions .= '
             <li>
-                <a class="dropdown-item" href="../produtos/read-produto.php?comum_id=' . $id_planilha . '">
+                <a class="dropdown-item" href="../produtos/read-produto.php?planilha_id=' . $id_planilha . '&comum_id=' . $comum_id . '">
                     <i class="bi bi-list-ul me-2"></i>Listagem de Produtos
                 </a>
             </li>
             <li><hr class="dropdown-divider"></li>
             <li>
-                <a class="dropdown-item" href="../planilhas/relatorio-14-1.php?comum_id=' . $id_planilha . '">
+                <a class="dropdown-item" href="../planilhas/relatorio-14-1.php?id=' . $id_planilha . '&comum_id=' . $comum_id . '">
                     <i class="bi bi-file-earmark-pdf me-2"></i>Relat├│rio 14.1
                 </a>
             </li>
             <li>
-                <a class="dropdown-item" href="../planilhas/copiar-etiquetas.php?comum_id=' . $id_planilha . '">
+                <a class="dropdown-item" href="../planilhas/copiar-etiquetas.php?id=' . $id_planilha . '&comum_id=' . $comum_id . '">
                     <i class="bi bi-tags me-2"></i>Copiar Etiquetas
                 </a>
             </li>
             <li>
-                <a class="dropdown-item" href="../planilhas/imprimir-alteracao.php?comum_id=' . $id_planilha . '">
+                <a class="dropdown-item" href="../planilhas/imprimir-alteracao.php?id=' . $id_planilha . '&comum_id=' . $comum_id . '">
                     <i class="bi bi-printer me-2"></i>Imprimir Altera├º├úo
                 </a>
             </li>';
@@ -53,7 +56,7 @@ if (isAdmin()) {
     // Doador/C├┤njuge: apenas relat├│rios
     $headerActions .= '
             <li>
-                <a class="dropdown-item" href="../planilhas/relatorio-14-1.php?comum_id=' . $id_planilha . '">
+                <a class="dropdown-item" href="../planilhas/relatorio-14-1.php?id=' . $id_planilha . '&comum_id=' . $comum_id . '">
                     <i class="bi bi-file-earmark-pdf me-2"></i>Relat├│rio 14.1
                 </a>
             </li>';
@@ -407,7 +410,16 @@ ob_start();
             
             $tipo_invalido = (!isset($p['tipo_bem_id']) || $p['tipo_bem_id'] == 0 || empty($p['tipo_bem_id']));
             ?>
-            <div class="list-group-item <?php echo $classe; ?><?php echo $tipo_invalido ? ' tipo-nao-identificado' : ''; ?>" <?php echo $tipo_invalido ? 'title="Tipo de bem n├úo identificado"' : ''; ?>>
+            <div 
+                class="list-group-item <?php echo $classe; ?><?php echo $tipo_invalido ? ' tipo-nao-identificado' : ''; ?>" 
+                data-produto-id="<?php echo $p['id_produto']; ?>"
+                data-ativo="<?php echo (int) $p['ativo']; ?>"
+                data-checado="<?php echo (int) $p['checado']; ?>"
+                data-imprimir="<?php echo (int) $p['imprimir']; ?>"
+                data-observacao="<?php echo htmlspecialchars($p['observacao'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                data-editado="<?php echo (int) $p['editado']; ?>"
+                <?php echo $tipo_invalido ? 'title="Tipo de bem n├úo identificado"' : ''; ?>
+            >
                 <!-- C├│digo -->
                 <div class="codigo-produto">
                     <?php echo htmlspecialchars($p['codigo']); ?>
@@ -474,8 +486,7 @@ ob_start();
                 <?php if (isAdmin()): ?>
                 <div class="acao-container">
                     <!-- Check -->
-                    <?php if ($show_check): ?>
-                    <form method="POST" action="./check-produto.php" style="display: inline;">
+                    <form method="POST" action="../../../CRUD/UPDATE/check-produto.php" style="display: <?php echo $show_check ? 'inline' : 'none'; ?>;" class="produto-action-form action-check" data-action="check" data-produto-id="<?php echo $p['id_produto']; ?>">
                         <input type="hidden" name="produto_id" value="<?php echo $p['id_produto']; ?>">
                         <input type="hidden" name="id_planilha" value="<?php echo $id_planilha; ?>">
                         <input type="hidden" name="checado" value="<?php echo $p['checado'] ? '0' : '1'; ?>">
@@ -488,13 +499,9 @@ ob_start();
                             <i class="bi bi-check-circle-fill"></i>
                         </button>
                     </form>
-                    <?php else: ?>
-                    <!-- DEBUG: show_check ├® FALSE -->
-                    <?php endif; ?>
                     
                     <!-- Etiqueta -->
-                    <?php if ($show_imprimir): ?>
-                    <form method="POST" action="../../../CRUD/UPDATE/etiqueta-produto.php" style="display: inline;" onsubmit="return confirmarImprimir(this, <?php echo $p['imprimir']; ?>)">
+                    <form method="POST" action="../../../CRUD/UPDATE/etiqueta-produto.php" style="display: <?php echo $show_imprimir ? 'inline' : 'none'; ?>;" class="produto-action-form action-imprimir" data-action="imprimir" data-produto-id="<?php echo $p['id_produto']; ?>" data-confirm="<?php echo $p['imprimir'] ? 'Deseja desmarcar este produto para etiqueta?' : 'Deseja marcar este produto para etiqueta?'; ?>">
                         <input type="hidden" name="produto_id" value="<?php echo $p['id_produto']; ?>">
                         <input type="hidden" name="id_planilha" value="<?php echo $id_planilha; ?>">
                         <input type="hidden" name="imprimir" value="<?php echo $p['imprimir'] ? '0' : '1'; ?>">
@@ -507,27 +514,23 @@ ob_start();
                             <i class="bi bi-printer-fill"></i>
                         </button>
                     </form>
-                    <?php endif; ?>
                     
-                    <!-- Observa├º├úo -->
-                    <?php if ($show_obs): ?>
-                    <a href="../produtos/observacao-produto.php?id_produto=<?php echo $p['id_produto']; ?>&id=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina ?? 1; ?>&nome=<?php echo urlencode($filtro_nome ?? ''); ?>&dependencia=<?php echo urlencode($filtro_dependencia ?? ''); ?>&filtro_codigo=<?php echo urlencode($filtro_codigo ?? ''); ?>&status=<?php echo urlencode($filtro_status ?? ''); ?>"
-                       class="btn btn-outline-warning btn-sm <?php echo !empty($p['observacao']) ? 'active' : ''; ?>" title="Observa├º├úo">
+                    <!-- Observa??o -->
+                    <a href="../produtos/observacao-produto.php?id_produto=<?php echo $p['id_produto']; ?>&planilha_id=<?php echo $id_planilha; ?>&comum_id=<?php echo $comum_id; ?>&pagina=<?php echo $pagina ?? 1; ?>&nome=<?php echo urlencode($filtro_nome ?? ''); ?>&dependencia=<?php echo urlencode($filtro_dependencia ?? ''); ?>&filtro_codigo=<?php echo urlencode($filtro_codigo ?? ''); ?>&status=<?php echo urlencode($filtro_status ?? ''); ?>"
+                       class="btn btn-outline-warning btn-sm action-observacao <?php echo !empty($p['observacao']) ? 'active' : ''; ?>" style="display: <?php echo $show_obs ? 'inline-block' : 'none'; ?>;" title="Observa??o">
                         <i class="bi bi-chat-square-text-fill"></i>
                     </a>
-                    <?php endif; ?>
                     
                     <!-- Editar -->
-                    <?php if ($show_edit): ?>
-                    <a href="../produtos/editar-produto.php?id_produto=<?php echo $p['id_produto']; ?>&id=<?php echo $id_planilha; ?>&pagina=<?php echo $pagina ?? 1; ?>&nome=<?php echo urlencode($filtro_nome ?? ''); ?>&dependencia=<?php echo urlencode($filtro_dependencia ?? ''); ?>&filtro_codigo=<?php echo urlencode($filtro_codigo ?? ''); ?>&status=<?php echo urlencode($filtro_status ?? ''); ?>"
-                       class="btn btn-outline-primary btn-sm <?php echo $tem_edicao ? 'active' : ''; ?>" title="Editar">
+                    <a href="../produtos/editar-produto.php?id_produto=<?php echo $p['id_produto']; ?>&planilha_id=<?php echo $id_planilha; ?>&comum_id=<?php echo $comum_id; ?>&pagina=<?php echo $pagina ?? 1; ?>&nome=<?php echo urlencode($filtro_nome ?? ''); ?>&dependencia=<?php echo urlencode($filtro_dependencia ?? ''); ?>&filtro_codigo=<?php echo urlencode($filtro_codigo ?? ''); ?>&status=<?php echo urlencode($filtro_status ?? ''); ?>"
+                       class="btn btn-outline-primary btn-sm action-editar <?php echo $tem_edicao ? 'active' : ''; ?>" style="display: <?php echo $show_edit ? 'inline-block' : 'none'; ?>;" title="Editar">
                         <i class="bi bi-pencil-fill"></i>
                     </a>
-                    <?php endif; ?>
                     
                     <!-- DR -->
                     <?php if ($show_dr): ?>
-                    <form method="POST" action="../../../CRUD/UPDATE/dr-produto.php" style="display: inline;" onsubmit="return confirmarDR(this, <?php echo $p['ativo'] == 0 ? 1 : 0; ?>)">
+                    <?php $drConfirm = $p['ativo'] == 0 ? 'Tem certeza que deseja desmarcar este produto do DR?' : 'Tem certeza que deseja marcar este produto como DR? Esta ação irá limpar observações e desmarcar para impressão.'; ?>
+                    <form method="POST" action="../../../CRUD/UPDATE/dr-produto.php" style="display: inline;" class="produto-action-form action-dr" data-action="dr" data-produto-id="<?php echo $p['id_produto']; ?>" data-confirm="<?php echo htmlspecialchars($drConfirm, ENT_QUOTES, 'UTF-8'); ?>">
                         <input type="hidden" name="produto_id" value="<?php echo $p['id_produto']; ?>">
                         <input type="hidden" name="id_planilha" value="<?php echo $id_planilha; ?>">
                         <input type="hidden" name="dr" value="<?php echo $p['ativo'] == 0 ? '0' : '1'; ?>">
@@ -560,7 +563,7 @@ ob_start();
     <ul class="pagination pagination-sm justify-content-center mb-0">
         <?php if ($pagina > 1): ?>
         <li class="page-item">
-            <a class="page-link" href="?<?php echo http_build_query(array_merge(['id' => $id_planilha], $_GET, ['pagina' => $pagina - 1])); ?>">
+            <a class="page-link" href="?<?php echo http_build_query(array_merge(['planilha_id' => $id_planilha, 'comum_id' => $comum_id], $_GET, ['pagina' => $pagina - 1])); ?>">
                 <i class="bi bi-chevron-left"></i>
             </a>
         </li>
@@ -605,6 +608,157 @@ function confirmarImprimir(form, imprimirAtual) {
         return confirm('Tem certeza que deseja desmarcar este produto da impress├úo?');
     }
 }
+
+// ======== A├ç├úES AJAX (check/etiqueta/DR) ========
+document.addEventListener('DOMContentLoaded', () => {
+    const alertHost = document.createElement('div');
+    alertHost.id = 'ajaxAlerts';
+    alertHost.className = 'position-fixed top-0 start-50 translate-middle-x p-3';
+    alertHost.style.zIndex = '1100';
+    document.body.appendChild(alertHost);
+
+    const showAlert = (type, message) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = `alert alert-${type} alert-dismissible fade show shadow-sm`;
+        wrapper.role = 'alert';
+        wrapper.innerHTML = `
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi ${type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'}"></i>
+                <span>${message}</span>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+        `;
+        alertHost.appendChild(wrapper);
+        setTimeout(() => {
+            wrapper.classList.remove('show');
+            wrapper.addEventListener('transitionend', () => wrapper.remove(), { once: true });
+        }, 3000);
+    };
+
+    const linhaClasses = ['linha-dr','linha-imprimir','linha-checado','linha-observacao','linha-editado','linha-pendente'];
+    const computeRowClass = (state) => {
+        if (state.ativo === 0) return 'linha-dr';
+        if (state.imprimir === 1 && state.checado === 1) return 'linha-imprimir';
+        if (state.checado === 1) return 'linha-checado';
+        if ((state.observacao || '').trim() !== '') return 'linha-observacao';
+        if (state.editado === 1) return 'linha-editado';
+        return 'linha-pendente';
+    };
+
+    const getRowState = (row) => ({
+        ativo: Number(row.dataset.ativo || 0),
+        checado: Number(row.dataset.checado || 0),
+        imprimir: Number(row.dataset.imprimir || 0),
+        observacao: row.dataset.observacao || '',
+        editado: Number(row.dataset.editado || 0)
+    });
+
+    const updateActionButtons = (row, state) => {
+        const showCheck = !(state.ativo === 0) && !(state.imprimir === 1 || state.editado === 1);
+        const showImprimir = state.ativo === 1 && state.checado === 1 && state.editado === 0;
+        const showObs = state.ativo === 1;
+        const showEdit = state.ativo === 1 && state.checado === 0;
+
+        row.querySelectorAll('.action-check').forEach(el => el.style.display = showCheck ? 'inline-block' : 'none');
+        row.querySelectorAll('.action-imprimir').forEach(el => el.style.display = showImprimir ? 'inline-block' : 'none');
+        row.querySelectorAll('.action-dr').forEach(el => el.style.display = 'inline-block');
+        row.querySelectorAll('.btn-outline-warning').forEach(el => el.style.display = showObs ? 'inline-block' : 'none');
+        row.querySelectorAll('.btn-outline-primary').forEach(el => el.style.display = showEdit ? 'inline-block' : 'none');
+    };
+
+    const applyState = (row, updates = {}) => {
+        const state = { ...getRowState(row), ...updates };
+        row.dataset.ativo = state.ativo;
+        row.dataset.checado = state.checado;
+        row.dataset.imprimir = state.imprimir;
+        row.dataset.observacao = state.observacao ?? '';
+        row.dataset.editado = state.editado ?? row.dataset.editado;
+
+        linhaClasses.forEach(c => row.classList.remove(c));
+        row.classList.add(computeRowClass(state));
+        updateActionButtons(row, state);
+    };
+
+    document.querySelectorAll('.list-group-item[data-produto-id]').forEach(row => {
+        updateActionButtons(row, getRowState(row));
+    });
+
+    document.querySelectorAll('.produto-action-form').forEach(form => {
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const action = form.dataset.action;
+            const produtoId = form.dataset.produtoId;
+            const confirmMsg = form.dataset.confirm;
+            if (confirmMsg && !confirm(confirmMsg)) {
+                return;
+            }
+
+            const formData = new FormData(form);
+
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(async response => {
+                let data = {};
+                try {
+                    data = await response.json();
+                } catch (e) {
+                    // resposta não era JSON
+                }
+                if (!response.ok || data.success === false) {
+                    throw new Error(data.message || 'Não foi possível atualizar.');
+                }
+                return data;
+            })
+            .then(data => {
+
+                const row = document.querySelector(`.list-group-item[data-produto-id="${produtoId}"]`);
+                const stateUpdates = {};
+
+                if (action === 'check') {
+                    const newVal = Number(formData.get('checado') || 0);
+                    stateUpdates.checado = newVal;
+                    const input = form.querySelector('input[name=\"checado\"]');
+                    if (input) { input.value = newVal ? '0' : '1'; }
+                    const btn = form.querySelector('button');
+                    if (btn) { btn.classList.toggle('active', newVal === 1); }
+                } else if (action === 'imprimir') {
+                    const newVal = Number(formData.get('imprimir') || 0);
+                    stateUpdates.imprimir = newVal;
+                    const input = form.querySelector('input[name=\"imprimir\"]');
+                    if (input) { input.value = newVal ? '0' : '1'; }
+                    const btn = form.querySelector('button');
+                    if (btn) { btn.classList.toggle('active', newVal === 1); }
+                } else if (action === 'dr') {
+                    const newVal = Number(formData.get('dr') || 0);
+                    const ativo = newVal === 1 ? 0 : 1;
+                    stateUpdates.ativo = ativo;
+                    stateUpdates.checado = ativo === 0 ? 0 : getRowState(row).checado;
+                    stateUpdates.imprimir = ativo === 0 ? 0 : getRowState(row).imprimir;
+                    stateUpdates.observacao = ativo === 0 ? '' : getRowState(row).observacao;
+                    const input = form.querySelector('input[name=\"dr\"]');
+                    if (input) { input.value = newVal === 1 ? '0' : '1'; }
+                    const btn = form.querySelector('button');
+                    if (btn) { btn.classList.toggle('active', ativo === 0); }
+                }
+
+                if (row) {
+                    applyState(row, stateUpdates);
+                }
+
+                showAlert('success', data.message || 'Status atualizado.');
+            })
+            .catch(err => {
+                showAlert('danger', err.message || 'Erro ao processar ação.');
+            });
+        });
+    });
+});
 
 // ======== RECONHECIMENTO DE VOZ ========
 (() => {

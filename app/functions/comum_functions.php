@@ -326,6 +326,31 @@ function obter_comum_por_id($conexao, $id) {
 }
 
 /**
+ * Retorna a planilha ativa/mais recente vinculada ao comum.
+ */
+function obter_planilha_ativa_por_comum(PDO $conexao, int $comum_id): ?array {
+    try {
+        $sql = "SELECT * FROM planilhas WHERE comum_id = :comum_id ORDER BY data_posicao DESC, id DESC LIMIT 1";
+        $stmt = $conexao->prepare($sql);
+        $stmt->bindValue(':comum_id', $comum_id, PDO::PARAM_INT);
+        $stmt->execute();
+        $planilha = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $planilha ?: null;
+    } catch (Exception $e) {
+        error_log("Erro ao obter planilha ativa: " . $e->getMessage());
+        return null;
+    }
+}
+
+/**
+ * Resolve o ID da planilha a partir do ID do comum.
+ */
+function resolver_planilha_id_por_comum(PDO $conexao, int $comum_id): ?int {
+    $planilha = obter_planilha_ativa_por_comum($conexao, $comum_id);
+    return $planilha ? (int) $planilha['id'] : null;
+}
+
+/**
  * Conta quantas planilhas estão associadas a um comum
  * 
  * @param PDO $conexao Conexão com banco de dados

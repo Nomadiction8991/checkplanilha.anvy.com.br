@@ -2,6 +2,8 @@
 require_once __DIR__ . '/../../../auth.php'; // Autenticação
 include __DIR__ . '/../../../CRUD/READ/produto.php';
 
+$id_planilha = $planilha_id;
+
 $pageTitle = 'Visualizar Produtos';
 $backUrl = '../../index.php';
 $headerActions = '
@@ -11,7 +13,7 @@ $headerActions = '
         </button>
         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="menuProdutos">
             <li>
-                <a href="./create-produto.php?comum_id=' . urlencode($comum_id) . '&' . gerarParametrosFiltro(true) . '" class="dropdown-item">
+                <a href="./create-produto.php?planilha_id=' . urlencode($id_planilha) . '&comum_id=' . urlencode($comum_id) . '&' . gerarParametrosFiltro(true) . '" class="dropdown-item">
                     <i class="bi bi-plus-lg me-2"></i>Novo Produto
                 </a>
             </li>
@@ -41,9 +43,10 @@ ob_start();
     <i class="bi bi-funnel me-2"></i>
     Filtros
   </div>
-    <div class="card-body">
+  <div class="card-body">
     <form method="GET">
       <input type="hidden" name="comum_id" value="<?php echo htmlspecialchars($comum_id); ?>">
+      <input type="hidden" name="planilha_id" value="<?php echo htmlspecialchars($id_planilha); ?>">
 
       <!-- Campo principal de busca por descrição -->
       <div class="mb-3">
@@ -189,7 +192,7 @@ ob_start();
                         <?php endif; ?>
                       </div>
                       <div class="btn-group btn-group-sm">
-                        <a class="btn btn-outline-primary btn-sm" title="Editar" href="./update-produto.php?id_produto=<?php echo $produto['id']; ?>&id=<?php echo $id_planilha; ?>&<?php echo gerarParametrosFiltro(true); ?>">
+                        <a class="btn btn-outline-primary btn-sm" title="Editar" href="./update-produto.php?id_produto=<?php echo $produto['id']; ?>&planilha_id=<?php echo $id_planilha; ?>&comum_id=<?php echo $comum_id; ?>&<?php echo gerarParametrosFiltro(true); ?>">
                           <i class="bi bi-pencil-fill"></i>
                         </a>
                       </div>
@@ -227,7 +230,7 @@ ob_start();
           ?>
           <?php if ($pagina > 2): ?>
             <li class="page-item">
-              <a class="page-link" href="?id=<?php echo $id_planilha; ?>&pagina=1&<?php echo gerarParametrosFiltro(); ?>" aria-label="Primeira">
+              <a class="page-link" href="?planilha_id=<?php echo $id_planilha; ?>&comum_id=<?php echo $comum_id; ?>&pagina=1&<?php echo gerarParametrosFiltro(); ?>" aria-label="Primeira">
                 <span aria-hidden="true">«</span>
               </a>
             </li>
@@ -235,13 +238,13 @@ ob_start();
 
           <?php for ($i = $pagina_inicial; $i <= $pagina_final; $i++): ?>
             <li class="page-item <?php echo $i == $pagina ? 'active' : ''; ?>">
-              <a class="page-link" href="?id=<?php echo $id_planilha; ?>&pagina=<?php echo $i; ?>&<?php echo gerarParametrosFiltro(); ?>"><?php echo $i; ?></a>
+              <a class="page-link" href="?planilha_id=<?php echo $id_planilha; ?>&comum_id=<?php echo $comum_id; ?>&pagina=<?php echo $i; ?>&<?php echo gerarParametrosFiltro(); ?>"><?php echo $i; ?></a>
             </li>
           <?php endfor; ?>
 
           <?php if ($pagina < $total_paginas - 1): ?>
             <li class="page-item">
-              <a class="page-link" href="?id=<?php echo $id_planilha; ?>&pagina=<?php echo $total_paginas; ?>&<?php echo gerarParametrosFiltro(); ?>" aria-label="Última">
+              <a class="page-link" href="?planilha_id=<?php echo $id_planilha; ?>&comum_id=<?php echo $comum_id; ?>&pagina=<?php echo $total_paginas; ?>&<?php echo gerarParametrosFiltro(); ?>" aria-label="Última">
                 <span aria-hidden="true">»</span>
               </a>
             </li>
