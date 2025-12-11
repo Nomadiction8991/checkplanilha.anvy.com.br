@@ -1,8 +1,7 @@
 <?php
-require_once __DIR__ . '/bootstrap.php';
-require_once PROJECT_ROOT . '/auth.php';
-require_once PROJECT_ROOT . '/CRUD/conexao.php';
-require_once PROJECT_ROOT . '/app/functions/comum_functions.php';
+require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/CRUD/conexao.php';
+require_once __DIR__ . '/app/functions/comum_functions.php';
 
 $pageTitle = 'Comuns';
 $backUrl = null;

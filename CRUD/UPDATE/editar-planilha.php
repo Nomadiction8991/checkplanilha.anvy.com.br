@@ -1,8 +1,8 @@
 <?php
-require_once PROJECT_ROOT . '/auth.php'; // Autenticação
-require_once PROJECT_ROOT . '/conexao.php';
-require_once PROJECT_ROOT . '/vendor/autoload.php';
-require_once PROJECT_ROOT . '/app/functions/comum_functions.php';
+require_once __DIR__ . '/../../auth.php'; // Autenticação
+require_once __DIR__ . '/../conexao.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/../../app/functions/comum_functions.php';
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;

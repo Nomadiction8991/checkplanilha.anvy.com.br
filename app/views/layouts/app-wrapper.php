@@ -15,7 +15,13 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title><?php echo $pageTitle ?? 'Anvy - Gestão de Planilhas'; ?></title>
     
-    <!-- PWA removed from global layout: manifest and service-worker are registered only on login page -->
+    <!-- PWA - Progressive Web App -->
+    <link rel="manifest" href="<?php echo $manifest_path; ?>">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="CheckPlanilha">
+    <link rel="apple-touch-icon" href="<?php echo ($ambiente_manifest === 'dev') ? '/dev/logo.png' : '/logo.png'; ?>">
     
     <!-- Bootstrap 5.3 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -350,8 +356,6 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
         .fade-in {
             animation: fadeIn 0.3s ease-out;
         }
-
-        /* Global PWA overlay removed; PWA is initialized only on the login page */
     </style>
     
     <?php if (isset($customCss)): ?>
@@ -466,6 +470,21 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
         })();
     </script>
 
+    <!-- PWA Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                const swPath = '<?php echo ($ambiente_manifest === "dev") ? "/dev/sw.js" : "/sw.js"; ?>';
+                navigator.serviceWorker.register(swPath)
+                    .then(registration => {
+                        console.log('Service Worker registrado com sucesso:', registration.scope);
+                        console.log('Ambiente:', '<?php echo $ambiente_manifest; ?>');
+                    })
+                    .catch(err => console.error('Falha ao registrar Service Worker:', err));
+            });
+        }
+    </script>
+    
     <?php if (isset($customJs)): ?>
         <script><?php echo $customJs; ?></script>
     <?php endif; ?>

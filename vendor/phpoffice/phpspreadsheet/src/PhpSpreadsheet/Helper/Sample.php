@@ -71,7 +71,7 @@ class Sample
     public function getSamples(): array
     {
         // Populate samples
-        $baseDir = realpath(PROJECT_ROOT . '/samples');
+        $baseDir = realpath(__DIR__ . '/../../../samples');
         if ($baseDir === false) {
             // @codeCoverageIgnoreStart
             throw new RuntimeException('realpath returned false');

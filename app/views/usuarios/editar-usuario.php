@@ -1,5 +1,5 @@
 <?php
-require_once PROJECT_ROOT . '/auth.php'; // Autenticação
+require_once __DIR__ . '/../../../auth.php'; // Autenticação
 
 // Visualizar / Editar lógica:
 // - Qualquer usuário acessa sua própria página em modo edição
@@ -18,7 +18,7 @@ if (!$isSelf && !isAdmin()) {
     exit;
 }
 
-include PROJECT_ROOT . '/CRUD/UPDATE/usuario.php';
+include __DIR__ . '/../../../CRUD/UPDATE/usuario.php';
 
 $pageTitle = $isSelf ? 'Editar Usuário' : 'Visualizar Usuário';
 // Voltar: self e admin vão para listagem; outros vão para index
@@ -726,9 +726,9 @@ document.getElementById('formUsuario').addEventListener('submit', function(e) {
 
 <?php
 $contentHtml = ob_get_clean();
-$tempFile = PROJECT_ROOT . '/temp_editar_usuario_' . uniqid() . '.php';
+$tempFile = __DIR__ . '/../../../temp_editar_usuario_' . uniqid() . '.php';
 file_put_contents($tempFile, $contentHtml);
 $contentFile = $tempFile;
-include PROJECT_ROOT . '/layouts/app-wrapper.php';
+include __DIR__ . '/../layouts/app-wrapper.php';
 unlink($tempFile);
 ?>

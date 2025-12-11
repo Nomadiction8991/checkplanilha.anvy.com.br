@@ -1,6 +1,6 @@
 <?php
-require_once PROJECT_ROOT . '/auth.php'; // Autenticação
-require_once PROJECT_ROOT . '/conexao.php';
+require_once __DIR__ . '/../../auth.php'; // Autenticação
+require_once __DIR__ . '/../conexao.php';
 
 $pagina = isset($_GET['pagina']) ? max(1,(int)$_GET['pagina']) : 1;
 $limite = 20;

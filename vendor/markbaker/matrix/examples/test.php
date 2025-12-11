@@ -3,7 +3,7 @@
 use Matrix\Matrix;
 use Matrix\Decomposition\QR;
 
-include PROJECT_ROOT . '/vendor/autoload.php';
+include __DIR__ . '/../vendor/autoload.php';
 
 $grid = [
     [0, 1],

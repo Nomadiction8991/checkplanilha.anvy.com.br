@@ -1,5 +1,5 @@
 <?php
-require_once PROJECT_ROOT . '/auth.php'; // Autenticação
+require_once __DIR__ . '/../../../auth.php'; // Autenticação
 
 // Apenas admins podem acessar visualização de usuários
 if (!isAdmin()) {
@@ -13,7 +13,7 @@ if (!$idParam) {
     exit;
 }
 
-require_once PROJECT_ROOT . '/CRUD/conexao.php';
+require_once __DIR__ . '/../../../CRUD/conexao.php';
 
 // Buscar usuário
 $stmt = $conexao->prepare('SELECT * FROM usuarios WHERE id = :id');
@@ -249,9 +249,9 @@ ob_start();
 
 <?php
 $contentHtml = ob_get_clean();
-$tempFile = PROJECT_ROOT . '/temp_ver_usuario_' . uniqid() . '.php';
+$tempFile = __DIR__ . '/../../../temp_ver_usuario_' . uniqid() . '.php';
 file_put_contents($tempFile, $contentHtml);
 $contentFile = $tempFile;
-include PROJECT_ROOT . '/layouts/app-wrapper.php';
+include __DIR__ . '/../layouts/app-wrapper.php';
 unlink($tempFile);
 ?>

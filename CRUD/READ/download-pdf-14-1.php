@@ -1,5 +1,5 @@
 <?php
-require_once PROJECT_ROOT . '/auth.php'; // Autenticação
+require_once __DIR__ . '/../../auth.php'; // Autenticação
 /**
  * Gera o Relatório 14.1 em PDF 100% via Composer (mPDF), sem depender de pdftk
  * 
@@ -9,13 +9,13 @@ require_once PROJECT_ROOT . '/auth.php'; // Autenticação
  */
 
 // Autoload de bibliotecas (composer)
-$autoloadPath = PROJECT_ROOT . '/vendor/autoload.php';
+$autoloadPath = __DIR__ . '/../../vendor/autoload.php';
 if (file_exists($autoloadPath)) {
     require_once $autoloadPath;
 }
 
-require_once PROJECT_ROOT . '/conexao.php';
-require_once PROJECT_ROOT . '/Relatorio141Generator.php';
+require_once __DIR__ . '/../conexao.php';
+require_once __DIR__ . '/Relatorio141Generator.php';
 
 // Verificação de mPDF
 if (!class_exists('\\Mpdf\\Mpdf')) {
@@ -35,13 +35,13 @@ try {
         $dados = $gerador->gerarEmBranco($num);
         extract($dados);
         ob_start();
-        include PROJECT_ROOT . '/app/views/planilhas/relatorio-14-1-template.php';
+        include __DIR__ . '/../../app/views/planilhas/relatorio-14-1-template.php';
         $html = ob_get_clean();
     }
 
     // Carregar CSS do relatório (preferir CSS inline do template HTML unificado)
     $css = '';
-    $templateHtmlPath = PROJECT_ROOT . '/relatorios/14-1.html';
+    $templateHtmlPath = __DIR__ . '/../../relatorios/14-1.html';
     if (file_exists($templateHtmlPath)) {
         $tpl = file_get_contents($templateHtmlPath);
         if (preg_match('/<style>(.*?)<\/style>/s', $tpl, $m)) {
@@ -50,7 +50,7 @@ try {
     }
     // Fallback: CSS antigo, se existir
     if ($css === '') {
-        $cssPath = PROJECT_ROOT . '/public/assets/css/relatorio-14-1.css';
+        $cssPath = __DIR__ . '/../../public/assets/css/relatorio-14-1.css';
         if (file_exists($cssPath)) {
             $css = file_get_contents($cssPath);
         }

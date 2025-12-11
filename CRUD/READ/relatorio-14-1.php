@@ -1,7 +1,7 @@
 <?php
-require_once PROJECT_ROOT . '/auth.php'; // Autenticação
+require_once __DIR__ . '/../../auth.php'; // Autenticação
 // Incluir arquivo de conexão
-require_once PROJECT_ROOT . '/conexao.php';
+require_once __DIR__ . '/../conexao.php';
 
 // Pegar o ID da planilha via GET
 $id_planilha = isset($_GET['id']) ? intval($_GET['id']) : 0;

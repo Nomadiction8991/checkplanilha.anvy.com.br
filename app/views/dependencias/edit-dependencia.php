@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-require_once PROJECT_ROOT . '/auth.php';
+require_once __DIR__ . '/../../../auth.php';
 
 if (!isAdmin()) {
     header('Location: ../../../index.php');
@@ -13,7 +13,7 @@ if ($idParam <= 0) {
     exit;
 }
 
-include PROJECT_ROOT . '/CRUD/UPDATE/dependencia.php';
+include __DIR__ . '/../../../CRUD/UPDATE/dependencia.php';
 
 $pageTitle = 'Editar Dependência';
 $backUrl = './read-dependencia.php';
@@ -78,6 +78,6 @@ $contentHtml = ob_get_clean();
 $tempFile = sys_get_temp_dir() . '/temp_editar_dependencia_' . uniqid() . '.php';
 file_put_contents($tempFile, $contentHtml);
 $contentFile = $tempFile;
-include PROJECT_ROOT . '/layouts/app-wrapper.php';
+include __DIR__ . '/../layouts/app-wrapper.php';
 unlink($tempFile);
 ?>

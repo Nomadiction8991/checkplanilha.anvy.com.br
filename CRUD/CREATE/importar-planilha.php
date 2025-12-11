@@ -1,12 +1,12 @@
 <?php
-require_once PROJECT_ROOT . '/auth.php';
-require_once PROJECT_ROOT . '/conexao.php';
-require_once PROJECT_ROOT . '/vendor/autoload.php';
-require_once PROJECT_ROOT . '/app/functions/comum_functions.php';
+require_once __DIR__ . '/../../auth.php';
+require_once __DIR__ . '/../conexao.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/../../app/functions/comum_functions.php';
 // Parser modular
-require_once PROJECT_ROOT . '/app/functions/produto_parser.php';
+require_once __DIR__ . '/../../app/functions/produto_parser.php';
 // Configuração do parser (formato, sinônimos, etc.)
-$pp_config = require PROJECT_ROOT . '/app/config/produto_parser_config.php';
+$pp_config = require __DIR__ . '/../../app/config/produto_parser_config.php';
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Symfony\Component\String\UnicodeString;
@@ -362,7 +362,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Persistir log de debug se solicitado
         if ($debug_import && !empty($debug_lines)) {
-            $logDir = PROJECT_ROOT . '/app/tmp';
+            $logDir = __DIR__ . '/../../app/tmp';
             if (!is_dir($logDir)) { @mkdir($logDir, 0775, true); }
             $logFile = $logDir . '/import_debug_' . date('Ymd_His') . '_' . uniqid() . '.log';
             @file_put_contents($logFile, implode(PHP_EOL, $debug_lines));

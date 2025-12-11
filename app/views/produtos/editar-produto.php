@@ -1,6 +1,6 @@
 <?php
-require_once PROJECT_ROOT . '/auth.php'; // Autenticação
-require_once PROJECT_ROOT . '/CRUD/UPDATE/editar-produto.php';
+require_once __DIR__ . '/../../../auth.php'; // Autenticação
+require_once __DIR__ . '/../../../CRUD/UPDATE/editar-produto.php';
 
 $pageTitle = "Editar Produto";
 $backUrl = getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, $filtro_codigo, $filtro_status);
@@ -197,9 +197,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <?php
 $contentHtml = ob_get_clean();
-$tempFile = PROJECT_ROOT . '/temp_editar_produto_' . uniqid() . '.php';
+$tempFile = __DIR__ . '/../../../temp_editar_produto_' . uniqid() . '.php';
 file_put_contents($tempFile, $contentHtml);
 $contentFile = $tempFile;
-include PROJECT_ROOT . '/layouts/app-wrapper.php';
+include __DIR__ . '/../layouts/app-wrapper.php';
 unlink($tempFile);
 ?>

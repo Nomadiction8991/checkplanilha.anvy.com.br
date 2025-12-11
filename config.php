@@ -2,11 +2,6 @@
 // Configuração central de URLs e ambiente
 // Uso: base_url('caminho/para/pagina.php')
 
-// Definir a raiz do projeto
-if (!defined('PROJECT_ROOT')) {
-    define('PROJECT_ROOT', __DIR__);
-}
-
 if (!function_exists('base_url')) {
     function base_url(string $path = ''): string {
         $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');

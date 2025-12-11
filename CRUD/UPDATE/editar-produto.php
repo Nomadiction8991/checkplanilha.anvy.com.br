@@ -1,8 +1,8 @@
 <?php
-require_once PROJECT_ROOT . '/auth.php'; // Autenticação
-require_once PROJECT_ROOT . '/conexao.php';
+require_once __DIR__ . '/../../auth.php'; // Autenticação
+require_once __DIR__ . '/../conexao.php';
 // Funções de montagem de descrição
-require_once PROJECT_ROOT . '/app/functions/produto_parser.php';
+require_once __DIR__ . '/../../app/functions/produto_parser.php';
 
 // Receber parâmetros
 $id_produto = $_GET['id_produto'] ?? null;

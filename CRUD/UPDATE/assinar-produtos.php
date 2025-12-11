@@ -1,6 +1,6 @@
 <?php
-require_once PROJECT_ROOT . '/auth.php';
-require_once PROJECT_ROOT . '/conexao.php';
+require_once __DIR__ . '/../../auth.php';
+require_once __DIR__ . '/../conexao.php';
 
 header('Content-Type: application/json');
 

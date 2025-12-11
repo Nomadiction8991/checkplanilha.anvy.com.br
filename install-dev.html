@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check Planilha - Desenvolvimento</title>
+    
+    <!-- PWA Manifest para Desenvolvimento -->
+    <link rel="manifest" href="/manifest-dev.json">
+    
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#ffc107">
+    
+    <!-- Apple Touch Icon -->
+    <link rel="apple-touch-icon" href="/logo-dev.png">
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        
+        .logo {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            color: white;
+        }
+        
+        h1 {
+            color: #333;
+            margin: 0 0 10px;
+            font-size: 24px;
+        }
+        
+        .badge {
+            display: inline-block;
+            background: #ffc107;
+            color: #333;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        
+        p {
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .btn {
+            display: inline-block;
+            background: #ffc107;
+            color: #333;
+            padding: 15px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        .btn:hover {
+            background: #ffb300;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 193, 7, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5c636a;
+            box-shadow: 0 5px 20px rgba(108, 117, 125, 0.4);
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #856404;
+            font-size: 14px;
+        }
+        
+        .install-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🔧</div>
+        <h1>Check Planilha</h1>
+        <span class="badge">DESENVOLVIMENTO</span>
+        
+        <div class="warning">
+            <strong>⚠️ Atenção:</strong> Este é o ambiente de desenvolvimento. Mudanças aqui não afetam a produção.
+        </div>
+        
+        <p>Ambiente de testes e desenvolvimento. Instale para testar novas funcionalidades!</p>
+        
+        <button id="installBtn" class="btn hidden">
+            📲 Instalar Aplicativo DEV
+        </button>
+        
+        <a href="/dev/index.php" class="btn">
+            🔧 Acessar Desenvolvimento
+        </a>
+        
+        <a href="/install-prod.html" class="btn btn-secondary">
+            🚀 Voltar para Produção
+        </a>
+        
+        <div class="install-info">
+            <strong>💡 Dica:</strong> Você pode ter ambas as versões (Prod e Dev) instaladas simultaneamente!
+        </div>
+    </div>
+    
+    <script>
+        let deferredPrompt;
+        const installBtn = document.getElementById('installBtn');
+        
+        // Detecta se PWA pode ser instalado
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBtn.classList.remove('hidden');
+        });
+        
+        // Instalação
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`Resultado da instalação: ${outcome}`);
+                deferredPrompt = null;
+                installBtn.classList.add('hidden');
+            }
+        });
+        
+        // Registra Service Worker (se existir)
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw-dev.js').catch(() => {
+                console.log('Service Worker não encontrado (opcional)');
+            });
+        }
+    </script>
+</body>
+</html>

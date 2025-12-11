@@ -1,6 +1,6 @@
 <?php
-require_once PROJECT_ROOT . '/auth.php'; // Autenticação
-require_once PROJECT_ROOT . '/conexao.php';
+require_once __DIR__ . '/../../auth.php'; // Autenticação
+require_once __DIR__ . '/../conexao.php';
 
 $id_produto = $_GET['id_produto'] ?? null;
 $id_planilha = $_GET['id'] ?? null;

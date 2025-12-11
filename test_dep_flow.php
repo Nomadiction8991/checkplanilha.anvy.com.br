@@ -12,14 +12,14 @@ $_GET['pagina'] = 1;
 // Capturar include
 ob_start();
 try {
-    include PROJECT_ROOT . '/app/views/dependencias/read-dependencia.php';
+    include __DIR__ . '/app/views/dependencias/read-dependencia.php';
     $html = ob_get_clean();
     echo "INCLUDE_OK\n";
     // Verificar se aparece texto de erro no HTML
     if (stripos($html, 'Conteúdo não definido') !== false || stripos($html, 'Warning') !== false || stripos($html, 'Notice') !== false) {
         echo "POSSÍVEL_ERRO_VISUAL\n";
         // salvar amostra
-        file_put_contents(PROJECT_ROOT . '/var/test_dep_output.html', $html);
+        file_put_contents(__DIR__ . '/var/test_dep_output.html', $html);
     } else {
         echo "HTML_OK\n";
     }

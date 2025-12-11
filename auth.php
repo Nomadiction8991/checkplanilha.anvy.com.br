@@ -1,5 +1,4 @@
 <?php
-require_once __DIR__ . '/bootstrap.php';
 ini_set('display_errors', 0);
 error_reporting(0);
 
@@ -9,12 +8,11 @@ error_reporting(0);
 session_start();
 
 // Função para obter URL do login baseado na profundidade do diretório
-function getLoginUrl($query = '') {
-    $path = 'login.php';
-    if ($query) {
-        $path .= '?' . $query;
-    }
-    return base_url($path);
+function getLoginUrl() {
+    $script = $_SERVER['SCRIPT_NAME'];
+    $depth = substr_count($script, '/') - 2; // Ajustar baseado na estrutura
+    
+    return str_repeat('../', max($depth, 0)) . 'login.php';
 }
 
 // Modo público: permitir acesso restrito a algumas páginas com base em sessão pública
@@ -51,6 +49,9 @@ if (!isset($_SESSION['usuario_id'])) {
         exit;
     }
 }
+
+// Função para obter URL do login baseado na profundidade do diretório
+// (função getLoginUrl movida acima)
 
 // Atualizar última atividade
 $_SESSION['last_activity'] = time();

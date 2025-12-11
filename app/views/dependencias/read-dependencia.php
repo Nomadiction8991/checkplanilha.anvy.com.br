@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-require_once PROJECT_ROOT . '/auth.php';
+require_once __DIR__ . '/../../../auth.php';
 
 if (!isAdmin()) {
     header('Location: ../../../index.php');
@@ -9,7 +9,7 @@ if (!isAdmin()) {
 
 // Incluir lógica de leitura (preparada em CRUD)
 try {
-    include PROJECT_ROOT . '/CRUD/READ/dependencia.php';
+    include __DIR__ . '/../../../CRUD/READ/dependencia.php';
 } catch (Throwable $e) {
     $dependencias = [];
     $total_registros = 0;
@@ -139,6 +139,6 @@ $contentHtml = ob_get_clean();
 $tempFile = sys_get_temp_dir() . '/temp_read_dependencia_' . uniqid() . '.php';
 file_put_contents($tempFile, $contentHtml);
 $contentFile = $tempFile;
-include PROJECT_ROOT . '/layouts/app-wrapper.php';
+include __DIR__ . '/../layouts/app-wrapper.php';
 unlink($tempFile);
 ?>

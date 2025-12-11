@@ -1,7 +1,47 @@
 <?php
-require_once __DIR__ . '/../../bootstrap.php';
+
 /**
- * Funções para manipulação de dados da tabela COMUNS
+ * Remove tudo que nÇœo for dÇ­gito do CNPJ informado.
+ */
+function normalizar_cnpj_valor($cnpj_raw) {
+    $cnpj = trim((string)$cnpj_raw);
+    return preg_replace('/\D+/', '', $cnpj);
+}
+
+/**
+ * Gera um CNPJ Ç§nico, aplicando placeholder e sufixo quando jÇ­ existe no banco.
+ *
+ * @param PDO $conexao
+ * @param string $cnpj_base Valor informado (pode conter mÇ¸scaras)
+ * @param int $codigo CÇüdigo do comum (usado para placeholder/sufixo)
+ * @param int|null $ignorar_id ID que pode repetir (para updates)
+ * @return string CNPJ pronto para persistir, garantidamente Ç§nico
+ */
+function gerar_cnpj_unico($conexao, $cnpj_base, $codigo, $ignorar_id = null) {
+    $cnpj_limpo = normalizar_cnpj_valor($cnpj_base);
+    $base = $cnpj_limpo === '' ? 'SEM-CNPJ-' . $codigo : $cnpj_limpo;
+    $cnpj_final = $base;
+    $tentativa = 0;
+
+    while (true) {
+        $stmt = $conexao->prepare("SELECT id FROM comums WHERE cnpj = :cnpj");
+        $stmt->bindValue(':cnpj', $cnpj_final);
+        $stmt->execute();
+        $existente = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$existente || ($ignorar_id !== null && (int)$existente['id'] === (int)$ignorar_id)) {
+            return $cnpj_final;
+        }
+
+        $tentativa++;
+        $cnpj_final = $base . '-COD-' . $codigo;
+        if ($tentativa > 1) {
+            $cnpj_final .= '-' . $tentativa;
+        }
+    }
+}
+/**
+ * Funções para manipulação de dados da tabela COMUMS
  * Extrai código e descrição do formato: "BR 09-0040 - SIBIPIRUNAS"
  */
 
@@ -64,19 +104,25 @@ function extrair_descricao_comum($comum_text) {
  */
 function processar_comum($conexao, $comum_text, $dados = []) {
     if (empty($comum_text)) {
-        throw new Exception('Comum vazio ou não informado.');
+        throw new Exception('Comum vazio ou nao informado.');
     }
     
     $codigo = extrair_codigo_comum($comum_text);
     $descricao = extrair_descricao_comum($comum_text);
     
     if (empty($codigo) || empty($descricao)) {
-        throw new Exception("Formato de comum inválido: '{$comum_text}'.");
+        throw new Exception("Formato de comum invalido: '{$comum_text}'.");
     }
     
+    $cnpj_final = null;
+    $cnpj_informado = $dados['cnpj'] ?? '';
+    $administracao = $dados['administracao'] ?? '';
+    $cidade = $dados['cidade'] ?? '';
+    $setor = $dados['setor'] ?? 0;
+    
     try {
-        // Verificar se já existe
-        $sql_check = "SELECT id FROM comums WHERE codigo = :codigo";
+        // Verificar se ja existe
+        $sql_check = "SELECT id, cnpj FROM comums WHERE codigo = :codigo";
         $stmt_check = $conexao->prepare($sql_check);
         $stmt_check->bindValue(':codigo', $codigo);
         $stmt_check->execute();
@@ -92,20 +138,23 @@ function processar_comum($conexao, $comum_text, $dados = []) {
                 $params = [':id' => $comum_id];
                 
                 if (!empty($dados['cnpj'])) {
-                    $updates[] = "cnpj = :cnpj";
-                    $params[':cnpj'] = $dados['cnpj'];
+                    $cnpj_final = gerar_cnpj_unico($conexao, $dados['cnpj'], $codigo, $comum_id);
+                    if ($cnpj_final !== $resultado['cnpj']) {
+                        $updates[] = "cnpj = :cnpj";
+                        $params[':cnpj'] = $cnpj_final;
+                    }
                 }
-                if (!empty($dados['administracao'])) {
+                if (!empty($administracao)) {
                     $updates[] = "administracao = :administracao";
-                    $params[':administracao'] = $dados['administracao'];
+                    $params[':administracao'] = $administracao;
                 }
-                if (!empty($dados['cidade'])) {
+                if (!empty($cidade)) {
                     $updates[] = "cidade = :cidade";
-                    $params[':cidade'] = $dados['cidade'];
+                    $params[':cidade'] = $cidade;
                 }
                 if (isset($dados['setor'])) {
                     $updates[] = "setor = :setor";
-                    $params[':setor'] = $dados['setor'];
+                    $params[':setor'] = $setor;
                 }
                 
                 if (!empty($updates)) {
@@ -121,34 +170,8 @@ function processar_comum($conexao, $comum_text, $dados = []) {
             return $comum_id;
         }
         
-        // Se não existe, inserir
-        $cnpj_original = $dados['cnpj'] ?? '';
-        // CNPJ final precisa ser único por conta do índice UNIQUE.
-        // Se vier vazio, criamos um placeholder para não colidir com outros vazios.
-        $cnpj_final = trim($cnpj_original);
-        $cnpj_final = preg_replace('/\s+/', '', $cnpj_final);
-        if ($cnpj_final === '') {
-            $cnpj_final = 'SEM-CNPJ-' . $codigo;
-        }
-        // Se já existir outro registro com o mesmo CNPJ mas outro código,
-        // criamos um sufixo para manter unicidade sem reaproveitar o ID.
-        $cnpj_existente = null;
-        $sql_cnpj = "SELECT id, codigo FROM comums WHERE cnpj = :cnpj";
-        $stmt_cnpj = $conexao->prepare($sql_cnpj);
-        $stmt_cnpj->bindValue(':cnpj', $cnpj_final);
-        $stmt_cnpj->execute();
-        $cnpj_existente = $stmt_cnpj->fetch();
-        if ($cnpj_existente) {
-            if ((int)$cnpj_existente['codigo'] === (int)$codigo) {
-                return (int)$cnpj_existente['id'];
-            }
-            // Ajusta para um valor único, preservando a origem.
-            $cnpj_final .= '-COD-' . $codigo;
-        }
-
-        $administracao = $dados['administracao'] ?? '';
-        $cidade = $dados['cidade'] ?? '';
-        $setor = $dados['setor'] ?? 0;
+        // Se nao existe, inserir
+        $cnpj_final = gerar_cnpj_unico($conexao, $cnpj_informado, $codigo);
         
         $sql_insert = "INSERT INTO comums (codigo, cnpj, descricao, administracao, cidade, setor) 
                        VALUES (:codigo, :cnpj, :descricao, :administracao, :cidade, :setor)";
@@ -179,6 +202,7 @@ function processar_comum($conexao, $comum_text, $dados = []) {
         throw new Exception("Erro ao processar comum: " . $msg);
     }
 }
+
 
 /**
  * Obtém todos os comuns cadastrados

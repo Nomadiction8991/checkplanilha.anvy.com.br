@@ -1,5 +1,5 @@
 <?php
-require_once PROJECT_ROOT . '/auth.php'; // Autenticação
+require_once __DIR__ . '/../../../auth.php'; // Autenticação
 
 // Configurações da página
 $pageTitle = 'Importar Planilha';
@@ -113,9 +113,9 @@ ob_start();
 
 <?php
 $contentHtml = ob_get_clean();
-$contentFile = PROJECT_ROOT . '/temp_importar_planilha_content_' . uniqid() . '.php';
+$contentFile = __DIR__ . '/../../../temp_importar_planilha_content_' . uniqid() . '.php';
 file_put_contents($contentFile, $contentHtml);
-include PROJECT_ROOT . '/layouts/app-wrapper.php';
+include __DIR__ . '/../layouts/app-wrapper.php';
 @unlink($contentFile);
 ?>
 <script>

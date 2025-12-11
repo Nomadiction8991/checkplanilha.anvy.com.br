@@ -1,12 +1,12 @@
 <?php
-require_once PROJECT_ROOT . '/auth.php'; // Autenticação
+require_once __DIR__ . '/../../auth.php'; // Autenticação
 // Preenche o PDF relatorios/relatorio-14-1.pdf (ou variações) com o campo de formulário "dataemissao"
 // Modos de uso:
 // - Via GET:  preencher-relatorio-14-1.php?dataemissao=26/10/2025
 // - Sem parâmetro: usa a data atual
 
 // 1) Localizar o PDF (aceita variações de nome informadas)
-$baseDir = realpath(PROJECT_ROOT . '/relatorios');
+$baseDir = realpath(__DIR__ . '/../../relatorios');
 $possiveisArquivos = [
     'relatorio-14-1.pdf',
     'relatorio 14-1.pdf',

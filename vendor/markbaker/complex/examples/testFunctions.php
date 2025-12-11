@@ -2,7 +2,7 @@
 
 namespace Complex;
 
-include(PROJECT_ROOT . '/vendor/autoload.php');
+include(__DIR__ . '/../vendor/autoload.php');
 
 echo 'Function Examples', PHP_EOL;
 

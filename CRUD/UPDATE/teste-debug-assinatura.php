@@ -1,7 +1,7 @@
 <?php
 // Script de debug para verificar o salvamento das assinaturas
-require_once PROJECT_ROOT . '/auth.php';
-require_once PROJECT_ROOT . '/conexao.php';
+require_once __DIR__ . '/../../auth.php';
+require_once __DIR__ . '/../conexao.php';
 
 echo "<h2>Debug - Verificação de Assinaturas</h2>";
 

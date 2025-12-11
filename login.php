@@ -1,5 +1,4 @@
 <?php
-require_once __DIR__ . '/bootstrap.php';
 session_start();
 
 // Se já está logado, redireciona para o index
@@ -8,10 +7,8 @@ if (isset($_SESSION['usuario_id'])) {
     exit;
 }
 
-require_once PROJECT_ROOT . '/CRUD/conexao.php';
+require_once __DIR__ . '/CRUD/conexao.php';
 
-// Ambiente atual (podemos usar ANVY_ENV para identificar 'dev' ou 'prod')
-$CURRENT_ENV = getenv('ANVY_ENV') ?: '';
 $erro = '';
 $sucesso = '';
 
@@ -66,8 +63,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Login - Sistema de Planilhas</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <!-- PWA manifest apenas para a página de login (produção) -->
-    <link rel="manifest" href="/prod/manifest.json">
     <style>
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -162,7 +157,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </button>
                     </div>
                 </form>
-                                    <!-- Botão/modal de instalação removido conforme solicitado -->
             </div>
         </div>
         
@@ -179,18 +173,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Ambiente corrente vindo do servidor ('' | 'dev' | 'prod')
-        const CURRENT_ENV = <?php echo json_encode($CURRENT_ENV); ?>;
-        // A lógica de instalação manual foi removida; o service worker e manifest permanecem registrados.
-    </script>
-    <script>
-        // Registrar service worker apenas nesta página (produção)
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function(){
-                navigator.serviceWorker.register('/prod/sw.js')
-                    .then(reg => console.log('SW /prod/sw.js registrado:', reg.scope))
-                    .catch(err => console.warn('Falha ao registrar SW /prod/sw.js:', err));
-            });
-        }
-    </script>
+</body>
+</html>
