@@ -437,6 +437,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $conexao->commit();
+        // Registrar dependencias unificadas e vincular IDs
+        $stmtDepDistinct = $conexao->prepare("SELECT DISTINCT dependencia FROM produtos WHERE comum_id = :comum_id AND dependencia IS NOT NULL AND dependencia <> ''");
+        $stmtDepDistinct->bindValue(':comum_id', $comum_processado_id, PDO::PARAM_INT);
+        $stmtDepDistinct->execute();
+        $dependencias_texto = $stmtDepDistinct->fetchAll(PDO::FETCH_COLUMN);
+
+        $mapDepId = [];
+        foreach ($dependencias_texto as $depTxt) {
+            $depTrim = trim($depTxt);
+            if ($depTrim === '') { continue; }
+            $stmtDepSel = $conexao->prepare("SELECT id FROM dependencias WHERE descricao = :d LIMIT 1");
+            $stmtDepSel->bindValue(':d', $depTrim);
+            $stmtDepSel->execute();
+            $depId = $stmtDepSel->fetchColumn();
+            if (!$depId) {
+                $stmtDepIns = $conexao->prepare("INSERT INTO dependencias (descricao) VALUES (:d)");
+                $stmtDepIns->bindValue(':d', $depTrim);
+                $stmtDepIns->execute();
+                $depId = $conexao->lastInsertId();
+            }
+            if ($depId) {
+                $mapDepId[$depTrim] = (int)$depId;
+            }
+        }
+
+        if (!empty($mapDepId)) {
+            $stmtUpdDepId = $conexao->prepare("UPDATE produtos SET dependencia_id = :dep_id WHERE comum_id = :comum_id AND dependencia = :dep_txt");
+            foreach ($mapDepId as $txt => $idDep) {
+                $stmtUpdDepId->bindValue(':dep_id', $idDep, PDO::PARAM_INT);
+                $stmtUpdDepId->bindValue(':comum_id', $comum_processado_id, PDO::PARAM_INT);
+                $stmtUpdDepId->bindValue(':dep_txt', $txt);
+                $stmtUpdDepId->execute();
+            }
+        }
+
         $mensagem = "Importacao concluida! Novos: {$novos}, Atualizados: {$atualizados}, Excluidos: {$excluidos}.";
         $tipo_mensagem = 'success';
         $sucesso = true;
