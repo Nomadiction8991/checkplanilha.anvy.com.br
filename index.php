@@ -63,7 +63,7 @@ $customCss = '
 .table.table-center thead th, .table.table-center tbody td { text-align: center; vertical-align: middle; }
 ';
 
-$busca = trim($_GET['busca'] ?? '');
+$busca = mb_strtoupper(trim($_GET['busca'] ?? ''), 'UTF-8');
 $comums = buscar_comuns($conexao, $busca);
 
 function formatar_codigo_comum($codigo) {
@@ -98,7 +98,7 @@ ob_start();
             <div class="col-12">
                 <label for="busca" class="form-label">Código ou descrição</label>
                 <div class="input-group">
-                    <input type="text" name="busca" id="busca" class="form-control"
+                    <input type="text" name="busca" id="busca" class="form-control text-uppercase"
                            value="<?php echo htmlspecialchars($busca); ?>"
                            placeholder="Pesquise pelo código ou nome da comum...">
                     <?php if ($busca !== ''): ?>
