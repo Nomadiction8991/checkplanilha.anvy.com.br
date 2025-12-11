@@ -63,7 +63,8 @@ $customCss = '
 .table.table-center thead th, .table.table-center tbody td { text-align: center; vertical-align: middle; }
 ';
 
-$busca = mb_strtoupper(trim($_GET['busca'] ?? ''), 'UTF-8');
+$buscaRaw = trim($_GET['busca'] ?? '');
+$busca = mb_strtoupper($buscaRaw, 'UTF-8');
 $comums = buscar_comuns($conexao, $busca);
 
 function formatar_codigo_comum($codigo) {
@@ -100,11 +101,6 @@ ob_start();
                 <div class="input-group">
                     <input type="text" name="busca" id="busca" class="form-control text-uppercase"
                            value="<?php echo htmlspecialchars($busca); ?>">
-                    <?php if ($busca !== ''): ?>
-                        <a href="index.php" class="btn btn-outline-secondary btn-clear" title="Limpar filtro">
-                            <i class="bi bi-x-lg"></i>
-                        </a>
-                    <?php endif; ?>
                 </div>
             </div>
             <div class="col-12">

@@ -430,26 +430,39 @@ function obter_planilhas_por_comum($conexao, $comum_id) {
  * @return array Lista de comuns filtrada
  */
 function buscar_comuns($conexao, $termo = '') {
-    $termo = trim($termo);
+    $termo = trim((string) $termo);
 
     if ($termo === '') {
         return obter_todos_comuns($conexao);
     }
 
     $termoUpper = mb_strtoupper($termo, 'UTF-8');
+    $termoDigits = preg_replace('/\D+/', '', $termo);
+
     $like = '%' . $termoUpper . '%';
+    $likeDigits = $termoDigits !== '' ? '%' . $termoDigits . '%' : null;
 
     try {
         $sql = "SELECT id, codigo, cnpj, descricao, administracao, cidade, setor
                 FROM comums
-                WHERE UPPER(CAST(codigo AS CHAR)) LIKE :busca
+                WHERE (UPPER(CAST(codigo AS CHAR)) LIKE :busca
                    OR UPPER(descricao) LIKE :busca
                    OR UPPER(cnpj) LIKE :busca
                    OR UPPER(administracao) LIKE :busca
-                   OR UPPER(cidade) LIKE :busca
-                ORDER BY codigo ASC";
+                   OR UPPER(cidade) LIKE :busca)";
+
+        if ($likeDigits !== null) {
+            $sql .= " OR (REPLACE(REPLACE(REPLACE(REPLACE(cnpj, '.', ''), '-', ''), '/', ''), ' ', '') LIKE :buscaDigits
+                        OR CAST(codigo AS CHAR) LIKE :buscaDigits)";
+        }
+
+        $sql .= " ORDER BY codigo ASC";
+
         $stmt = $conexao->prepare($sql);
         $stmt->bindValue(':busca', $like);
+        if ($likeDigits !== null) {
+            $stmt->bindValue(':buscaDigits', $likeDigits);
+        }
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (Exception $e) {
