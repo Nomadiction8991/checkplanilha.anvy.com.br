@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/../../../auth.php';
-require_once __DIR__ . '/../../../CRUD/conexao.php';
+require_once dirname(__DIR__, 2) . '/bootstrap.php';
+
 
 $id_planilha = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if ($id_planilha <= 0) {
@@ -33,13 +33,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $setor = isset($_POST['setor']) && $_POST['setor'] !== '' ? (int)$_POST['setor'] : null;
 
         if ($administracao === '' || $cidade === '') {
-            throw new Exception('Administração e Cidade são obrigatórios.');
+            throw new Exception('AdministraÃ§Ã£o e Cidade sÃ£o obrigatÃ³rios.');
         }
 
         // Obter comum_id pela planilha
         $planilha_atual = carregar_planilha($conexao, $id_planilha);
         if (!$planilha_atual) {
-            throw new Exception('Planilha não encontrada.');
+            throw new Exception('Planilha nÃ£o encontrada.');
         }
 
         $conexao->beginTransaction();
@@ -73,10 +73,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Dados atualizados para exibição
+// Dados atualizados para exibiÃ§Ã£o
 $planilha = carregar_planilha($conexao, $id_planilha);
 if (!$planilha) { 
-    die('Planilha não encontrada.');
+    die('Planilha nÃ£o encontrada.');
 }
 
 $pageTitle = 'Editar Planilha';
@@ -102,12 +102,12 @@ ob_start();
         <div class="card-body">
             <div class="row g-3">
                 <div class="col-md-6">
-                    <label for="administracao" class="form-label">Administração <span class="text-danger">*</span></label>
+                    <label for="administracao" class="form-label">AdministraÃ§Ã£o <span class="text-danger">*</span></label>
                     <?php 
-                        // Administração e cidade armazenadas como 'MT - NomeDaCidade'
+                        // AdministraÃ§Ã£o e cidade armazenadas como 'MT - NomeDaCidade'
                         $administracao_atual = $planilha['administracao'] ?? '';
                         $cidade_atual = $planilha['cidade'] ?? '';
-                        // Extrair somente nome após ' - '
+                        // Extrair somente nome apÃ³s ' - '
                         $nome_cidade_adm = '';
                         if (strpos($administracao_atual,' - ') !== false) {
                             $parts = explode(' - ',$administracao_atual,2);
@@ -120,7 +120,7 @@ ob_start();
                         }
                         // Definir base de cidades de MT (pode ser ampliado depois ou carregado de tabela auxiliar)
                         $cidades_mt = [
-                            'Cuiabá','Várzea Grande','Rondonópolis','Sinop','Sorriso','Barra do Garças','Tangará da Serra','Lucas do Rio Verde','Primavera do Leste','Alta Floresta','Campo Verde','Cáceres','Colíder','Guarantã do Norte','Juína','Mirassol d’Oeste','Nova Mutum','Pontes e Lacerda','São Félix do Araguaia','Peixoto de Azevedo'
+                            'CuiabÃ¡','VÃ¡rzea Grande','RondonÃ³polis','Sinop','Sorriso','Barra do GarÃ§as','TangarÃ¡ da Serra','Lucas do Rio Verde','Primavera do Leste','Alta Floresta','Campo Verde','CÃ¡ceres','ColÃ­der','GuarantÃ£ do Norte','JuÃ­na','Mirassol dâ€™Oeste','Nova Mutum','Pontes e Lacerda','SÃ£o FÃ©lix do Araguaia','Peixoto de Azevedo'
                         ];
                         sort($cidades_mt);
                     ?>
@@ -163,7 +163,7 @@ ob_start();
         </div>
     </div>
 
-    <!-- Card: Dados da Planilha (apenas ativação) -->
+    <!-- Card: Dados da Planilha (apenas ativaÃ§Ã£o) -->
     <div class="card mb-3">
         <div class="card-header">
             <i class="bi bi-gear me-2"></i>
@@ -190,9 +190,9 @@ ob_start();
 $contentHtml = ob_get_clean();
 
 // Script para captura de assinaturas e carregar assinaturas existentes
-// Reutiliza a mesma lógica do importar-planilha para modal, estados e cidades
+// Reutiliza a mesma lÃ³gica do importar-planilha para modal, estados e cidades
 // Pre-encode any server values used by the script to avoid parsing issues
-// Render direto sem JS (prefill já feito via PHP)
+// Render direto sem JS (prefill jÃ¡ feito via PHP)
 $contentHtmlFinal = $contentHtml;
 $tempFile = __DIR__ . '/../../../temp_editar_planilha_' . uniqid() . '.php';
 file_put_contents($tempFile, $contentHtmlFinal);
@@ -200,3 +200,4 @@ $contentFile = $tempFile;
 include __DIR__ . '/../layouts/app-wrapper.php';
 unlink($tempFile);
 ?>
+

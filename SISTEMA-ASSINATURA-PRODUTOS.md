@@ -19,7 +19,7 @@ Contém todos os dados necessários:
 
 ## Arquivos Criados/Modificados
 
-### 1. CRUD/UPDATE/assinar-produtos.php
+### 1. app/controllers/update/assinar-produtos.php
 **Função:** Backend para assinar/desassinar produtos
 **Recursos:**
 - Identifica tipo de usuário logado (Admin ou Doador)
@@ -37,7 +37,7 @@ Contém todos os dados necessários:
 - Visual diferenciado para produtos assinados
 - Botões "Selecionar Todos" / "Nenhum"
 
-### 3. CRUD/READ/relatorio-14-1.php (atualizado)
+### 3. app/controllers/read/relatorio-14-1.php (atualizado)
 **Modificações:**
 - Query agora faz JOIN com tabela `usuarios`
 - Busca dados do administrador via `administrador_acessor_id`

@@ -111,7 +111,7 @@ Execute sem --dry-run para aplicar as mudanças.
 
 ### Erro: "Table 'produtos' doesn't exist"
 
-Verifique a conexão com o banco em `CRUD/conexao.php`.
+Verifique a conexão com o banco em `config/database.php`.
 
 ### Erro: "Call to undefined function pp_extrair_ben_complemento"
 

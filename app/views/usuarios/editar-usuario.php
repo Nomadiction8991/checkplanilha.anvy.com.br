@@ -1,5 +1,6 @@
 <?php
-require_once __DIR__ . '/../../../auth.php'; // Autenticação
+require_once dirname(__DIR__, 2) . '/bootstrap.php';
+ // Autenticação
 
 // Visualizar / Editar lógica:
 // - Qualquer usuário acessa sua própria página em modo edição
@@ -18,7 +19,7 @@ if (!$isSelf && !isAdmin()) {
     exit;
 }
 
-include __DIR__ . '/../../../CRUD/UPDATE/usuario.php';
+include __DIR__ . '/../../../app/controllers/update/usuario.php';
 
 $pageTitle = $isSelf ? 'Editar Usuário' : 'Visualizar Usuário';
 // Voltar: self e admin vão para listagem; outros vão para index
@@ -732,3 +733,4 @@ $contentFile = $tempFile;
 include __DIR__ . '/../layouts/app-wrapper.php';
 unlink($tempFile);
 ?>
+

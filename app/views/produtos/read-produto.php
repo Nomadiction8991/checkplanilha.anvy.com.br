@@ -1,6 +1,7 @@
 <?php
-require_once __DIR__ . '/../../../auth.php'; // Autenticação
-include __DIR__ . '/../../../CRUD/READ/produto.php';
+require_once dirname(__DIR__, 2) . '/bootstrap.php';
+ // Autenticação
+include __DIR__ . '/../../../app/controllers/read/produto.php';
 
 $id_planilha = $comum_id; // compatibilidade com código legado
 
@@ -326,3 +327,4 @@ $contentFile = $tempFile;
 include __DIR__ . '/../layouts/app-wrapper.php';
 unlink($tempFile);
 ?>
+

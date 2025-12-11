@@ -1,5 +1,6 @@
 <?php
-require_once __DIR__ . '/../../../auth.php'; // Autenticação
+require_once dirname(__DIR__, 2) . '/bootstrap.php';
+ // Autenticação
 
 // Apenas admins podem acessar gestão de usuários
 if (!isAdmin()) {
@@ -7,7 +8,7 @@ if (!isAdmin()) {
     exit;
 }
 
-include __DIR__ . '/../../../CRUD/READ/usuario.php';
+include __DIR__ . '/../../../app/controllers/read/usuario.php';
 
 $pageTitle = 'Usuários';
 $backUrl = '../../../index.php';
@@ -190,7 +191,7 @@ function excluirUsuario(id, nome) {
         return;
     }
 
-    fetch('../../../CRUD/DELETE/usuario.php', {
+    fetch('../../../app/controllers/delete/usuario.php', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -221,3 +222,4 @@ $contentFile = $tempFile;
 include __DIR__ . '/../layouts/app-wrapper.php';
 unlink($tempFile);
 ?>
+

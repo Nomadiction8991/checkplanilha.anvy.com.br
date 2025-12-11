@@ -1,12 +1,12 @@
 <?php
-require_once __DIR__ . '/../../../auth.php'; // Autenticação
-require_once __DIR__ . '/../../../CRUD/conexao.php';
+require_once dirname(__DIR__, 2) . '/bootstrap.php';
+ // AutenticaÃ§Ã£o
 
 header('Content-Type: application/json');
 
-// Verificar se é POST
+// Verificar se Ã© POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode(['success' => false, 'message' => 'Método não permitido']);
+    echo json_encode(['success' => false, 'message' => 'MÃ©todo nÃ£o permitido']);
     exit;
 }
 
@@ -15,7 +15,7 @@ $id_planilha = $_POST['id_planilha'] ?? null;
 $ids_produtos = $_POST['ids_produtos'] ?? [];
 
 if (!$id_planilha || empty($ids_produtos)) {
-    echo json_encode(['success' => false, 'message' => 'Parâmetros inválidos']);
+    echo json_encode(['success' => false, 'message' => 'ParÃ¢metros invÃ¡lidos']);
     exit;
 }
 
@@ -38,7 +38,7 @@ try {
     
     // Executar
     if ($stmt->execute()) {
-        echo json_encode(['success' => true, 'message' => 'Produtos excluídos com sucesso']);
+        echo json_encode(['success' => true, 'message' => 'Produtos excluÃ­dos com sucesso']);
     } else {
         echo json_encode(['success' => false, 'message' => 'Erro ao excluir produtos']);
     }
@@ -47,3 +47,4 @@ try {
     echo json_encode(['success' => false, 'message' => 'Erro: ' . $e->getMessage()]);
 }
 ?>
+

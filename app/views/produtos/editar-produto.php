@@ -1,6 +1,7 @@
 <?php
-require_once __DIR__ . '/../../../auth.php'; // Autenticação
-require_once __DIR__ . '/../../../CRUD/UPDATE/editar-produto.php';
+require_once dirname(__DIR__, 2) . '/bootstrap.php';
+ // Autenticação
+require_once __DIR__ . '/../../../app/controllers/update/editar-produto.php';
 
 $pageTitle = "Editar Produto";
 $backUrl = getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, $filtro_codigo, $filtro_status);
@@ -203,3 +204,4 @@ $contentFile = $tempFile;
 include __DIR__ . '/../layouts/app-wrapper.php';
 unlink($tempFile);
 ?>
+

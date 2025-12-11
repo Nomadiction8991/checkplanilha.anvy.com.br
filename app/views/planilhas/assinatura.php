@@ -1,5 +1,6 @@
 <?php
-require_once __DIR__ . '/../../../auth.php'; // Autenticação
+require_once dirname(__DIR__, 2) . '/bootstrap.php';
+ // Autenticação
 // Página dedicada para captura de assinatura em modo paisagem.
 // Salva o resultado em localStorage['signature_temp'] e retorna via history.back()
 
@@ -122,3 +123,4 @@ $contentFile = $tempFile;
 include __DIR__ . '/../layouts/app-wrapper.php';
 unlink($tempFile);
 ?>
+

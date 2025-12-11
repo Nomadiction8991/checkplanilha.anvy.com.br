@@ -1,6 +1,7 @@
 <?php
-require_once __DIR__ . '/../../../auth.php'; // Autenticação
-include __DIR__ . '/../../../CRUD/UPDATE/observacao-produto.php';
+require_once dirname(__DIR__, 2) . '/bootstrap.php';
+ // Autenticação
+include __DIR__ . '/../../../app/controllers/update/observacao-produto.php';
 
 $pageTitle = "Observações";
 $backUrl = getReturnUrl($id_planilha, $pagina, $filtro_nome, $filtro_dependencia, $filtro_codigo, $filtro_status);
@@ -73,3 +74,4 @@ $contentFile = $tempFile;
 include __DIR__ . '/../layouts/app-wrapper.php';
 unlink($tempFile);
 ?>
+

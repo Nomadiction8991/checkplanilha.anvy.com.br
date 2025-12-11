@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
-require_once __DIR__ . '/../../../auth.php';
+require_once dirname(__DIR__, 2) . '/bootstrap.php';
+
 
 if (!isAdmin()) {
     header('Location: ../../../index.php');
@@ -13,7 +14,7 @@ if ($idParam <= 0) {
     exit;
 }
 
-include __DIR__ . '/../../../CRUD/UPDATE/dependencia.php';
+include __DIR__ . '/../../../app/controllers/update/dependencia.php';
 
 $pageTitle = 'Editar Dependência';
 $backUrl = './read-dependencia.php';
@@ -81,3 +82,4 @@ $contentFile = $tempFile;
 include __DIR__ . '/../layouts/app-wrapper.php';
 unlink($tempFile);
 ?>
+

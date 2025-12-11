@@ -1,21 +1,21 @@
 <?php
-require_once __DIR__ . '/../../../auth.php'; // Autenticacao
+require_once dirname(__DIR__, 2) . '/bootstrap.php';
 
 // Usamos o ID da comum como parametro principal
 $comum_id = isset($_GET['comum_id']) ? (int)$_GET['comum_id'] : (isset($_GET['id']) ? (int)$_GET['id'] : 0);
 if ($comum_id <= 0) {
-    header('Location: '../../../index.php');
+    header('Location: ../../../index.php');
     exit;
 }
 
-require_once __DIR__ . '/../../../CRUD/READ/view-planilha.php';
+require_once dirname(__DIR__, 2) . '/controllers/read/view-planilha.php';
 
 // Configuracoes da pagina
-$id_planilha = $comum_id; // compatibilidade com código legado
+$id_planilha = $comum_id; // compatibilidade com cÃ³digo legado
 $pageTitle = htmlspecialchars($planilha['comum_descricao'] ?? 'Visualizar Planilha');
 $backUrl = '../../../index.php';
 
-// Bloqueio por data de importação (UTC-4)
+// Bloqueio por data de importaÃ§Ã£o (UTC-4)
 if (!empty($acesso_bloqueado)) {
     ?>
     <!DOCTYPE html>
@@ -23,7 +23,7 @@ if (!empty($acesso_bloqueado)) {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Importação necessária</title>
+        <title>ImportaÃ§Ã£o necessÃ¡ria</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     </head>
@@ -33,7 +33,7 @@ if (!empty($acesso_bloqueado)) {
                 <div class="mb-3 text-danger">
                     <i class="bi bi-exclamation-triangle-fill fs-1"></i>
                 </div>
-                <h5 class="card-title mb-3">Importação desatualizada</h5>
+                <h5 class="card-title mb-3">ImportaÃ§Ã£o desatualizada</h5>
                 <p class="card-text text-muted mb-4">
                     <?php echo htmlspecialchars($mensagem_bloqueio ?: 'A planilha precisa ser importada novamente para continuar.'); ?>
                 </p>
@@ -68,7 +68,7 @@ if (isAdmin()) {
             <li><hr class="dropdown-divider"></li>
             <li>
                 <a class="dropdown-item" href="../planilhas/relatorio-14-1.php?id=' . $id_planilha . '&comum_id=' . $comum_id . '">
-                    <i class="bi bi-file-earmark-pdf me-2"></i>Relat├│rio 14.1
+                    <i class="bi bi-file-earmark-pdf me-2"></i>Relatâ”œâ”‚rio 14.1
                 </a>
             </li>
             <li>
@@ -78,15 +78,15 @@ if (isAdmin()) {
             </li>
             <li>
                 <a class="dropdown-item" href="../planilhas/imprimir-alteracao.php?id=' . $id_planilha . '&comum_id=' . $comum_id . '">
-                    <i class="bi bi-printer me-2"></i>Imprimir Altera├º├úo
+                    <i class="bi bi-printer me-2"></i>Imprimir Alteraâ”œÂºâ”œÃºo
                 </a>
             </li>';
 } else {
-    // Doador/C├┤njuge: apenas relat├│rios
+    // Doador/Câ”œâ”¤njuge: apenas relatâ”œâ”‚rios
     $headerActions .= '
             <li>
                 <a class="dropdown-item" href="../planilhas/relatorio-14-1.php?id=' . $id_planilha . '&comum_id=' . $comum_id . '">
-                    <i class="bi bi-file-earmark-pdf me-2"></i>Relat├│rio 14.1
+                    <i class="bi bi-file-earmark-pdf me-2"></i>Relatâ”œâ”‚rio 14.1
                 </a>
             </li>';
 }
@@ -102,12 +102,12 @@ $headerActions .= '
     </div>
 ';
 
-// Iniciar buffer para capturar o conte├║do
+// Iniciar buffer para capturar o conteâ”œâ•‘do
 ob_start();
 ?>
 
 <style>
-/* Estilos para o bot├úo de microfone */
+/* Estilos para o botâ”œÃºo de microfone */
 .mic-btn {
     /* herda totalmente o estilo do .btn (Bootstrap) */
     cursor: pointer;
@@ -140,7 +140,7 @@ ob_start();
     50% { transform: scale(1.15); }
 }
 
-/* Garantir que bot├Áes do input-group n├úo se movam */
+/* Garantir que botâ”œÃes do input-group nâ”œÃºo se movam */
 .input-group .btn {
     transform: none !important;
 }
@@ -156,7 +156,7 @@ ob_start();
     vertical-align: middle;
 }
 
-/* Estilos padr├úo para todos os dispositivos (mobile-first) */
+/* Estilos padrâ”œÃºo para todos os dispositivos (mobile-first) */
 .input-group { 
     flex-wrap: nowrap !important; 
     display: flex !important;
@@ -164,11 +164,11 @@ ob_start();
 
 .input-group .form-control { 
     min-width: 0;
-    flex: 1 1 auto !important; /* Input preenche o espa├ºo restante */
+    flex: 1 1 auto !important; /* Input preenche o espaâ”œÂºo restante */
 }
 
 .input-group > .btn { 
-    flex: 0 0 15% !important; /* Bot├Áes ocupam 15% cada */
+    flex: 0 0 15% !important; /* Botâ”œÃes ocupam 15% cada */
     min-width: 45px !important;
     max-width: 60px !important;
     padding: 0.375rem 0.25rem !important;
@@ -206,12 +206,12 @@ ob_start();
     border-left: 4px solid #8e24aa; 
 }
 
-/* Aviso de tipo n├úo identificado - amarelo ouro forte */
+/* Aviso de tipo nâ”œÃºo identificado - amarelo ouro forte */
 .tipo-nao-identificado {
     border-left: 4px solid #fdd835 !important;
 }
 
-/* A├º├Áes: usar padr├úo Bootstrap para bot├Áes */
+/* Aâ”œÂºâ”œÃes: usar padrâ”œÃºo Bootstrap para botâ”œÃes */
 .acao-container .btn { padding: 0.25rem 0.5rem; }
 
 .edicao-pendente {
@@ -278,16 +278,16 @@ ob_start();
             <div class="mb-3">
                 <label class="form-label" for="codigo">
                     <i class="bi bi-upc-scan me-1"></i>
-                    C├│digo do Produto
+                    Câ”œâ”‚digo do Produto
                 </label>
                 <div class="input-group">
                     <input type="text" class="form-control" id="codigo" name="codigo" 
                            value="<?php echo htmlspecialchars($filtro_codigo ?? ''); ?>" 
-                           placeholder="Digite, fale ou escaneie o c├│digo...">
-                    <button id="btnMic" class="btn btn-primary mic-btn" type="button" title="Falar c├│digo (Ctrl+M)" aria-label="Falar c├│digo" aria-pressed="false">
+                           placeholder="Digite, fale ou escaneie o câ”œâ”‚digo...">
+                    <button id="btnMic" class="btn btn-primary mic-btn" type="button" title="Falar câ”œâ”‚digo (Ctrl+M)" aria-label="Falar câ”œâ”‚digo" aria-pressed="false">
                         <span class="material-icons-round" aria-hidden="true">mic</span>
                     </button>
-                    <button id="btnCam" class="btn btn-primary" type="button" title="Escanear c├│digo de barras" aria-label="Escanear c├│digo de barras">
+                    <button id="btnCam" class="btn btn-primary" type="button" title="Escanear câ”œâ”‚digo de barras" aria-label="Escanear câ”œâ”‚digo de barras">
                         <i class="bi bi-camera-video-fill" aria-hidden="true"></i>
                     </button>
                 </div>
@@ -298,7 +298,7 @@ ob_start();
                     <h2 class="accordion-header">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFiltros">
                             <i class="bi bi-sliders me-2"></i>
-                            Filtros Avan├ºados
+                            Filtros Avanâ”œÂºados
                         </button>
                     </h2>
                     <div id="collapseFiltros" class="accordion-collapse collapse" data-bs-parent="#filtrosAvancados">
@@ -311,7 +311,7 @@ ob_start();
                             </div>
                             
                             <div class="mb-3">
-                                <label class="form-label" for="dependencia">Depend├¬ncia</label>
+                                <label class="form-label" for="dependencia">Dependâ”œÂ¬ncia</label>
                                 <select class="form-select" id="dependencia" name="dependencia">
                                     <option value="">Todas</option>
                                     <?php foreach ($dependencia_options as $dep): ?>
@@ -332,7 +332,7 @@ ob_start();
                                 <select class="form-select" id="status" name="status">
                                     <option value="">Todos</option>
                                     <option value="checado" <?php echo ($filtro_status ?? '')==='checado'?'selected':''; ?>>Checados</option>
-                                    <option value="observacao" <?php echo ($filtro_status ?? '')==='observacao'?'selected':''; ?>>Com Observa├º├úo</option>
+                                    <option value="observacao" <?php echo ($filtro_status ?? '')==='observacao'?'selected':''; ?>>Com Observaâ”œÂºâ”œÃºo</option>
                                     <option value="etiqueta" <?php echo ($filtro_status ?? '')==='etiqueta'?'selected':''; ?>>Etiqueta para Imprimir</option>
                                     <option value="pendente" <?php echo ($filtro_status ?? '')==='pendente'?'selected':''; ?>>Pendentes</option>
                                     <option value="editado" <?php echo ($filtro_status ?? '')==='editado'?'selected':''; ?>>Editados</option>
@@ -365,7 +365,7 @@ ob_start();
             </span>
             <span class="d-flex align-items-center gap-1">
                 <span style="width: 3px; height: 16px; background-color: #fb8c00; display: inline-block;"></span>
-                Observa├º├úo
+                Observaâ”œÂºâ”œÃºo
             </span>
             <span class="d-flex align-items-center gap-1">
                 <span style="width: 3px; height: 16px; background-color: #1976d2; display: inline-block;"></span>
@@ -384,7 +384,7 @@ ob_start();
         <div class="d-flex flex-wrap gap-2 justify-content-center small text-muted">
             <span class="d-flex align-items-center gap-1">
                 <span style="width: 3px; height: 16px; background-color: #fdd835; display: inline-block;"></span>
-                Tipo de bem n├úo identificado
+                Tipo de bem nâ”œÃºo identificado
             </span>
         </div>
     </div>
@@ -420,8 +420,8 @@ ob_start();
                     $classe = 'linha-pendente';
                 }
                 
-                // Determinar quais bot├Áes mostrar
-                // Se estiver em DR (ativo=0), esconder todas as a├º├Áes exceto o DR
+                // Determinar quais botâ”œÃes mostrar
+                // Se estiver em DR (ativo=0), esconder todas as aâ”œÂºâ”œÃes exceto o DR
                 if ($p['ativo'] == 0) {
                     $show_check = false;
                     $show_imprimir = false;
@@ -429,10 +429,10 @@ ob_start();
                     $show_edit = false;
                     $show_dr = true;
                 } else {
-                    // Regra do bot├úo de check: N├âO mostrar quando imprimir=1 ou editado=1; caso contr├írio, mostrar
+                    // Regra do botâ”œÃºo de check: Nâ”œÃ¢O mostrar quando imprimir=1 ou editado=1; caso contrâ”œÃ­rio, mostrar
                     $show_check = !($p['imprimir'] == 1 || $p['editado'] == 1);
                     $show_imprimir = ($p['checado'] == 1 && $p['editado'] == 0);
-                    $show_obs = true; // Observa├º├úo dispon├¡vel quando ativo
+                    $show_obs = true; // Observaâ”œÂºâ”œÃºo disponâ”œÂ¡vel quando ativo
                     $show_edit = ($p['checado'] == 0);
                     $show_dr = true; // Sempre mostrar DR
                 }
@@ -447,19 +447,19 @@ ob_start();
                 data-imprimir="<?php echo (int) $p['imprimir']; ?>"
                 data-observacao="<?php echo htmlspecialchars($p['observacao'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
                 data-editado="<?php echo (int) $p['editado']; ?>"
-                <?php echo $tipo_invalido ? 'title="Tipo de bem n├úo identificado"' : ''; ?>
+                <?php echo $tipo_invalido ? 'title="Tipo de bem nâ”œÃºo identificado"' : ''; ?>
             >
-                <!-- C├│digo -->
+                <!-- Câ”œâ”‚digo -->
                 <div class="codigo-produto">
                     <?php echo htmlspecialchars($p['codigo']); ?>
                 </div>
                 
-                <!-- Edi├º├úo Pendente -->
+                <!-- Ediâ”œÂºâ”œÃºo Pendente -->
                 <?php if ($tem_edicao): ?>
                 <div class="edicao-pendente">
-                    <strong>Edi├º├úo:</strong><br>
+                    <strong>Ediâ”œÂºâ”œÃºo:</strong><br>
                     <?php
-                    // Mostrar editado_descricao_completa se existir; caso contr├írio montar uma vers├úo din├ómica
+                    // Mostrar editado_descricao_completa se existir; caso contrâ”œÃ­rio montar uma versâ”œÃºo dinâ”œÃ³mica
                     $desc_editada_visivel = trim($p['editado_descricao_completa'] ?? '');
                     if ($desc_editada_visivel === '') {
                         // Dados base (preferir editados)
@@ -468,7 +468,7 @@ ob_start();
                         $ben_final = ($p['editado_bem'] !== '' ? $p['editado_bem'] : $p['bem']);
                         $comp_final = ($p['editado_complemento'] !== '' ? $p['editado_complemento'] : $p['complemento']);
                         $dep_final = ($p['editado_dependencia_desc'] ?: $p['dependencia_desc']);
-                        // Montagem simples (similar ├á fun├º├úo pp_montar_descricao mas sem quantidade)
+                        // Montagem simples (similar â”œÃ¡ funâ”œÂºâ”œÃºo pp_montar_descricao mas sem quantidade)
                         $partes = [];
                         if ($tipo_codigo_final && $tipo_desc_final) {
                             $partes[] = strtoupper($tipo_codigo_final . ' - ' . $tipo_desc_final);
@@ -477,7 +477,7 @@ ob_start();
                             $partes[] = strtoupper($ben_final);
                         }
                         if ($comp_final !== '') {
-                            // Evitar duplica├º├úo do ben no complemento (b├ísico)
+                            // Evitar duplicaâ”œÂºâ”œÃºo do ben no complemento (bâ”œÃ­sico)
                             $comp_tmp = strtoupper($comp_final);
                             if ($ben_final !== '' && strpos($comp_tmp, strtoupper($ben_final)) === 0) {
                                 $comp_tmp = trim(substr($comp_tmp, strlen($ben_final)));
@@ -490,7 +490,7 @@ ob_start();
                             $desc_editada_visivel .= ' (' . strtoupper($dep_final) . ')';
                         }
                         if ($desc_editada_visivel === '') {
-                            $desc_editada_visivel = 'EDI├ç├âO SEM DESCRI├ç├âO';
+                            $desc_editada_visivel = 'EDIâ”œÃ§â”œÃ¢O SEM DESCRIâ”œÃ§â”œÃ¢O';
                         }
                     }
                     echo htmlspecialchars($desc_editada_visivel);
@@ -498,24 +498,24 @@ ob_start();
                 </div>
                 <?php endif; ?>
                 
-                <!-- Observa├º├úo -->
+                <!-- Observaâ”œÂºâ”œÃºo -->
                 <?php if (!empty($p['observacao'])): ?>
                 <div class="observacao-produto">
-                    <strong>Observa├º├úo:</strong><br>
+                    <strong>Observaâ”œÂºâ”œÃºo:</strong><br>
                     <?php echo htmlspecialchars($p['observacao']); ?><br>
                 </div>
                 <?php endif; ?>
                 
-                <!-- Informa├º├Áes -->
+                <!-- Informaâ”œÂºâ”œÃes -->
                 <div class="info-produto">
                     <?php echo htmlspecialchars($p['descricao_completa']); ?><br>
                 </div>
                 
-                <!-- A├º├Áes - Apenas para Administrador/Acessor -->
+                <!-- Aâ”œÂºâ”œÃes - Apenas para Administrador/Acessor -->
                 <?php if (isAdmin()): ?>
                 <div class="acao-container">
                     <!-- Check -->
-                    <form method="POST" action="../../../CRUD/UPDATE/check-produto.php" style="display: <?php echo $show_check ? 'inline' : 'none'; ?>;" class="produto-action-form action-check" data-action="check" data-produto-id="<?php echo $p['id_produto']; ?>">
+                    <form method="POST" action="../../../app/controllers/update/check-produto.php" style="display: <?php echo $show_check ? 'inline' : 'none'; ?>;" class="produto-action-form action-check" data-action="check" data-produto-id="<?php echo $p['id_produto']; ?>">
                         <input type="hidden" name="produto_id" value="<?php echo $p['id_produto']; ?>">
                         <input type="hidden" name="comum_id" value="<?php echo $comum_id; ?>">
                         <input type="hidden" name="checado" value="<?php echo $p['checado'] ? '0' : '1'; ?>">
@@ -530,7 +530,7 @@ ob_start();
                     </form>
                     
                     <!-- Etiqueta -->
-                    <form method="POST" action="../../../CRUD/UPDATE/etiqueta-produto.php" style="display: <?php echo $show_imprimir ? 'inline' : 'none'; ?>;" class="produto-action-form action-imprimir" data-action="imprimir" data-produto-id="<?php echo $p['id_produto']; ?>" data-confirm="<?php echo $p['imprimir'] ? 'Deseja desmarcar este produto para etiqueta?' : 'Deseja marcar este produto para etiqueta?'; ?>">
+                    <form method="POST" action="../../../app/controllers/update/etiqueta-produto.php" style="display: <?php echo $show_imprimir ? 'inline' : 'none'; ?>;" class="produto-action-form action-imprimir" data-action="imprimir" data-produto-id="<?php echo $p['id_produto']; ?>" data-confirm="<?php echo $p['imprimir'] ? 'Deseja desmarcar este produto para etiqueta?' : 'Deseja marcar este produto para etiqueta?'; ?>">
                         <input type="hidden" name="produto_id" value="<?php echo $p['id_produto']; ?>">
                         <input type="hidden" name="comum_id" value="<?php echo $comum_id; ?>">
                         <input type="hidden" name="imprimir" value="<?php echo $p['imprimir'] ? '0' : '1'; ?>">
@@ -558,8 +558,8 @@ ob_start();
                     
                     <!-- DR -->
                     <?php if ($show_dr): ?>
-                    <?php $drConfirm = $p['ativo'] == 0 ? 'Tem certeza que deseja desmarcar este produto do DR?' : 'Tem certeza que deseja marcar este produto como DR? Esta ação irá limpar observações e desmarcar para impressão.'; ?>
-                    <form method="POST" action="../../../CRUD/UPDATE/dr-produto.php" style="display: inline;" class="produto-action-form action-dr" data-action="dr" data-produto-id="<?php echo $p['id_produto']; ?>" data-confirm="<?php echo htmlspecialchars($drConfirm, ENT_QUOTES, 'UTF-8'); ?>">
+                    <?php $drConfirm = $p['ativo'] == 0 ? 'Tem certeza que deseja desmarcar este produto do DR?' : 'Tem certeza que deseja marcar este produto como DR? Esta aÃ§Ã£o irÃ¡ limpar observaÃ§Ãµes e desmarcar para impressÃ£o.'; ?>
+                    <form method="POST" action="../../../app/controllers/update/dr-produto.php" style="display: inline;" class="produto-action-form action-dr" data-action="dr" data-produto-id="<?php echo $p['id_produto']; ?>" data-confirm="<?php echo htmlspecialchars($drConfirm, ENT_QUOTES, 'UTF-8'); ?>">
                         <input type="hidden" name="produto_id" value="<?php echo $p['id_produto']; ?>">
                         <input type="hidden" name="comum_id" value="<?php echo $comum_id; ?>">
                         <input type="hidden" name="dr" value="<?php echo $p['ativo'] == 0 ? '0' : '1'; ?>">
@@ -586,9 +586,9 @@ ob_start();
     </div>
 </div>
 
-<!-- Pagina├º├úo -->
+<!-- Paginaâ”œÂºâ”œÃºo -->
 <?php if (isset($total_paginas) && $total_paginas > 1): ?>
-<nav aria-label="Navega├º├úo de p├ígina" class="mt-3">
+<nav aria-label="Navegaâ”œÂºâ”œÃºo de pâ”œÃ­gina" class="mt-3">
     <ul class="pagination pagination-sm justify-content-center mb-0">
         <?php if ($pagina > 1): ?>
         <li class="page-item">
@@ -624,7 +624,7 @@ ob_start();
 <script>
 function confirmarDR(form, drAtual) {
     if (drAtual == 0) {
-        return confirm('Tem certeza que deseja marcar este produto como DR? Esta a├º├úo ir├í limpar as observa├º├Áes e desmarcar para impress├úo.');
+        return confirm('Tem certeza que deseja marcar este produto como DR? Esta aâ”œÂºâ”œÃºo irâ”œÃ­ limpar as observaâ”œÂºâ”œÃes e desmarcar para impressâ”œÃºo.');
     } else {
         return confirm('Tem certeza que deseja desmarcar este produto do DR?');
     }
@@ -632,13 +632,13 @@ function confirmarDR(form, drAtual) {
 
 function confirmarImprimir(form, imprimirAtual) {
     if (imprimirAtual == 0) {
-        return confirm('Tem certeza que deseja marcar este produto para impress├úo?');
+        return confirm('Tem certeza que deseja marcar este produto para impressâ”œÃºo?');
     } else {
-        return confirm('Tem certeza que deseja desmarcar este produto da impress├úo?');
+        return confirm('Tem certeza que deseja desmarcar este produto da impressâ”œÃºo?');
     }
 }
 
-// ======== A├ç├úES AJAX (check/etiqueta/DR) ========
+// ======== Aâ”œÃ§â”œÃºES AJAX (check/etiqueta/DR) ========
 document.addEventListener('DOMContentLoaded', () => {
     const alertHost = document.createElement('div');
     alertHost.id = 'ajaxAlerts';
@@ -737,10 +737,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     data = await response.json();
                 } catch (e) {
-                    // resposta não era JSON
+                    // resposta nÃ£o era JSON
                 }
                 if (!response.ok || data.success === false) {
-                    throw new Error(data.message || 'Não foi possível atualizar.');
+                    throw new Error(data.message || 'NÃ£o foi possÃ­vel atualizar.');
                 }
                 return data;
             })
@@ -783,7 +783,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 showAlert('success', data.message || 'Status atualizado.');
             })
             .catch(err => {
-                showAlert('danger', err.message || 'Erro ao processar ação.');
+                showAlert('danger', err.message || 'Erro ao processar aÃ§Ã£o.');
             });
         });
     });
@@ -802,7 +802,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const el = document.querySelector(`input[name="${name}"]`);
       if(el) return el;
     }
-    const el = document.querySelector('input[placeholder*="c├│digo" i],input[placeholder*="codigo" i]');
+    const el = document.querySelector('input[placeholder*="câ”œâ”‚digo" i],input[placeholder*="codigo" i]');
     return el || null;
   }
   
@@ -820,23 +820,23 @@ document.addEventListener('DOMContentLoaded', () => {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if(!SR){
         micBtn.setAttribute('aria-disabled', 'true');
-        micBtn.title = 'Reconhecimento de voz n├úo suportado neste navegador';
+        micBtn.title = 'Reconhecimento de voz nâ”œÃºo suportado neste navegador';
         const iconNF = micBtn.querySelector('.material-icons-round');
         if(iconNF){ iconNF.textContent = 'mic_off'; }
         micBtn.addEventListener('click', () => {
-            alert('Reconhecimento de voz n├úo ├® suportado neste navegador. Use o bot├úo de c├ómera ou digite o c├│digo.');
+            alert('Reconhecimento de voz nâ”œÃºo â”œÂ® suportado neste navegador. Use o botâ”œÃºo de câ”œÃ³mera ou digite o câ”œâ”‚digo.');
         });
         return;
   }
 
   const DIGITOS = {
-    "zero":"0","um":"1","uma":"1","dois":"2","duas":"2","tr├¬s":"3","tres":"3",
+    "zero":"0","um":"1","uma":"1","dois":"2","duas":"2","trâ”œÂ¬s":"3","tres":"3",
     "quatro":"4","cinco":"5","seis":"6","meia":"6","sete":"7","oito":"8","nove":"9"
   };
   const SINAIS = {
-    "tracinho":"-","h├¡fen":"-","hifen":"-","menos":"-",
+    "tracinho":"-","hâ”œÂ¡fen":"-","hifen":"-","menos":"-",
     "barra":"/","barra invertida":"\\","contrabarra":"\\","invertida":"\\",
-    "ponto":".","v├¡rgula":",","virgula":",","espa├ºo":" "
+    "ponto":".","vâ”œÂ¡rgula":",","virgula":",","espaâ”œÂºo":" "
   };
   
   function extraiCodigoFalado(trans){
@@ -857,7 +857,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function preencherEEnviar(codigo){
     const input = encontraInputCodigo();
     if(!input){
-      alert('Campo de c├│digo n├úo encontrado.');
+      alert('Campo de câ”œâ”‚digo nâ”œÃºo encontrado.');
       return;
     }
     input.focus();
@@ -912,7 +912,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const codigo = extraiCodigoFalado(best);
     stopListening();
     if(!codigo){
-      alert('N├úo entendi o c├│digo. Tente soletrar: "um dois tr├¬s"ÔÇª');
+      alert('Nâ”œÃºo entendi o câ”œâ”‚digo. Tente soletrar: "um dois trâ”œÂ¬s"Ã”Ã‡Âª');
       return;
     }
     preencherEEnviar(codigo);
@@ -939,22 +939,22 @@ document.addEventListener('DOMContentLoaded', () => {
 })();
 </script>
 
-<!-- Modal para escanear c├│digo de barras -->
+<!-- Modal para escanear câ”œâ”‚digo de barras -->
 <div class="modal fade" id="barcodeModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-fullscreen-custom">
         <div class="modal-content bg-dark">
             <div class="modal-body p-0 position-relative">
                 <div id="scanner-container" style="width:100%; height:100%; background:#000; position:relative; overflow:hidden;"></div>
                 
-                <!-- Bot├úo X para fechar -->
+                <!-- Botâ”œÃºo X para fechar -->
                 <button type="button" class="btn-close-scanner" aria-label="Fechar scanner">
                     <i class="bi bi-x-lg"></i>
                 </button>
                 
-                <!-- Controles de c├ómera e zoom -->
+                <!-- Controles de câ”œÃ³mera e zoom -->
                 <div class="scanner-controls">
                     <select id="cameraSelect" class="form-select form-select-sm">
-                        <option value="">Carregando c├ómeras...</option>
+                        <option value="">Carregando câ”œÃ³meras...</option>
                     </select>
                     <div class="zoom-control">
                         <i class="bi bi-zoom-out"></i>
@@ -966,8 +966,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 <!-- Overlay com moldura e dica -->
                 <div class="scanner-overlay">
                     <div class="scanner-frame"></div>
-                    <div class="scanner-hint">Posicione o c├│digo de barras dentro da moldura</div>
-                    <div class="scanner-info" id="scannerInfo">Inicializando c├ómera...</div>
+                    <div class="scanner-hint">Posicione o câ”œâ”‚digo de barras dentro da moldura</div>
+                    <div class="scanner-info" id="scannerInfo">Inicializando câ”œÃ³mera...</div>
                 </div>
             </div>
         </div>
@@ -997,7 +997,7 @@ document.addEventListener('DOMContentLoaded', () => {
     justify-content: center;
 }
 
-/* Bot├úo X para fechar */
+/* Botâ”œÃºo X para fechar */
 .btn-close-scanner {
     position: absolute;
     top: 20px;
@@ -1093,7 +1093,7 @@ document.addEventListener('DOMContentLoaded', () => {
     text-align: center;
 }
 
-/* Controles de c├ómera e zoom */
+/* Controles de câ”œÃ³mera e zoom */
 .scanner-controls {
     position: absolute;
     bottom: 30px;
@@ -1135,7 +1135,7 @@ document.addEventListener('DOMContentLoaded', () => {
     margin: 0;
 }
 
-/* Container de v├¡deo do Quagga */
+/* Container de vâ”œÂ¡deo do Quagga */
 #scanner-container video,
 #scanner-container canvas {
     width: 100% !important;
@@ -1144,12 +1144,12 @@ document.addEventListener('DOMContentLoaded', () => {
 }
 </style>
 
-<!-- Quagga2 para leitura de c├│digos de barras -->
+<!-- Quagga2 para leitura de câ”œâ”‚digos de barras -->
 <script src="https://unpkg.com/@ericblade/quagga2/dist/quagga.min.js"></script>
 <script>
 // Aguardar TUDO carregar (DOM + Bootstrap + Quagga)
 document.addEventListener('DOMContentLoaded', function() {
-    // Aguardar mais um pouco para garantir que Bootstrap est├í pronto
+    // Aguardar mais um pouco para garantir que Bootstrap estâ”œÃ­ pronto
     setTimeout(initBarcodeScanner, 500);
 });
 
@@ -1167,22 +1167,22 @@ function initBarcodeScanner() {
     });
     
     if(!camBtn) {
-        console.error('ERRO: Bot├úo btnCam n├úo encontrado!');
+        console.error('ERRO: Botâ”œÃºo btnCam nâ”œÃºo encontrado!');
         return;
     }
     
     if(!modalEl) {
-        console.error('ERRO: Modal barcodeModal n├úo encontrado!');
+        console.error('ERRO: Modal barcodeModal nâ”œÃºo encontrado!');
         return;
     }
     
     if(!window.bootstrap) {
-        console.error('ERRO: Bootstrap n├úo carregado!');
+        console.error('ERRO: Bootstrap nâ”œÃºo carregado!');
         return;
     }
     
     if(typeof Quagga === 'undefined') {
-        console.error('ERRO: Quagga n├úo carregado!');
+        console.error('ERRO: Quagga nâ”œÃºo carregado!');
         return;
     }
     
@@ -1205,29 +1205,29 @@ function initBarcodeScanner() {
     let availableCameras = [];
     let selectedDeviceId = null;
 
-    // Fun├º├úo para normalizar c├│digos (remover espa├ºos, tra├ºos, barras)
+    // Funâ”œÂºâ”œÃºo para normalizar câ”œâ”‚digos (remover espaâ”œÂºos, traâ”œÂºos, barras)
     function normalizeCode(code) {
         return code.replace(/[\s\-\/]/g, '');
     }
 
-    // Enumerar c├ómeras dispon├¡veis
+    // Enumerar câ”œÃ³meras disponâ”œÂ¡veis
     async function enumerateCameras() {
         try {
             const devices = await navigator.mediaDevices.enumerateDevices();
             availableCameras = devices.filter(device => device.kind === 'videoinput');
             
-            console.log(`­ƒô╣ ${availableCameras.length} c├ómera(s) encontrada(s)`);
+            console.log(`Â­Æ’Ã´â•£ ${availableCameras.length} câ”œÃ³mera(s) encontrada(s)`);
             
             // Limpar e popular dropdown
             cameraSelect.innerHTML = '';
             availableCameras.forEach((camera, index) => {
                 const option = document.createElement('option');
                 option.value = camera.deviceId;
-                option.textContent = camera.label || `C├ómera ${index + 1}`;
+                option.textContent = camera.label || `Câ”œÃ³mera ${index + 1}`;
                 cameraSelect.appendChild(option);
             });
             
-            // Tentar selecionar c├ómera traseira como padr├úo
+            // Tentar selecionar câ”œÃ³mera traseira como padrâ”œÃºo
             const backCamera = availableCameras.find(cam => 
                 cam.label.toLowerCase().includes('back') || 
                 cam.label.toLowerCase().includes('traseira') ||
@@ -1242,7 +1242,7 @@ function initBarcodeScanner() {
             }
             
         } catch (error) {
-            console.error('ÔØî Erro ao enumerar c├ómeras:', error);
+            console.error('Ã”Ã˜Ã® Erro ao enumerar câ”œÃ³meras:', error);
         }
     }
 
@@ -1256,7 +1256,7 @@ function initBarcodeScanner() {
             const maxZoom = capabilities.zoom.max;
             const minZoom = capabilities.zoom.min;
             
-            // Mapear slider (1-3) para range da c├ómera
+            // Mapear slider (1-3) para range da câ”œÃ³mera
             const zoom = minZoom + ((zoomLevel - 1) / 2) * (maxZoom - minZoom);
             
             currentTrack.applyConstraints({
@@ -1266,22 +1266,22 @@ function initBarcodeScanner() {
                     scannerInfo.textContent = `Zoom: ${zoomLevel.toFixed(1)}x`;
                 }
             }).catch(err => {
-                console.warn('ÔÜá´©Å Zoom n├úo suportado:', err);
+                console.warn('Ã”ÃœÃ¡Â´Â©Ã… Zoom nâ”œÃºo suportado:', err);
             });
         } else {
-            console.warn('ÔÜá´©Å C├ómera n├úo suporta zoom');
+            console.warn('Ã”ÃœÃ¡Â´Â©Ã… Câ”œÃ³mera nâ”œÃºo suporta zoom');
             if (scannerInfo) {
-                scannerInfo.textContent = 'Zoom n├úo dispon├¡vel nesta c├ómera';
+                scannerInfo.textContent = 'Zoom nâ”œÃºo disponâ”œÂ¡vel nesta câ”œÃ³mera';
             }
         }
     }
 
     function stopScanner(){
-        console.log('­ƒøæ Parando scanner...');
+        console.log('Â­Æ’Ã¸Ã¦ Parando scanner...');
         try{ 
             Quagga.stop(); 
             
-            // Parar stream de v├¡deo
+            // Parar stream de vâ”œÂ¡deo
             if (currentStream) {
                 currentStream.getTracks().forEach(track => track.stop());
                 currentStream = null;
@@ -1294,22 +1294,22 @@ function initBarcodeScanner() {
                     scannerContainer.removeChild(scannerContainer.firstChild);
                 }
             }
-            console.log('Ô£à Scanner parado');
+            console.log('Ã”Â£Ã  Scanner parado');
         }catch(e){
-            console.error('ÔØî Erro ao parar scanner:', e);
+            console.error('Ã”Ã˜Ã® Erro ao parar scanner:', e);
         }
         scanning = false;
     }
 
     function startScanner(){
         if(scanning) {
-            console.log('ÔÜá´©Å Scanner j├í est├í ativo');
+            console.log('Ã”ÃœÃ¡Â´Â©Ã… Scanner jâ”œÃ­ estâ”œÃ­ ativo');
             return;
         }
-        console.log('ÔûÂ´©Å Iniciando scanner...');
+        console.log('Ã”Ã»Ã‚Â´Â©Ã… Iniciando scanner...');
         scanning = true;
         
-        // Configurar constraints baseado na c├ómera selecionada
+        // Configurar constraints baseado na câ”œÃ³mera selecionada
         const constraints = {
             width: { ideal: 1920 },
             height: { ideal: 1080 }
@@ -1339,20 +1339,20 @@ function initBarcodeScanner() {
             },
             locate: true,
             locator: {
-                patchSize: 'large',    // Maior = mais r├ípido, menos preciso
-                halfSample: true       // Processar imagem menor = mais r├ípido
+                patchSize: 'large',    // Maior = mais râ”œÃ­pido, menos preciso
+                halfSample: true       // Processar imagem menor = mais râ”œÃ­pido
             },
-            frequency: 10,             // Reduzir frequ├¬ncia de localiza├º├úo = mais r├ípido
+            frequency: 10,             // Reduzir frequâ”œÂ¬ncia de localizaâ”œÂºâ”œÃºo = mais râ”œÃ­pido
             numOfWorkers: navigator.hardwareConcurrency || 4
         }, function(err){
             if(err){
-                console.error('ÔØî Erro ao iniciar scanner:', err);
-                alert('N├úo foi poss├¡vel acessar a c├ómera:\n\n' + err.message + '\n\nVerifique se:\nÔ£ô Voc├¬ deu permiss├úo para usar a c├ómera\nÔ£ô O site est├í em HTTPS (ou localhost)\nÔ£ô A c├ómera n├úo est├í sendo usada por outro app');
+                console.error('Ã”Ã˜Ã® Erro ao iniciar scanner:', err);
+                alert('Nâ”œÃºo foi possâ”œÂ¡vel acessar a câ”œÃ³mera:\n\n' + err.message + '\n\nVerifique se:\nÃ”Â£Ã´ Vocâ”œÂ¬ deu permissâ”œÃºo para usar a câ”œÃ³mera\nÃ”Â£Ã´ O site estâ”œÃ­ em HTTPS (ou localhost)\nÃ”Â£Ã´ A câ”œÃ³mera nâ”œÃºo estâ”œÃ­ sendo usada por outro app');
                 scanning = false;
                 bsModal.hide();
                 return;
             }
-            console.log('Ô£à Scanner iniciado com sucesso!');
+            console.log('Ã”Â£Ã  Scanner iniciado com sucesso!');
             Quagga.start();
             
             // Capturar stream para controle de zoom
@@ -1381,14 +1381,14 @@ function initBarcodeScanner() {
                     return sum + (code.error || 0);
                 }, 0) / result.codeResult.decodedCodes.length;
                 
-                // Se erro m├®dio muito alto, ignorar
+                // Se erro mâ”œÂ®dio muito alto, ignorar
                 if(avgError > 0.12) return; // Limiar mais rigoroso para velocidade
             }
             
-            // Normalizar c├│digo (remover espa├ºos, tra├ºos, barras)
+            // Normalizar câ”œâ”‚digo (remover espaâ”œÂºos, traâ”œÂºos, barras)
             const code = normalizeCode(rawCode);
             
-            console.log('­ƒôÀ C├│digo detectado:', rawCode, 'ÔåÆ normalizado:', code);
+            console.log('Â­Æ’Ã´Ã€ Câ”œâ”‚digo detectado:', rawCode, 'Ã”Ã¥Ã† normalizado:', code);
             lastCode = rawCode;
             
             // Feedback visual (borda verde)
@@ -1411,45 +1411,45 @@ function initBarcodeScanner() {
                 if(form){ 
                     form.requestSubmit ? form.requestSubmit() : form.submit(); 
                 }
-            }, 200); // Reduzido de 300ms para 200ms = mais r├ípido
+            }, 200); // Reduzido de 300ms para 200ms = mais râ”œÃ­pido
         });
     }
 
-    // ===== EVENTO DO BOT├âO DE C├éMERA =====
+    // ===== EVENTO DO BOTâ”œÃ¢O DE Câ”œÃ©MERA =====
     camBtn.addEventListener('click', async function(e){
-        console.log('­ƒô© Bot├úo de c├ómera CLICADO!');
+        console.log('Â­Æ’Ã´Â© Botâ”œÃºo de câ”œÃ³mera CLICADO!');
         e.preventDefault();
         e.stopPropagation();
         lastCode = '';
         
-        // Enumerar c├ómeras antes de abrir modal
+        // Enumerar câ”œÃ³meras antes de abrir modal
         await enumerateCameras();
         
-        console.log('­ƒÄ¼ Abrindo modal...');
+        console.log('Â­Æ’Ã„Â¼ Abrindo modal...');
         bsModal.show();
         
-        // Dar tempo para o modal abrir antes de iniciar c├ómera
+        // Dar tempo para o modal abrir antes de iniciar câ”œÃ³mera
         setTimeout(() => {
-            console.log('­ƒÄÑ Iniciando c├ómera...');
+            console.log('Â­Æ’Ã„Ã‘ Iniciando câ”œÃ³mera...');
             startScanner();
         }, 400);
     });
 
-    console.log('Ô£à Event listener da c├ómera ADICIONADO ao bot├úo');
+    console.log('Ã”Â£Ã  Event listener da câ”œÃ³mera ADICIONADO ao botâ”œÃºo');
     
-    // ===== EVENTO DE MUDAN├çA DE C├éMERA =====
+    // ===== EVENTO DE MUDANâ”œÃ§A DE Câ”œÃ©MERA =====
     if (cameraSelect) {
         cameraSelect.addEventListener('change', function(e) {
             selectedDeviceId = e.target.value;
-            console.log('­ƒô╣ Mudando para c├ómera:', selectedDeviceId);
+            console.log('Â­Æ’Ã´â•£ Mudando para câ”œÃ³mera:', selectedDeviceId);
             
-            // Reiniciar scanner com nova c├ómera
+            // Reiniciar scanner com nova câ”œÃ³mera
             if (scanning) {
                 stopScanner();
                 setTimeout(() => startScanner(), 300);
             }
         });
-        console.log('Ô£à Event listener de sele├º├úo de c├ómera adicionado');
+        console.log('Ã”Â£Ã  Event listener de seleâ”œÂºâ”œÃºo de câ”œÃ³mera adicionado');
     }
     
     // ===== EVENTO DE CONTROLE DE ZOOM =====
@@ -1458,24 +1458,24 @@ function initBarcodeScanner() {
             const zoomLevel = parseFloat(e.target.value);
             applyZoom(zoomLevel);
         });
-        console.log('Ô£à Event listener de zoom adicionado');
+        console.log('Ã”Â£Ã  Event listener de zoom adicionado');
     }
 
-    // ===== EVENTO DO BOT├âO X =====
+    // ===== EVENTO DO BOTâ”œÃ¢O X =====
     if(btnCloseScanner) {
         btnCloseScanner.addEventListener('click', function(e){
-            console.log('ÔØî Bot├úo X clicado');
+            console.log('Ã”Ã˜Ã® Botâ”œÃºo X clicado');
             e.preventDefault();
             e.stopPropagation();
             stopScanner();
             bsModal.hide();
         });
-        console.log('Ô£à Event listener do bot├úo X adicionado');
+        console.log('Ã”Â£Ã  Event listener do botâ”œÃºo X adicionado');
     }
 
     // ===== LIMPAR QUANDO MODAL FECHAR =====
     modalEl.addEventListener('hidden.bs.modal', function(){
-        console.log('­ƒÜ¬ Modal fechado');
+        console.log('Â­Æ’ÃœÂ¬ Modal fechado');
         stopScanner();
         // Reset visual do frame
         const frame = document.querySelector('.scanner-frame');
@@ -1485,15 +1485,15 @@ function initBarcodeScanner() {
         }
     });
     
-    console.log('­ƒÄë === BARCODE SCANNER CONFIGURADO COM SUCESSO ===');
+    console.log('Â­Æ’Ã„Ã« === BARCODE SCANNER CONFIGURADO COM SUCESSO ===');
 }
 </script>
 
 <?php
-// Capturar o conte├║do
+// Capturar o conteâ”œâ•‘do
 $contentHtml = ob_get_clean();
 
-// Criar arquivo tempor├írio com o conte├║do
+// Criar arquivo temporâ”œÃ­rio com o conteâ”œâ•‘do
 $tempFile = __DIR__ . '/../../../temp_view_planilha_content_' . uniqid() . '.php';
 file_put_contents($tempFile, $contentHtml);
 $contentFile = $tempFile;
@@ -1501,6 +1501,7 @@ $contentFile = $tempFile;
 // Renderizar o layout
 include __DIR__ . '/../layouts/app-wrapper.php';
 
-// Limpar arquivo tempor├írio
+// Limpar arquivo temporâ”œÃ­rio
 unlink($tempFile);
 ?>
+

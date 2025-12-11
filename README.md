@@ -13,7 +13,7 @@ Projeto PHP focado em gestão de planilhas com importação e conferência de pr
    composer install
    ```
 2. **Configuração de ambiente**
-   - Copie as credenciais para variáveis de ambiente (opcional, caso não queira usar o default do `CRUD/conexao.php`):
+   - Copie as credenciais para variáveis de ambiente (opcional, caso não queira usar o default do `config/database.php`):
      - `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS`
    - Ajuste o timezone no `bootstrap.php` se necessário (padrão `America/Sao_Paulo`).
 3. **Servidor local**
@@ -26,7 +26,7 @@ Projeto PHP focado em gestão de planilhas com importação e conferência de pr
 - **UTF-8 garantido**: `bootstrap.php` força cabeçalhos, charset padrão e logging; `PDO` usa `utf8mb4` com `SET NAMES`.
 - **Sessões seguras**: cookies `HttpOnly` e `SameSite=Lax`.
 - **Mapeamento correto de IDs**: telas agora usam `planilha_id` (tabela `planilhas`) para ler/atualizar produtos, evitando confusão com `comum_id`.
-- **Ações assíncronas**: marcar check, etiqueta e DR agora funciona via AJAX com feedback visual imediato. As rotas em `CRUD/UPDATE/*.php` retornam JSON quando a requisição aceita `application/json`.
+- **Ações assíncronas**: marcar check, etiqueta e DR agora funciona via AJAX com feedback visual imediato. As rotas em `app/controllers/update/*.php` retornam JSON quando a requisição aceita `application/json`.
 - **Logs**: erros são gravados em `storage/logs/app.log` (criado automaticamente).
 
 ## Fluxo principal
@@ -37,9 +37,8 @@ Projeto PHP focado em gestão de planilhas com importação e conferência de pr
 
 ## Dicas de uso
 - Mantenha os filtros nas telas de planilha/produtos; eles são preservados nas ações via AJAX.
-- Se alterar o schema, atualize os IDs de planilha/comum nas páginas relacionadas e nos scripts em `CRUD/`.
+- Se alterar o schema, atualize os IDs de planilha/comum nas páginas relacionadas e nos scripts em `app/controllers/`.
 
 ## Suporte e próximos passos
 - Revisar textos estáticos para corrigir eventuais resíduos de encoding legado.
 - Adicionar testes automatizados para os fluxos de importação e atualizações AJAX.
-

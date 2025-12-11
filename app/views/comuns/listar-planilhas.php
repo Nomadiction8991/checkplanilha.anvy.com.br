@@ -1,7 +1,7 @@
 <?php
-require_once __DIR__ . '/../../../auth.php';
-require_once __DIR__ . '/../../../CRUD/conexao.php';
-require_once __DIR__ . '/../../../app/functions/comum_functions.php';
+require_once dirname(__DIR__, 2) . '/bootstrap.php';
+
+
 
 $comum_id = $_GET['comum_id'] ?? null;
 
@@ -10,7 +10,7 @@ if (!$comum_id) {
     exit;
 }
 
-// Esta view não é mais usada (planilhas removidas)
+// Esta view nÃ£o Ã© mais usada (planilhas removidas)
 header('Location: ./listar-comuns.php');
 exit;
 
@@ -36,7 +36,7 @@ $fs = $_GET['filtro_status'] ?? 'todas';
 $data_inicio_str = trim($_GET['data_inicio'] ?? '');
 $data_fim_str = trim($_GET['data_fim'] ?? '');
 
-// Agora inputs vêm em formato yyyy-mm-dd direto do input type="date"
+// Agora inputs vÃªm em formato yyyy-mm-dd direto do input type="date"
 $data_inicio_mysql = $data_inicio_str !== '' ? $data_inicio_str : null;
 $data_fim_mysql = $data_fim_str !== '' ? $data_fim_str : null;
 
@@ -71,7 +71,7 @@ try {
     $limite = 20;
     $offset = ($pagina - 1) * $limite;
 
-    // Contagem total para paginação
+    // Contagem total para paginaÃ§Ã£o
     $sql_count = "SELECT COUNT(*) FROM planilhas p WHERE $where";
     $stmt_count = $conexao->prepare($sql_count);
     foreach ($params as $k=>$v){ $stmt_count->bindValue($k,$v); }
@@ -91,7 +91,7 @@ try {
     $stmt->bindValue(':offset',$offset,PDO::PARAM_INT);
     $stmt->execute();
     $planilhas = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    // $total_registros já calculado acima
+    // $total_registros jÃ¡ calculado acima
 } catch (Exception $e) {
     // Exibiremos o erro mais abaixo no bloco de listagem
     $erro_carregar = $e->getMessage();
@@ -100,7 +100,7 @@ try {
 ob_start();
 ?>
 
-<!-- Card de Filtros (estilo similar à view da planilha) -->
+<!-- Card de Filtros (estilo similar Ã  view da planilha) -->
 <div class="card mb-3">
     <div class="card-header">
         <i class="bi bi-funnel me-2"></i>
@@ -134,7 +134,7 @@ ob_start();
                     <h2 class="accordion-header">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFiltros">
                             <i class="bi bi-sliders me-2"></i>
-                            Filtros Avançados
+                            Filtros AvanÃ§ados
                         </button>
                     </h2>
                     <div id="collapseFiltros" class="accordion-collapse collapse" data-bs-parent="#filtrosAvancados">
@@ -172,7 +172,7 @@ ob_start();
             <i class="bi bi-list me-2"></i>
             Planilhas
         </span>
-    <span class="badge bg-white text-dark"><?php echo (int)$total_registros; ?> itens (pág. <?php echo $pagina; ?>/<?php echo $total_paginas ?: 1; ?>)</span>
+    <span class="badge bg-white text-dark"><?php echo (int)$total_registros; ?> itens (pÃ¡g. <?php echo $pagina; ?>/<?php echo $total_paginas ?: 1; ?>)</span>
     </div>
     <div class="card-body p-0">
         <?php if (!empty($erro_carregar)): ?>
@@ -191,7 +191,7 @@ ob_start();
                                 <th style="width: 80px">ID</th>
                                 <th>Data</th>
                                 <th>Status</th>
-                                <th style="width: 120px">Ações</th>
+                                <th style="width: 120px">AÃ§Ãµes</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -244,7 +244,7 @@ ob_start();
                 </div>
             <?php endif; ?>
             <?php if($total_paginas > 1): ?>
-            <nav aria-label="Paginação" class="mt-3">
+            <nav aria-label="PaginaÃ§Ã£o" class="mt-3">
                 <ul class="pagination pagination-sm justify-content-center mb-0">
                     <?php if($pagina > 1): ?>
                     <li class="page-item"><a class="page-link" href="?<?php echo http_build_query(array_merge($_GET,['pagina'=>$pagina-1])); ?>">&laquo;</a></li>
@@ -275,6 +275,7 @@ file_put_contents($contentFile, $contentHtml);
 // Incluir layout app-wrapper (padronizado)
 require_once __DIR__ . '/../layouts/app-wrapper.php';
 
-// Limpar arquivo temporário
+// Limpar arquivo temporÃ¡rio
 @unlink($contentFile);
 ?>
+
