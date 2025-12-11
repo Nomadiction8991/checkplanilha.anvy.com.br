@@ -72,6 +72,7 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
             min-height: calc(100vh - 40px);
             display: flex;
             flex-direction: column;
+            position: relative;
         }
         
         /* Header fixo */
@@ -194,6 +195,25 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
         .card:hover {
             box-shadow: 0 4px 16px rgba(0,0,0,0.12);
             transform: translateY(-2px);
+        }
+
+        /* Modais dentro do wrapper mobile */
+        .mobile-wrapper .modal,
+        .mobile-wrapper .modal-backdrop {
+            position: absolute !important;
+            inset: 0 !important;
+        }
+        .mobile-wrapper .modal {
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: rgba(0,0,0,0.35);
+        }
+        .mobile-wrapper .modal-dialog {
+            margin: 1rem;
+            width: auto;
+            max-width: 360px;
         }
         
         .card-header {
@@ -488,6 +508,14 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
             if (modal && modal.parentElement !== appWrapper) {
                 appWrapper.appendChild(modal);
             }
+
+            // Mover backdrop para dentro do wrapper
+            setTimeout(function() {
+                var backdrop = document.querySelector('.modal-backdrop');
+                if (backdrop && backdrop.parentElement !== appWrapper) {
+                    appWrapper.appendChild(backdrop);
+                }
+            }, 10);
         });
     </script>
 
@@ -511,4 +539,3 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
     <?php endif; ?>
 </body>
 </html>
-
