@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/app/bootstrap.php';
 
 $pageTitle = 'Comuns';
@@ -11,27 +11,27 @@ $headerActions = '
         </button>
         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="menuPrincipal">';
 
-// Mostrar "Listagem de Usuários" apenas para Administrador/Acessor
+// Mostrar "Listagem de UsuÃ¡rios" apenas para Administrador/Acessor
 if (isAdmin()) {
     $headerActions .= '
             <li>
-                <a class="dropdown-item" href="app/views/usuarios/read-usuario.php">
-                    <i class="bi bi-people me-2"></i>Listagem de Usuários
+                <a class="dropdown-item" href="app/views/usuarios/usuarios_listar.php">
+                    <i class="bi bi-people me-2"></i>Listagem de UsuÃ¡rios
                 </a>
             </li>
             <li>
-                <a class="dropdown-item" href="app/views/dependencias/read-dependencia.php">
-                    <i class="bi bi-diagram-3 me-2"></i>Listagem de Dependências
+                <a class="dropdown-item" href="app/views/dependencias/dependencias_listar.php">
+                    <i class="bi bi-diagram-3 me-2"></i>Listagem de DependÃªncias
                 </a>
             </li>';
 }
 
-// Doador/Cônjuge: adicionar opção "Editar Meu Usuário"
+// Doador/CÃ´njuge: adicionar opÃ§Ã£o "Editar Meu UsuÃ¡rio"
 if (isDoador() && isset($_SESSION['usuario_id'])) {
     $headerActions .= '
             <li>
-                <a class="dropdown-item" href="app/views/usuarios/editar-usuario.php?id=' . (int)$_SESSION['usuario_id'] . '">
-                    <i class="bi bi-pencil-square me-2"></i>Editar Meu Usuário
+                <a class="dropdown-item" href="app/views/usuarios/usuario_editar.php?id=' . (int)$_SESSION['usuario_id'] . '">
+                    <i class="bi bi-pencil-square me-2"></i>Editar Meu UsuÃ¡rio
                 </a>
             </li>';
 }
@@ -40,7 +40,7 @@ if (isDoador() && isset($_SESSION['usuario_id'])) {
 if (isAdmin()) {
     $headerActions .= '
             <li>
-                <a class="dropdown-item" href="app/views/planilhas/importar-planilha.php">
+                <a class="dropdown-item" href="app/views/planilhas/planilha_importar.php">
                     <i class="bi bi-upload me-2"></i>Importar Planilha
                 </a>
             </li>';
@@ -96,11 +96,11 @@ ob_start();
     <div class="card-body">
         <form method="GET" class="row g-2 align-items-end">
             <div class="col-12">
-                <label for="busca" class="form-label">Código ou descrição</label>
+                <label for="busca" class="form-label">CÃ³digo ou descriÃ§Ã£o</label>
                 <div class="input-group">
                     <input type="text" name="busca" id="busca" class="form-control"
                            value="<?php echo htmlspecialchars($busca); ?>"
-                           placeholder="Pesquise pelo código ou nome da comum...">
+                           placeholder="Pesquise pelo cÃ³digo ou nome da comum...">
                     <?php if ($busca !== ''): ?>
                         <a href="index.php" class="btn btn-outline-secondary btn-clear" title="Limpar filtro">
                             <i class="bi bi-x-lg"></i>
@@ -132,9 +132,9 @@ ob_start();
             <table class="table table-hover table-striped table-center mb-0 align-middle">
                 <thead>
                     <tr>
-                        <th style="width: 40%">Código</th>
-                        <th>Descrição</th>
-                        <th style="width: 140px">Ação</th>
+                        <th style="width: 40%">CÃ³digo</th>
+                        <th>DescriÃ§Ã£o</th>
+                        <th style="width: 140px">AÃ§Ã£o</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -162,11 +162,11 @@ ob_start();
                                 </td>
                                 <td>
                                     <div class="btn-group btn-group-sm" role="group">
-                                        <a class="btn btn-outline-primary" href="app/views/comuns/editar-comum.php?id=<?php echo (int) $comum['id']; ?>" title="Editar">
+                                        <a class="btn btn-outline-primary" href="app/views/comuns/comum_editar.php?id=<?php echo (int) $comum['id']; ?>" title="Editar">
                                             <i class="bi bi-pencil"></i>
                                         </a>
                                         <?php if ($cadastro_ok): ?>
-                                            <a class="btn btn-outline-secondary" href="app/views/planilhas/view-planilha.php?comum_id=<?php echo (int) $comum['id']; ?>" title="Visualizar">
+                                            <a class="btn btn-outline-secondary" href="app/views/planilhas/planilha_visualizar.php?comum_id=<?php echo (int) $comum['id']; ?>" title="Visualizar">
                                                 <i class="bi bi-eye"></i>
                                             </a>
                                         <?php else: ?>
@@ -190,8 +190,9 @@ $contentHtml = ob_get_clean();
 $contentFile = __DIR__ . '/temp_index_content.php';
 file_put_contents($contentFile, $contentHtml);
 
-require_once __DIR__ . '/app/views/layouts/app-wrapper.php';
+require_once __DIR__ . '/app/views/layouts/app_wrapper.php';
 
 @unlink($contentFile);
 ?>
+
 

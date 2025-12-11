@@ -1,7 +1,7 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/app/bootstrap.php';
 
-// Se já está logado, redireciona para o index
+// Se jÃ¡ estÃ¡ logado, redireciona para o index
 if (isset($_SESSION['usuario_id'])) {
     header('Location: index.php');
     exit;
@@ -12,7 +12,7 @@ $sucesso = '';
 
 // Mensagem de sucesso ao registrar
 if (isset($_GET['registered'])) {
-    $sucesso = 'Cadastro realizado com sucesso! Faça login para continuar.';
+    $sucesso = 'Cadastro realizado com sucesso! FaÃ§a login para continuar.';
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -21,22 +21,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         if (empty($email) || empty($senha)) {
-            throw new Exception('Email e senha são obrigatórios.');
+            throw new Exception('Email e senha sÃ£o obrigatÃ³rios.');
         }
 
-        // Buscar usuário por email
+        // Buscar usuÃ¡rio por email
         $stmt = $conexao->prepare('SELECT * FROM usuarios WHERE email = :email AND ativo = 1');
         $stmt->bindValue(':email', $email);
         $stmt->execute();
         $usuario = $stmt->fetch();
 
         if (!$usuario) {
-            throw new Exception('Email ou senha inválidos.');
+            throw new Exception('Email ou senha invÃ¡lidos.');
         }
 
         // Verificar senha
         if (!password_verify($senha, $usuario['senha'])) {
-            throw new Exception('Email ou senha inválidos.');
+            throw new Exception('Email ou senha invÃ¡lidos.');
         }
 
         // Login bem-sucedido
@@ -159,7 +159,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
         
         <div class="text-center mt-3">
-            <a href="app/views/usuarios/create-usuario.php?public=1" class="btn btn-light w-100 mb-2">
+            <a href="app/views/usuarios/usuario_criar.php?public=1" class="btn btn-light w-100 mb-2">
                 <i class="bi bi-person-plus me-2"></i>
                 Cadastre-se
             </a>
@@ -173,4 +173,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
 
