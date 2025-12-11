@@ -436,13 +436,20 @@ function buscar_comuns($conexao, $termo = '') {
         return obter_todos_comuns($conexao);
     }
 
+    $termoUpper = mb_strtoupper($termo, 'UTF-8');
+    $like = '%' . $termoUpper . '%';
+
     try {
         $sql = "SELECT id, codigo, cnpj, descricao, administracao, cidade, setor
                 FROM comums
-                WHERE CAST(codigo AS CHAR) LIKE :busca OR descricao LIKE :busca
+                WHERE UPPER(CAST(codigo AS CHAR)) LIKE :busca
+                   OR UPPER(descricao) LIKE :busca
+                   OR UPPER(cnpj) LIKE :busca
+                   OR UPPER(administracao) LIKE :busca
+                   OR UPPER(cidade) LIKE :busca
                 ORDER BY codigo ASC";
         $stmt = $conexao->prepare($sql);
-        $stmt->bindValue(':busca', '%' . $termo . '%');
+        $stmt->bindValue(':busca', $like);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (Exception $e) {
@@ -452,4 +459,3 @@ function buscar_comuns($conexao, $termo = '') {
 }
 
 ?>
-
