@@ -198,47 +198,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $mapeamento_colunas_str = "codigo=$mapeamento_codigo;complemento=$mapeamento_complemento;dependencia=$mapeamento_dependencia;localidade=$coluna_localidade";
 
-        // Iniciar transacao para atualizar planilha unica + produtos
+        // Persistir configuracao global de importacao
+        $stmtCfg = $conexao->prepare("REPLACE INTO configuracoes (id, mapeamento_colunas, posicao_data, pulo_linhas) VALUES (1, :mapeamento_colunas, :posicao_data, :pulo_linhas)");
+        $stmtCfg->bindValue(':mapeamento_colunas', $mapeamento_colunas_str);
+        $stmtCfg->bindValue(':posicao_data', $posicao_data);
+        $stmtCfg->bindValue(':pulo_linhas', $pulo_linhas);
+        $stmtCfg->execute();
+
+        // Iniciar transacao para atualizar produtos do comum
         $conexao->beginTransaction();
-
-        // Localizar planilha existente do comum ou criar a primeira
-        $stmtPlanBusca = $conexao->prepare("SELECT id FROM planilhas WHERE comum_id = :comum_id LIMIT 1");
-        $stmtPlanBusca->bindValue(':comum_id', $comum_processado_id, PDO::PARAM_INT);
-        $stmtPlanBusca->execute();
-        $planilhaExistente = $stmtPlanBusca->fetch(PDO::FETCH_ASSOC);
-
-        if ($planilhaExistente) {
-            $id_planilha = (int)$planilhaExistente['id'];
-            $stmtPlanUp = $conexao->prepare("UPDATE planilhas 
-                                             SET posicao_cnpj = :posicao_cnpj,
-                                                 posicao_comum = :posicao_comum,
-                                                 posicao_data = :posicao_data,
-                                                 pulo_linhas = :pulo_linhas,
-                                                 mapeamento_colunas = :mapeamento_colunas,
-                                                 data_posicao = :data_posicao
-                                             WHERE id = :id");
-            $stmtPlanUp->bindValue(':posicao_cnpj', $posicao_cnpj);
-            $stmtPlanUp->bindValue(':posicao_comum', $posicao_comum);
-            $stmtPlanUp->bindValue(':posicao_data', $posicao_data);
-            $stmtPlanUp->bindValue(':pulo_linhas', $pulo_linhas);
-            $stmtPlanUp->bindValue(':mapeamento_colunas', $mapeamento_colunas_str);
-            $stmtPlanUp->bindValue(':data_posicao', $data_mysql);
-            $stmtPlanUp->bindValue(':id', $id_planilha, PDO::PARAM_INT);
-            $stmtPlanUp->execute();
-        } else {
-            $sql_planilha = "INSERT INTO planilhas (comum_id, posicao_cnpj, posicao_comum, posicao_data, pulo_linhas, mapeamento_colunas, data_posicao, ativo) 
-                            VALUES (:comum_id, :posicao_cnpj, :posicao_comum, :posicao_data, :pulo_linhas, :mapeamento_colunas, :data_posicao, 1)";
-            $stmt = $conexao->prepare($sql_planilha);
-            $stmt->bindValue(':comum_id', $comum_processado_id, PDO::PARAM_INT);
-            $stmt->bindValue(':posicao_cnpj', $posicao_cnpj);
-            $stmt->bindValue(':posicao_comum', $posicao_comum);
-            $stmt->bindValue(':posicao_data', $posicao_data);
-            $stmt->bindValue(':pulo_linhas', $pulo_linhas);
-            $stmt->bindValue(':mapeamento_colunas', $mapeamento_colunas_str);
-            $stmt->bindValue(':data_posicao', $data_mysql);
-            $stmt->execute();
-            $id_planilha = $conexao->lastInsertId();
-        }
 
         // Pré-carregar tipos de bens e dependências para matching
         $tipos_bens = [];
@@ -249,8 +217,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $tipos_aliases = pp_construir_aliases_tipos($tipos_bens);
 
         // Produtos existentes da planilha (para atualizar ou excluir)
-        $stmtProdExist = $conexao->prepare("SELECT * FROM produtos WHERE planilha_id = :planilha_id");
-        $stmtProdExist->bindValue(':planilha_id', $id_planilha, PDO::PARAM_INT);
+        $stmtProdExist = $conexao->prepare("SELECT * FROM produtos WHERE comum_id = :comum_id");
+        $stmtProdExist->bindValue(':comum_id', $comum_processado_id, PDO::PARAM_INT);
         $stmtProdExist->execute();
         $produtos_existentes = [];
         while ($p = $stmtProdExist->fetch(PDO::FETCH_ASSOC)) {
@@ -414,14 +382,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     $obs_prefix = $tem_erro_parsing ? '[REVISAR] ' : '';
                     $sql_produto = "INSERT INTO produtos (
-                                   planilha_id, comum_id, id_produto, codigo, descricao_completa, editado_descricao_completa,
+                                   comum_id, id_produto, codigo, descricao_completa, editado_descricao_completa,
                                    tipo_bem_id, editado_tipo_bem_id, bem, editado_bem,
                                    complemento, editado_complemento, dependencia, editado_dependencia,
                                    checado, editado, imprimir_etiqueta, imprimir_14_1,
                                    observacao, ativo, novo, condicao_14_1,
                                    administrador_acessor_id, doador_conjugue_id
                                    ) VALUES (
-                                   :planilha_id, :comum_id, :id_produto, :codigo, :descricao_completa, '',
+                                   :comum_id, :id_produto, :codigo, :descricao_completa, '',
                                    :tipo_bem_id, 0, :bem, '',
                                    :complemento, '', :dependencia, '',
                                    0, 0, 0, :imprimir_14_1,
@@ -429,7 +397,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                    0, 0
                                    )";
                     $stmt_prod = $conexao->prepare($sql_produto);
-                    $stmt_prod->bindValue(':planilha_id', $id_planilha, PDO::PARAM_INT);
                     $stmt_prod->bindValue(':comum_id', $comum_processado_id, PDO::PARAM_INT);
                     $stmt_prod->bindValue(':id_produto', $id_produto_sequencial, PDO::PARAM_INT);
                     $stmt_prod->bindValue(':codigo', $codigo);
