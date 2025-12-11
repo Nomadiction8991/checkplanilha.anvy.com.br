@@ -200,8 +200,8 @@ require_once __DIR__ . '/app/views/layouts/app_wrapper.php';
                 <p>Complete os dados da comum (descrição, CNPJ, administração e cidade) para visualizar a planilha.</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Deixar para depois</button>
-                <a href="#" class="btn btn-primary btn-edit-agora">
+                <button type="button" class="btn btn-outline-secondary w-47" data-bs-dismiss="modal">Deixar para depois</button>
+                <a href="#" class="btn btn-primary btn-edit-agora w-47">
                     <i class="bi bi-pencil-square me-1"></i>Editar agora
                 </a>
             </div>

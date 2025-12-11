@@ -236,6 +236,11 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
             padding-right: 0 !important;
             overflow: hidden;
         }
+
+        /* Largura dos botões do modal */
+        .w-47 {
+            width: 47%;
+        }
         
         .card-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
