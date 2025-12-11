@@ -178,7 +178,7 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
             flex: 1;
             padding: 12px 16px;
             /* Espaço dinâmico para o header fixo (altura calculada via JS) */
-            padding-top: calc(var(--header-height, 76px) + 2px);
+            padding-top: calc(var(--header-height, 76px) - 8px);
             overflow-y: auto;
             background: #f8f9fa;
         }
@@ -565,5 +565,4 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
     <?php endif; ?>
 </body>
 </html>
-
 
