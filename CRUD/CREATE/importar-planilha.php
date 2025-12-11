@@ -246,26 +246,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($stmtTipos->execute()) {
             $tipos_bens = $stmtTipos->fetchAll(PDO::FETCH_ASSOC);
         }
-        $dep_map = [];
-        $stmtDeps = $conexao->prepare("SELECT id, descricao FROM dependencias");
-        if ($stmtDeps->execute()) {
-            foreach ($stmtDeps->fetchAll(PDO::FETCH_ASSOC) as $d) {
-                $dep_map[] = [
-                    'id' => (int)$d['id'],
-                    'k' => null, // preenchido após normalização
-                    'descricao' => $d['descricao']
-                ];
-            }
-        }
-
-        // Construir aliases dos tipos via módulo parser
         $tipos_aliases = pp_construir_aliases_tipos($tipos_bens);
-
-        // Construir chaves normalizadas para dependências
-        foreach ($dep_map as &$dep) {
-            $dep['k'] = pp_normaliza($dep['descricao']);
-        }
-        unset($dep);
 
         // Produtos existentes da planilha (para atualizar ou excluir)
         $stmtProdExist = $conexao->prepare("SELECT * FROM produtos WHERE planilha_id = :planilha_id");
@@ -379,25 +360,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($ben !== '' && $complemento_limpo !== '') {
                     $complemento_limpo = pp_remover_ben_do_complemento($ben, $complemento_limpo);
                 }
-                // 4) Encontrar dependência
-                $dependencia_id = 0;
-                $dep_key = pp_normaliza($dependencia_original);
-                if ($dep_key !== '') {
-                    foreach ($dep_map as $d) {
-                        if ($d['k'] === $dep_key) {
-                            $dependencia_id = $d['id'];
-                            break;
-                        }
-                    }
-                }
-                $dependencia_rotulo = '';
-                if ($dependencia_id > 0) {
-                    foreach ($dep_map as $d) {
-                        if ($d['id'] === $dependencia_id) { $dependencia_rotulo = ip_fix_mojibake(ip_corrige_encoding($d['descricao'])); break; }
-                    }
-                } else {
-                    $dependencia_rotulo = ip_fix_mojibake(ip_corrige_encoding($dependencia_original));
-                }
+                // 4) Dependência texto direto
+                $dependencia_rotulo = ip_fix_mojibake(ip_corrige_encoding($dependencia_original));
                 // 5) Montar descrição completa via parser (BEM pode estar vazio ou preenchido)
                 $descricao_completa_calc = pp_montar_descricao(1, $tipo_bem_codigo, $tipo_bem_desc, $ben, $complemento_limpo, $dependencia_rotulo, $pp_config);
 
@@ -429,15 +393,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                            descricao_completa = :descricao_completa,
                                            complemento = :complemento,
                                            bem = :bem,
-                                           dependencia_id = :dependencia_id,
-                                           tipo_bem_id = :tipo_bem_id
+                                           dependencia = :dependencia,
+                                           tipo_bem_id = :tipo_bem_id,
+                                           comum_id = :comum_id
                                         WHERE id = :id";
                     $stmtUp = $conexao->prepare($sql_update_prod);
                     $stmtUp->bindValue(':descricao_completa', $descricao_completa_calc);
                     $stmtUp->bindValue(':complemento', $complemento_limpo);
                     $stmtUp->bindValue(':bem', $ben);
-                    $stmtUp->bindValue(':dependencia_id', $dependencia_id, PDO::PARAM_INT);
+                    $stmtUp->bindValue(':dependencia', $dependencia_rotulo);
                     $stmtUp->bindValue(':tipo_bem_id', $tipo_bem_id, PDO::PARAM_INT);
+                    $stmtUp->bindValue(':comum_id', $comum_processado_id, PDO::PARAM_INT);
                     $stmtUp->bindValue(':id', $prodExist['id'], PDO::PARAM_INT);
                     if ($stmtUp->execute()) {
                         $atualizados++;
@@ -448,29 +414,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     $obs_prefix = $tem_erro_parsing ? '[REVISAR] ' : '';
                     $sql_produto = "INSERT INTO produtos (
-                                   planilha_id, id_produto, codigo, descricao_completa, editado_descricao_completa,
+                                   planilha_id, comum_id, id_produto, codigo, descricao_completa, editado_descricao_completa,
                                    tipo_bem_id, editado_tipo_bem_id, bem, editado_bem,
-                                   complemento, editado_complemento, dependencia_id, editado_dependencia_id,
+                                   complemento, editado_complemento, dependencia, editado_dependencia,
                                    checado, editado, imprimir_etiqueta, imprimir_14_1,
                                    observacao, ativo, novo, condicao_14_1,
                                    administrador_acessor_id, doador_conjugue_id
                                    ) VALUES (
-                                   :planilha_id, :id_produto, :codigo, :descricao_completa, '',
+                                   :planilha_id, :comum_id, :id_produto, :codigo, :descricao_completa, '',
                                    :tipo_bem_id, 0, :bem, '',
-                                   :complemento, '', :dependencia_id, 0,
+                                   :complemento, '', :dependencia, '',
                                    0, 0, 0, :imprimir_14_1,
                                    :observacao, 1, 0, :condicao_14_1,
                                    0, 0
                                    )";
                     $stmt_prod = $conexao->prepare($sql_produto);
                     $stmt_prod->bindValue(':planilha_id', $id_planilha, PDO::PARAM_INT);
+                    $stmt_prod->bindValue(':comum_id', $comum_processado_id, PDO::PARAM_INT);
                     $stmt_prod->bindValue(':id_produto', $id_produto_sequencial, PDO::PARAM_INT);
                     $stmt_prod->bindValue(':codigo', $codigo);
                     $stmt_prod->bindValue(':descricao_completa', $descricao_completa_calc);
                     $stmt_prod->bindValue(':tipo_bem_id', $tipo_bem_id, PDO::PARAM_INT);
                     $stmt_prod->bindValue(':bem', $ben);
                     $stmt_prod->bindValue(':complemento', $complemento_limpo);
-                    $stmt_prod->bindValue(':dependencia_id', $dependencia_id, PDO::PARAM_INT);
+                    $stmt_prod->bindValue(':dependencia', $dependencia_rotulo);
                     $stmt_prod->bindValue(':imprimir_14_1', 0, PDO::PARAM_INT);
                     $stmt_prod->bindValue(':observacao', $obs_prefix);
                     $stmt_prod->bindValue(':condicao_14_1', '2');
