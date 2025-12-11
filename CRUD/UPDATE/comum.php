@@ -9,7 +9,7 @@ if (!isAdmin()) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: ../../app/views/comuns/listar-comuns.php');
+    header('Location: ../../index.php');
     exit;
 }
 
