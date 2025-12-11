@@ -441,27 +441,29 @@ function buscar_comuns($conexao, $termo = '') {
     $likeDigits = $digits !== '' ? '%' . $digits . '%' : null;
 
     try {
+        $conds = [
+            'CAST(codigo AS CHAR) LIKE ?',
+            'descricao LIKE ?',
+            'administracao LIKE ?',
+            'cidade LIKE ?',
+            'cnpj LIKE ?'
+        ];
+        $params = [$like, $like, $like, $like, $like];
+
+        if ($likeDigits !== null) {
+            $conds[] = "REPLACE(REPLACE(REPLACE(REPLACE(cnpj, '.', ''), '-', ''), '/', ''), ' ', '') LIKE ?";
+            $params[] = $likeDigits;
+            $conds[] = "CAST(codigo AS CHAR) LIKE ?";
+            $params[] = $likeDigits;
+        }
+
         $sql = "SELECT id, codigo, cnpj, descricao, administracao, cidade, setor
                 FROM comums
-                WHERE CAST(codigo AS CHAR) LIKE :like
-                   OR descricao LIKE :like
-                   OR administracao LIKE :like
-                   OR cidade LIKE :like
-                   OR cnpj LIKE :like";
-
-        if ($likeDigits !== null) {
-            $sql .= " OR REPLACE(REPLACE(REPLACE(REPLACE(cnpj, '.', ''), '-', ''), '/', ''), ' ', '') LIKE :likeDigits
-                     OR CAST(codigo AS CHAR) LIKE :likeDigits";
-        }
-
-        $sql .= " ORDER BY codigo ASC";
+                WHERE " . implode(' OR ', $conds) . "
+                ORDER BY codigo ASC";
 
         $stmt = $conexao->prepare($sql);
-        $stmt->bindValue(':like', $like);
-        if ($likeDigits !== null) {
-            $stmt->bindValue(':likeDigits', $likeDigits);
-        }
-        $stmt->execute();
+        $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (Exception $e) {
         error_log("Erro ao buscar comuns: " . $e->getMessage());
