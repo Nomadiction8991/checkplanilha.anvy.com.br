@@ -1,4 +1,9 @@
 ﻿<?php
+// Permite pular autenticação em páginas públicas/controladas
+if (defined('SKIP_AUTH') && SKIP_AUTH === true) {
+    return;
+}
+
 require_once dirname(__DIR__, 2) . '/config/bootstrap.php';
 
 // Logar mas nao exibir erros em producao
@@ -71,5 +76,4 @@ function isAdmin(): bool {
 function isDoador(): bool {
     return isset($_SESSION['usuario_tipo']) && $_SESSION['usuario_tipo'] === 'Doador/Conjuge';
 }
-
 
