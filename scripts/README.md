@@ -1,31 +1,31 @@
-# Scripts de Utilidade
+﻿# Scripts de Utilidade
 
-## 📁 Estrutura
+## ðŸ“ Estrutura
 
 ```
 scripts/
-├── reprocessar-produtos.php   # Reprocessa produtos com parser atualizado
-└── README.md                   # Este arquivo
+â”œâ”€â”€ reprocessar_produtos.php   # Reprocessa produtos com parser atualizado
+â””â”€â”€ README.md                   # Este arquivo
 ```
 
-## 🔧 Scripts Disponíveis
+## ðŸ”§ Scripts DisponÃ­veis
 
-### `reprocessar-produtos.php`
+### `reprocessar_produtos.php`
 
 Reprocessa produtos existentes aplicando as melhorias do parser atualizado.
 
-**Documentação completa:** Ver `../REPROCESSAMENTO-GUIA.md`
+**DocumentaÃ§Ã£o completa:** Ver `../REPROCESSAMENTO-GUIA.md`
 
-**Uso básico:**
+**Uso bÃ¡sico:**
 ```bash
 # Simular (recomendado primeiro)
-php scripts/reprocessar-produtos.php --dry-run
+php scripts/reprocessar_produtos.php --dry-run
 
 # Executar
-php scripts/reprocessar-produtos.php
+php scripts/reprocessar_produtos.php
 ```
 
-**Opções:**
+**OpÃ§Ãµes:**
 - `--dry-run` - Simula sem salvar
 - `--limit=N` - Limita quantidade de produtos
 - `--planilha-id=N` - Processa apenas uma planilha
@@ -33,25 +33,26 @@ php scripts/reprocessar-produtos.php
 
 **Exemplo:**
 ```bash
-php scripts/reprocessar-produtos.php --planilha-id=15 --limit=100 --dry-run --verbose
+php scripts/reprocessar_produtos.php --planilha-id=15 --limit=100 --dry-run --verbose
 ```
 
-## ⚠️ Importante
+## âš ï¸ Importante
 
-1. **SEMPRE faça backup do banco antes de executar scripts de migração**
-2. **Execute com `--dry-run` primeiro para revisar mudanças**
+1. **SEMPRE faÃ§a backup do banco antes de executar scripts de migraÃ§Ã£o**
+2. **Execute com `--dry-run` primeiro para revisar mudanÃ§as**
 3. **Teste em uma planilha pequena antes de processar tudo**
 
-## 📝 Como Adicionar Novo Script
+## ðŸ“ Como Adicionar Novo Script
 
 1. Crie o arquivo PHP na pasta `scripts/`
-2. Adicione documentação de uso no topo do arquivo
-3. Implemente opções de linha de comando
-4. Adicione modo `--dry-run` se for fazer alterações
+2. Adicione documentaÃ§Ã£o de uso no topo do arquivo
+3. Implemente opÃ§Ãµes de linha de comando
+4. Adicione modo `--dry-run` se for fazer alteraÃ§Ãµes
 5. Documente aqui no README
 
-## 🔗 Links Úteis
+## ðŸ”— Links Ãšteis
 
 - [Guia de Reprocessamento](../REPROCESSAMENTO-GUIA.md)
 - [Melhorias Implementadas](../MELHORIAS-IMPLEMENTADAS.md)
 - [Test Parser](../test-parser.php)
+

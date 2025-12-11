@@ -1,11 +1,11 @@
-# Copilot Instructions for checkplanilha.anvy.com.br
+﻿# Copilot Instructions for checkplanilha.anvy.com.br
 
 ## Architecture Overview
 This is a PHP-based inventory management system for church assets ("planilhas" = spreadsheets). Key components:
 - **CRUD Operations**: Organized in `CRUD/` with CREATE, READ, UPDATE, DELETE folders for products, users, etc.
-- **Views**: Located in `app/views/`, using Bootstrap 5 layouts from `app/views/layouts/app-wrapper.php`.
+- **Views**: Located in `app/views/`, using Bootstrap 5 layouts from `app/views/layouts/app_wrapper.php`.
 - **Data Layer**: MySQL with tables: `comuns` (churches), `dependencias` (departments), `planilhas` (spreadsheets), `produtos` (products).
-- **Reports**: HTML templates in `relatorios/`, filled via DOM manipulation in `app/views/planilhas/relatorio-14-1.php`.
+- **Reports**: HTML templates in `relatorios/`, filled via DOM manipulation in `app/views/planilhas/relatorio141_view.php`.
 
 ## Key Patterns
 - **Product States**: Use fields like `checado` (checked), `ativo` (active), `imprimir_etiqueta` (print label), `editado` (edited) in `produtos` table.
@@ -33,7 +33,7 @@ This is a PHP-based inventory management system for church assets ("planilhas" =
 - **AJAX**: Return JSON with `success` and `message` keys.
 
 ## Key Files
-- `app/views/planilhas/view-planilha.php`: Main product listing and actions.
+- `app/views/planilhas/planilha_visualizar.php`: Main product listing and actions.
 - `CRUD/UPDATE/check-produto.php`: Update product status.
-- `app/views/planilhas/relatorio-14-1.php`: Report generation logic.
+- `app/views/planilhas/relatorio141_view.php`: Report generation logic.
 - `app/functions/comum_functions.php`: Shared utilities.
