@@ -40,6 +40,81 @@ function gerar_cnpj_unico($conexao, $cnpj_base, $codigo, $ignorar_id = null) {
         }
     }
 }
+
+/**
+ * Garante que exista um registro de comum pelo codigo informado.
+ * Se nao existir, insere com placeholders basicos.
+ */
+function garantir_comum_por_codigo($conexao, $codigo, $dados = []) {
+    $codigo = (int)$codigo;
+    if ($codigo <= 0) {
+        throw new Exception('Codigo do comum invalido.');
+    }
+
+    $stmt = $conexao->prepare("SELECT id, cnpj FROM comums WHERE codigo = :codigo");
+    $stmt->bindValue(':codigo', $codigo, PDO::PARAM_INT);
+    $stmt->execute();
+    $existente = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($existente) {
+        // Atualizar dados basicos se enviados
+        if (!empty($dados)) {
+            $updates = [];
+            $params = [':id' => (int)$existente['id']];
+
+            if (!empty($dados['cnpj'])) {
+                $novo_cnpj = gerar_cnpj_unico($conexao, $dados['cnpj'], $codigo, (int)$existente['id']);
+                if ($novo_cnpj !== $existente['cnpj']) {
+                    $updates[] = "cnpj = :cnpj";
+                    $params[':cnpj'] = $novo_cnpj;
+                }
+            }
+            if (isset($dados['administracao'])) {
+                $updates[] = "administracao = :administracao";
+                $params[':administracao'] = $dados['administracao'];
+            }
+            if (isset($dados['cidade'])) {
+                $updates[] = "cidade = :cidade";
+                $params[':cidade'] = $dados['cidade'];
+            }
+            if (isset($dados['setor'])) {
+                $updates[] = "setor = :setor";
+                $params[':setor'] = $dados['setor'];
+            }
+
+            if (!empty($updates)) {
+                $sql_update = "UPDATE comums SET " . implode(', ', $updates) . " WHERE id = :id";
+                $stmt_up = $conexao->prepare($sql_update);
+                foreach ($params as $k => $v) {
+                    $stmt_up->bindValue($k, $v);
+                }
+                $stmt_up->execute();
+            }
+        }
+
+        return (int)$existente['id'];
+    }
+
+    // Inserir novo registro
+    $cnpj_final = gerar_cnpj_unico($conexao, $dados['cnpj'] ?? '', $codigo);
+    $descricao = $dados['descricao'] ?? ('COMUM ' . $codigo);
+    $administracao = $dados['administracao'] ?? '';
+    $cidade = $dados['cidade'] ?? '';
+    $setor = $dados['setor'] ?? 0;
+
+    $sql_insert = "INSERT INTO comums (codigo, cnpj, descricao, administracao, cidade, setor)
+                   VALUES (:codigo, :cnpj, :descricao, :administracao, :cidade, :setor)";
+    $stmt_insert = $conexao->prepare($sql_insert);
+    $stmt_insert->bindValue(':codigo', $codigo, PDO::PARAM_INT);
+    $stmt_insert->bindValue(':cnpj', $cnpj_final);
+    $stmt_insert->bindValue(':descricao', $descricao);
+    $stmt_insert->bindValue(':administracao', $administracao);
+    $stmt_insert->bindValue(':cidade', $cidade);
+    $stmt_insert->bindValue(':setor', $setor, PDO::PARAM_INT);
+    $stmt_insert->execute();
+
+    return (int)$conexao->lastInsertId();
+}
 /**
  * Funções para manipulação de dados da tabela COMUMS
  * Extrai código e descrição do formato: "BR 09-0040 - SIBIPIRUNAS"

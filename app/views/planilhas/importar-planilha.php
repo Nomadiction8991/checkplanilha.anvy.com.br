@@ -65,17 +65,14 @@ ob_start();
                 <input type="number" class="form-control" id="pulo_linhas" name="pulo_linhas" value="25" min="0" required>
             </div>
             <div class="row g-3">
-                <div class="col-md-4">
-                    <label for="posicao_comum" class="form-label">Célula Comum <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="posicao_comum" name="posicao_comum" value="D16" required>
-                </div>
-                <div class="col-md-4">
-                    <label for="posicao_data" class="form-label">Célula Data <span class="text-danger">*</span></label>
+                <div class="col-md-6">
+                    <label for="posicao_data" class="form-label">Celula Data <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="posicao_data" name="posicao_data" value="D13" required>
                 </div>
-                <div class="col-md-4">
-                    <label for="posicao_cnpj" class="form-label">Célula CNPJ <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="posicao_cnpj" name="posicao_cnpj" value="U5" required>
+                <div class="col-md-6">
+                    <label for="coluna_localidade" class="form-label">Coluna Localidade (somente numeros serao usados) <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control text-center fw-bold" id="coluna_localidade" name="coluna_localidade" value="K" maxlength="2" required>
+                    <small class="text-muted">Ex: K</small>
                 </div>
             </div>
         </div>

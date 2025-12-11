@@ -14,10 +14,11 @@ use Symfony\Component\String\UnicodeString;
 // Redirecionamento após sucesso
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $arquivo_csv = $_FILES['arquivo_csv'] ?? null;
-    $posicao_comum = trim($_POST['posicao_comum'] ?? 'D16');
     $posicao_data = trim($_POST['posicao_data'] ?? 'D13');
-    $posicao_cnpj = trim($_POST['posicao_cnpj'] ?? 'U5');
     $pulo_linhas = (int)($_POST['pulo_linhas'] ?? 25);
+    $coluna_localidade = strtoupper(trim($_POST['coluna_localidade'] ?? 'K'));
+    $posicao_comum = $coluna_localidade; // armazenamos a coluna de localidade como referencia de comum
+    $posicao_cnpj = 'N/A';
     $mapeamento_codigo = strtoupper(trim($_POST['mapeamento_codigo'] ?? 'A'));
     $mapeamento_complemento = strtoupper(trim($_POST['mapeamento_complemento'] ?? 'D'));
     $administracao = trim($_POST['administracao'] ?? '');
@@ -50,14 +51,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $planilha = IOFactory::load($arquivo_csv['tmp_name']);
         $aba = $planilha->getActiveSheet();
 
-        // Obter valores das células
-        $valor_comum = trim($aba->getCell($posicao_comum)->getCalculatedValue());
+        // Obter valores das celulas
         $valor_data = trim($aba->getCell($posicao_data)->getCalculatedValue());
-        $valor_cnpj = trim($aba->getCell($posicao_cnpj)->getCalculatedValue());
-
-        if (empty($valor_comum)) {
-            throw new Exception('A célula ' . $posicao_comum . ' está vazia.');
-        }
 
         // Converter data
         $data_mysql = null;
@@ -72,30 +67,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-    // Converter CNPJ
-    $cnpj_limpo = preg_replace('/[^0-9]/', '', $valor_cnpj);
-
-        // Procesar comum e obter ID (pode criar ou atualizar)
-        $dados_comum = [
-            'cnpj' => $cnpj_limpo,
-            'administracao' => $administracao,
-            'cidade' => $cidade,
-            'setor' => $setor
-        ];
-        $comum_processado_id = processar_comum($conexao, $valor_comum, $dados_comum);
-        if (!$comum_processado_id) {
-            throw new Exception('Erro ao processar comum.');
-        }
-
         // Carregar todas as linhas e contar candidatas (linhas de produto com código preenchido)
         $linhas = $aba->toArray();
         $linha_atual = 0;
         $registros_candidatos = 0;
 
-        // Mapeamento de colunas usando função do parser
+        // Mapeamento de colunas usando funcao do parser
         $idx_codigo = pp_colunaParaIndice($mapeamento_codigo);
         $idx_complemento = pp_colunaParaIndice($mapeamento_complemento);
         $idx_dependencia = pp_colunaParaIndice($mapeamento_dependencia);
+        $idx_localidade = pp_colunaParaIndice($coluna_localidade);
+        $codigo_localidade = null;
 
         foreach ($linhas as $linha) {
             $linha_atual++;
@@ -103,13 +85,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (empty(array_filter($linha))) { continue; }
             $codigo_tmp = isset($linha[$idx_codigo]) ? trim((string)$linha[$idx_codigo]) : '';
             if ($codigo_tmp !== '') { $registros_candidatos++; }
+
+            if ($codigo_localidade === null && isset($linha[$idx_localidade])) {
+                $localidade_raw = (string)$linha[$idx_localidade];
+                $localidade_num = preg_replace('/\D+/', '', $localidade_raw);
+                if ($localidade_num !== '') {
+                    $codigo_localidade = (int)$localidade_num;
+                }
+            }
         }
 
         if ($registros_candidatos === 0) {
-            throw new Exception('Nenhuma linha de produto encontrada após o cabeçalho. Verifique o mapeamento de colunas e o número de linhas a pular.');
+            throw new Exception('Nenhuma linha de produto encontrada apos o cabecalho. Verifique o mapeamento de colunas e o numero de linhas a pular.');
         }
 
-        // Iniciar transação apenas para planilha+produtos; dados do Comum já foram persistidos
+        if (empty($codigo_localidade)) {
+            throw new Exception('Nenhum codigo de localidade encontrado na coluna ' . $coluna_localidade . '.');
+        }
+
+        // Garante que o comum exista pelo codigo lido da coluna de localidade
+        $comum_processado_id = garantir_comum_por_codigo($conexao, $codigo_localidade, [
+            'administracao' => $administracao,
+            'cidade' => $cidade,
+            'setor' => $setor,
+        ]);
+
+        // Iniciar transacao apenas para planilha+produtos; dados do Comum ja foram persistidos
         $conexao->beginTransaction();
 
         // Criar nova planilha vinculada ao comum
@@ -121,7 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bindValue(':posicao_comum', $posicao_comum);
         $stmt->bindValue(':posicao_data', $posicao_data);
         $stmt->bindValue(':pulo_linhas', $pulo_linhas);
-        $stmt->bindValue(':mapeamento_colunas', "codigo=$mapeamento_codigo;complemento=$mapeamento_complemento;dependencia=$mapeamento_dependencia");
+        $stmt->bindValue(':mapeamento_colunas', "codigo=$mapeamento_codigo;complemento=$mapeamento_complemento;dependencia=$mapeamento_dependencia;localidade=$coluna_localidade");
         $stmt->bindValue(':data_posicao', $data_mysql);
         $stmt->execute();
         $id_planilha = $conexao->lastInsertId();
