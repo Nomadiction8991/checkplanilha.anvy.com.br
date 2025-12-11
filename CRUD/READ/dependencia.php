@@ -22,7 +22,7 @@ try {
     $total_registros = (int) $conexao->query($sql_count)->fetchColumn();
     $total_paginas = (int) ceil($total_registros / $limite);
 
-    $sql = "SELECT * FROM dependencias ORDER BY COALESCE(codigo, '') ASC, id ASC LIMIT :limite OFFSET :offset";
+    $sql = "SELECT id, descricao FROM dependencias ORDER BY descricao ASC, id ASC LIMIT :limite OFFSET :offset";
     $stmt = $conexao->prepare($sql);
     $stmt->bindValue(':limite', $limite, PDO::PARAM_INT);
     $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);

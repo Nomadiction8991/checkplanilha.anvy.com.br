@@ -13,10 +13,19 @@ function ip_corrige_encoding($texto) {
     if ($texto === null) return '';
     $texto = trim((string)$texto);
     if ($texto === '') return '';
-    $enc = mb_detect_encoding($texto, ['UTF-8', 'ISO-8859-1', 'Windows-1252'], true);
+
+    $enc = mb_detect_encoding($texto, ['UTF-8', 'ISO-8859-1', 'Windows-1252', 'ASCII'], true);
     if ($enc && $enc !== 'UTF-8') {
         $texto = mb_convert_encoding($texto, 'UTF-8', $enc);
+    } elseif (!$enc) {
+        $converted = @iconv('Windows-1252', 'UTF-8//IGNORE', $texto);
+        if ($converted !== false) {
+            $texto = $converted;
+        }
     }
+
+    // Remover caracteres de controle que possam quebrar exibiÇõÇœo
+    $texto = preg_replace('/[\\x00-\\x1F\\x7F]/', '', $texto);
     return $texto;
 }
 

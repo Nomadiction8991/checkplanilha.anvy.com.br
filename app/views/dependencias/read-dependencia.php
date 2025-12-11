@@ -22,6 +22,25 @@ $pageTitle = 'Dependências';
 $backUrl = '../../../index.php';
 $headerActions = '<a href="./create-dependencia.php" class="btn-header-action" title="Nova Dependência"><i class="bi bi-plus-lg"></i></a>';
 
+
+if (!function_exists('dep_corrigir_encoding')) {
+    function dep_corrigir_encoding($texto) {
+        if ($texto === null) return '';
+        $texto = trim((string)$texto);
+        if ($texto === '') return '';
+        $enc = mb_detect_encoding($texto, ['UTF-8','ISO-8859-1','Windows-1252','ASCII'], true);
+        if ($enc && $enc !== 'UTF-8') {
+            $texto = mb_convert_encoding($texto, 'UTF-8', $enc);
+        } elseif (!$enc) {
+            $conv = @iconv('Windows-1252', 'UTF-8//IGNORE', $texto);
+            if ($conv !== false) {
+                $texto = $conv;
+            }
+        }
+        return $texto;
+    }
+}
+
 ob_start();
 ?>
 
@@ -59,8 +78,7 @@ ob_start();
                     <tbody>
                         <?php foreach ($dependencias as $dependencia): ?>
                             <tr>
-                                <td><?php echo htmlspecialchars((string)($dependencia['codigo'] ?? '')); ?></td>
-                                <td><?php echo htmlspecialchars((string)($dependencia['descricao'] ?? '')); ?></td>
+                                <td><?php echo htmlspecialchars(dep_corrigir_encoding($dependencia['descricao'] ?? '')); ?></td>
                                 <td>
                                     <div class="btn-group" role="group">
                                         <a href="./edit-dependencia.php?id=<?php echo $dependencia['id']; ?>"
