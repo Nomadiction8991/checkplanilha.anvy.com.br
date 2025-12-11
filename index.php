@@ -155,11 +155,11 @@ ob_start();
                             ?>
                             <tr>
                                 <td class="fw-semibold text-uppercase">
-                                    <?php echo htmlspecialchars($comum['codigo']); ?>
-                                </td>
-                                <td>
-                                    <?php echo htmlspecialchars($comum['descricao']); ?>
-                                </td>
+                                <?php echo htmlspecialchars($comum['codigo']); ?>
+                            </td>
+                            <td class="text-uppercase">
+                                <?php echo htmlspecialchars($comum['descricao']); ?>
+                            </td>
                                 <td>
                                     <div class="btn-group btn-group-sm" role="group">
                                         <a class="btn btn-outline-primary" href="app/views/comuns/comum_editar.php?id=<?php echo (int) $comum['id']; ?>" title="Editar">

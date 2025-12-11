@@ -43,6 +43,14 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
         }
+
+        /* Campos em maiúsculas por padrão */
+        input.form-control:not([type="password"]),
+        textarea.form-control,
+        select.form-select,
+        .text-uppercase {
+            text-transform: uppercase;
+        }
         
         /* Container principal centralizado */
         .app-container {
@@ -491,4 +499,3 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
     <?php endif; ?>
 </body>
 </html>
-
