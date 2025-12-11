@@ -134,7 +134,6 @@ scripts/          # CLI utilities for testing/debugging imports
 - Test with accented characters: "Cuiabá", "Bens Imóveis", "Cônjuge"
 
 ### Debug Product Import
-- Logs written to `storage/logs/app.log` (auto-created)
 - Test scripts in `scripts/`: `simular-importacao.php`, `test-parser.php`
 - Parser normalizes via `pp_normaliza()` before matching
 
@@ -189,5 +188,5 @@ Navigate to `http://localhost:8000/login.php`
 1. **Which `comum_id` param should I use?** → Check URL pattern in similar views; use `?id=X&comum_id=X`
 2. **Will this affect UTF-8?** → Check if raw SQL, PDO charset, headers, or `htmlspecialchars()` involved
 3. **Should this return JSON or redirect?** → Use `is_ajax_request()` to detect
-4. **Where do I store logs?** → `storage/logs/app.log` (auto-created)
+4. **Where do I store logs?** → Nenhum. Por política atual, não gravar logs do agente no repositório.
 5. **Is there a helper for this domain logic?** → Check `app/helpers/` before writing inline
