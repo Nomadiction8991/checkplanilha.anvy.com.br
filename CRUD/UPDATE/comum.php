@@ -63,7 +63,7 @@ try {
 
     $_SESSION['mensagem'] = 'Comum atualizada com sucesso!';
     $_SESSION['tipo_mensagem'] = 'success';
-    header('Location: ../../app/views/comuns/listar-comuns.php');
+    header('Location: ../../app/views/comuns/editar-comum.php?id=' . urlencode((string)$id));
     exit;
 } catch (Throwable $e) {
     $_SESSION['mensagem'] = 'Erro ao salvar: ' . $e->getMessage();

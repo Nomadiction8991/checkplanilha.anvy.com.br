@@ -25,16 +25,25 @@ if (!$comum) {
 $pageTitle = 'Editar Comum';
 $backUrl = './listar-comuns.php';
 
+$mt_cidades = [
+    'MT - Acorizal','MT - Água Boa','MT - Alta Floresta','MT - Alto Araguaia','MT - Alto Boa Vista','MT - Alto Garças','MT - Alto Paraguai','MT - Alto Taquari','MT - Apiacás','MT - Araguaiana','MT - Araguainha','MT - Araputanga','MT - Arenápolis','MT - Aripuanã','MT - Barão de Melgaço','MT - Barra do Bugres','MT - Barra do Garças','MT - Bom Jesus do Araguaia','MT - Brasnorte','MT - Cáceres','MT - Campinápolis','MT - Campo Novo do Parecis','MT - Campo Verde','MT - Campos de Júlio','MT - Canabrava do Norte','MT - Canarana','MT - Carlinda','MT - Castanheira','MT - Chapada dos Guimarães','MT - Cláudia','MT - Cocalinho','MT - Colíder','MT - Colniza','MT - Comodoro','MT - Confresa','MT - Conquista d\'Oeste','MT - Cotriguaçu','MT - Cuiabá','MT - Curvelândia','MT - Denise','MT - Diamantino','MT - Dom Aquino','MT - Feliz Natal','MT - Figueirópolis d\'Oeste','MT - Gaúcha do Norte','MT - General Carneiro','MT - Glória d\'Oeste','MT - Guarantã do Norte','MT - Guiratinga','MT - Indiavaí','MT - Ipiranga do Norte','MT - Itanhangá','MT - Itaúba','MT - Itiquira','MT - Jaciara','MT - Jangada','MT - Jauru','MT - Juara','MT - Juína','MT - Juruena','MT - Juscimeira','MT - Lambari d\'Oeste','MT - Lucas do Rio Verde','MT - Luciara','MT - Marcelândia','MT - Matupá','MT - Mirassol d\'Oeste','MT - Nobres','MT - Nortelândia','MT - Nossa Senhora do Livramento','MT - Nova Bandeirantes','MT - Nova Brasilândia','MT - Nova Canaã do Norte','MT - Nova Guarita','MT - Nova Lacerda','MT - Nova Marilândia','MT - Nova Maringá','MT - Nova Monte Verde','MT - Nova Mutum','MT - Nova Nazaré','MT - Nova Olímpia','MT - Nova Santa Helena','MT - Nova Ubiratã','MT - Nova Xavantina','MT - Novo Horizonte do Norte','MT - Novo Mundo','MT - Novo Santo Antônio','MT - Novo São Joaquim','MT - Paranaíta','MT - Paranatinga','MT - Pedra Preta','MT - Peixoto de Azevedo','MT - Planalto da Serra','MT - Poconé','MT - Pontal do Araguaia','MT - Ponte Branca','MT - Pontes e Lacerda','MT - Porto Alegre do Norte','MT - Porto dos Gaúchos','MT - Porto Esperidião','MT - Porto Estrela','MT - Poxoréu','MT - Primavera do Leste','MT - Querência','MT - Reserva do Cabaçal','MT - Ribeirão Cascalheira','MT - Ribeirãozinho','MT - Rio Branco','MT - Rondolândia','MT - Rondonópolis','MT - Rosário Oeste','MT - Salto do Céu','MT - Santa Carmem','MT - Santa Cruz do Xingu','MT - Santa Rita do Trivelato','MT - Santa Terezinha','MT - Santo Afonso','MT - Santo Antônio do Leste','MT - Santo Antônio do Leverger','MT - São Félix do Araguaia','MT - São José do Povo','MT - São José do Rio Claro','MT - São José do Xingu','MT - São José dos Quatro Marcos','MT - São Pedro da Cipa','MT - Sapezal','MT - Serra Nova Dourada','MT - Sinop','MT - Sorriso','MT - Tabaporã','MT - Tangará da Serra','MT - Tapurah','MT - Terra Nova do Norte','MT - Tesouro','MT - Torixoréu','MT - União do Sul','MT - Vale de São Domingos','MT - Várzea Grande','MT - Vera','MT - Vila Bela da Santíssima Trindade','MT - Vila Rica'
+];
+
 ob_start();
 ?>
 
+<?php if (!empty($_SESSION['mensagem'])): ?>
+    <div class="alert alert-<?php echo $_SESSION['tipo_mensagem'] ?? 'info'; ?> alert-dismissible fade show">
+        <?php echo htmlspecialchars($_SESSION['mensagem']); ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <?php unset($_SESSION['mensagem'], $_SESSION['tipo_mensagem']); ?>
+<?php endif; ?>
+
 <div class="container py-4">
     <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <span><i class="bi bi-pencil-square me-2"></i>Editar Comum</span>
-            <a href="./listar-comuns.php" class="btn btn-sm btn-outline-secondary">
-                <i class="bi bi-arrow-left"></i> Voltar
-            </a>
+        <div class="card-header">
+            <i class="bi bi-pencil-square me-2"></i>Editar Comum
         </div>
         <div class="card-body">
             <form method="POST" action="../../../CRUD/UPDATE/comum.php" novalidate>
@@ -61,13 +70,25 @@ ob_start();
                 <div class="row g-3 mt-1">
                     <div class="col-md-6">
                         <label for="administracao" class="form-label">Administração <span class="text-danger">*</span></label>
-                        <input type="text" id="administracao" name="administracao" class="form-control" required
-                               value="<?php echo htmlspecialchars($comum['administracao']); ?>">
+                        <select id="administracao" name="administracao" class="form-select" required>
+                            <option value="">Selecione</option>
+                            <?php foreach ($mt_cidades as $op): ?>
+                                <option value="<?php echo htmlspecialchars($op); ?>" <?php echo ($comum['administracao'] ?? '') === $op ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($op); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
                     <div class="col-md-6">
                         <label for="cidade" class="form-label">Cidade <span class="text-danger">*</span></label>
-                        <input type="text" id="cidade" name="cidade" class="form-control" required
-                               value="<?php echo htmlspecialchars($comum['cidade']); ?>">
+                        <select id="cidade" name="cidade" class="form-select" required>
+                            <option value="">Selecione</option>
+                            <?php foreach ($mt_cidades as $op): ?>
+                                <option value="<?php echo htmlspecialchars($op); ?>" <?php echo ($comum['cidade'] ?? '') === $op ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($op); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
                 </div>
 
