@@ -64,6 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $linhas = $aba->toArray();
         $linha_atual = 0;
         $registros_candidatos = 0;
+        $dependencias_unicas = [];
 
         // Mapeamento de colunas usando funcao do parser
         $idx_codigo = pp_colunaParaIndice($mapeamento_codigo);
@@ -80,6 +81,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (empty(array_filter($linha))) { continue; }
             $codigo_tmp = isset($linha[$idx_codigo]) ? trim((string)$linha[$idx_codigo]) : '';
             if ($codigo_tmp !== '') { $registros_candidatos++; }
+
+            if (isset($linha[$idx_dependencia])) {
+                $dep_raw = trim((string)$linha[$idx_dependencia]);
+                $dep_norm = pp_normaliza($dep_raw);
+                if ($dep_norm !== '' && !array_key_exists($dep_norm, $dependencias_unicas)) {
+                    $dependencias_unicas[$dep_norm] = $dep_raw;
+                }
+            }
 
             if (isset($linha[$idx_localidade])) {
                 $localidade_raw = (string)$linha[$idx_localidade];
@@ -99,6 +108,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (empty($localidades_unicas)) {
             throw new Exception('Nenhum codigo de localidade encontrado na coluna ' . $coluna_localidade . '.');
+        }
+
+        // Garantir cadastro das dependencias distintas encontradas (apenas descricao)
+        foreach ($dependencias_unicas as $dep_desc) {
+            try {
+                $stmtDep = $conexao->prepare("SELECT id FROM dependencias WHERE descricao = :descricao");
+                $stmtDep->bindValue(':descricao', $dep_desc);
+                $stmtDep->execute();
+                $existeDep = $stmtDep->fetch(PDO::FETCH_ASSOC);
+                if (!$existeDep) {
+                    $stmtInsertDep = $conexao->prepare("INSERT INTO dependencias (descricao) VALUES (:descricao)");
+                    $stmtInsertDep->bindValue(':descricao', $dep_desc);
+                    $stmtInsertDep->execute();
+                }
+            } catch (Throwable $e) {
+                // ignora duplicidade/erro e segue
+            }
         }
 
         // Garantir cadastro/uso de todas as localidades encontradas

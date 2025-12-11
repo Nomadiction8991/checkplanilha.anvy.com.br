@@ -151,7 +151,7 @@ ob_start();
                         <?php foreach ($comums as $comum): ?>
                             <tr data-href="app/views/comuns/listar-planilhas.php?comum_id=<?php echo (int) $comum['id']; ?>">
                                 <td class="fw-semibold text-uppercase">
-                                    <?php echo htmlspecialchars(formatar_codigo_comum($comum['codigo'])); ?>
+                                    <?php echo htmlspecialchars($comum['codigo']); ?>
                                 </td>
                                 <td>
                                     <?php echo htmlspecialchars($comum['descricao']); ?>
@@ -190,4 +190,3 @@ require_once __DIR__ . '/app/views/layouts/app-wrapper.php';
 
 @unlink($contentFile);
 ?>
-
