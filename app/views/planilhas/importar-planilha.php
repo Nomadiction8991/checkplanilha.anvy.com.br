@@ -10,37 +10,6 @@ ob_start();
 ?>
 
 <form action="../../../CRUD/CREATE/importar-planilha.php" method="POST" enctype="multipart/form-data">
-    <!-- Dados do Comum -->
-    <div class="card mb-3">
-        <div class="card-header">
-            <i class="bi bi-geo-alt me-2"></i>
-            Dados do Comum
-        </div>
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label for="administracao" class="form-label">Administração <span class="text-danger">*</span></label>
-                    <select id="administracao" name="administracao" class="form-select" required>
-                        <option value="">Carregando cidades de MT...</option>
-                    </select>
-                    <small class="text-muted">Formato: Cidade (MT)</small>
-                </div>
-                <div class="col-md-6">
-                    <label for="cidade" class="form-label">Cidade <span class="text-danger">*</span></label>
-                    <select id="cidade" name="cidade" class="form-select" required>
-                        <option value="">Carregando cidades de MT...</option>
-                    </select>
-                    <small class="text-muted">Formato: Cidade (MT)</small>
-                </div>
-            </div>
-            <div class="row g-3 mt-1">
-                <div class="col-md-4">
-                    <label for="setor" class="form-label">Setor (opcional)</label>
-                    <input type="number" class="form-control" id="setor" name="setor" min="0" step="1" placeholder="Ex: 3">
-                </div>
-            </div>
-        </div>
-    </div>
     <!-- Arquivo CSV -->
     <div class="card mb-3">
         <div class="card-header">
@@ -69,11 +38,6 @@ ob_start();
                     <label for="posicao_data" class="form-label">Celula Data <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="posicao_data" name="posicao_data" value="D13" required>
                 </div>
-                <div class="col-md-6">
-                    <label for="coluna_localidade" class="form-label">Coluna Localidade (somente numeros serao usados) <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control text-center fw-bold" id="coluna_localidade" name="coluna_localidade" value="K" maxlength="2" required>
-                    <small class="text-muted">Ex: K</small>
-                </div>
             </div>
         </div>
     </div>
@@ -97,6 +61,9 @@ ob_start();
                 <div class="col-md-4">
                     <label for="mapeamento_dependencia" class="form-label">Dependência <span class="text-danger">*</span></label>
                     <input type="text" class="form-control text-center fw-bold" id="mapeamento_dependencia" name="mapeamento_dependencia" value="P" maxlength="2" required>
+                <div class="col-md-4">
+                    <label for="coluna_localidade" class="form-label">Localidade <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control text-center fw-bold" id="coluna_localidade" name="coluna_localidade" value="K" maxlength="2" required>
                 </div>
             </div>
         </div>
@@ -115,40 +82,3 @@ file_put_contents($contentFile, $contentHtml);
 include __DIR__ . '/../layouts/app-wrapper.php';
 @unlink($contentFile);
 ?>
-<script>
-// Popula os selects de Administração e Cidade com as cidades do MT (independentes)
-document.addEventListener('DOMContentLoaded', async function(){
-    const selAdm = document.getElementById('administracao');
-    const selCid = document.getElementById('cidade');
-
-    async function carregarCidadesMT(){
-        try {
-            // Buscar lista de estados, localizar MT e carregar municípios
-            const respUF = await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados');
-            const estados = await respUF.json();
-            const mt = estados.find(e => e.sigla === 'MT');
-            if (!mt) throw new Error('UF MT não encontrada');
-
-            const respCidades = await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados/' + mt.id + '/municipios');
-            let cidades = await respCidades.json();
-            cidades = cidades.map(c => c.nome).sort((a,b)=>a.localeCompare(b));
-
-            const optionsHtml = ['<option value="">Selecione...</option>']
-                .concat(cidades.map(nome => {
-                    const label = `${nome} (MT)`;
-                    return `<option value="${label}">${label}</option>`;
-                }))
-                .join('');
-
-            selAdm.innerHTML = optionsHtml;
-            selCid.innerHTML = optionsHtml;
-        } catch (e) {
-            selAdm.innerHTML = '<option value="">Erro ao carregar</option>';
-            selCid.innerHTML = '<option value="">Erro ao carregar</option>';
-            console.error(e);
-        }
-    }
-
-    carregarCidadesMT();
-});
-</script>

@@ -21,9 +21,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $posicao_cnpj = 'N/A';
     $mapeamento_codigo = strtoupper(trim($_POST['mapeamento_codigo'] ?? 'A'));
     $mapeamento_complemento = strtoupper(trim($_POST['mapeamento_complemento'] ?? 'D'));
-    $administracao = trim($_POST['administracao'] ?? '');
-    $cidade = trim($_POST['cidade'] ?? '');
-    $setor = isset($_POST['setor']) && $_POST['setor'] !== '' ? (int)$_POST['setor'] : null;
     $mapeamento_dependencia = strtoupper(trim($_POST['mapeamento_dependencia'] ?? 'P'));
     // Flag opcional para log detalhado de parsing
     $debug_import = isset($_POST['debug_import']);
@@ -38,10 +35,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!$arquivo_csv || $arquivo_csv['error'] !== UPLOAD_ERR_OK) {
             throw new Exception('Selecione um arquivo CSV válido.');
         }
-        if (empty($administracao) || empty($cidade)) {
-            throw new Exception('Administração e Cidade são obrigatórias.');
-        }
-
         $extensao = strtolower(pathinfo($arquivo_csv['name'], PATHINFO_EXTENSION));
         if ($extensao !== 'csv') {
             throw new Exception('Apenas arquivos CSV são permitidos.');
@@ -104,11 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Garante que o comum exista pelo codigo lido da coluna de localidade
-        $comum_processado_id = garantir_comum_por_codigo($conexao, $codigo_localidade, [
-            'administracao' => $administracao,
-            'cidade' => $cidade,
-            'setor' => $setor,
-        ]);
+        $comum_processado_id = garantir_comum_por_codigo($conexao, $codigo_localidade);
 
         // Iniciar transacao apenas para planilha+produtos; dados do Comum ja foram persistidos
         $conexao->beginTransaction();
