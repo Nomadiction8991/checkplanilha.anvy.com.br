@@ -67,6 +67,36 @@ $busca = trim($_GET['busca'] ?? '');
 $buscaDisplay = mb_strtoupper($busca, 'UTF-8');
 $comums = buscar_comuns($conexao, $busca);
 
+// AJAX handler: retorna as linhas da tabela e a contagem em JSON
+if (isset($_GET['ajax'])) {
+    header('Content-Type: application/json; charset=utf-8');
+    $rowsHtml = '';
+    if (empty($comums)) {
+        $rowsHtml = '<tr><td colspan="3" class="text-center py-4 text-muted"><i class="bi bi-inbox fs-3 d-block mb-2"></i>Nenhum comum encontrado</td></tr>';
+    } else {
+        foreach ($comums as $comum) {
+            $cadastro_ok = trim((string) $comum['descricao']) !== ''
+                           && trim((string) $comum['cnpj']) !== ''
+                           && trim((string) $comum['administracao']) !== ''
+                           && trim((string) $comum['cidade']) !== '';
+
+            $rowsHtml .= '<tr>';
+            $rowsHtml .= '<td class="fw-semibold text-uppercase">' . htmlspecialchars($comum['codigo']) . '</td>';
+            $rowsHtml .= '<td class="text-uppercase">' . htmlspecialchars($comum['descricao']) . '</td>';
+            $rowsHtml .= '<td>';
+            $rowsHtml .= '<div class="btn-group btn-group-sm" role="group">';
+            $rowsHtml .= '<a class="btn btn-outline-primary" href="app/views/comuns/comum_editar.php?id=' . (int) $comum['id'] . '" title="Editar"><i class="bi bi-pencil"></i></a>';
+            $rowsHtml .= '<a class="btn btn-outline-secondary btn-view-planilha" href="app/views/planilhas/planilha_visualizar.php?comum_id=' . (int) $comum['id'] . '" data-cadastro-ok="' . ($cadastro_ok ? '1' : '0') . '" data-edit-url="app/views/comuns/comum_editar.php?id=' . (int) $comum['id'] . '" title="Visualizar planilha"><i class="bi bi-eye"></i></a>';
+            $rowsHtml .= '</div>';
+            $rowsHtml .= '</td>';
+            $rowsHtml .= '</tr>';
+        }
+    }
+
+    echo json_encode(['rows' => $rowsHtml, 'count' => count($comums)]);
+    exit;
+}
+
 function formatar_codigo_comum($codigo) {
     $codigo = preg_replace("/\\D/", '', (string) $codigo);
     if ($codigo === '') {
@@ -103,14 +133,10 @@ ob_start();
                            value="<?php echo htmlspecialchars($buscaDisplay); ?>">
                 </div>
             </div>
-            <div class="col-12">
-                <button type="submit" class="btn btn-primary w-100">
-                    <i class="bi bi-search me-2"></i>Buscar
-                </button>
-            </div>
+        <!-- Busca automática: botão removido para pesquisa em tempo real -->
         </form>
     </div>
-    <div class="card-footer text-muted small">
+    <div id="comumCount" class="card-footer text-muted small">
         <?php echo count($comums); ?> comum(ns) encontrado(s)
     </div>
 </div>
@@ -120,7 +146,7 @@ ob_start();
         <span>
             <i class="bi bi-building me-2"></i>Comuns cadastrados
         </span>
-        <span class="badge bg-white text-dark"><?php echo count($comums); ?> itens</span>
+        <span id="comumBadge" class="badge bg-white text-dark"><?php echo count($comums); ?> itens</span>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -132,7 +158,7 @@ ob_start();
                         <th style="width: 140px">Ação</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="comunsTbody">
                     <?php if (empty($comums)): ?>
                         <tr>
                             <td colspan="3" class="text-center py-4 text-muted">
@@ -214,20 +240,48 @@ document.addEventListener('DOMContentLoaded', function() {
     var modalEl = document.getElementById('cadastroIncompletoModal');
     var modalInstance = modalEl ? new bootstrap.Modal(modalEl) : null;
 
-    document.querySelectorAll('.btn-view-planilha').forEach(function(btn) {
-        btn.addEventListener('click', function(e) {
-            var ok = this.getAttribute('data-cadastro-ok') === '1';
-            if (!ok) {
-                e.preventDefault();
-                if (modalInstance && modalEl) {
-                    var editBtn = modalEl.querySelector('.btn-edit-agora');
-                    if (editBtn) {
-                        editBtn.setAttribute('href', this.getAttribute('data-edit-url'));
-                    }
-                    modalInstance.show();
+    // Delegated handler for view-planilha buttons (works for dynamically loaded rows)
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('.btn-view-planilha');
+        if (!btn) return;
+        var ok = btn.getAttribute('data-cadastro-ok') === '1';
+        if (!ok) {
+            e.preventDefault();
+            if (modalInstance && modalEl) {
+                var editBtn = modalEl.querySelector('.btn-edit-agora');
+                if (editBtn) {
+                    editBtn.setAttribute('href', btn.getAttribute('data-edit-url'));
                 }
+                modalInstance.show();
             }
-        });
+        }
+    });
+
+    // Live search with debounce
+    var input = document.getElementById('busca');
+    if (!input) return;
+    var timeout = null;
+
+    function doSearch(q) {
+        var url = window.location.pathname + '?ajax=1&busca=' + encodeURIComponent(q);
+        fetch(url, { credentials: 'same-origin' })
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                var tbody = document.getElementById('comunsTbody');
+                var countEl = document.getElementById('comumCount');
+                var badge = document.getElementById('comumBadge');
+                if (tbody) tbody.innerHTML = data.rows;
+                if (countEl) countEl.textContent = data.count + ' comum(ns) encontrado(s)';
+                if (badge) badge.textContent = data.count + ' itens';
+            })
+            .catch(function(err) {
+                console.error('Erro na busca AJAX:', err);
+            });
+    }
+
+    input.addEventListener('input', function() {
+        clearTimeout(timeout);
+        timeout = setTimeout(function() { doSearch(input.value.trim()); }, 300);
     });
 });
 </script>
