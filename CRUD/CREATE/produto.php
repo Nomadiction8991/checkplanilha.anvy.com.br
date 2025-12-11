@@ -2,12 +2,13 @@
 require_once __DIR__ . '/../../auth.php'; // Autenticação
 require_once __DIR__ . '/../conexao.php';
 
-$id_planilha = isset($_GET['planilha_id']) ? (int) $_GET['planilha_id'] : (isset($_GET['id']) ? (int) $_GET['id'] : null);
+$comum_id = isset($_GET['comum_id']) ? (int) $_GET['comum_id'] : (isset($_GET['id']) ? (int) $_GET['id'] : null);
 
-if (!$id_planilha) {
+if (!$comum_id) {
     header('Location: ../index.php');
     exit;
 }
+$id_planilha = $comum_id; // alias de compatibilidade para views
 
 // Buscar tipos de bens disponíveis
 $sql_tipos_bens = "SELECT id, codigo, descricao FROM tipos_bens ORDER BY codigo";
@@ -80,13 +81,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Campos padrão para novo cadastro: novo=1, checado=1, imprimir_etiqueta=1, editado=0, ativo=1
             $administrador_acessor_id = isset($_SESSION['usuario_id']) ? (int)$_SESSION['usuario_id'] : null;
             $sql_inserir = "INSERT INTO produtos (
-                           planilha_id, codigo, descricao_completa, editado_descricao_completa,
+                           comum_id, codigo, descricao_completa, editado_descricao_completa,
                            tipo_bem_id, editado_tipo_bem_id, bem, editado_bem,
                            complemento, editado_complemento, dependencia_id, editado_dependencia_id,
                            checado, editado, imprimir_etiqueta, imprimir_14_1,
                            observacao, ativo, novo, condicao_14_1, administrador_acessor_id
                            ) VALUES (
-                           :planilha_id, :codigo, :descricao_completa, '',
+                           :comum_id, :codigo, :descricao_completa, '',
                            :id_tipo_bem, 0, :tipo_bem, '',
                            :complemento, '', :id_dependencia, 0,
                            1, 0, 1, :imprimir_14_1,
@@ -100,8 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Montar descrição completa (quantidade sempre será 1)
                 $descricao_completa = "1x [" . $tipo_bem['codigo'] . " - " . $tipo_bem['descricao'] . "] " . $tipo_ben . " - " . $complemento . " - (" . $dependencia['descricao'] . ")";
                 
-                // Corrige placeholder: na query é :planilha_id (antes usava :id_planilha causando HY093)
-                $stmt_inserir->bindValue(':planilha_id', $id_planilha);
+                $stmt_inserir->bindValue(':comum_id', $comum_id);
                 $stmt_inserir->bindValue(':codigo', !empty($codigo) ? $codigo : null);
                 $stmt_inserir->bindValue(':id_tipo_bem', $id_tipo_ben);
                 $stmt_inserir->bindValue(':tipo_bem', $tipo_ben);
@@ -121,7 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $parametros_retorno = gerarParametrosFiltro();
             
             // Redirecionar de volta para a lista (caminho relativo ao document root)
-            header('Location: /dev/app/views/produtos/read-produto.php?id=' . $id_planilha . ($parametros_retorno ? '&' . $parametros_retorno : ''));
+            header('Location: /dev/app/views/produtos/read-produto.php?comum_id=' . $comum_id . ($parametros_retorno ? '&' . $parametros_retorno : ''));
             exit;
             
         } catch (Exception $e) {

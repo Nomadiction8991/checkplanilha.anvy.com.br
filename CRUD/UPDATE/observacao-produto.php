@@ -4,7 +4,7 @@ require_once __DIR__ . '/../conexao.php';
 
 // Receber parâmetros via GET - AGORA USANDO ID
 $id_produto = isset($_GET['id_produto']) ? (int) $_GET['id_produto'] : null;
-$id_planilha = isset($_GET['planilha_id']) ? (int) $_GET['planilha_id'] : (isset($_GET['id']) ? (int) $_GET['id'] : null);
+$comum_id = isset($_GET['comum_id']) ? (int) $_GET['comum_id'] : (isset($_GET['id']) ? (int) $_GET['id'] : null);
 
 // Receber filtros
 $pagina = $_GET['pagina'] ?? 1;
@@ -14,9 +14,9 @@ $filtro_codigo = $_GET['filtro_codigo'] ?? '';
 $filtro_status = $_GET['status'] ?? '';
 
 // Validação dos parâmetros obrigatórios
-if (!$id_produto || !$id_planilha) {
+if (!$id_produto || !$comum_id) {
     $query_string = http_build_query([
-        'id' => $id_planilha,
+        'id' => $comum_id,
         'pagina' => $pagina,
         'nome' => $filtro_nome,
         'dependencia' => $filtro_dependencia,
@@ -41,10 +41,10 @@ $check = [
 
 // Buscar dados do produto POR ID
 try {
-    $sql_produto = "SELECT * FROM produtos WHERE id_produto = :id_produto AND planilha_id = :planilha_id";
+    $sql_produto = "SELECT * FROM produtos WHERE id_produto = :id_produto AND comum_id = :comum_id";
     $stmt_produto = $conexao->prepare($sql_produto);
     $stmt_produto->bindValue(':id_produto', $id_produto);
-    $stmt_produto->bindValue(':planilha_id', $id_planilha);
+    $stmt_produto->bindValue(':comum_id', $comum_id);
     $stmt_produto->execute();
     $produto = $stmt_produto->fetch();
     
@@ -77,16 +77,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     try {
         // Atualizar observações diretamente na tabela produtos - USANDO id_produto
-        $sql_update = "UPDATE produtos SET observacao = :observacao WHERE id_produto = :id_produto AND planilha_id = :planilha_id";
+        $sql_update = "UPDATE produtos SET observacao = :observacao WHERE id_produto = :id_produto AND comum_id = :comum_id";
         $stmt_update = $conexao->prepare($sql_update);
         $stmt_update->bindValue(':observacao', $observacoes);
         $stmt_update->bindValue(':id_produto', $id_produto, PDO::PARAM_INT);
-        $stmt_update->bindValue(':planilha_id', $id_planilha, PDO::PARAM_INT);
+        $stmt_update->bindValue(':comum_id', $comum_id, PDO::PARAM_INT);
         $stmt_update->execute();
         
         // REDIRECIONAR PARA view-planilha.php APÓS SALVAR
         $query_string = http_build_query([
-            'id' => $id_planilha,
+            'id' => $comum_id,
             'pagina' => $pagina,
             'nome' => $filtro_nome,
             'dependencia' => $filtro_dependencia,

@@ -8,7 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $produto_id = (int) ($_POST['produto_id'] ?? 0);
-$id_planilha = (int) ($_POST['id_planilha'] ?? 0);
+$comum_id = (int) ($_POST['comum_id'] ?? 0);
 $dr = (int) ($_POST['dr'] ?? 0);
 
 $filtros = [
@@ -20,15 +20,15 @@ $filtros = [
 ];
 
 $redirectBase = '../../app/views/planilhas/view-planilha.php';
-$buildRedirect = function (string $erro = '') use ($redirectBase, $id_planilha, $filtros): string {
-    $params = array_merge(['id' => $id_planilha], $filtros);
+$buildRedirect = function (string $erro = '') use ($redirectBase, $comum_id, $filtros): string {
+    $params = array_merge(['id' => $comum_id, 'comum_id' => $comum_id], $filtros);
     if ($erro !== '') {
         $params['erro'] = $erro;
     }
     return $redirectBase . '?' . http_build_query($params);
 };
 
-if ($produto_id <= 0 || $id_planilha <= 0) {
+if ($produto_id <= 0 || $comum_id <= 0) {
     $msg = 'Parâmetros inválidos para atualizar DR.';
     if (is_ajax_request()) {
         json_response(['success' => false, 'message' => $msg], 400);

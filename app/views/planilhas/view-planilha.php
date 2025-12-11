@@ -1,24 +1,53 @@
 <?php
 require_once __DIR__ . '/../../../auth.php'; // Autenticacao
 
-// Usamos o ID da comum como parametro principal (mantendo compatibilidade com "id")
+// Usamos o ID da comum como parametro principal
 $comum_id = isset($_GET['comum_id']) ? (int)$_GET['comum_id'] : (isset($_GET['id']) ? (int)$_GET['id'] : 0);
 if ($comum_id <= 0) {
-    header('Location: ../../../index.php');
+    header('Location: '../../../index.php');
     exit;
 }
 
 require_once __DIR__ . '/../../../CRUD/READ/view-planilha.php';
 
-// ID real da planilha vinculada ao comum
-$id_planilha = (int)($planilha['planilha_id'] ?? $id_planilha ?? $comum_id);
-$_GET['comum_id'] = $comum_id;
-$_GET['id'] = $id_planilha;
-$_GET['planilha_id'] = $id_planilha;
-
 // Configuracoes da pagina
+$id_planilha = $comum_id; // compatibilidade com código legado
 $pageTitle = htmlspecialchars($planilha['comum_descricao'] ?? 'Visualizar Planilha');
 $backUrl = '../../../index.php';
+
+// Bloqueio por data de importação (UTC-4)
+if (!empty($acesso_bloqueado)) {
+    ?>
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Importação necessária</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    </head>
+    <body class="bg-light d-flex align-items-center justify-content-center" style="min-height:100vh;">
+        <div class="card shadow-lg" style="max-width: 480px; width: 100%;">
+            <div class="card-body text-center p-4">
+                <div class="mb-3 text-danger">
+                    <i class="bi bi-exclamation-triangle-fill fs-1"></i>
+                </div>
+                <h5 class="card-title mb-3">Importação desatualizada</h5>
+                <p class="card-text text-muted mb-4">
+                    <?php echo htmlspecialchars($mensagem_bloqueio ?: 'A planilha precisa ser importada novamente para continuar.'); ?>
+                </p>
+                <a href="../planilhas/importar-planilha.php" class="btn btn-primary w-100">
+                    Importar planilha atualizada
+                </a>
+            </div>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    </body>
+    </html>
+    <?php
+    exit;
+}
 
 // Menu diferenciado para Admin e Doador
 $headerActions = '
@@ -32,7 +61,7 @@ $headerActions = '
 if (isAdmin()) {
     $headerActions .= '
             <li>
-                <a class="dropdown-item" href="../produtos/read-produto.php?planilha_id=' . $id_planilha . '&comum_id=' . $comum_id . '">
+                <a class="dropdown-item" href="../produtos/read-produto.php?comum_id=' . $comum_id . '">
                     <i class="bi bi-list-ul me-2"></i>Listagem de Produtos
                 </a>
             </li>
@@ -488,7 +517,7 @@ ob_start();
                     <!-- Check -->
                     <form method="POST" action="../../../CRUD/UPDATE/check-produto.php" style="display: <?php echo $show_check ? 'inline' : 'none'; ?>;" class="produto-action-form action-check" data-action="check" data-produto-id="<?php echo $p['id_produto']; ?>">
                         <input type="hidden" name="produto_id" value="<?php echo $p['id_produto']; ?>">
-                        <input type="hidden" name="id_planilha" value="<?php echo $id_planilha; ?>">
+                        <input type="hidden" name="comum_id" value="<?php echo $comum_id; ?>">
                         <input type="hidden" name="checado" value="<?php echo $p['checado'] ? '0' : '1'; ?>">
                         <input type="hidden" name="pagina" value="<?php echo $pagina ?? 1; ?>">
                         <input type="hidden" name="nome" value="<?php echo htmlspecialchars($filtro_nome ?? ''); ?>">
@@ -503,7 +532,7 @@ ob_start();
                     <!-- Etiqueta -->
                     <form method="POST" action="../../../CRUD/UPDATE/etiqueta-produto.php" style="display: <?php echo $show_imprimir ? 'inline' : 'none'; ?>;" class="produto-action-form action-imprimir" data-action="imprimir" data-produto-id="<?php echo $p['id_produto']; ?>" data-confirm="<?php echo $p['imprimir'] ? 'Deseja desmarcar este produto para etiqueta?' : 'Deseja marcar este produto para etiqueta?'; ?>">
                         <input type="hidden" name="produto_id" value="<?php echo $p['id_produto']; ?>">
-                        <input type="hidden" name="id_planilha" value="<?php echo $id_planilha; ?>">
+                        <input type="hidden" name="comum_id" value="<?php echo $comum_id; ?>">
                         <input type="hidden" name="imprimir" value="<?php echo $p['imprimir'] ? '0' : '1'; ?>">
                         <input type="hidden" name="pagina" value="<?php echo $pagina ?? 1; ?>">
                         <input type="hidden" name="nome" value="<?php echo htmlspecialchars($filtro_nome ?? ''); ?>">
@@ -516,13 +545,13 @@ ob_start();
                     </form>
                     
                     <!-- Observa??o -->
-                    <a href="../produtos/observacao-produto.php?id_produto=<?php echo $p['id_produto']; ?>&planilha_id=<?php echo $id_planilha; ?>&comum_id=<?php echo $comum_id; ?>&pagina=<?php echo $pagina ?? 1; ?>&nome=<?php echo urlencode($filtro_nome ?? ''); ?>&dependencia=<?php echo urlencode($filtro_dependencia ?? ''); ?>&filtro_codigo=<?php echo urlencode($filtro_codigo ?? ''); ?>&status=<?php echo urlencode($filtro_status ?? ''); ?>"
+                    <a href="../produtos/observacao-produto.php?id_produto=<?php echo $p['id_produto']; ?>&comum_id=<?php echo $comum_id; ?>&pagina=<?php echo $pagina ?? 1; ?>&nome=<?php echo urlencode($filtro_nome ?? ''); ?>&dependencia=<?php echo urlencode($filtro_dependencia ?? ''); ?>&filtro_codigo=<?php echo urlencode($filtro_codigo ?? ''); ?>&status=<?php echo urlencode($filtro_status ?? ''); ?>"
                        class="btn btn-outline-warning btn-sm action-observacao <?php echo !empty($p['observacao']) ? 'active' : ''; ?>" style="display: <?php echo $show_obs ? 'inline-block' : 'none'; ?>;" title="Observa??o">
                         <i class="bi bi-chat-square-text-fill"></i>
                     </a>
                     
                     <!-- Editar -->
-                    <a href="../produtos/editar-produto.php?id_produto=<?php echo $p['id_produto']; ?>&planilha_id=<?php echo $id_planilha; ?>&comum_id=<?php echo $comum_id; ?>&pagina=<?php echo $pagina ?? 1; ?>&nome=<?php echo urlencode($filtro_nome ?? ''); ?>&dependencia=<?php echo urlencode($filtro_dependencia ?? ''); ?>&filtro_codigo=<?php echo urlencode($filtro_codigo ?? ''); ?>&status=<?php echo urlencode($filtro_status ?? ''); ?>"
+                    <a href="../produtos/editar-produto.php?id_produto=<?php echo $p['id_produto']; ?>&comum_id=<?php echo $comum_id; ?>&pagina=<?php echo $pagina ?? 1; ?>&nome=<?php echo urlencode($filtro_nome ?? ''); ?>&dependencia=<?php echo urlencode($filtro_dependencia ?? ''); ?>&filtro_codigo=<?php echo urlencode($filtro_codigo ?? ''); ?>&status=<?php echo urlencode($filtro_status ?? ''); ?>"
                        class="btn btn-outline-primary btn-sm action-editar <?php echo $tem_edicao ? 'active' : ''; ?>" style="display: <?php echo $show_edit ? 'inline-block' : 'none'; ?>;" title="Editar">
                         <i class="bi bi-pencil-fill"></i>
                     </a>
@@ -532,7 +561,7 @@ ob_start();
                     <?php $drConfirm = $p['ativo'] == 0 ? 'Tem certeza que deseja desmarcar este produto do DR?' : 'Tem certeza que deseja marcar este produto como DR? Esta ação irá limpar observações e desmarcar para impressão.'; ?>
                     <form method="POST" action="../../../CRUD/UPDATE/dr-produto.php" style="display: inline;" class="produto-action-form action-dr" data-action="dr" data-produto-id="<?php echo $p['id_produto']; ?>" data-confirm="<?php echo htmlspecialchars($drConfirm, ENT_QUOTES, 'UTF-8'); ?>">
                         <input type="hidden" name="produto_id" value="<?php echo $p['id_produto']; ?>">
-                        <input type="hidden" name="id_planilha" value="<?php echo $id_planilha; ?>">
+                        <input type="hidden" name="comum_id" value="<?php echo $comum_id; ?>">
                         <input type="hidden" name="dr" value="<?php echo $p['ativo'] == 0 ? '0' : '1'; ?>">
                         <input type="hidden" name="pagina" value="<?php echo $pagina ?? 1; ?>">
                         <input type="hidden" name="nome" value="<?php echo htmlspecialchars($filtro_nome ?? ''); ?>">
@@ -563,7 +592,7 @@ ob_start();
     <ul class="pagination pagination-sm justify-content-center mb-0">
         <?php if ($pagina > 1): ?>
         <li class="page-item">
-            <a class="page-link" href="?<?php echo http_build_query(array_merge(['planilha_id' => $id_planilha, 'comum_id' => $comum_id], $_GET, ['pagina' => $pagina - 1])); ?>">
+            <a class="page-link" href="?<?php echo http_build_query(array_merge(['id' => $comum_id, 'comum_id' => $comum_id], $_GET, ['pagina' => $pagina - 1])); ?>">
                 <i class="bi bi-chevron-left"></i>
             </a>
         </li>
@@ -575,7 +604,7 @@ ob_start();
         for ($i = $inicio; $i <= $fim; $i++): 
         ?>
         <li class="page-item <?php echo $i == $pagina ? 'active' : ''; ?>">
-            <a class="page-link" href="?<?php echo http_build_query(array_merge($_GET, ['pagina' => $i])); ?>">
+            <a class="page-link" href="?<?php echo http_build_query(array_merge(['id' => $comum_id, 'comum_id' => $comum_id], $_GET, ['pagina' => $i])); ?>">
                 <?php echo $i; ?>
             </a>
         </li>
@@ -583,7 +612,7 @@ ob_start();
         
         <?php if ($pagina < $total_paginas): ?>
         <li class="page-item">
-            <a class="page-link" href="?<?php echo http_build_query(array_merge($_GET, ['pagina' => $pagina + 1])); ?>">
+            <a class="page-link" href="?<?php echo http_build_query(array_merge(['id' => $comum_id, 'comum_id' => $comum_id], $_GET, ['pagina' => $pagina + 1])); ?>">
                 <i class="bi bi-chevron-right"></i>
             </a>
         </li>

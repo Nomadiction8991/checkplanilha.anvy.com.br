@@ -3,19 +3,7 @@ require_once __DIR__ . '/../../auth.php'; // Autenticação
 require_once __DIR__ . '/../conexao.php';
 require_once __DIR__ . '/../../app/functions/comum_functions.php';
 
-$planilha_param = isset($_GET['planilha_id']) ? (int)$_GET['planilha_id'] : (isset($_GET['id']) ? (int)$_GET['id'] : 0);
-$comum_id = isset($_GET['comum_id']) ? (int)$_GET['comum_id'] : 0;
-$planilha_info = null;
-
-if ($planilha_param > 0) {
-    $stmtPlanilha = $conexao->prepare('SELECT * FROM planilhas WHERE id = :id');
-    $stmtPlanilha->bindValue(':id', $planilha_param, PDO::PARAM_INT);
-    $stmtPlanilha->execute();
-    $planilha_info = $stmtPlanilha->fetch(PDO::FETCH_ASSOC);
-    if ($planilha_info && $comum_id <= 0) {
-        $comum_id = (int) $planilha_info['comum_id'];
-    }
-}
+$comum_id = isset($_GET['comum_id']) ? (int)$_GET['comum_id'] : (isset($_GET['id']) ? (int)$_GET['id'] : 0);
 
 if ($comum_id <= 0) {
     header('Location: ../index.php');
@@ -32,22 +20,33 @@ $comum = obter_comum_por_id($conexao, $comum_id);
 if (!$comum) {
     die('Comum não encontrado.');
 }
-if (!$planilha_info) {
-    $planilha_info = obter_planilha_ativa_por_comum($conexao, $comum_id);
-}
-if (!$planilha_info) {
-    die('Planilha não encontrada para este comum.');
-}
 $planilha = [
     'comum_id' => $comum_id,
-    'planilha_id' => (int) $planilha_info['id'],
     'comum_descricao' => $comum['descricao'] ?? ''
 ];
-$id_planilha = (int) $planilha_info['id']; // compatibilidade com o restante do código
-$_GET['id'] = $id_planilha;
-$_GET['planilha_id'] = $id_planilha;
-$_GET['comum_id'] = $comum_id;
+$id_planilha = $comum_id; // compatibilidade com códigos legados que ainda usam id_planilha
 
+// Configuração global de importação
+$stmtCfg = $conexao->prepare("SELECT * FROM configuracoes LIMIT 1");
+$stmtCfg->execute();
+$configImport = $stmtCfg->fetch(PDO::FETCH_ASSOC) ?: [];
+$data_importacao = $configImport['data_importacao'] ?? null;
+$acesso_bloqueado = false;
+$mensagem_bloqueio = '';
+
+$hoje_cuiaba = (new DateTime('now', new DateTimeZone('America/Cuiaba')))->format('Y-m-d');
+if ($data_importacao !== $hoje_cuiaba) {
+    $acesso_bloqueado = true;
+    $mensagem_bloqueio = 'A planilha não está atualizada para o dia de hoje. Importe um arquivo atualizado para continuar.';
+}
+
+if ($acesso_bloqueado) {
+    $produtos = [];
+    $total_registros = 0;
+    $total_paginas = 0;
+    $dependencia_options = [];
+    return;
+}
 // Parâmetros de paginação
 $pagina = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
 $pagina = $pagina > 0 ? $pagina : 1;
@@ -90,9 +89,9 @@ $sql_base = "SELECT
                  LEFT JOIN tipos_bens t1 ON p.tipo_bem_id = t1.id
                  LEFT JOIN dependencias d1 ON p.dependencia_id = d1.id
                  LEFT JOIN dependencias d2 ON p.editado_dependencia_id = d2.id
-                 WHERE p.planilha_id = :planilha_id AND COALESCE(p.novo,0) = 0";
+                 WHERE p.comum_id = :comum_id AND COALESCE(p.novo,0) = 0";
 
-$params = [':planilha_id' => $id_planilha];
+$params = [':comum_id' => $comum_id];
 
 if ($filtro_nome !== '') {
     // Usar placeholders distintos: PDO nÇœo aceita o mesmo nome repetido com ATTR_EMULATE_PREPARES desativado
@@ -140,7 +139,7 @@ if ($filtro_status !== '') {
 // Total de registros para paginação - query COUNT simplificada
 $sql_count = "SELECT COUNT(*) AS total 
               FROM produtos p 
-              WHERE p.planilha_id = :planilha_id AND COALESCE(p.novo,0) = 0";
+              WHERE p.comum_id = :comum_id AND COALESCE(p.novo,0) = 0";
 
 // Aplicar os mesmos filtros do $sql_base na query de contagem
 if ($filtro_nome !== '') {
@@ -215,21 +214,21 @@ try {
                     FROM (
                         SELECT p.dependencia_id AS dep
                         FROM produtos p
-                        WHERE p.planilha_id = :id_dep_original
+                        WHERE p.comum_id = :id_dep_original
                           AND p.dependencia_id IS NOT NULL
                           AND p.dependencia_id <> 0
                         UNION ALL
                         SELECT p.editado_dependencia_id AS dep
                         FROM produtos p
-                        WHERE p.planilha_id = :id_dep_editada
+                        WHERE p.comum_id = :id_dep_editada
                           AND p.editado_dependencia_id IS NOT NULL
                           AND p.editado_dependencia_id <> 0
                     ) deps
                     INNER JOIN dependencias d ON d.id = deps.dep
                     ORDER BY d.descricao";
     $stmt_filtros = $conexao->prepare($sql_filtros);
-    $stmt_filtros->bindValue(':id_dep_original', $id_planilha, PDO::PARAM_INT);
-    $stmt_filtros->bindValue(':id_dep_editada', $id_planilha, PDO::PARAM_INT);
+    $stmt_filtros->bindValue(':id_dep_original', $comum_id, PDO::PARAM_INT);
+    $stmt_filtros->bindValue(':id_dep_editada', $comum_id, PDO::PARAM_INT);
     $stmt_filtros->execute();
     $dependencia_options = $stmt_filtros->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {

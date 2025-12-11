@@ -1,28 +1,11 @@
 <?php
 require_once __DIR__ . '/../../auth.php'; // Autenticação
 require_once __DIR__ . '/../conexao.php';
-require_once __DIR__ . '/../../app/functions/comum_functions.php';
 
-$comum_id = isset($_GET['comum_id']) ? (int)$_GET['comum_id'] : 0;
-$planilha_id = isset($_GET['planilha_id']) ? (int)$_GET['planilha_id'] : (isset($_GET['id']) ? (int)$_GET['id'] : 0);
-
-if ($planilha_id <= 0 && $comum_id > 0) {
-    $planilha_id = resolver_planilha_id_por_comum($conexao, $comum_id) ?? 0;
-}
-
-if ($planilha_id <= 0) {
+$comum_id = isset($_GET['comum_id']) ? (int)$_GET['comum_id'] : (isset($_GET['id']) ? (int)$_GET['id'] : 0);
+if ($comum_id <= 0) {
     header('Location: ../index.php');
     exit;
-}
-
-if ($comum_id <= 0) {
-    $stmtPlanilha = $conexao->prepare('SELECT comum_id FROM planilhas WHERE id = :id');
-    $stmtPlanilha->bindValue(':id', $planilha_id, PDO::PARAM_INT);
-    $stmtPlanilha->execute();
-    $rowPlanilha = $stmtPlanilha->fetch();
-    if ($rowPlanilha && !empty($rowPlanilha['comum_id'])) {
-        $comum_id = (int) $rowPlanilha['comum_id'];
-    }
 }
 
 // Parâmetros de pesquisa
@@ -51,24 +34,24 @@ $sql = "SELECT
             COALESCE(p.imprimir_14_1, 0) AS imprimir_14_1
         FROM produtos p
         LEFT JOIN dependencias d ON p.dependencia_id = d.id
-        WHERE p.planilha_id = :planilha_id";
+        WHERE p.comum_id = :comum_id";
 
 $sql_count = "SELECT COUNT(*) as total 
               FROM produtos p
               LEFT JOIN dependencias d ON p.dependencia_id = d.id
-              WHERE p.planilha_id = :planilha_id";
+              WHERE p.comum_id = :comum_id";
 
 // Buscar tipos de bens disponíveis para o select (SEM REPETIÇÕES)
 $sql_tipos_bens = "SELECT DISTINCT tb.id, tb.codigo, tb.descricao 
                    FROM produtos p
                    JOIN tipos_bens tb ON p.tipo_bem_id = tb.id
-                   WHERE p.planilha_id = :planilha_id
+                   WHERE p.comum_id = :comum_id
                    ORDER BY tb.codigo";
 
 // Buscar códigos bem disponíveis para o select (SEM REPETIÇÕES)
 $sql_bem_codigos = "SELECT DISTINCT p.bem AS tipo_ben
                     FROM produtos p
-                    WHERE p.planilha_id = :planilha_id 
+                    WHERE p.comum_id = :comum_id 
                     AND p.bem IS NOT NULL 
                     AND p.bem != ''
                     ORDER BY p.bem";
@@ -77,25 +60,25 @@ $sql_bem_codigos = "SELECT DISTINCT p.bem AS tipo_ben
 $sql_dependencias = "SELECT DISTINCT d.id, d.descricao 
                     FROM produtos p
                     LEFT JOIN dependencias d ON p.dependencia_id = d.id
-                    WHERE p.planilha_id = :planilha_id AND d.id IS NOT NULL
+                    WHERE p.comum_id = :comum_id AND d.id IS NOT NULL
                     ORDER BY d.descricao";
 
 try {
     // Buscar tipos de bens (SEM REPETIÇÕES)
     $stmt_tipos = $conexao->prepare($sql_tipos_bens);
-    $stmt_tipos->bindValue(':planilha_id', $planilha_id);
+    $stmt_tipos->bindValue(':comum_id', $comum_id);
     $stmt_tipos->execute();
     $tipos_bens = $stmt_tipos->fetchAll();
 
     // Buscar códigos bem (SEM REPETIÇÕES)
     $stmt_bem = $conexao->prepare($sql_bem_codigos);
-    $stmt_bem->bindValue(':planilha_id', $planilha_id);
+    $stmt_bem->bindValue(':comum_id', $comum_id);
     $stmt_bem->execute();
     $bem_codigos = $stmt_bem->fetchAll();
 
     // Buscar dependências (SEM REPETIÇÕES)
     $stmt_deps = $conexao->prepare($sql_dependencias);
-    $stmt_deps->bindValue(':planilha_id', $planilha_id);
+    $stmt_deps->bindValue(':comum_id', $comum_id);
     $stmt_deps->execute();
     $dependencias = $stmt_deps->fetchAll();
 } catch (Exception $e) {
@@ -106,7 +89,7 @@ try {
 
 // Adicionar condições de pesquisa
 $condicoes = [];
-$params = [':planilha_id' => $planilha_id];
+$params = [':comum_id' => $comum_id];
 
 if (!empty($pesquisa_id)) {
     $condicoes[] = "p.id_produto = :pesquisa_id";
@@ -114,7 +97,7 @@ if (!empty($pesquisa_id)) {
 }
 
 if (!empty($filtro_tipo_ben)) {
-    $condicoes[] = "p.tipo_bem_id = :filtro_tipo_bem";
+    $condicoes[] = "p.tipo_bem_id = :filtro_tipo_ben";
     $params[':filtro_tipo_ben'] = $filtro_tipo_ben;
 }
 
@@ -136,11 +119,11 @@ if (!empty($filtro_dependencia)) {
 
 if (!empty($filtro_status)) {
     if ($filtro_status === 'com_nota') {
-    $condicoes[] = "(COALESCE(p.condicao_14_1,0) = 1 OR COALESCE(p.condicao_14_1,0) = 3)";
+        $condicoes[] = "(COALESCE(p.condicao_14_1,0) = 1 OR COALESCE(p.condicao_14_1,0) = 3)";
     } elseif ($filtro_status === 'com_14_1') {
-    $condicoes[] = "COALESCE(p.imprimir_14_1,0) = 1";
+        $condicoes[] = "COALESCE(p.imprimir_14_1,0) = 1";
     } elseif ($filtro_status === 'sem_status') {
-    $condicoes[] = "(p.condicao_14_1 IS NULL OR p.condicao_14_1 = 2) AND COALESCE(p.imprimir_14_1,0) = 0";
+        $condicoes[] = "(p.condicao_14_1 IS NULL OR p.condicao_14_1 = 2) AND COALESCE(p.imprimir_14_1,0) = 0";
     }
 }
 
@@ -182,8 +165,6 @@ try {
     die("Erro ao carregar produtos: " . $e->getMessage());
 }
 
-// Função para gerar parâmetros de filtro para URLs
-// Função para gerar parâmetros de filtro para URLs
 function gerarParametrosFiltro($incluirPagina = false) {
     $params = [];
     
@@ -204,9 +185,6 @@ function gerarParametrosFiltro($incluirPagina = false) {
     }
     if (!empty($_GET['filtro_status'])) {
         $params['filtro_status'] = $_GET['filtro_status'];
-    }
-    if (!empty($_GET['planilha_id'])) {
-        $params['planilha_id'] = $_GET['planilha_id'];
     }
     if (!empty($_GET['comum_id'])) {
         $params['comum_id'] = $_GET['comum_id'];
