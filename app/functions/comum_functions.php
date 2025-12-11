@@ -95,22 +95,30 @@ function garantir_comum_por_codigo($conexao, $codigo, $dados = []) {
         return (int)$existente['id'];
     }
 
-    // Inserir novo registro
-    $cnpj_final = gerar_cnpj_unico($conexao, $dados['cnpj'] ?? '', $codigo);
-    $descricao = $dados['descricao'] ?? ('COMUM ' . $codigo);
+    // Inserir novo registro com campos vazios
+    $cnpj_final = null;
+    $descricao = $dados['descricao'] ?? '';
     $administracao = $dados['administracao'] ?? '';
     $cidade = $dados['cidade'] ?? '';
-    $setor = $dados['setor'] ?? 0;
+    $setor = $dados['setor'] ?? null;
 
     $sql_insert = "INSERT INTO comums (codigo, cnpj, descricao, administracao, cidade, setor)
                    VALUES (:codigo, :cnpj, :descricao, :administracao, :cidade, :setor)";
     $stmt_insert = $conexao->prepare($sql_insert);
     $stmt_insert->bindValue(':codigo', $codigo, PDO::PARAM_INT);
-    $stmt_insert->bindValue(':cnpj', $cnpj_final);
+    if ($cnpj_final === null) {
+        $stmt_insert->bindValue(':cnpj', null, PDO::PARAM_NULL);
+    } else {
+        $stmt_insert->bindValue(':cnpj', $cnpj_final);
+    }
     $stmt_insert->bindValue(':descricao', $descricao);
     $stmt_insert->bindValue(':administracao', $administracao);
     $stmt_insert->bindValue(':cidade', $cidade);
-    $stmt_insert->bindValue(':setor', $setor, PDO::PARAM_INT);
+    if ($setor === null) {
+        $stmt_insert->bindValue(':setor', null, PDO::PARAM_NULL);
+    } else {
+        $stmt_insert->bindValue(':setor', $setor, PDO::PARAM_INT);
+    }
     $stmt_insert->execute();
 
     return (int)$conexao->lastInsertId();
