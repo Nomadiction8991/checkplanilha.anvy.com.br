@@ -1,10 +1,11 @@
 <?php
 require_once __DIR__ . '/../../auth.php'; // Autenticação
 require_once __DIR__ . '/../conexao.php';
+require_once __DIR__ . '/../../app/functions/comum_functions.php';
 
-$id_planilha = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$comum_id = isset($_GET['comum_id']) ? (int)$_GET['comum_id'] : (isset($_GET['id']) ? (int)$_GET['id'] : 0);
 
-if ($id_planilha <= 0) {
+if ($comum_id <= 0) {
     header('Location: ../index.php');
     exit;
 }
@@ -15,23 +16,15 @@ if ($erro !== '') {
     echo "<script>alert('" . addslashes($erro) . "');</script>";
 }
 
-// Buscar dados da planilha e, quando existir, a descrição do comum relacionado
-try {
-    $sql_planilha = "SELECT pl.*, cm.descricao AS comum_descricao
-                     FROM planilhas pl
-                     LEFT JOIN comums cm ON cm.id = pl.comum_id
-                     WHERE pl.id = :id";
-    $stmt_planilha = $conexao->prepare($sql_planilha);
-    $stmt_planilha->bindValue(':id', $id_planilha, PDO::PARAM_INT);
-    $stmt_planilha->execute();
-    $planilha = $stmt_planilha->fetch(PDO::FETCH_ASSOC);
-
-    if (!$planilha) {
-        throw new Exception('Planilha não encontrada.');
-    }
-} catch (Exception $e) {
-    die('Erro ao carregar planilha: ' . $e->getMessage());
+$comum = obter_comum_por_id($conexao, $comum_id);
+if (!$comum) {
+    die('Comum não encontrado.');
 }
+$planilha = [
+    'comum_id' => $comum_id,
+    'comum_descricao' => $comum['descricao'] ?? ''
+];
+$id_planilha = $comum_id; // compatibilidade com o restante do código
 
 // Parâmetros de paginação
 $pagina = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
@@ -75,9 +68,9 @@ $sql_base = "SELECT
                  LEFT JOIN tipos_bens t1 ON p.tipo_bem_id = t1.id
                  LEFT JOIN dependencias d1 ON p.dependencia_id = d1.id
                  LEFT JOIN dependencias d2 ON p.editado_dependencia_id = d2.id
-                 WHERE p.planilha_id = :id_planilha AND COALESCE(p.novo,0) = 0";
+                 WHERE p.comum_id = :comum_id AND COALESCE(p.novo,0) = 0";
 
-$params = [':id_planilha' => $id_planilha];
+$params = [':comum_id' => $comum_id];
 
 if ($filtro_nome !== '') {
     // Usar placeholders distintos: PDO nÇœo aceita o mesmo nome repetido com ATTR_EMULATE_PREPARES desativado
@@ -125,7 +118,7 @@ if ($filtro_status !== '') {
 // Total de registros para paginação - query COUNT simplificada
 $sql_count = "SELECT COUNT(*) AS total 
               FROM produtos p 
-              WHERE p.planilha_id = :id_planilha AND COALESCE(p.novo,0) = 0";
+              WHERE p.comum_id = :comum_id AND COALESCE(p.novo,0) = 0";
 
 // Aplicar os mesmos filtros do $sql_base na query de contagem
 if ($filtro_nome !== '') {
@@ -200,13 +193,13 @@ try {
                     FROM (
                         SELECT p.dependencia_id AS dep
                         FROM produtos p
-                        WHERE p.planilha_id = :id_dep_original
+                        WHERE p.comum_id = :id_dep_original
                           AND p.dependencia_id IS NOT NULL
                           AND p.dependencia_id <> 0
                         UNION ALL
                         SELECT p.editado_dependencia_id AS dep
                         FROM produtos p
-                        WHERE p.planilha_id = :id_dep_editada
+                        WHERE p.comum_id = :id_dep_editada
                           AND p.editado_dependencia_id IS NOT NULL
                           AND p.editado_dependencia_id <> 0
                     ) deps
