@@ -386,7 +386,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                            editado_dependencia_id = 0,
                                            tipo_bem_id = :tipo_bem_id,
                                            comum_id = :comum_id
-                                        WHERE id = :id";
+                                        WHERE id_produto = :id_produto";
                     $stmtUp = $conexao->prepare($sql_update_prod);
                     $stmtUp->bindValue(':descricao_completa', $descricao_completa_calc);
                     $stmtUp->bindValue(':complemento', $complemento_limpo);
@@ -394,7 +394,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmtUp->bindValue(':dependencia_id', $dependencia_id, PDO::PARAM_INT);
                     $stmtUp->bindValue(':tipo_bem_id', $tipo_bem_id, PDO::PARAM_INT);
                     $stmtUp->bindValue(':comum_id', $comum_processado_id, PDO::PARAM_INT);
-                    $stmtUp->bindValue(':id', $prodExist['id'], PDO::PARAM_INT);
+                    $stmtUp->bindValue(':id_produto', $prodExist['id_produto'], PDO::PARAM_INT);
                     if ($stmtUp->execute()) {
                         $atualizados++;
                     } else {
@@ -450,8 +450,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Excluir produtos que não vieram na planilha
         foreach ($produtos_existentes as $key => $prod) {
             if (!isset($codigos_processados[$key])) {
-                $stmtDel = $conexao->prepare("DELETE FROM produtos WHERE id = :id");
-                $stmtDel->bindValue(':id', $prod['id'], PDO::PARAM_INT);
+                $stmtDel = $conexao->prepare("DELETE FROM produtos WHERE id_produto = :id_produto");
+                $stmtDel->bindValue(':id_produto', $prod['id_produto'], PDO::PARAM_INT);
                 if ($stmtDel->execute()) {
                     $excluidos++;
                 }
