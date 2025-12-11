@@ -494,20 +494,26 @@ function contar_comuns($conexao, $termo = '') {
     $likeDigits = $digits !== '' ? '%' . $digits . '%' : null;
 
     try {
-        $conds = [
-            'CAST(codigo AS CHAR) LIKE ?',
-            'descricao LIKE ?',
-            'administracao LIKE ?',
-            'cidade LIKE ?',
-            'cnpj LIKE ?'
-        ];
-        $params = [$like, $like, $like, $like, $like];
+        $conds = [];
+        $params = [];
+        $i = 1;
+        $fields = ['CAST(codigo AS CHAR)', 'descricao', 'administracao', 'cidade', 'cnpj'];
+        foreach ($fields as $f) {
+            $name = ':p' . $i;
+            $conds[] = $f . ' LIKE ' . $name;
+            $params[$name] = $like;
+            $i++;
+        }
 
         if ($likeDigits !== null) {
-            $conds[] = "REPLACE(REPLACE(REPLACE(REPLACE(cnpj, '.', ''), '-', ''), '/', ''), ' ', '') LIKE ?";
-            $params[] = $likeDigits;
-            $conds[] = "CAST(codigo AS CHAR) LIKE ?";
-            $params[] = $likeDigits;
+            $name = ':p' . $i;
+            $conds[] = "REPLACE(REPLACE(REPLACE(REPLACE(cnpj, '.', ''), '-', ''), '/', ''), ' ', '') LIKE " . $name;
+            $params[$name] = $likeDigits;
+            $i++;
+            $name2 = ':p' . $i;
+            $conds[] = "CAST(codigo AS CHAR) LIKE " . $name2;
+            $params[$name2] = $likeDigits;
+            $i++;
         }
 
         $sql = "SELECT COUNT(*) FROM comums WHERE " . implode(' OR ', $conds);
@@ -535,20 +541,26 @@ function buscar_comuns_paginated($conexao, $termo = '', $limite = null, $offset 
     $likeDigits = $digits !== '' ? '%' . $digits . '%' : null;
 
     try {
-        $conds = [
-            'CAST(codigo AS CHAR) LIKE ?',
-            'descricao LIKE ?',
-            'administracao LIKE ?',
-            'cidade LIKE ?',
-            'cnpj LIKE ?'
-        ];
-        $params = [$like, $like, $like, $like, $like];
+        $conds = [];
+        $params = [];
+        $i = 1;
+        $fields = ['CAST(codigo AS CHAR)', 'descricao', 'administracao', 'cidade', 'cnpj'];
+        foreach ($fields as $f) {
+            $name = ':p' . $i;
+            $conds[] = $f . ' LIKE ' . $name;
+            $params[$name] = $like;
+            $i++;
+        }
 
         if ($likeDigits !== null) {
-            $conds[] = "REPLACE(REPLACE(REPLACE(REPLACE(cnpj, '.', ''), '-', ''), '/', ''), ' ', '') LIKE ?";
-            $params[] = $likeDigits;
-            $conds[] = "CAST(codigo AS CHAR) LIKE ?";
-            $params[] = $likeDigits;
+            $name = ':p' . $i;
+            $conds[] = "REPLACE(REPLACE(REPLACE(REPLACE(cnpj, '.', ''), '-', ''), '/', ''), ' ', '') LIKE " . $name;
+            $params[$name] = $likeDigits;
+            $i++;
+            $name2 = ':p' . $i;
+            $conds[] = "CAST(codigo AS CHAR) LIKE " . $name2;
+            $params[$name2] = $likeDigits;
+            $i++;
         }
 
         $sql = "SELECT id, codigo, cnpj, descricao, administracao, cidade, setor
@@ -559,11 +571,9 @@ function buscar_comuns_paginated($conexao, $termo = '', $limite = null, $offset 
         if ($limite !== null) {
             $sql .= " LIMIT :limite OFFSET :offset";
             $stmt = $conexao->prepare($sql);
-            // bind string params first
-            $i = 1;
-            foreach ($params as $p) {
-                $stmt->bindValue($i, $p);
-                $i++;
+            // bind params associative
+            foreach ($params as $k => $v) {
+                $stmt->bindValue($k, $v, PDO::PARAM_STR);
             }
             $stmt->bindValue(':limite', (int)$limite, PDO::PARAM_INT);
             $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
