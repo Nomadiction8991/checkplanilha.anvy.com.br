@@ -18,9 +18,9 @@ try {
     error_log('Erro na view dependencias: ' . $e->getMessage());
 }
 
-$pageTitle = 'Dependências';
+$pageTitle = 'Dependencias';
 $backUrl = '../../../index.php';
-$headerActions = '<a href="./create-dependencia.php" class="btn-header-action" title="Nova Dependência"><i class="bi bi-plus-lg"></i></a>';
+$headerActions = '<a href="./create-dependencia.php" class="btn-header-action" title="Nova Dependencia"><i class="bi bi-plus-lg"></i></a>';
 
 
 if (!function_exists('dep_corrigir_encoding')) {
@@ -31,10 +31,16 @@ if (!function_exists('dep_corrigir_encoding')) {
         $enc = mb_detect_encoding($texto, ['UTF-8','ISO-8859-1','Windows-1252','ASCII'], true);
         if ($enc && $enc !== 'UTF-8') {
             $texto = mb_convert_encoding($texto, 'UTF-8', $enc);
-        } elseif (!$enc) {
-            $conv = @iconv('Windows-1252', 'UTF-8//IGNORE', $texto);
-            if ($conv !== false) {
-                $texto = $conv;
+        }
+        if (preg_match('/Ã|Â|�/', $texto)) {
+            $t1 = @utf8_decode($texto);
+            if ($t1 !== false && mb_detect_encoding($t1, 'UTF-8', true)) {
+                $texto = $t1;
+            } else {
+                $t2 = @utf8_encode($texto);
+                if ($t2 !== false && mb_detect_encoding($t2, 'UTF-8', true)) {
+                    $texto = $t2;
+                }
             }
         }
         return $texto;
@@ -46,7 +52,7 @@ ob_start();
 
 <?php if (isset($_GET['success'])): ?>
     <div class="alert alert-success alert-dismissible fade show">
-        Operação realizada com sucesso!
+        Operacao realizada com sucesso!
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 <?php endif; ?>
@@ -55,24 +61,24 @@ ob_start();
     <div class="card-header d-flex justify-content-between align-items-center">
         <span>
             <i class="bi bi-list me-2"></i>
-            Lista de Dependências
+            Lista de Dependencias
         </span>
-        <span class="badge bg-white text-dark"><?php echo $total_registros; ?> itens (pág. <?php echo $pagina; ?>/<?php echo $total_paginas ?: 1; ?>)</span>
+        <span class="badge bg-white text-dark"><?php echo $total_registros; ?> itens (pag. <?php echo $pagina; ?>/<?php echo $total_paginas ?: 1; ?>)</span>
     </div>
     <div class="card-body p-0">
         <?php if (empty($dependencias)): ?>
             <div class="p-4 text-center text-muted">
                 <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-                Nenhuma dependência cadastrada
+                Nenhuma dependencia cadastrada
             </div>
         <?php else: ?>
+            
             <div class="table-responsive">
                 <table class="table table-hover mb-0">
                     <thead>
                         <tr>
-                            <th>Código</th>
-                            <th>Descrição</th>
-                            <th>Ações</th>
+                            <th>Descricao</th>
+                            <th>Acoes</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -97,13 +103,14 @@ ob_start();
                     </tbody>
                 </table>
             </div>
+</div>
         <?php endif; ?>
     </div>
 </div>
 
-<!-- Paginação -->
+<!-- Paginacao -->
 <?php if ($total_paginas > 1): ?>
-    <nav aria-label="Paginação" class="mt-3">
+    <nav aria-label="Paginacao" class="mt-3">
         <ul class="pagination justify-content-center">
             <?php if ($pagina > 1): ?>
                 <li class="page-item">
@@ -119,7 +126,7 @@ ob_start();
 
             <?php if ($pagina < $total_paginas): ?>
                 <li class="page-item">
-                    <a class="page-link" href="?pagina=<?php echo $pagina + 1; ?>">Próximo</a>
+                    <a class="page-link" href="?pagina=<?php echo $pagina + 1; ?>">Proximo</a>
                 </li>
             <?php endif; ?>
         </ul>
@@ -128,7 +135,7 @@ ob_start();
 
 <script>
 function deletarDependencia(id) {
-    if (confirm('Tem certeza que deseja excluir esta dependência?')) {
+    if (confirm('Tem certeza que deseja excluir esta dependencia?')) {
         fetch('../../../CRUD/DELETE/dependencia.php', {
             method: 'POST',
             headers: {

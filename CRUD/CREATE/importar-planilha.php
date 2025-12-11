@@ -5,10 +5,10 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/../../app/functions/comum_functions.php';
 // Parser modular
 require_once __DIR__ . '/../../app/functions/produto_parser.php';
-// Configuração do parser (formato, sinônimos, etc.)
+// Configuracao do parser (formato, sinonimos, etc.)
 $pp_config = require __DIR__ . '/../../app/config/produto_parser_config.php';
 
-// Corrige possÇÚveis acentuaÇÉes quebradas (UTF-8/ISO-8859-1/Win-1252)
+// Helpers para correcao de encoding
 function ip_corrige_encoding($texto) {
     if ($texto === null) return '';
     $texto = trim((string)$texto);
@@ -17,15 +17,59 @@ function ip_corrige_encoding($texto) {
     $enc = mb_detect_encoding($texto, ['UTF-8', 'ISO-8859-1', 'Windows-1252', 'ASCII'], true);
     if ($enc && $enc !== 'UTF-8') {
         $texto = mb_convert_encoding($texto, 'UTF-8', $enc);
-    } elseif (!$enc) {
+    } else {
         $converted = @iconv('Windows-1252', 'UTF-8//IGNORE', $texto);
-        if ($converted !== false) {
+        if ($converted !== false && $converted !== '') {
             $texto = $converted;
         }
+        $texto = str_replace("\xEF\xBF\xBD", '', $texto); // remove replacement chars
     }
 
-    // Remover caracteres de controle que possam quebrar exibiÇõÇœo
-    $texto = preg_replace('/[\\x00-\\x1F\\x7F]/', '', $texto);
+    $texto = preg_replace('/[\x00-\x1F\x7F]/', '', $texto);
+    $texto = preg_replace('/\s+/', ' ', $texto);
+    return $texto;
+}
+
+function ip_fix_mojibake($texto) {
+    if ($texto === null) return '';
+    $texto = (string)$texto;
+    if ($texto === '') return '';
+    if (preg_match('/Ã|Â|�/', $texto)) {
+        $t1 = @utf8_decode($texto);
+        if ($t1 !== false && mb_detect_encoding($t1, 'UTF-8', true)) {
+            return $t1;
+        }
+        $t2 = @utf8_encode($texto);
+        if ($t2 !== false && mb_detect_encoding($t2, 'UTF-8', true)) {
+            return $t2;
+        }
+    }
+    return $texto;
+}
+
+function ip_remover_acentos($texto) {
+    if ($texto === null) return '';
+    $texto = (string)$texto;
+    if ($texto === '') return '';
+
+    if (class_exists('\\Normalizer')) {
+        $texto = \Normalizer::normalize($texto, \Normalizer::FORM_D);
+        $texto = preg_replace('/\\p{Mn}+/u', '', $texto);
+    }
+
+    $ascii = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $texto);
+    if ($ascii !== false && $ascii !== '') {
+        $texto = $ascii;
+    }
+
+    return $texto;
+}
+
+function ip_padronizar_texto($texto) {
+    $texto = ip_fix_mojibake(ip_corrige_encoding($texto));
+    $texto = ip_remover_acentos($texto);
+    $texto = mb_strtoupper(trim($texto), 'UTF-8');
+    $texto = preg_replace('/\\s+/', ' ', $texto);
     return $texto;
 }
 
@@ -104,7 +148,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($codigo_tmp !== '') { $registros_candidatos++; }
 
             if (isset($linha[$idx_dependencia])) {
-                $dep_raw = ip_corrige_encoding($linha[$idx_dependencia]);
+                $dep_raw = ip_padronizar_texto($linha[$idx_dependencia]);
                 $dep_norm = pp_normaliza($dep_raw);
                 if ($dep_norm !== '' && !array_key_exists($dep_norm, $dependencias_unicas)) {
                     $dependencias_unicas[$dep_norm] = $dep_raw;
@@ -249,7 +293,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 $complemento_original = isset($linha[$idx_complemento]) ? trim((string)$linha[$idx_complemento]) : '';
-                $dependencia_original = isset($linha[$idx_dependencia]) ? ip_corrige_encoding($linha[$idx_dependencia]) : '';
+                $dependencia_original = isset($linha[$idx_dependencia]) ? ip_padronizar_texto($linha[$idx_dependencia]) : '';
 
                 // Parsing avançado: detectar código, tipo de bem (por código ou nome), remover prefixos e extrair BEN e COMPLEMENTO
                 // Texto base para parsing: extrair BEN do complemento
@@ -276,8 +320,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 
                 [$ben_raw, $comp_raw] = pp_extrair_ben_complemento($texto_pos_tipo, $aliases_tipo_atual ?: [], $aliases_originais, $tipo_bem_desc);
-                $ben = strtoupper(preg_replace('/\s+/', ' ', trim($ben_raw)));
-                $complemento_limpo = strtoupper(preg_replace('/\s+/', ' ', trim($comp_raw)));
+                $ben = ip_padronizar_texto($ben_raw);
+                $complemento_limpo = ip_padronizar_texto($comp_raw);
                 
                 // Validação: BEM deve ser um dos aliases do tipo (com fuzzy match)
                 $ben_valido = false;
@@ -300,7 +344,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $tokens = array_map('trim', preg_split('/\s*\/\s*/', $tipo_bem_desc));
                             foreach ($tokens as $tok) {
                                 if (pp_normaliza($tok) === $alias_norm) {
-                                    $ben = strtoupper($tok);
+                                    $ben = ip_padronizar_texto($tok);
                                     $ben_valido = true;
                                     break 2;
                                 }
@@ -311,9 +355,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 // Fallback completo: se ainda vazio, usar todo texto no complemento
                 if ($ben === '' && $complemento_limpo === '') {
-                    $complemento_limpo = strtoupper(trim($texto_sem_prefixo));
+                    $complemento_limpo = ip_padronizar_texto($texto_sem_prefixo);
                     if ($complemento_limpo === '') {
-                        $complemento_limpo = strtoupper(trim($complemento_original));
+                        $complemento_limpo = ip_padronizar_texto($complemento_original);
                     }
                 }
                 
@@ -335,13 +379,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $dependencia_rotulo = '';
                 if ($dependencia_id > 0) {
                     foreach ($dep_map as $d) {
-                        if ($d['id'] === $dependencia_id) { $dependencia_rotulo = $d['descricao']; break; }
+                        if ($d['id'] === $dependencia_id) { $dependencia_rotulo = ip_padronizar_texto($d['descricao']); break; }
                     }
                 } else {
-                    $dependencia_rotulo = $dependencia_original;
+                    $dependencia_rotulo = ip_padronizar_texto($dependencia_original);
                 }
                 // 5) Montar descrição completa via parser (BEM pode estar vazio ou preenchido)
                 $descricao_completa_calc = pp_montar_descricao(1, $tipo_bem_codigo, $tipo_bem_desc, $ben, $complemento_limpo, $dependencia_rotulo, $pp_config);
+                $descricao_completa_calc = ip_padronizar_texto($descricao_completa_calc);
 
                 // Marcar se houve problema na extração (tipo inválido OU BEM não validado quando tipo existe)
                 $tem_erro_parsing = ($tipo_bem_id === 0 && $codigo_detectado !== null) || ($tipo_bem_id > 0 && $ben !== '' && !$ben_valido);
