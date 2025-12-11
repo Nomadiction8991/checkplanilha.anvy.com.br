@@ -196,22 +196,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception('Nenhum comum valido encontrado ou criado a partir da coluna de localidade.');
         }
 
-        // Iniciar transacao apenas para planilha+produtos; dados do Comum ja foram persistidos
+        $mapeamento_colunas_str = "codigo=$mapeamento_codigo;complemento=$mapeamento_complemento;dependencia=$mapeamento_dependencia;localidade=$coluna_localidade";
+
+        // Iniciar transacao para atualizar planilha unica + produtos
         $conexao->beginTransaction();
 
-        // Criar nova planilha vinculada ao comum
-        $sql_planilha = "INSERT INTO planilhas (comum_id, posicao_cnpj, posicao_comum, posicao_data, pulo_linhas, mapeamento_colunas, data_posicao, ativo) 
-                        VALUES (:comum_id, :posicao_cnpj, :posicao_comum, :posicao_data, :pulo_linhas, :mapeamento_colunas, :data_posicao, 1)";
-        $stmt = $conexao->prepare($sql_planilha);
-        $stmt->bindValue(':comum_id', $comum_processado_id, PDO::PARAM_INT);
-        $stmt->bindValue(':posicao_cnpj', $posicao_cnpj);
-        $stmt->bindValue(':posicao_comum', $posicao_comum);
-        $stmt->bindValue(':posicao_data', $posicao_data);
-        $stmt->bindValue(':pulo_linhas', $pulo_linhas);
-        $stmt->bindValue(':mapeamento_colunas', "codigo=$mapeamento_codigo;complemento=$mapeamento_complemento;dependencia=$mapeamento_dependencia;localidade=$coluna_localidade");
-        $stmt->bindValue(':data_posicao', $data_mysql);
-        $stmt->execute();
-        $id_planilha = $conexao->lastInsertId();
+        // Localizar planilha existente do comum ou criar a primeira
+        $stmtPlanBusca = $conexao->prepare("SELECT id FROM planilhas WHERE comum_id = :comum_id LIMIT 1");
+        $stmtPlanBusca->bindValue(':comum_id', $comum_processado_id, PDO::PARAM_INT);
+        $stmtPlanBusca->execute();
+        $planilhaExistente = $stmtPlanBusca->fetch(PDO::FETCH_ASSOC);
+
+        if ($planilhaExistente) {
+            $id_planilha = (int)$planilhaExistente['id'];
+            $stmtPlanUp = $conexao->prepare("UPDATE planilhas 
+                                             SET posicao_cnpj = :posicao_cnpj,
+                                                 posicao_comum = :posicao_comum,
+                                                 posicao_data = :posicao_data,
+                                                 pulo_linhas = :pulo_linhas,
+                                                 mapeamento_colunas = :mapeamento_colunas,
+                                                 data_posicao = :data_posicao
+                                             WHERE id = :id");
+            $stmtPlanUp->bindValue(':posicao_cnpj', $posicao_cnpj);
+            $stmtPlanUp->bindValue(':posicao_comum', $posicao_comum);
+            $stmtPlanUp->bindValue(':posicao_data', $posicao_data);
+            $stmtPlanUp->bindValue(':pulo_linhas', $pulo_linhas);
+            $stmtPlanUp->bindValue(':mapeamento_colunas', $mapeamento_colunas_str);
+            $stmtPlanUp->bindValue(':data_posicao', $data_mysql);
+            $stmtPlanUp->bindValue(':id', $id_planilha, PDO::PARAM_INT);
+            $stmtPlanUp->execute();
+        } else {
+            $sql_planilha = "INSERT INTO planilhas (comum_id, posicao_cnpj, posicao_comum, posicao_data, pulo_linhas, mapeamento_colunas, data_posicao, ativo) 
+                            VALUES (:comum_id, :posicao_cnpj, :posicao_comum, :posicao_data, :pulo_linhas, :mapeamento_colunas, :data_posicao, 1)";
+            $stmt = $conexao->prepare($sql_planilha);
+            $stmt->bindValue(':comum_id', $comum_processado_id, PDO::PARAM_INT);
+            $stmt->bindValue(':posicao_cnpj', $posicao_cnpj);
+            $stmt->bindValue(':posicao_comum', $posicao_comum);
+            $stmt->bindValue(':posicao_data', $posicao_data);
+            $stmt->bindValue(':pulo_linhas', $pulo_linhas);
+            $stmt->bindValue(':mapeamento_colunas', $mapeamento_colunas_str);
+            $stmt->bindValue(':data_posicao', $data_mysql);
+            $stmt->execute();
+            $id_planilha = $conexao->lastInsertId();
+        }
 
         // Pré-carregar tipos de bens e dependências para matching
         $tipos_bens = [];
@@ -240,14 +267,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         unset($dep);
 
+        // Produtos existentes da planilha (para atualizar ou excluir)
+        $stmtProdExist = $conexao->prepare("SELECT * FROM produtos WHERE planilha_id = :planilha_id");
+        $stmtProdExist->bindValue(':planilha_id', $id_planilha, PDO::PARAM_INT);
+        $stmtProdExist->execute();
+        $produtos_existentes = [];
+        while ($p = $stmtProdExist->fetch(PDO::FETCH_ASSOC)) {
+            $key = pp_normaliza((string)$p['codigo']);
+            $produtos_existentes[$key] = $p;
+        }
+
         // Processar linhas do CSV
-        $registros_importados = 0;
-        $registros_erros = 0;
+        $novos = 0;
+        $atualizados = 0;
+        $excluidos = 0;
         $linha_atual = 0;
         // Sequencial global para respeitar a PK (id_produto é único na tabela)
         $stmtMaxId = $conexao->query("SELECT COALESCE(MAX(id_produto), 0) AS max_id FROM produtos");
         $id_produto_sequencial = (int)($stmtMaxId->fetchColumn() ?? 0) + 1;
         $erros_produtos = []; // Para coletar erros específicos
+        $codigos_processados = [];
 
         foreach ($linhas as $linha) {
             $linha_atual++;
@@ -265,6 +304,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (empty($codigo)) {
                     continue;
                 }
+                $codigo_key = pp_normaliza($codigo);
 
                 $complemento_original = isset($linha[$idx_complemento]) ? trim((string)$linha[$idx_complemento]) : '';
                 $dependencia_original = isset($linha[$idx_dependencia]) ? ip_fix_mojibake(ip_corrige_encoding($linha[$idx_dependencia])) : '';
@@ -381,71 +421,91 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ], JSON_UNESCAPED_UNICODE);
                 }
 
-                // Inserir produto (usaremos observacao para flag temporária de erro se necessário)
-                $obs_prefix = $tem_erro_parsing ? '[REVISAR] ' : '';
-                // Inserção agora contempla a coluna 'novo' (0 = importado) e mantém flags iniciais neutras
-                $sql_produto = "INSERT INTO produtos (
-                               planilha_id, id_produto, codigo, descricao_completa, editado_descricao_completa,
-                               tipo_bem_id, editado_tipo_bem_id, bem, editado_bem,
-                               complemento, editado_complemento, dependencia_id, editado_dependencia_id,
-                               checado, editado, imprimir_etiqueta, imprimir_14_1,
-                               observacao, ativo, novo, condicao_14_1,
-                               administrador_acessor_id, doador_conjugue_id
-                               ) VALUES (
-                               :planilha_id, :id_produto, :codigo, :descricao_completa, '',
-                               :tipo_bem_id, 0, :bem, '',
-                               :complemento, '', :dependencia_id, 0,
-                               0, 0, 0, :imprimir_14_1,
-                               :observacao, 1, 0, :condicao_14_1,
-                               0, 0
-                               )";
-                $stmt_prod = $conexao->prepare($sql_produto);
-                $stmt_prod->bindValue(':planilha_id', $id_planilha, PDO::PARAM_INT);
-                $stmt_prod->bindValue(':id_produto', $id_produto_sequencial, PDO::PARAM_INT);
-                $stmt_prod->bindValue(':codigo', $codigo);
-                $stmt_prod->bindValue(':descricao_completa', $descricao_completa_calc);
-                $stmt_prod->bindValue(':tipo_bem_id', $tipo_bem_id, PDO::PARAM_INT);
-                $stmt_prod->bindValue(':bem', $ben);
-                $stmt_prod->bindValue(':complemento', $complemento_limpo);
-                $stmt_prod->bindValue(':dependencia_id', $dependencia_id, PDO::PARAM_INT);
-                $stmt_prod->bindValue(':imprimir_14_1', 0, PDO::PARAM_INT);
-                $stmt_prod->bindValue(':observacao', $obs_prefix);
-                // Condição 14.1 padrão para atender NOT NULL (definida como '2' por padrão)
-                $stmt_prod->bindValue(':condicao_14_1', '2');
-                if ($stmt_prod->execute()) {
-                    $registros_importados++;
-                    $id_produto_sequencial++;
+                // Atualizar existente ou inserir novo (mantendo status/flags)
+                $codigos_processados[$codigo_key] = true;
+                if (isset($produtos_existentes[$codigo_key])) {
+                    $prodExist = $produtos_existentes[$codigo_key];
+                    $sql_update_prod = "UPDATE produtos SET 
+                                           descricao_completa = :descricao_completa,
+                                           complemento = :complemento,
+                                           bem = :bem,
+                                           dependencia_id = :dependencia_id,
+                                           tipo_bem_id = :tipo_bem_id
+                                        WHERE id = :id";
+                    $stmtUp = $conexao->prepare($sql_update_prod);
+                    $stmtUp->bindValue(':descricao_completa', $descricao_completa_calc);
+                    $stmtUp->bindValue(':complemento', $complemento_limpo);
+                    $stmtUp->bindValue(':bem', $ben);
+                    $stmtUp->bindValue(':dependencia_id', $dependencia_id, PDO::PARAM_INT);
+                    $stmtUp->bindValue(':tipo_bem_id', $tipo_bem_id, PDO::PARAM_INT);
+                    $stmtUp->bindValue(':id', $prodExist['id'], PDO::PARAM_INT);
+                    if ($stmtUp->execute()) {
+                        $atualizados++;
+                    } else {
+                        $err = $stmtUp->errorInfo();
+                        throw new Exception($err[2] ?? 'Erro ao atualizar produto existente');
+                    }
                 } else {
-                    $registros_erros++;
-                    $err = $stmt_prod->errorInfo();
-                    $erro_msg = "Linha $linha_atual: " . ($err[2] ?? 'Erro desconhecido no INSERT');
-                    $erros_produtos[] = $erro_msg;
-                    error_log('ERRO INSERT PRODUTO: ' . json_encode($err));
+                    $obs_prefix = $tem_erro_parsing ? '[REVISAR] ' : '';
+                    $sql_produto = "INSERT INTO produtos (
+                                   planilha_id, id_produto, codigo, descricao_completa, editado_descricao_completa,
+                                   tipo_bem_id, editado_tipo_bem_id, bem, editado_bem,
+                                   complemento, editado_complemento, dependencia_id, editado_dependencia_id,
+                                   checado, editado, imprimir_etiqueta, imprimir_14_1,
+                                   observacao, ativo, novo, condicao_14_1,
+                                   administrador_acessor_id, doador_conjugue_id
+                                   ) VALUES (
+                                   :planilha_id, :id_produto, :codigo, :descricao_completa, '',
+                                   :tipo_bem_id, 0, :bem, '',
+                                   :complemento, '', :dependencia_id, 0,
+                                   0, 0, 0, :imprimir_14_1,
+                                   :observacao, 1, 0, :condicao_14_1,
+                                   0, 0
+                                   )";
+                    $stmt_prod = $conexao->prepare($sql_produto);
+                    $stmt_prod->bindValue(':planilha_id', $id_planilha, PDO::PARAM_INT);
+                    $stmt_prod->bindValue(':id_produto', $id_produto_sequencial, PDO::PARAM_INT);
+                    $stmt_prod->bindValue(':codigo', $codigo);
+                    $stmt_prod->bindValue(':descricao_completa', $descricao_completa_calc);
+                    $stmt_prod->bindValue(':tipo_bem_id', $tipo_bem_id, PDO::PARAM_INT);
+                    $stmt_prod->bindValue(':bem', $ben);
+                    $stmt_prod->bindValue(':complemento', $complemento_limpo);
+                    $stmt_prod->bindValue(':dependencia_id', $dependencia_id, PDO::PARAM_INT);
+                    $stmt_prod->bindValue(':imprimir_14_1', 0, PDO::PARAM_INT);
+                    $stmt_prod->bindValue(':observacao', $obs_prefix);
+                    $stmt_prod->bindValue(':condicao_14_1', '2');
+                    if ($stmt_prod->execute()) {
+                        $novos++;
+                        $id_produto_sequencial++;
+                    } else {
+                        $err = $stmt_prod->errorInfo();
+                        $erro_msg = "Linha $linha_atual: " . ($err[2] ?? 'Erro desconhecido no INSERT');
+                        $erros_produtos[] = $erro_msg;
+                        error_log('ERRO INSERT PRODUTO: ' . json_encode($err));
+                    }
                 }
             } catch (Exception $e) {
-                $registros_erros++;
                 $erro_msg = "Linha $linha_atual: " . $e->getMessage();
                 $erros_produtos[] = $erro_msg;
                 error_log("Erro linha $linha_atual: " . $e->getMessage());
             }
         }
 
-        // Validar se todos os candidatos foram importados; se não, cancelar a planilha
-        if ($registros_importados === $registros_candidatos) {
-            $conexao->commit();
-            $mensagem = "Importação concluída! {$registros_importados} de {$registros_candidatos} produtos importados.";
-            $tipo_mensagem = 'success';
-            $sucesso = true;
-        } else {
-            if ($conexao->inTransaction()) { $conexao->rollBack(); }
-            $mensagem_extra = '';
-            if ($registros_importados == 0 && !empty($erros_produtos)) {
-                $mensagem_extra = ' Erros encontrados: ' . implode('; ', array_slice($erros_produtos, 0, 5)); // Mostra até 5 erros
+        // Excluir produtos que não vieram na planilha
+        foreach ($produtos_existentes as $key => $prod) {
+            if (!isset($codigos_processados[$key])) {
+                $stmtDel = $conexao->prepare("DELETE FROM produtos WHERE id = :id");
+                $stmtDel->bindValue(':id', $prod['id'], PDO::PARAM_INT);
+                if ($stmtDel->execute()) {
+                    $excluidos++;
+                }
             }
-            $mensagem = "Importação cancelada: apenas {$registros_importados} de {$registros_candidatos} produtos foram importados. A planilha não foi salva. Os dados do Comum foram salvos.{$mensagem_extra}";
-            $tipo_mensagem = 'danger';
-            $sucesso = false;
         }
+
+        $conexao->commit();
+        $mensagem = "Importacao concluida! Novos: {$novos}, Atualizados: {$atualizados}, Excluidos: {$excluidos}.";
+        $tipo_mensagem = 'success';
+        $sucesso = true;
 
         // Persistir log de debug se solicitado
         if ($debug_import && !empty($debug_lines)) {
