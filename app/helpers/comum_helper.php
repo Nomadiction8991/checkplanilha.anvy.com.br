@@ -436,35 +436,30 @@ function buscar_comuns($conexao, $termo = '') {
         return obter_todos_comuns($conexao);
     }
 
-    $termoUpper = mb_strtoupper($termo, 'UTF-8');
-    $termoDigits = preg_replace('/\D+/', '', $termo);
-
-    $like = '%' . $termoUpper . '%';
-    $likeDigits = $termoDigits !== '' ? '%' . $termoDigits . '%' : null;
+    $like = '%' . $termo . '%';
+    $digits = preg_replace('/\D+/', '', $termo);
+    $likeDigits = $digits !== '' ? '%' . $digits . '%' : null;
 
     try {
         $sql = "SELECT id, codigo, cnpj, descricao, administracao, cidade, setor
                 FROM comums
-                WHERE (
-                    UPPER(descricao) LIKE :busca
-                    OR UPPER(administracao) LIKE :busca
-                    OR UPPER(cidade) LIKE :busca
-                    OR UPPER(cnpj) LIKE :busca
-                    OR UPPER(CAST(codigo AS CHAR)) LIKE :busca";
+                WHERE CAST(codigo AS CHAR) LIKE :like
+                   OR descricao LIKE :like
+                   OR administracao LIKE :like
+                   OR cidade LIKE :like
+                   OR cnpj LIKE :like";
 
         if ($likeDigits !== null) {
-            $sql .= " OR REPLACE(REPLACE(REPLACE(REPLACE(cnpj, '.', ''), '-', ''), '/', ''), ' ', '') LIKE :buscaDigits
-                     OR CAST(codigo AS CHAR) LIKE :buscaDigits";
+            $sql .= " OR REPLACE(REPLACE(REPLACE(REPLACE(cnpj, '.', ''), '-', ''), '/', ''), ' ', '') LIKE :likeDigits
+                     OR CAST(codigo AS CHAR) LIKE :likeDigits";
         }
 
-        $sql .= "
-                )
-                ORDER BY codigo ASC";
+        $sql .= " ORDER BY codigo ASC";
 
         $stmt = $conexao->prepare($sql);
-        $stmt->bindValue(':busca', $like);
+        $stmt->bindValue(':like', $like);
         if ($likeDigits !== null) {
-            $stmt->bindValue(':buscaDigits', $likeDigits);
+            $stmt->bindValue(':likeDigits', $likeDigits);
         }
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
