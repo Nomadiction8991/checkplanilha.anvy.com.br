@@ -479,6 +479,18 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
         })();
     </script>
 
+    <!-- Garantir que modais fiquem dentro do wrapper mobile -->
+    <script>
+        document.addEventListener('show.bs.modal', function (event) {
+            var appWrapper = document.querySelector('.mobile-wrapper');
+            if (!appWrapper) return;
+            var modal = event.target;
+            if (modal && modal.parentElement !== appWrapper) {
+                appWrapper.appendChild(modal);
+            }
+        });
+    </script>
+
     <!-- PWA Service Worker Registration -->
     <script>
         if ('serviceWorker' in navigator) {
@@ -499,3 +511,4 @@ $manifest_path = ($ambiente_manifest === 'dev') ? '/dev/manifest-dev.json' : '/m
     <?php endif; ?>
 </body>
 </html>
+

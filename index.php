@@ -189,7 +189,7 @@ require_once __DIR__ . '/app/views/layouts/app_wrapper.php';
 ?>
 
 <!-- Modal cadastro incompleto -->
-<div class="modal fade" id="cadastroIncompletoModal" tabindex="-1" aria-labelledby="cadastroIncompletoLabel" aria-hidden="true">
+<div class="modal fade" id="cadastroIncompletoModal" tabindex="-1" aria-labelledby="cadastroIncompletoLabel" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
@@ -200,10 +200,10 @@ require_once __DIR__ . '/app/views/layouts/app_wrapper.php';
                 <p>Complete os dados da comum (descrição, CNPJ, administração e cidade) para visualizar a planilha.</p>
             </div>
             <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Deixar para depois</button>
                 <a href="#" class="btn btn-primary btn-edit-agora">
                     <i class="bi bi-pencil-square me-1"></i>Editar agora
                 </a>
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Deixar para depois</button>
             </div>
         </div>
     </div>
