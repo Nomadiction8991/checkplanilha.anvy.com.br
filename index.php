@@ -65,16 +65,31 @@ $customCss = '
 
 $busca = trim($_GET['busca'] ?? '');
 $buscaDisplay = mb_strtoupper($busca, 'UTF-8');
-$comums = buscar_comuns($conexao, $busca);
+
+// Paginação: 10 por página
+$pagina = isset($_GET['pagina']) ? max(1, (int) $_GET['pagina']) : 1;
+$limite = 10;
+$offset = ($pagina - 1) * $limite;
+
+$total_count = contar_comuns($conexao, $busca);
+$total_paginas = $total_count > 0 ? (int) ceil($total_count / $limite) : 1;
+$comums = buscar_comuns_paginated($conexao, $busca, $limite, $offset);
 
 // AJAX handler: retorna as linhas da tabela e a contagem em JSON
 if (isset($_GET['ajax'])) {
     header('Content-Type: application/json; charset=utf-8');
+    // recompute pagina/limit/offset from ajax params
+    $pagina_ajax = isset($_GET['pagina']) ? max(1, (int) $_GET['pagina']) : 1;
+    $limite_ajax = isset($_GET['limite']) ? max(1, (int) $_GET['limite']) : $limite;
+    $offset_ajax = ($pagina_ajax - 1) * $limite_ajax;
+
+    $comums_page = buscar_comuns_paginated($conexao, $busca, $limite_ajax, $offset_ajax);
+
     $rowsHtml = '';
-    if (empty($comums)) {
+    if (empty($comums_page)) {
         $rowsHtml = '<tr><td colspan="3" class="text-center py-4 text-muted"><i class="bi bi-inbox fs-3 d-block mb-2"></i>Nenhum comum encontrado</td></tr>';
     } else {
-        foreach ($comums as $comum) {
+        foreach ($comums_page as $comum) {
             $cadastro_ok = trim((string) $comum['descricao']) !== ''
                            && trim((string) $comum['cnpj']) !== ''
                            && trim((string) $comum['administracao']) !== ''
@@ -93,7 +108,15 @@ if (isset($_GET['ajax'])) {
         }
     }
 
-    echo json_encode(['rows' => $rowsHtml, 'count' => count($comums)]);
+    $total_count_ajax = contar_comuns($conexao, $busca);
+    $total_pages_ajax = $total_count_ajax > 0 ? (int) ceil($total_count_ajax / $limite_ajax) : 1;
+
+    echo json_encode([
+        'rows' => $rowsHtml,
+        'count' => $total_count_ajax,
+        'page' => $pagina_ajax,
+        'total_pages' => $total_pages_ajax
+    ]);
     exit;
 }
 
@@ -204,6 +227,22 @@ ob_start();
     </div>
 </div>
 
+<nav id="comumPagination" class="mt-3" aria-label="Paginação comuns">
+    <ul class="pagination pagination-sm justify-content-center mb-0">
+        <?php if($pagina > 1): ?>
+        <li class="page-item"><a class="page-link" href="#" data-page="<?php echo $pagina-1; ?>">&laquo;</a></li>
+        <?php endif; ?>
+        <?php $ini = max(1,$pagina-2); $fim = min($total_paginas,$pagina+2); for($i=$ini;$i<=$fim;$i++): ?>
+            <li class="page-item <?php echo $i==$pagina?'active':''; ?>">
+                <a class="page-link" href="#" data-page="<?php echo $i; ?>"><?php echo $i; ?></a>
+            </li>
+        <?php endfor; ?>
+        <?php if($pagina < $total_paginas): ?>
+        <li class="page-item"><a class="page-link" href="#" data-page="<?php echo $pagina+1; ?>">&raquo;</a></li>
+        <?php endif; ?>
+    </ul>
+</nav>
+
 <?php
 $contentHtml = ob_get_clean();
 $contentFile = __DIR__ . '/temp_index_content.php';
@@ -257,13 +296,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Live search with debounce
+    // Live search with debounce and prevent form submit
     var input = document.getElementById('busca');
     if (!input) return;
     var timeout = null;
 
-    function doSearch(q) {
-        var url = window.location.pathname + '?ajax=1&busca=' + encodeURIComponent(q);
+    function doSearch(q, page) {
+        page = page || 1;
+        var url = window.location.pathname + '?ajax=1&busca=' + encodeURIComponent(q) + '&pagina=' + encodeURIComponent(page) + '&limite=' + encodeURIComponent(<?php echo $limite; ?>);
         fetch(url, { credentials: 'same-origin' })
             .then(function(res) { return res.json(); })
             .then(function(data) {
@@ -273,15 +313,69 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (tbody) tbody.innerHTML = data.rows;
                 if (countEl) countEl.textContent = data.count + ' comum(ns) encontrado(s)';
                 if (badge) badge.textContent = data.count + ' itens';
+                // rebuild pagination
+                var pagination = document.getElementById('comumPagination');
+                if (pagination && data.total_pages) {
+                    var page = data.page || 1;
+                    var total = data.total_pages;
+                    var ini = Math.max(1, page - 2);
+                    var fim = Math.min(total, page + 2);
+                    var html = '<ul class="pagination pagination-sm justify-content-center mb-0">';
+                    if (page > 1) html += '<li class="page-item"><a class="page-link" href="#" data-page="' + (page-1) + '">&laquo;</a></li>';
+                    for (var i = ini; i <= fim; i++) {
+                        html += '<li class="page-item ' + (i===page? 'active' : '') + '"><a class="page-link" href="#" data-page="' + i + '">' + i + '</a></li>';
+                    }
+                    if (page < total) html += '<li class="page-item"><a class="page-link" href="#" data-page="' + (page+1) + '">&raquo;</a></li>';
+                    html += '</ul>';
+                    pagination.innerHTML = html;
+                }
             })
             .catch(function(err) {
                 console.error('Erro na busca AJAX:', err);
             });
     }
 
+    // Prevent the form from submitting with Enter and from default GET reloads
+    var form = input.closest('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            doSearch(input.value.trim());
+        });
+    }
+
+    // Debounced input
     input.addEventListener('input', function() {
         clearTimeout(timeout);
-        timeout = setTimeout(function() { doSearch(input.value.trim()); }, 300);
+        // reset to first page when typing
+        currentPage = 1;
+        timeout = setTimeout(function() { doSearch(input.value.trim(), currentPage); }, 300);
     });
+
+    // If user presses Enter in the input, prevent default and trigger immediate search
+    input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            clearTimeout(timeout);
+            currentPage = 1;
+            doSearch(input.value.trim(), currentPage);
+        }
+    });
+
+    // Pagination click handling (delegated)
+    var pagination = document.getElementById('comumPagination');
+    if (pagination) {
+        pagination.addEventListener('click', function(e) {
+            var a = e.target.closest('a[data-page]');
+            if (!a) return;
+            e.preventDefault();
+            var page = parseInt(a.getAttribute('data-page'), 10) || 1;
+            currentPage = page;
+            doSearch(input.value.trim(), currentPage);
+        });
+    }
+
+    // current page variable
+    var currentPage = <?php echo $pagina; ?>;
 });
 </script>

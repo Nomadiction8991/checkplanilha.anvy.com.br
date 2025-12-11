@@ -471,4 +471,113 @@ function buscar_comuns($conexao, $termo = '') {
     }
 }
 
+/**
+ * Conta quantos comuns correspondem ao termo informado.
+ * @param PDO $conexao
+ * @param string $termo
+ * @return int
+ */
+function contar_comuns($conexao, $termo = '') {
+    $termo = trim((string) $termo);
+    if ($termo === '') {
+        try {
+            $stmt = $conexao->query("SELECT COUNT(*) FROM comums");
+            return (int) $stmt->fetchColumn();
+        } catch (Exception $e) {
+            error_log('Erro ao contar comuns: ' . $e->getMessage());
+            return 0;
+        }
+    }
+
+    $like = '%' . $termo . '%';
+    $digits = preg_replace('/\D+/', '', $termo);
+    $likeDigits = $digits !== '' ? '%' . $digits . '%' : null;
+
+    try {
+        $conds = [
+            'CAST(codigo AS CHAR) LIKE ?',
+            'descricao LIKE ?',
+            'administracao LIKE ?',
+            'cidade LIKE ?',
+            'cnpj LIKE ?'
+        ];
+        $params = [$like, $like, $like, $like, $like];
+
+        if ($likeDigits !== null) {
+            $conds[] = "REPLACE(REPLACE(REPLACE(REPLACE(cnpj, '.', ''), '-', ''), '/', ''), ' ', '') LIKE ?";
+            $params[] = $likeDigits;
+            $conds[] = "CAST(codigo AS CHAR) LIKE ?";
+            $params[] = $likeDigits;
+        }
+
+        $sql = "SELECT COUNT(*) FROM comums WHERE " . implode(' OR ', $conds);
+        $stmt = $conexao->prepare($sql);
+        $stmt->execute($params);
+        return (int) $stmt->fetchColumn();
+    } catch (Exception $e) {
+        error_log("Erro ao contar comuns: " . $e->getMessage());
+        return 0;
+    }
+}
+
+/**
+ * Busca comuns com paginação (limit/offset) aplicando os mesmos critérios de busca.
+ * @param PDO $conexao
+ * @param string $termo
+ * @param int|null $limite
+ * @param int $offset
+ * @return array
+ */
+function buscar_comuns_paginated($conexao, $termo = '', $limite = null, $offset = 0) {
+    $termo = trim((string) $termo);
+    $like = '%' . $termo . '%';
+    $digits = preg_replace('/\D+/', '', $termo);
+    $likeDigits = $digits !== '' ? '%' . $digits . '%' : null;
+
+    try {
+        $conds = [
+            'CAST(codigo AS CHAR) LIKE ?',
+            'descricao LIKE ?',
+            'administracao LIKE ?',
+            'cidade LIKE ?',
+            'cnpj LIKE ?'
+        ];
+        $params = [$like, $like, $like, $like, $like];
+
+        if ($likeDigits !== null) {
+            $conds[] = "REPLACE(REPLACE(REPLACE(REPLACE(cnpj, '.', ''), '-', ''), '/', ''), ' ', '') LIKE ?";
+            $params[] = $likeDigits;
+            $conds[] = "CAST(codigo AS CHAR) LIKE ?";
+            $params[] = $likeDigits;
+        }
+
+        $sql = "SELECT id, codigo, cnpj, descricao, administracao, cidade, setor
+                FROM comums
+                WHERE " . implode(' OR ', $conds) . "
+                ORDER BY codigo ASC";
+
+        if ($limite !== null) {
+            $sql .= " LIMIT :limite OFFSET :offset";
+            $stmt = $conexao->prepare($sql);
+            // bind string params first
+            $i = 1;
+            foreach ($params as $p) {
+                $stmt->bindValue($i, $p);
+                $i++;
+            }
+            $stmt->bindValue(':limite', (int)$limite, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } else {
+            $stmt = $conexao->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+    } catch (Exception $e) {
+        error_log("Erro ao buscar comuns paginados: " . $e->getMessage());
+        return [];
+    }
+}
+
 ?>

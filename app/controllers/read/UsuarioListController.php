@@ -3,7 +3,7 @@
 require_once dirname(__DIR__, 2) . '/bootstrap.php';
 
 $pagina = isset($_GET['pagina']) ? max(1,(int)$_GET['pagina']) : 1;
-$limite = 20;
+$limite = 10;
 $offset = ($pagina - 1) * $limite;
 
 // Contagem total
