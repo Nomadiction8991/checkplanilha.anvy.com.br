@@ -8,6 +8,18 @@ require_once __DIR__ . '/../../app/functions/produto_parser.php';
 // Configuração do parser (formato, sinônimos, etc.)
 $pp_config = require __DIR__ . '/../../app/config/produto_parser_config.php';
 
+// Corrige possÇÚveis acentuaÇÉes quebradas (UTF-8/ISO-8859-1/Win-1252)
+function ip_corrige_encoding($texto) {
+    if ($texto === null) return '';
+    $texto = trim((string)$texto);
+    if ($texto === '') return '';
+    $enc = mb_detect_encoding($texto, ['UTF-8', 'ISO-8859-1', 'Windows-1252'], true);
+    if ($enc && $enc !== 'UTF-8') {
+        $texto = mb_convert_encoding($texto, 'UTF-8', $enc);
+    }
+    return $texto;
+}
+
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Symfony\Component\String\UnicodeString;
 
@@ -83,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($codigo_tmp !== '') { $registros_candidatos++; }
 
             if (isset($linha[$idx_dependencia])) {
-                $dep_raw = trim((string)$linha[$idx_dependencia]);
+                $dep_raw = ip_corrige_encoding($linha[$idx_dependencia]);
                 $dep_norm = pp_normaliza($dep_raw);
                 if ($dep_norm !== '' && !array_key_exists($dep_norm, $dependencias_unicas)) {
                     $dependencias_unicas[$dep_norm] = $dep_raw;
@@ -228,7 +240,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 $complemento_original = isset($linha[$idx_complemento]) ? trim((string)$linha[$idx_complemento]) : '';
-                $dependencia_original = isset($linha[$idx_dependencia]) ? trim((string)$linha[$idx_dependencia]) : '';
+                $dependencia_original = isset($linha[$idx_dependencia]) ? ip_corrige_encoding($linha[$idx_dependencia]) : '';
 
                 // Parsing avançado: detectar código, tipo de bem (por código ou nome), remover prefixos e extrair BEN e COMPLEMENTO
                 // Texto base para parsing: extrair BEN do complemento
