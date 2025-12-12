@@ -34,34 +34,35 @@ ob_start();
 <?php endif; ?>
 
 <!-- Filtros de Pesquisa -->
-<div class="card mb-3">
+<form method="get" class="card mb-3" aria-label="Formulário de busca">
     <div class="card-header">
         <i class="bi bi-search me-2"></i>Pesquisar
     </div>
     <div class="card-body">
+        <input type="hidden" name="pagina" value="1">
         <div class="mb-3">
             <label for="filtroNome" class="form-label">
                 <i class="bi bi-person me-1"></i>
                 Buscar por nome ou e-mail
             </label>
-            <input type="text" class="form-control" id="filtroNome">
+            <input type="text" class="form-control" id="filtroNome" name="busca" value="<?php echo htmlspecialchars($filtroNome ?? '', ENT_QUOTES, 'UTF-8'); ?>">
         </div>
         <div class="mb-2">
             <label for="filtroStatus" class="form-label">
                 <i class="bi bi-funnel me-1"></i>
                 Status
             </label>
-            <select class="form-select" id="filtroStatus">
-                <option value="">Todos</option>
-                <option value="1">Ativos</option>
-                <option value="0">Inativos</option>
+            <select class="form-select" id="filtroStatus" name="status">
+                <option value=""<?php echo ($filtroStatus === '') ? ' selected' : ''; ?>>Todos</option>
+                <option value="1"<?php echo ($filtroStatus === '1') ? ' selected' : ''; ?>>Ativos</option>
+                <option value="0"<?php echo ($filtroStatus === '0') ? ' selected' : ''; ?>>Inativos</option>
             </select>
         </div>
         <div class="mb-3">
-            <button type="button" id="btnBuscarUsuarios" class="btn btn-primary btn-lg w-100 mt-2">Buscar</button>
+            <button type="submit" id="btnBuscarUsuarios" class="btn btn-primary btn-lg w-100 mt-2">Buscar</button>
         </div>
     </div>
-</div>
+</form>
 
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
@@ -151,61 +152,6 @@ ob_start();
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Filtro de busca por nome (aplica apenas quando o usuário clica em Buscar)
-    var btnBuscar = document.getElementById('btnBuscarUsuarios');
-    if (btnBuscar) {
-        btnBuscar.addEventListener('click', aplicarFiltros);
-    }
-
-    // Permitir Enter no campo para acionar o botão Buscar
-    var filtroNomeEl = document.getElementById('filtroNome');
-    if (filtroNomeEl) {
-        filtroNomeEl.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                if (btnBuscar) btnBuscar.click();
-            }
-        });
-    }
-
-    function aplicarFiltros() {
-        const filtroNome = document.getElementById('filtroNome').value.toLowerCase();
-        const filtroStatus = document.getElementById('filtroStatus').value;
-        const linhas = document.querySelectorAll('#tabelaUsuarios tbody tr');
-        let totalVisiveis = 0;
-
-        linhas.forEach(linha => {
-            const nome = linha.getAttribute('data-nome');
-            const email = linha.getAttribute('data-email');
-            const status = linha.getAttribute('data-status');
-
-            let mostrarNome = true;
-            let mostrarStatus = true;
-
-            // Filtro por nome
-            if (filtroNome && !(nome.includes(filtroNome) || (email && email.includes(filtroNome)))) {
-                mostrarNome = false;
-            }
-
-            // Filtro por status
-            if (filtroStatus !== '' && status !== filtroStatus) {
-                mostrarStatus = false;
-            }
-
-            // Mostrar ou ocultar linha
-            if (mostrarNome && mostrarStatus) {
-                linha.style.display = '';
-                totalVisiveis++;
-            } else {
-                linha.style.display = 'none';
-            }
-        });
-
-        // Atualizar contador (se existir no layout)
-        const totalEl = document.getElementById('totalUsuarios');
-        if (totalEl) totalEl.textContent = totalVisiveis;
-    }
-
     window.excluirUsuario = function(id, nome) {
         if (!confirm('Tem certeza que deseja excluir o usuário "' + nome + '"?')) {
             return;
