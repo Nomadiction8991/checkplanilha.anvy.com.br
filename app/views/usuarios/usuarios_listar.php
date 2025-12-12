@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function aplicarFiltros() {
+        console.log('aplicarFiltros() called');
         const filtroNome = (document.getElementById('filtroNome') ? document.getElementById('filtroNome').value.toLowerCase() : '');
         const filtroStatus = (document.getElementById('filtroStatus') ? document.getElementById('filtroStatus').value : '');
         const linhas = document.querySelectorAll('#tabelaUsuarios tbody tr');
