@@ -156,7 +156,11 @@ ob_start();
                            value="<?php echo htmlspecialchars($buscaDisplay); ?>">
                 </div>
             </div>
-        <!-- Busca automática: botão removido para pesquisa em tempo real -->
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search me-2"></i>Buscar
+                </button>
+            </div>
         </form>
     </div>
     <div id="comumCount" class="card-footer text-muted small">
@@ -296,9 +300,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Live search with debounce and prevent form submit
+    // Search input (not used for live search now)
     var input = document.getElementById('busca');
-    if (!input) return;
     var timeout = null;
 
     function doSearch(q, page) {
@@ -335,32 +338,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
 
-    // Prevent the form from submitting with Enter and from default GET reloads
-    var form = input.closest('form');
-    if (form) {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            doSearch(input.value.trim());
-        });
-    }
-
-    // Debounced input
-    input.addEventListener('input', function() {
-        clearTimeout(timeout);
-        // reset to first page when typing
-        currentPage = 1;
-        timeout = setTimeout(function() { doSearch(input.value.trim(), currentPage); }, 300);
-    });
-
-    // If user presses Enter in the input, prevent default and trigger immediate search
-    input.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            clearTimeout(timeout);
-            currentPage = 1;
-            doSearch(input.value.trim(), currentPage);
-        }
-    });
+    // (No live search) the form will submit normally when the user clicks Buscar.
 
     // Pagination click handling (delegated)
     var pagination = document.getElementById('comumPagination');
@@ -371,7 +349,7 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             var page = parseInt(a.getAttribute('data-page'), 10) || 1;
             currentPage = page;
-            doSearch(input.value.trim(), currentPage);
+            doSearch(input ? input.value.trim() : '', currentPage);
         });
     }
 
