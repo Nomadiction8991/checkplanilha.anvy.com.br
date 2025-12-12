@@ -40,23 +40,26 @@ ob_start();
     </div>
     <div class="card-body">
         <div class="mb-3">
-            <label for="filtroNome" class="form-label">
-                <i class="bi bi-person me-1"></i>
-                Buscar por nome ou e-mail
-            </label>
-            <input type="text" class="form-control" id="filtroNome">
-        </div>
-        <div class="mb-2">
-            <label for="filtroStatus" class="form-label">
-                <i class="bi bi-funnel me-1"></i>
-                Status
-            </label>
-            <select class="form-select" id="filtroStatus">
-                <option value="">Todos</option>
-                <option value="1">Ativos</option>
-                <option value="0">Inativos</option>
-            </select>
-        </div>
+                <label for="filtroNome" class="form-label">
+                    <i class="bi bi-person me-1"></i>
+                    Buscar por nome ou e-mail
+                </label>
+                <input type="text" class="form-control" id="filtroNome">
+            </div>
+            <div class="mb-2">
+                <label for="filtroStatus" class="form-label">
+                    <i class="bi bi-funnel me-1"></i>
+                    Status
+                </label>
+                <select class="form-select" id="filtroStatus">
+                    <option value="">Todos</option>
+                    <option value="1">Ativos</option>
+                    <option value="0">Inativos</option>
+                </select>
+            </div>
+            <div class="mb-2">
+                <button type="button" id="btnBuscarUsuarios" class="btn btn-primary">Buscar</button>
+            </div>
     </div>
 </div>
 
@@ -147,9 +150,22 @@ ob_start();
 <?php endif; ?>
 
 <script>
-// Filtro de busca por nome
-document.getElementById('filtroNome').addEventListener('input', aplicarFiltros);
-document.getElementById('filtroStatus').addEventListener('change', aplicarFiltros);
+// Filtro de busca por nome (aplica apenas quando o usuário clica em Buscar)
+var btnBuscar = document.getElementById('btnBuscarUsuarios');
+if (btnBuscar) {
+    btnBuscar.addEventListener('click', aplicarFiltros);
+}
+
+// Permitir Enter no campo para acionar o botão Buscar
+var filtroNomeEl = document.getElementById('filtroNome');
+if (filtroNomeEl) {
+    filtroNomeEl.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (btnBuscar) btnBuscar.click();
+        }
+    });
+}
 
 function aplicarFiltros() {
     const filtroNome = document.getElementById('filtroNome').value.toLowerCase();
