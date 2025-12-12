@@ -32,6 +32,15 @@ $isSelf = ($loggedId === $idParam);
 $pageTitle = 'Visualizar UsuÃƒÂ¡rio';
 $backUrl = './usuarios_listar.php';
 
+function format_usuario_valor($valor)
+{
+    if ($valor === null || $valor === '') {
+        return '-';
+    }
+
+    return mb_strtoupper(htmlspecialchars($valor, ENT_QUOTES, 'UTF-8'), 'UTF-8');
+}
+
 ob_start();
 ?>
 
@@ -65,21 +74,21 @@ ob_start();
     </div>
     <div class="card-body">
         <div class="info-label">Nome Completo</div>
-        <div class="info-value"><?php echo htmlspecialchars($usuario['nome']); ?></div>
+        <div class="info-value"><?php echo format_usuario_valor($usuario['nome']); ?></div>
 
         <div class="row">
             <div class="col-md-6">
                 <div class="info-label">CPF</div>
-                <div class="info-value"><?php echo htmlspecialchars($usuario['cpf'] ?? '-'); ?></div>
+                <div class="info-value"><?php echo format_usuario_valor($usuario['cpf'] ?? ''); ?></div>
             </div>
             <div class="col-md-6">
                 <div class="info-label">RG</div>
                 <div class="info-value">
                     <?php 
                     if (!empty($usuario['rg_igual_cpf'])) {
-                        echo htmlspecialchars($usuario['cpf'] ?? '-') . ' <span class="badge bg-info">Igual ao CPF</span>';
+                        echo format_usuario_valor($usuario['cpf'] ?? '') . ' <span class="badge bg-info">IGUAL AO CPF</span>';
                     } else {
-                        echo htmlspecialchars($usuario['rg'] ?? '-');
+                        echo format_usuario_valor($usuario['rg'] ?? '');
                     }
                     ?>
                 </div>
@@ -87,47 +96,17 @@ ob_start();
         </div>
 
         <div class="info-label">Telefone</div>
-        <div class="info-value"><?php echo htmlspecialchars($usuario['telefone'] ?? '-'); ?></div>
+        <div class="info-value"><?php echo format_usuario_valor($usuario['telefone'] ?? ''); ?></div>
 
         <div class="info-label">Email</div>
-        <div class="info-value"><?php echo htmlspecialchars($usuario['email']); ?></div>
-
-        <div class="info-label">Tipo de UsuÃƒÂ¡rio</div>
-        <div class="info-value">
-            <span class="badge bg-<?php echo ($usuario['tipo'] ?? 'Administrador/Acessor') === 'Administrador/Acessor' ? 'primary' : 'success'; ?>">
-                <?php echo htmlspecialchars($usuario['tipo'] ?? 'Administrador/Acessor'); ?>
-            </span>
-        </div>
+        <div class="info-value"><?php echo format_usuario_valor($usuario['email']); ?></div>
 
         <div class="info-label">Status</div>
         <div class="info-value">
             <span class="badge bg-<?php echo $usuario['ativo'] ? 'success' : 'secondary'; ?>">
-                <?php echo $usuario['ativo'] ? 'Ativo' : 'Inativo'; ?>
+                <?php echo $usuario['ativo'] ? 'ATIVO' : 'INATIVO'; ?>
             </span>
         </div>
-    </div>
-</div>
-
-<!-- Card 2: Assinatura Digital -->
-<div class="card mb-3">
-    <div class="card-header">
-        <i class="bi bi-pen me-2"></i>
-        Assinatura Digital
-    </div>
-    <div class="card-body">
-        <?php if (!empty($usuario['assinatura'])): ?>
-            <div class="signature-preview-container">
-                <img src="<?php echo htmlspecialchars($usuario['assinatura']); ?>" 
-                     alt="Assinatura" 
-                     class="img-fluid" 
-                     style="border:1px solid #dee2e6; border-radius:0.375rem; max-width:100%; height:auto; background:#f8f9fa;">
-            </div>
-        <?php else: ?>
-            <p class="text-muted mb-0">
-                <i class="bi bi-info-circle me-1"></i>
-                Nenhuma assinatura cadastrada
-            </p>
-        <?php endif; ?>
     </div>
 </div>
 
@@ -140,9 +119,9 @@ ob_start();
     <div class="card-body">
         <div class="info-value">
             <?php if (!empty($usuario['casado'])): ?>
-                <span class="badge bg-success">Casado(a)</span>
+                <span class="badge bg-success">CASADO(A)</span>
             <?php else: ?>
-                <span class="badge bg-secondary">NÃƒÂ£o informado / Solteiro(a)</span>
+                <span class="badge bg-secondary">NÃO INFORMADO / SOLTEIRO(A)</span>
             <?php endif; ?>
         </div>
     </div>
@@ -157,21 +136,21 @@ ob_start();
     </div>
     <div class="card-body">
         <div class="info-label">Nome Completo do CÃƒÂ´njuge</div>
-        <div class="info-value"><?php echo htmlspecialchars($usuario['nome_conjuge'] ?? '-'); ?></div>
+        <div class="info-value"><?php echo format_usuario_valor($usuario['nome_conjuge'] ?? ''); ?></div>
 
         <div class="row">
             <div class="col-md-6">
                 <div class="info-label">CPF do CÃƒÂ´njuge</div>
-                <div class="info-value"><?php echo htmlspecialchars($usuario['cpf_conjuge'] ?? '-'); ?></div>
+                <div class="info-value"><?php echo format_usuario_valor($usuario['cpf_conjuge'] ?? ''); ?></div>
             </div>
             <div class="col-md-6">
                 <div class="info-label">RG do CÃƒÂ´njuge</div>
                 <div class="info-value">
                     <?php 
                     if (!empty($usuario['rg_conjuge_igual_cpf'])) {
-                        echo htmlspecialchars($usuario['cpf_conjuge'] ?? '-') . ' <span class="badge bg-info">Igual ao CPF</span>';
+                        echo format_usuario_valor($usuario['cpf_conjuge'] ?? '') . ' <span class="badge bg-info">IGUAL AO CPF</span>';
                     } else {
-                        echo htmlspecialchars($usuario['rg_conjuge'] ?? '-');
+                        echo format_usuario_valor($usuario['rg_conjuge'] ?? '');
                     }
                     ?>
                 </div>
@@ -179,23 +158,9 @@ ob_start();
         </div>
 
         <div class="info-label">Telefone do CÃƒÂ´njuge</div>
-        <div class="info-value"><?php echo htmlspecialchars($usuario['telefone_conjuge'] ?? '-'); ?></div>
+        <div class="info-value"><?php echo format_usuario_valor($usuario['telefone_conjuge'] ?? ''); ?></div>
 
         <hr>
-        <div class="info-label">Assinatura Digital do CÃƒÂ´njuge</div>
-        <?php if (!empty($usuario['assinatura_conjuge'])): ?>
-            <div class="signature-preview-container">
-                <img src="<?php echo htmlspecialchars($usuario['assinatura_conjuge']); ?>" 
-                     alt="Assinatura do CÃƒÂ´njuge" 
-                     class="img-fluid" 
-                     style="border:1px solid #dee2e6; border-radius:0.375rem; max-width:100%; height:auto; background:#f8f9fa;">
-            </div>
-        <?php else: ?>
-            <p class="text-muted mb-0">
-                <i class="bi bi-info-circle me-1"></i>
-                Nenhuma assinatura cadastrada
-            </p>
-        <?php endif; ?>
     </div>
 </div>
 <?php endif; ?>
@@ -210,38 +175,38 @@ ob_start();
         <div class="row">
             <div class="col-md-3">
                 <div class="info-label">CEP</div>
-                <div class="info-value"><?php echo htmlspecialchars($usuario['endereco_cep'] ?? '-'); ?></div>
+                <div class="info-value"><?php echo format_usuario_valor($usuario['endereco_cep'] ?? ''); ?></div>
             </div>
             <div class="col-md-9">
                 <div class="info-label">Logradouro</div>
-                <div class="info-value"><?php echo htmlspecialchars($usuario['endereco_logradouro'] ?? '-'); ?></div>
+                <div class="info-value"><?php echo format_usuario_valor($usuario['endereco_logradouro'] ?? ''); ?></div>
             </div>
         </div>
 
         <div class="row">
             <div class="col-md-3">
                 <div class="info-label">NÃƒÂºmero</div>
-                <div class="info-value"><?php echo htmlspecialchars($usuario['endereco_numero'] ?? '-'); ?></div>
+                <div class="info-value"><?php echo format_usuario_valor($usuario['endereco_numero'] ?? ''); ?></div>
             </div>
             <div class="col-md-9">
                 <div class="info-label">Complemento</div>
-                <div class="info-value"><?php echo htmlspecialchars($usuario['endereco_complemento'] ?? '-'); ?></div>
+                <div class="info-value"><?php echo format_usuario_valor($usuario['endereco_complemento'] ?? ''); ?></div>
             </div>
         </div>
 
         <div class="row">
             <div class="col-md-6">
                 <div class="info-label">Bairro</div>
-                <div class="info-value"><?php echo htmlspecialchars($usuario['endereco_bairro'] ?? '-'); ?></div>
+                <div class="info-value"><?php echo format_usuario_valor($usuario['endereco_bairro'] ?? ''); ?></div>
             </div>
             <div class="col-md-6">
                 <div class="info-label">Cidade</div>
-                <div class="info-value"><?php echo htmlspecialchars($usuario['endereco_cidade'] ?? '-'); ?></div>
+                <div class="info-value"><?php echo format_usuario_valor($usuario['endereco_cidade'] ?? ''); ?></div>
             </div>
         </div>
 
         <div class="info-label">Estado</div>
-        <div class="info-value"><?php echo htmlspecialchars($usuario['endereco_estado'] ?? '-'); ?></div>
+        <div class="info-value"><?php echo format_usuario_valor($usuario['endereco_estado'] ?? ''); ?></div>
     </div>
 </div>
 
