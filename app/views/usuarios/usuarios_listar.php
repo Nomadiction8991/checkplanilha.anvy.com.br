@@ -57,8 +57,8 @@ ob_start();
                     <option value="0">Inativos</option>
                 </select>
             </div>
-            <div class="mb-2">
-                <button type="button" id="btnBuscarUsuarios" class="btn btn-primary">Buscar</button>
+            <div class="mb-3">
+                <button type="button" id="btnBuscarUsuarios" class="btn btn-primary btn-lg w-100 mt-2">Buscar</button>
             </div>
     </div>
 </div>
